@@ -130,6 +130,9 @@ AUTH_USER_MODEL = 'core.CustomUser'  # Make sure 'core' is your user model app n
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Optional: for collectstatic (production)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticfilesStorage'
+
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # Media files (e.g. uploaded CVs)
 MEDIA_URL = '/media/'
