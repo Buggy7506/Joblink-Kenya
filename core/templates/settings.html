@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Settings - JobLink Kenya{% endblock %}
+
+{% block content %}
+<style>
+    .settings-section {
+        min-height: 100vh;
+        background: linear-gradient(to bottom right, #000000, #1f2937, #111827);
+        color: white;
+        padding: 2.5rem 1rem;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .settings-container {
+        max-width: 700px;
+        margin: auto;
+        background: linear-gradient(to top right, #1f2937, #111827);
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .settings-container h1 {
+        font-size: 2rem;
+        text-align: center;
+        color: #3b82f6;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 0 5px #3b82f6;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        display: block;
+        font-size: 0.9rem;
+        color: #cbd5e1;
+        margin-bottom: 0.5rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="file"] {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #374151;
+        border: 1px solid #4b5563;
+        border-radius: 0.75rem;
+        color: #e5e7eb;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 8px #3b82f6;
+    }
+
+    input[type="file"]::file-selector-button {
+        background-color: #3b82f6;
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+        background-color: #2563eb;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        color: white;
+        font-weight: bold;
+        padding: 1rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        box-shadow: 0 0 12px #3b82f6;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .submit-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px #60a5fa;
+    }
+</style>
+
+<section class="settings-section">
+    <div class="settings-container">
+        <h1>⚙️ Account Settings</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" value="{{ user.get_full_name }}">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ user.email }}">
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" name="phone" value="{{ profile.phone }}">
+            </div>
+
+            <div class="form-group">
+                <label>Upload New Profile Picture</label>
+                <input type="file" name="profile_image">
+            </div>
+
+            <div class="form-group">
+                <label>Change Password</label>
+                <input type="password" name="new_password" placeholder="Leave blank to keep current">
+            </div>
+
+            <button type="submit" class="submit-btn">💾 Save Changes</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

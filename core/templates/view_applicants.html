@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}View Applicants{% endblock %}
+{% block content %}
+  <style>
+    body {
+      background: #0f2027;
+      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+    .applicant {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px lime;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h2>👥 View Applicants</h2>
+  {% for applicant in applicants %}
+    <div class="applicant">
+      <p><strong>Name:</strong> {{ user.username }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Applied For:</strong> {{ applicant.job.title }}</p>
+      {% if user_cv %}
+      <p><a href="{{ user_cv.cv.url }}" style="color: #34d399;" target="_blank">📄 View CV</a></p>
+      {% else %}
+          <span style="color: #f87171;">No CV uploaded yet</span>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No applicants yet.</p>
+  {% endfor %}
+</body>
+{% endblock %}

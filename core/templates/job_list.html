@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background-color: #0e0e2c;
+    font-family: Arial, sans-serif;
+  }
+
+  .container {
+    margin-top: 40px;
+    padding: 20px;
+    color: #fff;
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: #00e6e6;
+    border-bottom: 2px solid #00e6e6;
+    padding-bottom: 6px;
+  }
+
+  .premium-job, .normal-job {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.1);
+    border-left: 5px solid;
+  }
+
+  .premium-job {
+    background: linear-gradient(to right, #6a00ff, #4b0082);
+    border-color: gold;
+  }
+
+  .normal-job {
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    border-color: #00e6e6;
+  }
+
+  .job-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #ffcc00;
+  }
+
+  .normal-job .job-title {
+    color: #00e6e6;
+  }
+
+  .job-meta {
+    font-size: 14px;
+    margin: 2px 0;
+    color: #ddd;
+  }
+
+  .apply-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #00e6e6;
+    text-decoration: none;
+    border-bottom: 1px dashed #00e6e6;
+  }
+
+  .apply-link:hover {
+    color: #fff;
+    border-color: #fff;
+  }
+
+  .premium-badge {
+    background-color: gold;
+    color: #000;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+
+  .no-jobs {
+    color: #aaa;
+    font-style: italic;
+  }
+</style>
+
+<div class="container">
+  <h2>🌟 Featured Jobs</h2>
+  {% for job in premium_jobs %}
+    <div class="premium-job">
+      <div class="job-title">{{ job.title }} <span class="premium-badge">Premium</span></div>
+      <p class="job-meta">Company: {{ job.company }}</p>
+      <p class="job-meta">Location: {{ job.location }}</p>
+      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+    </div>
+  {% empty %}
+    <p class="no-jobs">No premium jobs at the moment.</p>
+  {% endfor %}
+
+  <h2>💼 All Jobs</h2>
+  {% for job in jobs %}
+    <div class="normal-job">
+      <div class="job-title">{{ job.title }}</div>
+      <p class="job-meta">Company: {{ job.company_name }}</p>
+      <p class="job-meta">Location: {{ job.location }}</p>
+      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+    </div>
+  {% empty %}
+    <p class="no-jobs">No jobs found at the moment.</p>
+  {% endfor %}
+</div>
+{% endblock %}

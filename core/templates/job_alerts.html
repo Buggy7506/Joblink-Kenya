@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Job Alerts - JobLink Kenya{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(to bottom, #111827, #000);
+        color: white;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 30px;
+        color: #38bdf8;
+    }
+    form {
+        background: linear-gradient(to bottom right, #1f2937, #0f172a);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.4);
+        margin-bottom: 40px;
+    }
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-weight: bold;
+    }
+    input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        background-color: #374151;
+        color: white;
+        margin-bottom: 20px;
+    }
+    input[type="text"]:focus {
+        outline: 2px solid #3b82f6;
+        background-color: #1e293b;
+    }
+    .submit-btn {
+        background-color: #2563eb;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        float: right;
+    }
+    .submit-btn:hover {
+        background-color: #1d4ed8;
+    }
+    .alert-list {
+        list-style: none;
+        padding: 0;
+    }
+    .alert-item {
+        background-color: #1e293b;
+        border-left: 4px solid #3b82f6;
+        padding: 16px;
+        margin-bottom: 16px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .alert-item h3 {
+        margin: 0;
+        color: #60a5fa;
+    }
+    .alert-item p {
+        margin: 4px 0 0;
+        color: #94a3b8;
+    }
+    .delete-link {
+        color: #f87171;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .delete-link:hover {
+        color: #ef4444;
+    }
+    .no-alerts {
+        text-align: center;
+        color: #64748b;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="container">
+    <h1>🚨 Job Alerts</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <label>Preferred Job Title</label>
+        <input type="text" name="job_title" placeholder="e.g., Software Developer">
+
+        <label>Preferred Location</label>
+        <input type="text" name="location" placeholder="e.g., Nairobi">
+
+        <button type="submit" class="submit-btn">Set Alert</button>
+        <div style="clear: both;"></div>
+    </form>
+
+    <h2 style="margin-bottom: 16px; color: #cbd5e1;">Your Alerts</h2>
+    <ul class="alert-list">
+        {% for alert in alerts %}
+            <li class="alert-item">
+                <div>
+                    <h3>{{ alert.job_title }}</h3>
+                    <p>Location: {{ alert.location }}</p>
+                </div>
+                <a href="{% url 'delete_alert' alert.id  %}" class="btn btn-danger">Delete</a>
+            </li>
+        {% empty %}
+            <li class="no-alerts">You haven't set any job alerts yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

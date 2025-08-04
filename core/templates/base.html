@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JobLink Kenya - {% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"><!-- AOS animation -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<!-- Font Awesome -->
+<script src="https://kit.fontawesome.com/a2c5a4f60f.js" crossorigin="anonymous"></script>
+
+<!-- Custom Styles -->
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to right, #0f172a, #1e293b);
+        color: #e0f7fa;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .glow {
+        text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #0ff;
+    }
+
+    .glow-border {
+        border: 2px solid transparent;
+        border-image: linear-gradient(45deg, #00f0ff, #0ea5e9);
+        border-image-slice: 1;
+    }
+
+    .nav-bg {
+        background-color: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(6px);
+    }
+
+    .hover-glow:hover {
+        color: #0ff;
+        text-shadow: 0 0 6px #00f0ff;
+    }
+
+    .glow-btn {
+        background: linear-gradient(45deg, #06b6d4, #0ea5e9);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        text-shadow: 0 0 3px #0ff;
+        box-shadow: 0 0 10px #0ff;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .glow-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #00ffff;
+    }
+
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    nav a {
+        margin: 0 1rem;
+        font-weight: bold;
+    }
+
+    .main {
+        flex-grow: 1;
+        padding: 2rem 0;
+    }
+
+    .footer {
+        background: linear-gradient(to right, #0f172a, #1e293b);
+        padding: 1rem 0;
+        text-align: center;
+        color: #ccc;
+    }
+
+    .mobile-menu {
+        display: none;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 768px) {
+        .desktop-nav {
+            display: none;
+        }
+
+        .mobile-menu {
+            display: flex;
+        }
+
+
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+    }
+
+</style>
+
+</head>
+<body>
+    {% if messages %}
+  <div class="fixed top-5 right-5 z-50 space-y-2">
+    {% for message in messages %}
+      <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+    <!-- Navbar -->
+    <header class="nav-bg">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 class="glow" style="font-size: 2rem; font-weight: bold;">
+                <a href="{% url 'home' %}">JobLink <span style="color: #22d3ee;">Kenya</span></a>
+            </h1><!-- Desktop Nav -->
+        <nav class="desktop-nav">
+            <a href="{% url 'home' %}" class="hover-glow">Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+                {% if request.user.profile.is_employer %}
+                    <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+                {% else %}
+                    <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+                {% endif %}
+                <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
+                <a href="{% url 'logout' %}" class="hover-glow" style="color: #f87171;">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="hover-glow" style="color: #4ade80;">Login</a>
+                <a href="{% url 'signup' %}" class="hover-glow" style="color: #4ade80;">Sign Up</a>
+            {% endif %}
+        </nav>
+
+        <!-- Mobile Toggle -->
+        <div class="mobile-toggle">
+            <button id="menuToggle" style="font-size: 1.5rem; color: white;"><i class="fas fa-bars"></i></button>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu" style="display: none;">
+        <a href="{% url 'home' %}" class="hover-glow">Home</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            {% if request.user.profile.is_employer %}
+            <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+            {% else %}
+            <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+            {% endif %}
+            <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
+            <a href="{% url 'logout' %}" class="hover-glow" style="color: #f87171;">Logout</a>
+            
+        {% else %}
+            <a href="{% url 'login' %}" class="hover-glow" style="color: #4ade80;">Login</a>
+            <a href="{% url 'signup' %}" class="hover-glow" style="color: #4ade80;">Sign Up</a>
+        {% endif %}
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="main container" data-aos="fade-up">
+    {% block content %}
+    {% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer glow-border">
+    <p>&copy; 2025 <span style="color: #22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
+</footer>
+
+<!-- Scripts -->
+<script>
+    AOS.init();
+    const toggle = document.getElementById('menuToggle');
+    const menu = document.getElementById('mobileMenu');
+    toggle.addEventListener('click', () => {
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'flex';
+        } else {
+            menu.style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>

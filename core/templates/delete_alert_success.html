@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Alert Deleted</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    .msg {
+      background: #111;
+      padding: 30px;
+      border: 2px solid #0f0;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #0f0;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="msg">
+    <h1>🗑️ Alert Deleted Successfully!</h1>
+    <a href="{% url 'job_alerts' %}" style="color:#0f0;">← Back to Alerts</a>
+  </div>
+</body>
+</html>

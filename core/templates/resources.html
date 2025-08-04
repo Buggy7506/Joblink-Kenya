@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="resources-container">
+    <h2 class="glow">Helpful Career Resources</h2>
+    <ul class="resource-list">
+      <li><a href="https://fuzu.com" target="_blank">Fuzu - Job Board</a></li>
+      <li><a href="https://brightermonday.co.ke" target="_blank">BrighterMonday Kenya</a></li>
+      <li><a href="https://careers360.com" target="_blank">Careers360 - Career Guidance</a></li>
+      <li><a href="https://linkedin.com/learning" target="_blank">LinkedIn Learning</a></li>
+    </ul>
+  </div>
+
+  <style>
+    .resources-container {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 30px;
+      background-color: #0f172a;
+      border-radius: 20px;
+      box-shadow: 0 0 15px #38bdf8;
+      text-align: center;
+      color: white;
+    }
+
+    .glow {
+      font-size: 2rem;
+      color: #38bdf8;
+      text-shadow: 0 0 10px #38bdf8;
+      margin-bottom: 25px;
+    }
+
+    .resource-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .resource-list li {
+      background-color: #1e293b;
+      margin: 12px 0;
+      padding: 15px;
+      border-radius: 10px;
+      transition: 0.3s ease;
+      box-shadow: 0 0 8px #3b82f6;
+    }
+
+    .resource-list li:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px #38bdf8;
+    }
+
+    .resource-list a {
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .resource-list a:hover {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+  </style>
+{% endblock %}

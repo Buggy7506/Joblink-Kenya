@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Employer Control Panel - JobLink Kenya{% endblock %}
+{% block content %}
+<div class="employer-dashboard">
+  <h2 class="glow-header">🏢 Employer Control Panel</h2>
+
+  <div class="dashboard-actions">
+    <a href="{% url 'post_job' %}" class="btn-glow">➕ Post a New Job</a>
+    <a href="{% url 'view_posted_jobs' %}" class="btn-glow">📄 My Posted Jobs</a>
+    <a href="{% url 'view_applicants' %}" class="btn-glow">👥 View Applicants</a>
+  </div>
+
+  <div class="summary-boxes">
+    <div class="card glow-card">
+      <h3>Jobs Posted</h3>
+      <p>{{ posted_jobs_count }}</p>
+    </div>
+    <div class="card glow-card">
+      <h3>Applicants</h3>
+      <p>{{ applicants_count }}</p>
+    </div>
+    <div class="card glow-card">
+      <h3>Active Jobs</h3>
+      <p>{{ active_jobs }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.employer-dashboard {
+  padding: 30px;
+  background: linear-gradient(to right, #232526, #414345);
+  border-radius: 20px;
+  color: white;
+  text-align: center;
+}
+.glow-header {
+  font-size: 2.2rem;
+  color: #ffb347;
+  text-shadow: 0 0 5px #ffb347, 0 0 15px #ffb347;
+  margin-bottom: 30px;
+}
+.dashboard-actions {
+  margin-bottom: 25px;
+}
+.dashboard-actions a {
+  margin: 10px;
+}
+.btn-glow {
+  padding: 12px 20px;
+  background-color: #ffb347;
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 25px;
+  box-shadow: 0 0 10px #ffb347, 0 0 20px #ffb347;
+  transition: transform 0.2s ease-in-out;
+}
+.btn-glow:hover {
+  transform: scale(1.05);
+}
+.summary-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+.glow-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(255, 180, 71, 0.4);
+}
+</style>
+{% endblock %}

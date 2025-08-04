@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}My Posted Jobs - JobLink Kenya{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h2 class="glow-header text-center">📄 My Posted Jobs</h2>
+
+    {% for job in jobs %}
+      <div class="job-card glow-card">
+        <h3 class="glow-text">{{ job.title }}</h3>
+        <p>{{ job.description|truncatewords:30 }}</p>
+        <p><strong>Posted on:</strong> {{ job.posted_on }}</p>
+
+        <!-- Delete Button Form -->
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="job_id" value="{{ job.id }}">
+          <button type="submit" class="btn-glow">❌ Delete Job</button>
+        </form>
+      </div>
+    {% empty %}
+      <p class="text-center text-white">No jobs posted yet.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
+
+{% block extra_css %}
+  <style>
+    /* Glowing Header */
+    .glow-header {
+      font-size: 2.5rem;
+      color: #ffb347;
+      text-shadow: 0 0 10px #ffb347, 0 0 20px #ffb347, 0 0 30px #ffb347;
+      margin-bottom: 30px;
+    }
+
+    /* Glowing Job Card */
+    .job-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(255, 180, 71, 0.6);
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .job-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(255, 180, 71, 1);
+    }
+
+    /* Glowing Text */
+    .glow-text {
+      color: #ffb347;
+      text-shadow: 0 0 5px #ffb347, 0 0 10px #ffb347, 0 0 20px #ffb347;
+    }
+
+    /* Glowing Delete Button */
+    .btn-glow {
+      padding: 10px 20px;
+      background-color: #ff4b5c;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 0 10px rgba(255, 75, 92, 0.7), 0 0 20px rgba(255, 75, 92, 0.7);
+      transition: all 0.3s ease;
+    }
+
+    .btn-glow:hover {
+      background-color: #ff2a39;
+      box-shadow: 0 0 25px rgba(255, 42, 57, 1);
+      transform: scale(1.05);
+    }
+  </style>
+{% endblock %}

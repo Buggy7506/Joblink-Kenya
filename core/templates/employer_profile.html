@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Employer Profile{% endblock %}
+{% block content %}
+  <style>
+    body {
+      background: #1a1a2e;
+      background: linear-gradient(to right, #16222A, #3A6073);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+    }
+    .profile-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 15px cyan;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    p {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-box">
+    <h2>⚙️ My Profile</h2>
+    <p><strong>Username:</strong> {{ request.user.username }}</p>
+    <p><strong>Email:</strong> {{ request.user.email }}</p>
+    <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
+  </div>
+</body>
+{% endblock %}

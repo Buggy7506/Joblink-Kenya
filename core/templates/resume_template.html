@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ resume.full_name }} - Resume</title>
+  <style>
+    body {
+      margin: 40px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #0f172a, #1e293b);
+      color: #f1f5f9;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #38bdf8;
+      text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9;
+    }
+
+    p, li {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-top: 30px;
+      color: #a5f3fc;
+      border-bottom: 2px solid #38bdf8;
+      padding-bottom: 6px;
+      text-shadow: 0 0 3px #67e8f9;
+    }
+
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+
+    section {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+      transition: 0.3s;
+    }
+
+    section:hover {
+      box-shadow: 0 0 15px #0ea5e9, 0 0 30px rgba(14, 165, 233, 0.5);
+    }
+
+    hr {
+      border: 1px solid #38bdf8;
+      margin: 30px 0;
+    }
+
+    .contact {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-top: -10px;
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        margin: 20px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      section {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>{{ resume.full_name }}</h1>
+  <p class="contact">📧 {{ resume.email }} | 📞 {{ resume.phone }} | 📍 {{ resume.address }}</p>
+  <hr>
+
+  <section>
+    <h2>✨ Summary</h2>
+    <p>{{ resume.summary }}</p>
+  </section>
+
+  <section>
+    <h2>🎓 Education</h2>
+    <ul>
+      {% for edu in resume.education %}
+        <li>{{ edu }}</li>
+      {% empty %}
+        <li>No education information available.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section>
+    <h2>💼 Experience</h2>
+    <ul>
+      {% for job in resume.experience %}
+        <li>{{ job }}</li>
+      {% empty %}
+        <li>No experience listed.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section>
+    <h2>🛠 Skills</h2>
+    <ul>
+      {% for skill in resume.skills %}
+        <li>{{ skill }}</li>
+      {% empty %}
+        <li>No skills added.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</body>
+</html>

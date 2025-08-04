@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Personalized Job Suggestions - JobLink Kenya{% endblock %}
+{% block content %}
+<div class="suggestions-container">
+  <h2 class="glow-header">🎯 Job Suggestions Just for You</h2>
+
+  {% if suggested_jobs %}
+    <div class="job-grid">
+      {% for job in suggested_jobs %}
+        <div class="job-card glow-card">
+          <h3>{{ job.title }}</h3>
+          <p><strong>Company:</strong> {{ job.company_name }}</p>
+          <p><strong>Location:</strong> {{ job.location }}</p>
+          <p>{{ job.description|truncatechars:120 }}</p>
+          <a href="{% url 'job_detail' job.id %}" class="btn-glow-small">View Job</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="no-results">🚫 No suggestions found. Update your profile or check back later.</p>
+  {% endif %}
+</div>
+<style>
+.suggestions-container {
+  padding: 30px;
+  color: #fff;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  border-radius: 20px;
+}
+.glow-header {
+  font-size: 2.2rem;
+  text-align: center;
+  color: #00ffd5;
+  text-shadow: 0 0 8px #00ffd5, 0 0 16px #00ffd5;
+  margin-bottom: 30px;
+}
+.job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.glow-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(3px);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 255, 213, 0.3);
+}
+.btn-glow-small {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #00ffd5;
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 20px;
+  box-shadow: 0 0 5px #00ffd5, 0 0 10px #00ffd5;
+}
+.no-results {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ddd;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Notifications - JobLink Kenya{% endblock %}
+
+{% block content %}
+<style>
+  .notifications-section {
+    background: linear-gradient(to bottom right, #000000, #1a1a1a);
+    color: white;
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .notifications-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #38bdf8;
+  }
+
+  .notification-card {
+    background: linear-gradient(to bottom right, #1e293b, #1f2937);
+    border-left: 5px solid #3b82f6;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 0.3s ease-in-out;
+  }
+
+  .notification-card:hover {
+    box-shadow: 0 8px 20px rgba(0, 255, 255, 0.2);
+  }
+
+  .notification-title {
+    color: #60a5fa;
+    font-weight: 600;
+    font-size: 1.125rem;
+  }
+
+  .notification-msg {
+    margin-top: 0.25rem;
+    color: #cbd5e1;
+    font-size: 0.875rem;
+  }
+
+  .notification-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+  }
+
+  .no-notifications {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 1.125rem;
+    margin-top: 2rem;
+  }
+</style>
+
+<section class="notifications-section">
+  <h1 class="notifications-title">🔔 Notifications</h1>
+
+  {% if notifications %}
+    <ul class="space-y-6 max-w-4xl mx-auto">
+      {% for note in notifications %}
+        <li class="notification-card">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="notification-title">{{ note.title }}</h3>
+              <p class="notification-msg">{{ note.message }}</p>
+            </div>
+            <span class="notification-time">{{ note.timestamp|timesince }} ago</span>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="no-notifications">You have no new notifications.</p>
+  {% endif %}
+</section>
+{% endblock %}

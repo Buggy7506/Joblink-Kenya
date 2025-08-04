@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - JobLink Kenya{% endblock %}
+
+{% block content %}
+<section class="min-h-screen bg-black text-white px-6 py-10">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-6 text-center text-blue-500">🧑‍💼 Admin Dashboard</h1>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-gradient-to-tr from-blue-700 to-blue-500 p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold">👥 Users</h2>
+                <p class="text-4xl mt-2">{{ total_users }}</p>
+            </div>
+            <div class="bg-gradient-to-tr from-green-700 to-green-500 p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold">📄 Jobs</h2>
+                <p class="text-4xl mt-2">{{ total_jobs }}</p>
+            </div>
+            <div class="bg-gradient-to-tr from-yellow-700 to-yellow-500 p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold">📢 Alerts</h2>
+                <p class="text-4xl mt-2">{{ total_alerts }}</p>
+            </div>
+            <div class="bg-gradient-to-tr from-red-700 to-red-500 p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold">📈 Reports</h2>
+                <p class="text-4xl mt-2">{{ total_reports }}</p>
+            </div>
+        </div>
+
+        <div class="bg-gray-900 rounded-xl p-6 shadow-xl">
+            <h3 class="text-xl font-bold mb-4 text-blue-400">🔎 Recent Users</h3>
+            <table class="w-full text-left text-sm text-gray-400">
+                <thead class="text-gray-300 border-b border-gray-700">
+                    <tr>
+                        <th class="py-2">Username</th>
+                        <th class="py-2">Email</th>
+                        <th class="py-2">Date Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr class="border-b border-gray-800 hover:bg-gray-800">
+                        <td class="py-2">{{ user.username }}</td>
+                        <td class="py-2">{{ user.email }}</td>
+                        <td class="py-2">{{ user.date_joined|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - JobLink Kenya{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+  <h2 class="glow-text">👨‍💼 Admin Dashboard</h2>
+
+  <div class="grid-cards">
+    <div class="card glow-card">
+      <h3>Total Job Seekers</h3>
+      <p>{{ jobseeker_count }}</p>
+    </div>
+    <div class="card glow-card">
+      <h3>Total Employers</h3>
+      <p>{{ employer_count }}</p>
+    </div>
+    <div class="card glow-card">
+      <h3>Jobs Posted</h3>
+      <p>{{ job_count }}</p>
+    </div>
+    <div class="card glow-card">
+      <h3>Applications</h3>
+      <p>{{ application_count }}</p>
+    </div>
+  </div>
+
+  <div class="action-links">
+    <a href="{% url 'view_users' %}" class="btn-glow">Manage Users</a>
+    <a href="{% url 'view_jobs_admin' %}" class="btn-glow">Manage Jobs</a>
+    <a href="{% url 'view_employers' %}" class="btn-glow">View Employers</a>
+    <a href="{% url 'admin_feedback' %}" class="btn-glow">User Feedback</a>
+  </div>
+</div>
+
+<style>
+.dashboard-container {
+  padding: 30px;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  border-radius: 20px;
+  color: white;
+  text-align: center;
+}
+.glow-text {
+  font-size: 2.5rem;
+  color: #00ffe7;
+  text-shadow: 0 0 5px #00ffe7, 0 0 10px #00ffe7;
+  margin-bottom: 30px;
+}
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 15px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+.btn-glow {
+  display: inline-block;
+  margin: 10px;
+  padding: 12px 25px;
+  background-color: #00ffe7;
+  color: black;
+  font-weight: bold;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 0 10px #00ffe7, 0 0 20px #00ffe7;
+  transition: transform 0.2s;
+}
+.btn-glow:hover {
+  transform: scale(1.05);
+}
+</style>
+{% endblock %}

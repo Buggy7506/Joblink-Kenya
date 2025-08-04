@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Application Status{% endblock %}
+
+{% block content %}
+  <style>
+    .apply-status-container {
+      background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .status-box {
+      background: rgba(30, 30, 30, 0.9);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(128, 0, 255, 0.6);
+      border: 1px solid #8000ff;
+      animation: fadeIn 1s ease;
+    }
+
+    .status-box h1 {
+      margin-bottom: 20px;
+      color: #a855f7;
+      font-size: 36px;
+      text-shadow: 0 0 10px #a855f7;
+    }
+
+    .status-box p {
+      font-size: 20px;
+      color: #c084fc;
+      margin-bottom: 20px;
+    }
+
+    .btn-glow {
+      display: inline-block;
+      padding: 12px 30px;
+      background: #9333ea;
+      color: white;
+      border-radius: 30px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 0 12px #9333ea;
+      transition: 0.3s;
+    }
+
+    .btn-glow:hover {
+      background: #7e22ce;
+      box-shadow: 0 0 20px #a855f7;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
+  <div class="apply-status-container">
+    <div class="status-box">
+      {% if success %}
+        <h1>✅ Application Successful!</h1>
+        <p>You have successfully applied for the job: <strong>{{ job.title }}</strong></p>
+        <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
+      {% else %}
+        <h1>❌ Already Applied!</h1>
+        <p>You have already applied for this job: <strong>{{ job.title }}</strong></p>
+        <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

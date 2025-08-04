@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirm Alert Deletion</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: linear-gradient(135deg, #1a1a1a, #000);
+      border: 2px solid #ff3c3c;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #ff4c4c;
+      text-shadow: 0 0 10px #ff4c4c;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 15px;
+      color: #ddd;
+      margin-bottom: 30px;
+    }
+
+    .alert-title {
+      color: #ffd700;
+      font-weight: bold;
+      text-shadow: 0 0 5px #ffd700;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s ease-in-out;
+    }
+
+    .btn-delete {
+      background: #ff1a1a;
+      color: white;
+      box-shadow: 0 0 15px #ff1a1a;
+    }
+
+    .btn-delete:hover {
+      background: #cc0000;
+      box-shadow: 0 0 25px #ff1a1a;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: #00ffcc;
+      text-decoration: underline;
+      border: none;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    .btn-cancel:hover {
+      color: #00ffee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>⚠️ Confirm Delete</h2>
+    <p>
+      Are you sure you want to delete the job alert ?
+      <br>This action cannot be undone.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-delete">Yes, Delete</button>
+      <a href="{% url 'job_alerts' %}" class="btn btn-cancel">No, take me back</a>
+    </form>
+  </div>
+</body>
+</html>

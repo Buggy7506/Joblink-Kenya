@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard | JobLink Kenya{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <div class="dashboard-container">
+    <h1 class="dashboard-title">Welcome to Your Dashboard</h1>
+
+    <div class="dashboard-grid">
+      <!-- Post Job -->
+      <a href="{% url 'post_job' %}" class="dashboard-card cyan-glow">
+        <h2>Post a Job</h2>
+        <p>Share new opportunities with qualified Kenyan youth.</p>
+      </a>
+
+      <!-- Upload CV -->
+      <a href="{% url 'upload_cv' %}" class="dashboard-card pink-glow">
+        <h2>Upload CV</h2>
+        <p>Let recruiters find and connect with you directly.</p>
+      </a>
+
+      <!-- View Suggested Jobs -->
+      <a href="{% url 'suggested_jobs' %}" class="dashboard-card lime-glow">
+        <h2>Job Suggestions</h2>
+        <p>AI-matched jobs based on your CV and interests.</p>
+      </a>
+
+      <!-- Access Resources -->
+      <a href="{% url 'resources' %}" class="dashboard-card yellow-glow">
+        <h2>Career Resources</h2>
+        <p>Guides, templates, and training materials to support your journey.</p>
+      </a>
+
+      <!-- View Applied Jobs -->
+      <a href="{% url 'applied_jobs' %}" class="dashboard-card indigo-glow">
+        <h2>Applied Jobs</h2>
+        <p>Track jobs you've applied for in one place.</p>
+      </a>
+
+      <!-- Notifications -->
+      <a href="{% url 'notifications' %}" class="dashboard-card rose-glow">
+        <h2>Notifications</h2>
+        <p>Stay updated with job alerts and messages.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .dashboard-section {
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #0f0f0f, #1a1a1a, #000);
+    color: white;
+    padding: 60px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .dashboard-container {
+    max-width: 1280px;
+    margin: auto;
+  }
+
+  .dashboard-title {
+    font-size: 2.8rem;
+    font-weight: bold;
+    color: #0ff;
+    text-align: center;
+    margin-bottom: 50px;
+    text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+  }
+
+  .dashboard-card {
+    background: #121212;
+    border-radius: 16px;
+    padding: 25px;
+    text-decoration: none;
+    transition: 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+  }
+
+  .dashboard-card:hover {
+    transform: scale(1.05);
+  }
+
+  .dashboard-card h2 {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+  }
+
+  .dashboard-card p {
+    color: #ccc;
+  }
+
+  /* Glow classes by color */
+  .cyan-glow {
+    border-color: #0ff;
+    box-shadow: 0 0 10px #0ff88c;
+  }
+
+  .cyan-glow:hover {
+    box-shadow: 0 0 25px #0ff;
+  }
+
+  .pink-glow {
+    border-color: #ff69b4;
+    box-shadow: 0 0 10px #ff69b4;
+  }
+
+  .pink-glow:hover {
+    box-shadow: 0 0 25px #ff69b4;
+  }
+
+  .lime-glow {
+    border-color: #32cd32;
+    box-shadow: 0 0 10px #32cd32;
+  }
+
+  .lime-glow:hover {
+    box-shadow: 0 0 25px #32cd32;
+  }
+
+  .yellow-glow {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px #ffd700;
+  }
+
+  .yellow-glow:hover {
+    box-shadow: 0 0 25px #ffd700;
+  }
+
+  .indigo-glow {
+    border-color: #4b0082;
+    box-shadow: 0 0 10px #4b0082;
+  }
+
+  .indigo-glow:hover {
+    box-shadow: 0 0 25px #4b0082;
+  }
+
+  .rose-glow {
+    border-color: #ff007f;
+    box-shadow: 0 0 10px #ff007f;
+  }
+
+  .rose-glow:hover {
+    box-shadow: 0 0 25px #ff007f;
+  }
+</style>
+{% endblock %}
