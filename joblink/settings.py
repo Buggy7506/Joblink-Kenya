@@ -149,20 +149,12 @@ MESSAGE_TAGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'smtp.gmail.com'
-#EMAIL_PORT = 587
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = 'linux7506@gmail.com'
-#EMAIL_HOST_PASSWORD = 'eldc oxrf sqco cfsj'
-#DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'linux7506@gmail.com'
+EMAIL_HOST_PASSWORD = 'eldc oxrf sqco cfsj'
+DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
 
-# Use SendGrid for production
-if not DEBUG:
-    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-    EMAIL_HOST = 'smtp.sendgrid.net'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'apikey'  # This is literally the string 'apikey'
-    EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
-    DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
+CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
