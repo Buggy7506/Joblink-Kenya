@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.conf import settings
+from cloudinary.models import CloudinaryField
+
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -74,9 +76,12 @@ class Application(models.Model):
 
 # CV Uploads
 class CVUpload(models.Model):
-    applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
-    cv = models.FileField(upload_to='cvs/')
+    applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'applicant'})
+    cv = CloudinaryField(resource_type='auto')  # supports PDF, DOCX, JPG etc
     uploaded_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.applicant.username} CV"
 
 # Resume Builder Info
 class Resume(models.Model):
@@ -88,8 +93,7 @@ class Resume(models.Model):
     summary = models.TextField()
     education = models.TextField()
     experience = models.TextField()
-    skills = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    skills = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username}'s Resume"
