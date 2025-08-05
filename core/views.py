@@ -175,7 +175,6 @@ def apply_job(request, job_id):
                 'success': True,
                 'job': job
             })
-    return redirect('job_list') 
 #CV Upload
 
 @login_required 
