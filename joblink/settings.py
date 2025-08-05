@@ -130,6 +130,7 @@ AUTH_USER_MODEL = 'core.CustomUser'  # Make sure 'core' is your user model app n
 # Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Optional: for collectstatic (production)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticfilesStorage'
 
 # Media files (e.g. uploaded CVs)
