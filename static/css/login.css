@@ -1,6 +1,7 @@
 body {
-    background-color: #f0f4f8;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #0f172a, #1e293b);
+    color: #e0f7fa;
     display: flex;
     justify-content: center;
     align-items: center;
