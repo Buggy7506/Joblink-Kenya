@@ -1,50 +1,73 @@
 body {
-    background: linear-gradient(to right, #fceabb, #f8b500);
-    font-family: 'Helvetica Neue', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 150vh;
-  }
-  
-  .signup-form {
-    background: white;
-    padding: 40px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    width: 400px;
-  }
-  
-  .signup-form h2 {
-    text-align: center;
-    margin-bottom: 25px;
-  }
-  
-  .signup-form h3 {
-    text-align: center;
-    margin-top: 40px;
-  }
+  background: linear-gradient(to right, #fceabb, #f8b500);
+  font-family: 'Helvetica Neue', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
 
-  input, select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 12px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
+.signup-form {
+  background: white;
+  padding: 40px;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3),
+              0 0 25px rgba(255, 255, 255, 0.2),
+              0 0 45px rgba(255, 255, 255, 0.1);
+  animation: pulse 3s infinite alternate;
+}
+
+.signup-form h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.signup-form h3 {
+  text-align: center;
+  margin-top: 40px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.6);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+}
+
+button {
+  background-color: #ff5722;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  margin-top: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255,87,34,0.6);
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+button:hover {
+  background-color: #e64a19;
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(255,87,34,0.8);
+}
+
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 8px rgba(255,255,255,0.4),
+                0 0 15px rgba(255,255,255,0.25);
   }
-  
-  button {
-    background-color: #ff5722;
-    color: white;
-    padding: 12px;
-    width: 100%;
-    border: none;
-    border-radius: 10px;
-    margin-top: 20px;
-    font-weight: bold;
+  to {
+    box-shadow: 0 0 25px rgba(255,255,255,0.7),
+                0 0 40px rgba(255,255,255,0.5);
   }
-  
-  button:hover {
-    background-color: #e64a19;
-  }
-  
+}
