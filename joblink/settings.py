@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
 ROOT_URLCONF = 'joblink.urls'
@@ -128,11 +129,8 @@ AUTH_USER_MODEL = 'core.CustomUser'  # Make sure 'core' is your user model app n
 
 # Static files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Optional: for collectstatic (production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Optional: for collectstatic (production)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticfilesStorage'
-
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # Media files (e.g. uploaded CVs)
 MEDIA_URL = '/media/'
@@ -148,12 +146,22 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'linux7506@gmail.com'
-EMAIL_HOST_PASSWORD = 'eldc oxrf sqco cfsj'
-DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'linux7506@gmail.com'
+#EMAIL_HOST_PASSWORD = 'eldc oxrf sqco cfsj'
+#DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
+
+# Use SendGrid for production
+if not DEBUG:
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'apikey'  # This is literally the string 'apikey'
+    EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+    DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
