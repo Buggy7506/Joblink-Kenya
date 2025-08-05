@@ -175,7 +175,10 @@ def apply_job(request, job_id):
                 'success': True,
                 'job': job
             })
-    return render(request, 'apply_job_success.html', {'job': job})
+    return render(request, 'apply_job_success.html', {
+    'job': job,
+    'success': None
+})
 #CV Upload
 
 @login_required 
