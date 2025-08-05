@@ -11,10 +11,8 @@ from django.db.models import Q
 from .forms import EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, CVUploadForm, JobPlanSelectForm, CustomUserCreationForm 
 from .models import JobAlert, Application, Job, SkillResource, Resume, CVUpload, JobPlan, JobPayment, Profile 
 import pdfkit
-from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash, get_user_model
-from .forms import ChangeUsernamePasswordForm
-#from reports.models import Report  # if using reports
+from django.contrib.auth import update_session_auth_hash
+from django.urls import reverse
 
 #Home Page
 
@@ -59,7 +57,7 @@ def logout_view(request):
 # Logout success message
 def logout_success(request):
     return render(request, 'logout_success.html')
-    return redirect('logout_success')
+
 #Dashboard
 
 def dashboard(request): 
@@ -73,20 +71,19 @@ def dashboard(request):
 
 def profile_view(request):
     try:
-        user_cv = CVUpload.objects.filter(applicant=request.user).latest('id')  # Get most recent CV
+        user_cv = CVUpload.objects.filter(applicant=request.user).latest('id')
     except CVUpload.DoesNotExist:
         user_cv = None
     if request.user.role == 'employer':
         return render(request, 'employer_profile.html', {
             'user': request.user,
             'user_cv': user_cv
-            })
+        })
     else:
         return render(request, 'profile.html', {
             'user': request.user,
             'user_cv': user_cv
-            })
-
+        })
 
 @login_required
 def view_posted_jobs(request):
@@ -110,8 +107,8 @@ def view_posted_jobs(request):
         'posted_jobs': posted_jobs,
         'posted_jobs_count': posted_jobs_count,
         'active_jobs': active_jobs
-        })
-    
+    })
+
 @login_required
 def view_applicants(request):
     jobs = Job.objects.filter(employer=request.user)
@@ -121,7 +118,7 @@ def view_applicants(request):
         'applicants': applicants,
         'applicants_count': applicants_count
     })
-    
+  
 @login_required
 def employer_profile(request):
     return render(request, 'employer_profile.html', {
@@ -141,91 +138,108 @@ def edit_profile(request):
 
     return render(request, 'change_credentials.html', {'form': form})
 
-
 #Job Posting
 
-@login_required 
-def post_job(request): 
+@login_required
+def post_job(request):
     if request.method == 'POST':
-        form = JobForm(request.POST) 
-        if form.is_valid(): 
-            job = form.save(commit=False) 
-            job.employer = request.user 
-            job.save() 
-            return redirect('dashboard') 
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.employer = request.user
+            job.save()
+
+            # ---- send email notifications to matching alerts ----
+            matches = JobAlert.objects.filter(
+                job_title__icontains=job.title,
+                location__iexact=job.location
+            )
+
+            job_link = request.build_absolute_uri(
+                reverse('apply_job', kwargs={'job_id': job.id})
+            )
+
+            for alert in matches:
+                html_content = render_to_string('job_alert_email.html', {
+                    'user': alert.user,
+                    'job': job,
+                    'job_url': job_link
+                })
+                msg = EmailMultiAlternatives(
+                    subject=f"New {job.title} Job Posted!",
+                    body=f"A new job matching your alert ({job.title} in {job.location}) is now on JobLink Kenya.",
+                    to=[alert.user.email]
+                )
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
+            # -----------------------------------------------------
+
+            messages.success(request, "Job posted and email alerts sent to applicants.")
+            return redirect('dashboard')
     else:
         form = JobForm()
     return render(request, 'post_job.html', {'form': form})
 
+#Apply Job
+
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
-
     if job.employer == request.user:
         messages.error(request, "You cannot apply to your own job posting.")
         return redirect('job_list')
-
-    # Check if application already exists
     if Application.objects.filter(applicant=request.user, job=job).exists():
-        # Redirect to success page with applied=False
         return redirect('apply_job_success', job_id=job.id, applied=False)
-
-    # Create the application
     Application.objects.create(applicant=request.user, job=job)
-    # Redirect to success page with applied=True
-    return redirect('apply_job_success', job_id=job.id, applied=True) 
+    return redirect('apply_job_success', job_id=job.id, applied=True)
 
 @login_required
 def apply_job_success(request, job_id, applied=True):
-    """
-    Display the success/failure page after applying for a job.
-    'applied' should be True if the application was just created,
-    or False if the user had already applied before.
-    """
     job = get_object_or_404(Job, pk=job_id)
     return render(request, 'apply_job_success.html', {
         'job': job,
         'success': applied
     })
+
 #CV Upload
 
-@login_required 
-def upload_cv(request): 
-    form = CVUploadForm(request.POST or None, request.FILES or None) 
-    if form.is_valid(): 
-        cv = form.save(commit=False) 
-        cv.applicant = request.user 
-        cv.save() 
-        return redirect('profile') 
+@login_required
+def upload_cv(request):
+    form = CVUploadForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        cv = form.save(commit=False)
+        cv.applicant = request.user
+        cv.save()
+        return redirect('profile')
     return render(request, 'upload_CV.html', {'form': form})
 
 #Job Listings
 
-def job_list(request): 
-    premium_jobs = Job.objects.filter(is_premium=True).order_by('-posted_on') 
-    regular_jobs = Job.objects.filter(is_premium=False).order_by('-posted_on') 
-    return render(request, 'job_list.html', { 
-        'premium_jobs': premium_jobs, 
-        'jobs': regular_jobs, 
+def job_list(request):
+    premium_jobs = Job.objects.filter(is_premium=True).order_by('-posted_on')
+    regular_jobs = Job.objects.filter(is_premium=False).order_by('-posted_on')
+    return render(request, 'job_list.html', {
+        'premium_jobs': premium_jobs,
+        'jobs': regular_jobs
     })
 
 #Learning Resources
 
 def resources(request):
-     items = SkillResource.objects.all() 
-     return render(request, 'resources.html', {'items': items})
+    items = SkillResource.objects.all()
+    return render(request, 'resources.html', {'items': items})
 
 #Job Alerts
 
 def job_alerts_view(request):
-    alerts = JobAlert.objects.filter(user=request.user) 
-    if request.method == 'POST': 
-        JobAlert.objects.create( 
-            user=request.user, 
-            job_title=request.POST['job_title'], 
-            location=request.POST['location'] 
-        ) 
-        return redirect('job_alerts') 
+    alerts = JobAlert.objects.filter(user=request.user)
+    if request.method == 'POST':
+        JobAlert.objects.create(
+            user=request.user,
+            job_title=request.POST['job_title'],
+            location=request.POST['location']
+        )
+        return redirect('job_alerts')
     return render(request, 'job_alerts.html', {'alerts': alerts})
 
 def delete_alert(request, alert_id):
@@ -234,55 +248,48 @@ def delete_alert(request, alert_id):
         alert.delete()
         return redirect('delete_alert_success')
     return render(request, 'delete_alert.html', {'alert': alert})
-    
+
 def delete_alert_success(request):
     return render(request, 'delete_alert_success.html')
 
+#Admin Dashboard
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser) 
-def admin_dashboard(request): 
-    context = { 
-        'total_users': User.objects.count(), 
-        'total_jobs': Job.objects.count(), 
-        'total_alerts': JobAlert.objects.count(), 
-        'total_reports': Report.objects.count() if Report else 0, 
-        'recent_users': User.objects.order_by('-date_joined')[:5], 
-    } 
+@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    context = {
+        'total_users': User.objects.count(),
+        'total_jobs': Job.objects.count(),
+        'total_alerts': JobAlert.objects.count(),
+        'recent_users': User.objects.order_by('-date_joined')[:5],
+    }
     return render(request, 'admin_dashboard.html', context)
 
-def admin_required(user):
-    return user.role == 'admin'
+#Resume Builder / download / suggestions
 
-def admin_only_view(request):
-    if request.user.role != 'admin':
-        return redirect('home')
-    return render(request, 'admin_only.html')
-
+@login_required
 def resume_success(request):
     return render(request, 'resume_success.html')
 
-#Resume Builder
-
-@login_required 
-def build_resume(request): 
-    if request.method == 'POST': 
-        form = ResumeForm(request.POST, request.FILES) 
-        if form.is_valid(): 
-            resume = form.save(commit=False) 
-            resume.user = request.user 
-            resume.save() 
-            return redirect('resume_success') 
+@login_required
+def build_resume(request):
+    if request.method == 'POST':
+        form = ResumeForm(request.POST, request.FILES)
+        if form.is_valid():
+            resume = form.save(commit=False)
+            resume.user = request.user
+            resume.save()
+            return redirect('resume_success')
     else:
-            form = ResumeForm() 
+        form = ResumeForm()
     return render(request, 'resume_builder.html', {'form': form})
 
-@login_required 
-def view_resume(request, resume_id): 
-    resume = get_object_or_404(Resume, id=resume_id, user=request.user) 
+@login_required
+def view_resume(request, resume_id):
+    resume = get_object_or_404(Resume, id=resume_id, user=request.user)
     return render(request, 'resume_template.html', {'resume': resume})
 
-@login_required 
+@login_required
 def download_resume_pdf(request):
     profile = request.user.profile
     resume_data = {
@@ -291,66 +298,48 @@ def download_resume_pdf(request):
         'phone': profile.phone,
         'education': profile.education,
         'skills': profile.skills.split(','),
-        'experience': profile.experience.split(';'),  # e.g., "Job1 - Place1 - Years1;Job2 - Place2 - Years2"
+        'experience': profile.experience.split(';'),
     }
-
     html = render_to_string('users/resume_template.html', {'resume': resume_data})
-    config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')  # adjust if needed
+    config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')
     pdf = pdfkit.from_string(html, False, configuration=config)
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="resume.pdf"'
     return response
 
-#Job Suggestions
-
-@login_required 
-def job_suggestions(request): 
-    user = request.user 
-    skills = user.profile.skills.split(',') if hasattr(user, 'profile') and user.profile.skills else [] 
-    suggested_jobs = Job.objects.none() 
+@login_required
+def job_suggestions(request):
+    user = request.user
+    skills = user.profile.skills.split(',') if hasattr(user, 'profile') and user.profile.skills else []
+    suggested_jobs = Job.objects.none()
     for skill in skills:
-        suggested_jobs |= Job.objects.filter(title__icontains=skill.strip()) 
-    suggested_jobs = suggested_jobs.distinct() 
+        suggested_jobs |= Job.objects.filter(title__icontains=skill.strip())
+    suggested_jobs = suggested_jobs.distinct()
     return render(request, 'suggestions.html', {'suggested_jobs': suggested_jobs})
-
-#Email Notifications
-
-def send_application_email(user, job): 
-    subject = f"Application Received - {job.title}" 
-    html_content = render_to_string('application_email.html', {'user': user, 'job': job}) 
-    msg = EmailMultiAlternatives(subject, '', to=[user.email]) 
-    msg.attach_alternative(html_content, "text/html") 
-    msg.send()
-
-def send_job_posted_email(employer, job): 
-    subject = f"Job Posted Successfully - {job.title}" 
-    html_content = render_to_string('job_posted_confirmation.html', {'employer': employer, 'job': job}) 
-    msg = EmailMultiAlternatives(subject, '', to=[employer.email]) 
-    msg.attach_alternative(html_content, "text/html") 
-    msg.send()
 
 #Premium Job Upgrade
 
-@login_required 
+@login_required
 def upgrade_job(request, job_id):
     job = get_object_or_404(Job, pk=job_id, employer=request.user)
     if request.method == 'POST':
-        form = JobPlanSelectForm(request.POST) 
+        form = JobPlanSelectForm(request.POST)
         if form.is_valid():
-            plan = form.cleaned_data['plan'] 
+            plan = form.cleaned_data['plan']
             payment = JobPayment.objects.create(
-                employer=request.user, 
-                job=job, plan=plan, 
-                amount=plan.price, 
-                is_successful=True 
-            ) 
-            job.premium = True 
-            job.premium_expiry = timezone.now() + timezone.timedelta(days=plan.duration_days) 
-            job.save() 
-            messages.success(request, "Job upgraded to premium successfully.") 
-            return redirect('dashboard') 
-    else: 
-        form = JobPlanSelectForm() 
+                employer=request.user,
+                job=job,
+                plan=plan,
+                amount=plan.price,
+                is_successful=True
+            )
+            job.premium = True
+            job.premium_expiry = timezone.now() + timezone.timedelta(days=plan.duration_days)
+            job.save()
+            messages.success(request, "Job upgraded to premium successfully.")
+            return redirect('dashboard')
+    else:
+        form = JobPlanSelectForm()
     return render(request, 'upgrade_job.html', {'form': form, 'job': job})
 
 @login_required
@@ -361,12 +350,12 @@ def change_username_password(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['new_password1'])
             user.save()
-            update_session_auth_hash(request, user)  # Keeps user logged in
+            update_session_auth_hash(request, user)
             messages.success(request, "Username and password updated successfully!")
-            return redirect('profile')  # Replace with your profile URL name
+            return redirect('profile')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
         form = ChangeUsernamePasswordForm(user=request.user, instance=request.user)
-    
+
     return render(request, 'change_username_password.html', {'form': form})
