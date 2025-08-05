@@ -8,8 +8,8 @@
 
     {% for job in jobs %}
       <div class="job-card glow-card">
-        <h3 class="glow-text">{{ job.title }}</h3>
-        <p>{{ job.description|truncatewords:30 }}</p>
+        <h3 class="glow-text"><strong>Title:</strong>{{ job.title }}</h3>
+        <p><strong>Description:</strong>{{ job.description|truncatewords:30 }}</p>
         <p><strong>Posted on:</strong> {{ job.posted_on }}</p>
 
         <!-- Delete Button Form -->
