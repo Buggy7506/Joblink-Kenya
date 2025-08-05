@@ -159,11 +159,11 @@ LOGOUT_REDIRECT_URL = '/logout-success/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
-if not DEBUG:
-    WHITENOISE_MANIFEST_STRICT = False
-    WHITENOISE_ADD_HEADERS_FUNCTION = lambda *args, **kwargs: None
+#if not DEBUG:
+    #WHITENOISE_MANIFEST_STRICT = False
+    #WHITENOISE_ADD_HEADERS_FUNCTION = lambda *args, **kwargs: None
     # This will tell whitenoise to also serve media:
-    STATICFILES_DIRS += [MEDIA_ROOT]
+    #STATICFILES_DIRS += [MEDIA_ROOT]
 
 MESSAGE_TAGS = {
     messages.SUCCESS: 'success',
