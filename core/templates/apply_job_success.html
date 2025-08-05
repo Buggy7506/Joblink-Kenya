@@ -78,12 +78,16 @@
         <h1>❌ Already Applied!</h1>
         <p>You have already applied for this job: <strong>{{ job.title }}</strong></p>
         <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
-      {% else %} 
-      <form method="POST">
-        {% csrf_token %} 
-        <button type="submit">Apply Now </button>
-      </form>
-      {% endif %}
+      {% else %}
+      <!-- Default/GET state: show an apply button -->
+      <div class="apply-prompt">
+          <h2>Apply for <strong>{{ job.title }}</strong></h2>
+          <form method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success">Apply Now</button>
+          </form>
+      </div>
+  {% endif %}
     </div>
   </div>
 {% endblock %}
