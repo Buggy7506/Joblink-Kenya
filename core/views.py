@@ -163,7 +163,7 @@ def apply_job(request, job_id):
     if job.employer == request.user:
         messages.error(request, "You cannot apply to your own job posting.")
         return redirect('job_list')
-    if request.method == 'POST':
+
         if Application.objects.filter(applicant=request.user, job=job).exists():
             return render(request, 'apply_job_success.html', {
             'success': False,
