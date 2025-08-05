@@ -1,50 +1,71 @@
 body {
-    background: linear-gradient(to right, #fceabb, #f8b500);
-    font-family: 'Helvetica Neue', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 150vh;
-  }
-  
-  .signup-form {
-    background: white;
-    padding: 40px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    width: 400px;
-  }
-  
-  .signup-form h2 {
-    text-align: center;
-    margin-bottom: 25px;
-  }
-  
-  .signup-form h3 {
-    text-align: center;
-    margin-top: 40px;
-  }
+  background: linear-gradient(to right, #fceabb, #f8b500);
+  font-family: 'Helvetica Neue', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
 
-  input, select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 12px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-  }
-  
-  button {
-    background-color: #ff5722;
-    color: white;
-    padding: 12px;
-    width: 100%;
-    border: none;
-    border-radius: 10px;
-    margin-top: 20px;
-    font-weight: bold;
-  }
-  
-  button:hover {
-    background-color: #e64a19;
-  }
-  
+.signup-form {
+  background: white;
+  padding: 40px;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+  /* ✨ soft static glow */
+  box-shadow: 0 0 20px rgba(255,255,255,0.6), 0 0 30px rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.signup-form h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #ff5722;
+  text-shadow: 0 0 8px rgba(255,87,34,0.6);
+}
+
+.signup-form h3 {
+  text-align: center;
+  margin-top: 40px;
+  color: #ff5722;
+  text-shadow: 0 0 6px rgba(255,87,34,0.5);
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.6);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(255,87,34,0.6);
+}
+
+button {
+  background-color: #ff5722;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  margin-top: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  /* ✨ subtle glow */
+  box-shadow: 0 0 15px rgba(255,87,34,0.4);
+  transition: box-shadow 0.25s;
+}
+
+button:hover {
+  background-color: #e64a19;
+  box-shadow: 0 0 25px rgba(255,87,34,0.8);
+}
