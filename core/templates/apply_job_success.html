@@ -70,14 +70,19 @@
 
   <div class="apply-status-container">
     <div class="status-box">
-      {% if success %}
+      {% if success is True %}
         <h1>✅ Application Successful!</h1>
         <p>You have successfully applied for the job: <strong>{{ job.title }}</strong></p>
         <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
-      {% else %}
+      {% if success is False %}
         <h1>❌ Already Applied!</h1>
         <p>You have already applied for this job: <strong>{{ job.title }}</strong></p>
         <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
+      {% else %} 
+      <form method="POST">
+        {% csrf_token %} 
+        <button type="submit">Apply Now </button>
+      </form>
       {% endif %}
     </div>
   </div>
