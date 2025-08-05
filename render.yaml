@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: joblink-kenya
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --no-input
+    startCommand: gunicorn joblink.wsgi
+    releaseCommand: |
+      python manage.py makemigrations --noinput
+      python manage.py migrate --noinput
