@@ -77,8 +77,9 @@
       {% else %}
         <h1>❌ Already Applied!</h1>
         <p>You have already applied for this job: <strong>{{ job.title }}</strong></p> 
+        <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
       {% endif %}
-      <a href="{% url 'job_list' %}" class="btn-glow">Back to Job Listings</a>
+      
     </div>
   </div>
 {% endblock %}
