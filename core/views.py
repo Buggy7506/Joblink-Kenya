@@ -160,21 +160,33 @@ def post_job(request):
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
+
     if job.employer == request.user:
         messages.error(request, "You cannot apply to your own job posting.")
         return redirect('job_list')
 
-        if Application.objects.filter(applicant=request.user, job=job).exists():
-            return render(request, 'apply_job_success.html', {
-            'success': False,
-            'job': job
-            })
-        else:
-            application = Application.objects.create(applicant=request.user, job=job)
-            return render(request, 'apply_job_success.html', {
-                'success': True,
-                'job': job
-            })
+    # Check if application already exists
+    if Application.objects.filter(applicant=request.user, job=job).exists():
+        # Redirect to success page with applied=False
+        return redirect('apply_job_success', job_id=job.id, applied=False)
+
+    # Create the application
+    Application.objects.create(applicant=request.user, job=job)
+    # Redirect to success page with applied=True
+    return redirect('apply_job_success', job_id=job.id, applied=True) 
+
+@login_required
+def apply_job_success(request, job_id, applied=True):
+    """
+    Display the success/failure page after applying for a job.
+    'applied' should be True if the application was just created,
+    or False if the user had already applied before.
+    """
+    job = get_object_or_404(Job, pk=job_id)
+    return render(request, 'apply_job_success.html', {
+        'job': job,
+        'success': applied
+    })
 #CV Upload
 
 @login_required 
