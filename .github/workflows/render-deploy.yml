@@ -28,21 +28,17 @@ jobs:
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "DEBUG=False" >> .env
 
-      # Generate fresh migration files (based on your models)
-      - name: Reset migrations and remake them fresh
+      # Remove local migration files and remake fake-initial
+      - name: Reset migrations and create new initial migration
         run: |
           find . -path "*/migrations/*.pyc" -delete
           find . -path "*/migrations/[0-9]*.py" -delete
           python manage.py makemigrations
 
-      # Tell Django to reset its migration history for your core app
-      - name: Fake zero migration state (to avoid 'table does not exist' errors)
+      # Apply as fake (assume tables exist)
+      - name: Fake initial migration so Django recognizes existing tables
         run: |
-          python manage.py migrate core zero --fake-initial
-
-      # Apply migrations normally
-      - name: Run database migrations
-        run: python manage.py migrate
+          python manage.py migrate --fake-initial
 
       - name: Collect static
         run: python manage.py collectstatic --noinput
