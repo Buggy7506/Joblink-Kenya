@@ -14,7 +14,41 @@ import pdfkit
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 
+@login_required
+def process_application(request, app_id):
+    """
+    Employer accepts or rejects a job application
+    & email is sent automatically to the applicant.
+    """
+    application = get_object_or_404(Application, id=app_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'accept':
+            application.status = 'accepted'
+            subject = 'Job Application Approved ✅'
+            message = f'Congratulations! Your application for {application.job.title} has been accepted.'
+
+        else:  # reject
+            application.status = 'rejected'
+            subject = 'Job Application Result ❌'
+            message = f'Sorry, your application for {application.job.title} has been rejected.'
+
+        application.save()
+
+        # send email to applicant
+        send_mail(
+            subject,
+            message,
+            'linux7506@gmail.com',      # from email
+            [application.applicant.email],     # user's email
+        )
+
+    return redirect('employer_dashboard')  # <— change to your employer dashboard URL name
+    
 User = get_user_model()
 
 #Home Page
