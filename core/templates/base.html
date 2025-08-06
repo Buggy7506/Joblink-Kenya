@@ -151,8 +151,8 @@
                     <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
                 {% endif %}
                 
-                {% if user.role == 'admin' %}
-                    <a href="{% url 'admin_only_view' %}" class="hover-glow">Admin Panel</a>
+                {% if user.is_superuser or user.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}" class="hover-glow">Admin Dashboard</a>
                 {% endif %}
                 
                 <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
@@ -180,8 +180,8 @@
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
             {% endif %}
             
-            {% if user.role == 'admin' %}
-                <a href="{% url 'admin_only_view' %}" class="hover-glow">Admin Panel</a>
+            {% if user.is_superuser or user.role == 'admin' %}
+                <a href="{% url 'admin_dashboard' %}" class="hover-glow">Admin Dashboard</a>
             {% endif %}
             
             <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
