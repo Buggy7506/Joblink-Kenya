@@ -1,0 +1,36 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]   # change if your branch is not 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Add environment variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+          echo "DEBUG=False" >> .env
+          # add any other variables your settings.py uses
+
+      - name: Run database migrations
+        run: python manage.py migrate
+
+      - name: Collect Static Files
+        run: python manage.py collectstatic --noinput
