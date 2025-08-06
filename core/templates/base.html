@@ -150,6 +150,11 @@
                 {% else %}
                     <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
                 {% endif %}
+                
+                {% if user.role == 'admin' %}
+                    <a href="{% url 'admin_only_view' %}" class="hover-glow">Admin Panel</a>
+                {% endif %}
+                
                 <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
                 <a href="{% url 'logout' %}" class="hover-glow" style="color: #f87171;">Logout</a>
             {% else %}
@@ -174,6 +179,11 @@
             {% else %}
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
             {% endif %}
+            
+            {% if user.role == 'admin' %}
+                <a href="{% url 'admin_only_view' %}" class="hover-glow">Admin Panel</a>
+            {% endif %}
+            
             <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
             <a href="{% url 'logout' %}" class="hover-glow" style="color: #f87171;">Logout</a>
             
