@@ -67,14 +67,25 @@ def logout_success(request):
 
 #Dashboard
 
-def dashboard(request): 
+def dashboard(request):
     user = request.user
+
+    if not user.is_authenticated:
+        return redirect('login')
+
+    # If admin, redirect them to the admin dashboard instead of applicant/employer
+    if user.is_superuser or user.role == 'admin':
+        return redirect('admin_dashboard')
+
+    # Normal logic for employer/applicant
     if hasattr(user, 'role'):
         if user.role == 'applicant':
             return render(request, 'applicant_dashboard.html')
         elif user.role == 'employer':
             return render(request, 'employer_dashboard.html')
-    return redirect('login') # fallback
+
+    # Fallback
+    return redirect('login')
 
 def profile_view(request):
     try:
