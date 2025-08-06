@@ -357,17 +357,18 @@ def upgrade_job(request, job_id):
 
 @login_required
 def change_username_password(request):
+    # Instantiate correctly both GET and POST
     if request.method == 'POST':
         form = ChangeUsernamePasswordForm(request.POST, user=request.user, instance=request.user)
         if form.is_valid():
-            user = form.save(commit=False)              # username saved here
+            user = form.save(commit=False)
             user.set_password(form.cleaned_data['new_password1'])
             user.save()
-            update_session_auth_hash(request, user)     # keep user logged in
+            update_session_auth_hash(request, user)  # keeps user logged in
             messages.success(request, "Account updated successfully!")
-            return redirect('profile')
+            return redirect('profile')   # make sure this URL name exists
         else:
-            messages.error(request, "Please correct the form errors.")
+            messages.error(request, "Please correct the errors below.")
     else:
         form = ChangeUsernamePasswordForm(user=request.user, instance=request.user)
 
