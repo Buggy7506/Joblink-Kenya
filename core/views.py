@@ -144,6 +144,18 @@ def employer_profile(request):
     })
 
 @login_required
+def admin_profile(request):
+    """
+    Simple admin profile page that shows details of the logged-in superuser.
+    """
+    if not (request.user.is_superuser or request.user.role == 'admin'):
+        return redirect('dashboard')   # block access for normal users
+
+    return render(request, 'admin_profile.html', {
+        'admin': request.user,
+    })
+
+@login_required
 def edit_profile(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
