@@ -40,12 +40,16 @@ def login_view(request):
         password = request.POST['password'] 
         user = authenticate(request, username=username, password=password) 
         if user is not None:
-             login(request, user) 
-             return redirect('dashboard') 
-             if user.is_superuser:
+            login(request, user)
+
+            # SUPERUSER GOES DIRECTLY TO ADMIN DASHBOARD
+            if user.is_superuser:
                 return redirect('admin_dashboard')
+
+            # Normal users go to dashboard
+            return redirect('dashboard')
         else:
-             messages.error(request, "Invalid credentials" ) 
+            messages.error(request, "Invalid credentials")
     return render(request, 'login.html')
 
 #User Logout
