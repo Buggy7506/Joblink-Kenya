@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} {% load static %}
 
 {% block title %}Applicant Dashboard | JobLink Kenya{% endblock %}
 
 {% block content %}
+
 <style>
   body {
     margin: 0;
@@ -76,66 +76,62 @@
     text-decoration: none;
     color: inherit;
   }
-</style>
-
-<div class="dashboard-container">
-  <h1 class="dashboard-title">🎓 Welcome to Your Dashboard</h1>
-
-  <div class="card-grid">
+</style><div class="dashboard-container">
+  <h1 class="dashboard-title">🎓 Welcome to Your Dashboard</h1>  <div class="card-grid">
     <a href="{% url 'upload_cv' %}">
       <div class="card">
         <img src="{% static 'img/upload_cv.jpg' %}" alt="Upload CV">
         <h2>Upload CV</h2>
         <p>Stand out to employers by uploading your latest CV.</p>
       </div>
-    </a>
+    </a><a href="{% url 'job_list' %}">
+  <div class="card">
+    <img src="{% static 'img/jobs.jpg' %}" alt="Browse Jobs">
+    <h2>Browse Jobs</h2>
+    <p>Explore curated jobs matched for Kenyan youth.</p>
+  </div>
+</a>
 
-    <a href="{% url 'job_list' %}">
-      <div class="card">
-        <img src="{% static 'img/jobs.jpg' %}" alt="Browse Jobs">
-        <h2>Browse Jobs</h2>
-        <p>Explore curated jobs matched for Kenyan youth.</p>
-      </div>
-    </a>
+<a href="{% url 'job_suggestions' %}">
+  <div class="card">
+    <img src="{% static 'img/suggest.jpg' %}" alt="Job Suggestions">
+    <h2>Job Suggestions</h2>
+    <p>AI-powered job suggestions tailored to you.</p>
+  </div>
+</a>
 
-    <a href="{% url 'job_suggestions' %}">
-      <div class="card">
-        <img src="{% static 'img/suggest.jpg' %}" alt="Job Suggestions">
-        <h2>Job Suggestions</h2>
-        <p>AI-powered job suggestions tailored to you.</p>
-      </div>
-    </a>
+<a href="{% url 'build_resume' %}">
+  <div class="card">
+    <img src="{% static 'img/resume.jpg' %}" alt="Resume Builder">
+    <h2>Resume Builder</h2>
+    <p>Create a professional resume in minutes.</p>
+  </div>
+</a>
 
-    <a href="{% url 'build_resume' %}">
-      <div class="card">
-        <img src="{% static 'img/resume.jpg' %}" alt="Resume Builder">
-        <h2>Resume Builder</h2>
-        <p>Create a professional resume in minutes.</p>
-      </div>
-    </a>
-    <!-- Access Resources -->
-      <a href="{% url 'resources' %}">
-        <div class="card">
-        <img src="{% static 'img/upload_cv.jpg' %}" alt="Upload CV">
-        <h2>Career Resources</h2>
-        <p>Guides, templates, and training materials to support your journey.</p>
-      </a>
-    <a href="{% url 'job_alerts' %}">
-      <div class="card">
-        <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
-        <h2>Job Alerts</h2>
-        <p>Stay updated on jobs that match your profile.</p>
-      </div>
-    </a>
-    
+<a href="{% url 'resources' %}">
+  <div class="card">
+    <img src="{% static 'img/upload_cv.jpg' %}" alt="Career Resources">
+    <h2>Career Resources</h2>
+    <p>Guides, templates, and training materials to support your journey.</p>
+  </div>
+</a>
 
-    <a href="{% url 'edit_profile' %}">
-      <div class="card">
-        <img src="{% static 'img/profile.jpg' %}" alt="Update Profile">
-        <h2>Update Profile</h2>
-        <p>Update your personal and career details.</p>
-      </div>
-    </a>
+<a href="{% url 'job_alerts' %}">
+  <div class="card">
+    <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
+    <h2>Job Alerts</h2>
+    <p>Stay updated on jobs that match your profile.</p>
+  </div>
+</a>
+
+<a href="{% url 'edit_profile' %}">
+  <div class="card">
+    <img src="{% static 'img/profile.jpg' %}" alt="Update Profile">
+    <h2>Update Profile</h2>
+    <p>Update your personal and career details.</p>
+  </div>
+</a>
+
   </div>
 </div>
 {% endblock %}
