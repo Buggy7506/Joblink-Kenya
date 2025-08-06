@@ -11,7 +11,6 @@ urlpatterns = [
     # Dashboard (role-based content)
     path('dashboard/', views.dashboard, name='dashboard'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('password-reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),
 
