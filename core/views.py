@@ -8,7 +8,7 @@ from django.template.loader import get_template, render_to_string
 from django.core.mail import EmailMultiAlternatives 
 from django.utils import timezone 
 from django.db.models import Q
-from .forms import EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, CVUploadForm, JobPlanSelectForm, CustomUserCreationForm 
+from .forms import EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm 
 from .models import JobAlert, Application, Job, SkillResource, Resume, CVUpload, JobPlan, JobPayment, Profile 
 import pdfkit
 from django.contrib.auth import update_session_auth_hash
