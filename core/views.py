@@ -94,7 +94,7 @@ def profile_view(request):
 
 @login_required
 def view_posted_jobs(request):
-    if request.user.role != 'employer':
+    if not request.user.is_superuser and request.user.role != 'employer':
         return redirect('login')
     jobs = Job.objects.all().order_by('-posted_on')
     posted_jobs = Job.objects.filter(employer=request.user).order_by('-posted_on')
