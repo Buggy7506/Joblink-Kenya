@@ -162,7 +162,13 @@ def edit_profile(request):
         form = EditProfileForm(request.POST or None, instance=request.user, user=request.user)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')
+            # Redirect to correct profile automatically
+            if request.user.is_superuser or request.user.role == 'admin':
+                return redirect('admin_profile')
+            elif request.user.profile.is_employer:
+                return redirect('employer_profile')
+            else:
+                return redirect('profile')
     else:
         form = EditProfileForm(instance=request.user)
 
