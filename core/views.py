@@ -115,8 +115,17 @@ def dashboard(request):
     if hasattr(user, 'role'):
         if user.role == 'applicant':
             return render(request, 'applicant_dashboard.html')
+
         elif user.role == 'employer':
-            return render(request, 'employer_dashboard.html')
+            posted_jobs_count = Job.objects.filter(employer=user).count()
+            active_jobs = Job.objects.filter(employer=user, is_active=True).count()
+            applicants_count = Application.objects.filter(job__employer=user).count()
+
+            return render(request, 'employer_dashboard.html', {
+                'posted_jobs_count': posted_jobs_count,
+                'active_jobs': active_jobs,
+                'applicants_count': applicants_count
+            })
 
     # Fallback
     return redirect('login')
