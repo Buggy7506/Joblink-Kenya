@@ -1,34 +1,58 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard - JobLink Kenya{% endblock %}
+
 {% block content %}
 <div class="dashboard-container">
-  <h2 class="glow-text">👨‍💼 Admin Dashboard</h2>
+  <h2 class="glow-text">👑 Admin Dashboard</h2>
 
   <div class="grid-cards">
     <div class="card glow-card">
-      <h3>Total Job Seekers</h3>
-      <p>{{ jobseeker_count }}</p>
+      <h3>Total Users</h3>
+      <p>{{ total_users }}</p>
     </div>
     <div class="card glow-card">
-      <h3>Total Employers</h3>
-      <p>{{ employer_count }}</p>
+      <h3>Total Jobs</h3>
+      <p>{{ total_jobs }}</p>
     </div>
     <div class="card glow-card">
-      <h3>Jobs Posted</h3>
-      <p>{{ job_count }}</p>
+      <h3>Total Alerts</h3>
+      <p>{{ total_alerts }}</p>
     </div>
     <div class="card glow-card">
-      <h3>Applications</h3>
-      <p>{{ application_count }}</p>
+      <h3>Total Reports</h3>
+      <p>{{ total_reports }}</p>
     </div>
   </div>
 
-  <div class="action-links">
-    <a href="{% url 'view_users' %}" class="btn-glow">Manage Users</a>
-    <a href="{% url 'view_jobs_admin' %}" class="btn-glow">Manage Jobs</a>
-    <a href="{% url 'view_employers' %}" class="btn-glow">View Employers</a>
-    <a href="{% url 'admin_feedback' %}" class="btn-glow">User Feedback</a>
+  <!-- Quick Links to existing pages -->
+  <div class="quick-links">
+    <a href="{% url 'job_list' %}" class="btn-glow">📄 View All Jobs</a>
+    <a href="{% url 'view_posted_jobs' %}" class="btn-glow">🗂 Employer Posted Jobs</a>
+    <a href="{% url 'view_applicants' %}" class="btn-glow">👥 View Applicants</a>
   </div>
+
+  <!-- Recent Users table -->
+  <h3 class="glow-text" style="margin-top:40px;">Recent Users</h3>
+  <table style="width:100%; margin-top:15px; color:white;">
+      <thead>
+          <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Date Joined</th>
+          </tr>
+      </thead>
+      <tbody>
+      {% for user in recent_users %}
+          <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.date_joined|date:"M d, Y H:i" }}</td>
+          </tr>
+      {% empty %}
+          <tr><td colspan="3">No recent users</td></tr>
+      {% endfor %}
+      </tbody>
+  </table>
 </div>
 
 <style>
@@ -40,15 +64,15 @@
   text-align: center;
 }
 .glow-text {
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: #00ffe7;
   text-shadow: 0 0 5px #00ffe7, 0 0 10px #00ffe7;
-  margin-bottom: 30px;
 }
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
+  margin-bottom:30px;
 }
 .card {
   background: rgba(255, 255, 255, 0.05);
@@ -57,9 +81,12 @@
   backdrop-filter: blur(5px);
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
 }
+.quick-links {
+   margin-top:20px;
+}
 .btn-glow {
   display: inline-block;
-  margin: 10px;
+  margin: 8px;
   padding: 12px 25px;
   background-color: #00ffe7;
   color: black;
