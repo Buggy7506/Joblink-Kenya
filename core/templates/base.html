@@ -73,10 +73,15 @@
           <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
         {% endif %}
 
-        {% if request.user.profile.is_employer %}
-          <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+        {% if user.is_superuser or user.role == 'admin' %}
+  <!-- Show admin profile only for admin users -->
+        <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
         {% else %}
-          <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+        {% if request.user.profile.is_employer %}
+        <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+        {% else %}
+        <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+        {% endif %}
         {% endif %}
 
         <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
