@@ -27,6 +27,7 @@ urlpatterns = [
     path('post-job/', views.post_job, name='post_job'),
     path('admin-only/', views.admin_only_view, name='admin_only'),
     path('application/process/<int:app_id>/', views.process_application, name='process_application'), 
+    path('employer/control-panel/', views.employer_control_panel_view, name='employer_control_panel'),
     # profile change
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     
