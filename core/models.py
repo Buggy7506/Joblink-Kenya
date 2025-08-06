@@ -67,9 +67,24 @@ class Job(models.Model):
 
 # Student Job Applications
 class Application(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
-    applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'applicant'})
+    applicant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'applicant'}
+    )
     applied_on = models.DateTimeField(auto_now_add=True)
+
+    # New fields you requested
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    is_paid = models.BooleanField(default=False)
+    mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f"{self.applicant.username} → {self.job.title}"
