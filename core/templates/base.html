@@ -77,11 +77,11 @@
   <!-- Show admin profile only for admin users -->
         <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
         {% else %}
-        {% if request.user.profile.is_employer %}
-        <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-        {% else %}
-        <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-        {% endif %}
+            {% if request.user.profile.is_employer %}
+              <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+            {% else %}
+              <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+            {% endif %}
         {% endif %}
 
         <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
