@@ -113,7 +113,13 @@
         <p>Create a professional resume in minutes.</p>
       </div>
     </a>
-
+    <!-- Access Resources -->
+      <a href="{% url 'resources' %}">
+        <div class="card">
+        <img src="{% static 'img/upload_cv.jpg' %}" alt="Upload CV">
+        <h2>Career Resources</h2>
+        <p>Guides, templates, and training materials to support your journey.</p>
+      </a>
     <a href="{% url 'job_alerts' %}">
       <div class="card">
         <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
@@ -121,6 +127,7 @@
         <p>Stay updated on jobs that match your profile.</p>
       </div>
     </a>
+    
 
     <a href="{% url 'edit_profile' %}">
       <div class="card">
