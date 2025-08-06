@@ -47,7 +47,7 @@ def process_application(request, app_id):
             [application.applicant.email],     # user's email
         )
 
-    return redirect('employer_dashboard')  # <— change to your employer dashboard URL name
+    return redirect('dashboard')  # <— change to your employer dashboard URL name
     
 User = get_user_model()
 
