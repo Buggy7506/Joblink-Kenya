@@ -2,14 +2,14 @@ name: Deploy to Render
 
 on:
   push:
-    branches: [main]   # change if your branch is not 'main'
+    branches: [main]   # Change if your branch is 'master' or something else
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -22,15 +22,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Add environment variables
+      - name: Inject Secrets to .env
         run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "DEBUG=False" >> .env
-          # add any other variables your settings.py uses
+
+      ## ---- ONLY FOR FIRST DEPLOY / EMPTY DATABASE ---- ##
+      ## If your prod DB is new and has no data, this clears migration history
+      ## Remove this step later once tables are created successfully
+      - name: Reset migrations for clean start
+        run: |
+          find . -path "*/migrations/*.pyc" -delete
+          find . -path "*/migrations/[0-9]*.py" -delete
+          python manage.py makemigrations
 
       - name: Run database migrations
         run: python manage.py migrate
 
-      - name: Collect Static Files
+      - name: Collect static
         run: python manage.py collectstatic --noinput
