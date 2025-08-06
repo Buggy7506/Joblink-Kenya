@@ -265,6 +265,15 @@ def admin_dashboard(request):
     }
     return render(request, 'admin_dashboard.html', context)
 
+@login_required 
+def admin_required(user):
+    return user.role == 'admin'
+
+@login_required 
+def admin_only_view(request):
+    if request.user.role != 'admin':
+        return redirect('home')
+    return render(request, 'admin_only.html')
 #Resume Builder / download / suggestions
 
 @login_required
