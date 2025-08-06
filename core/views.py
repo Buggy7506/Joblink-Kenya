@@ -170,6 +170,21 @@ def view_applicants(request):
         'applicants': applicants,
         'applicants_count': applicants_count
     })
+
+@login_required
+def employer_control_panel_view(request):
+    if not request.user.is_superuser and request.user.role != 'employer':
+        return redirect('login')
+
+    posted_jobs_count = Job.objects.filter(employer=request.user).count()
+    active_jobs = Job.objects.filter(employer=request.user, is_active=True).count()
+    applicants_count = Application.objects.filter(job__employer=request.user).count()
+
+    return render(request, 'employer_dashboard.html', {
+        'posted_jobs_count': posted_jobs_count,
+        'active_jobs': active_jobs,
+        'applicants_count': applicants_count,
+    })
   
 @login_required
 def employer_profile(request):
