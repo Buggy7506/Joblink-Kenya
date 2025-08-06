@@ -259,7 +259,7 @@ def delete_alert_success(request):
 #Admin Dashboard
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or u.role == 'admin')
 def admin_dashboard(request):
     context = {
         'total_users': User.objects.count(),
