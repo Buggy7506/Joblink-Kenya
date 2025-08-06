@@ -13,6 +13,9 @@ from .models import JobAlert, Application, Job, SkillResource, Resume, CVUpload,
 import pdfkit
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 #Home Page
 
@@ -265,6 +268,7 @@ def admin_dashboard(request):
         'total_users': User.objects.count(),
         'total_jobs': Job.objects.count(),
         'total_alerts': JobAlert.objects.count(),
+        'total_reports': 0,  # or change to real Report count
         'recent_users': User.objects.order_by('-date_joined')[:5],
     }
     return render(request, 'admin_dashboard.html', context)
