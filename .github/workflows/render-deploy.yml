@@ -2,7 +2,7 @@ name: Deploy to Render
 
 on:
   push:
-    branches: [main]   # Change if your branch is 'master' or something else
+    branches: [main]
 
 jobs:
   build:
@@ -28,15 +28,19 @@ jobs:
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "DEBUG=False" >> .env
 
-      ## ---- ONLY FOR FIRST DEPLOY / EMPTY DATABASE ---- ##
-      ## If your prod DB is new and has no data, this clears migration history
-      ## Remove this step later once tables are created successfully
-      - name: Reset migrations for clean start
+      # Generate fresh migration files (based on your models)
+      - name: Reset migrations and remake them fresh
         run: |
           find . -path "*/migrations/*.pyc" -delete
           find . -path "*/migrations/[0-9]*.py" -delete
           python manage.py makemigrations
 
+      # Tell Django to reset its migration history for your core app
+      - name: Fake zero migration state (to avoid 'table does not exist' errors)
+        run: |
+          python manage.py migrate core zero --fake-initial
+
+      # Apply migrations normally
       - name: Run database migrations
         run: python manage.py migrate
 
