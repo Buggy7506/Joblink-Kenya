@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Admin Profile - JobLink Kenya{% endblock %}
+{% block content %}
+<style>
+  .profile-wrap {
+    max-width: 700px;
+    margin: 50px auto;
+    background: rgba(0,0,0,0.4);
+    border-radius: 20px;
+    padding: 40px;
+    color: #fff;
+    box-shadow: 0 0 20px #00f7ffbb,
+                0 0 40px #00f7ff88;
+    text-align: center;
+  }
+  .profile-wrap h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #00f7ff;
+    text-shadow: 0 0 10px #00f7ff;
+  }
+  .profile-info {
+    text-align: left;
+    margin-top: 30px;
+  }
+  .profile-info div {
+    background: rgba(255,255,255,0.08);
+    border-left: 5px solid #00f7ff;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    padding: 15px 20px;
+  }
+  .profile-info div span {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #00f7ff;
+  }
+  .btn-row {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  a.btn-glow {
+    padding: 12px 28px;
+    background-color: #00f7ff;
+    border-radius: 25px;
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff;
+    transition: transform .3s;
+  }
+  a.btn-glow:hover {
+    transform: scale(1.05);
+  }
+</style>
+
+<div class="profile-wrap" data-aos="zoom-in">
+  <h2>👑 Admin Profile</h2>
+
+  <div class="profile-info">
+    <div>
+      <span>Username:</span>
+      {{ admin.username }}
+    </div>
+    <div>
+      <span>Email:</span>
+      {{ admin.email }}
+    </div>
+    <div>
+      <span>First Name:</span>
+      {{ admin.first_name|default:"-" }}
+    </div>
+    <div>
+      <span>Last Name:</span>
+      {{ admin.last_name|default:"-" }}
+    </div>
+    <div>
+      <span>Date Joined:</span>
+      {{ admin.date_joined|date:"M d, Y H:i" }}
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <a href="{% url 'admin_dashboard' %}" class="btn-glow">← Back to Dashboard</a>
+    <a href="{% url 'edit_profile' %}" class="btn-glow">✏️ Edit Profile</a>
+  </div>
+</div>
+{% endblock %}
