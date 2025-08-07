@@ -229,7 +229,7 @@ def edit_profile(request):
             # Redirect to correct profile automatically
             if request.user.is_superuser or request.user.role == 'admin':
                 return redirect('admin_profile')
-            elif request.user.profile.is_employer:
+            elif request.user.role == 'employer':
                 return redirect('employer_profile')
             else:
                 return redirect('profile')
