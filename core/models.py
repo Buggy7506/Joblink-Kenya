@@ -6,13 +6,12 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from cloudinary.models import CloudinaryField
 
-
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=255, blank=True)
-    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    profile_pic = CloudinaryField('image', blank=True, null=True)  # 👈 Fix here
     bio = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     education = models.TextField(blank=True)
