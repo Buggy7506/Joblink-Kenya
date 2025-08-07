@@ -1,51 +1,73 @@
 {% extends 'base.html' %}
-{% block title %}Employer Profile{% endblock %}
-{% block content %}
-  <style>
-    body {
-      background: #1a1a2e;
-      background: linear-gradient(to right, #16222A, #3A6073);
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      padding: 30px;
-    }
-    .profile-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 25px;
-      border-radius: 15px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 0 15px cyan;
-      text-align: center;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    p {
-      margin-bottom: 10px;
-    }
-    .profile-img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 3px solid cyan;
-      margin-bottom: 15px;
-    }
-  </style>
+{% block title %}Employer Profile - JobLink Kenya{% endblock %}
 
-  <div class="profile-box">
-    {% if request.user.profile_picture %}
-      <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="profile-img">
-    {% else %}
-      <img src="{% static 'img/suggest.jpg' %}" alt="Default Avatar" class="profile-img">
-    {% endif %}
-    <h2>⚙️ My Profile</h2>
-    <p><strong>Username:</strong> {{ request.user.username }}</p>
-    <p><strong>Email:</strong> {{ request.user.email }}</p>
-    <p><strong>Role:</strong> {{ request.user.role }}</p>
-    <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
-    <h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
+{% block content %}
+<div class="employer-profile">
+  <h2 class="glow-header">👤 Employer Profile</h2>
+
+  <div class="profile-card">
+    <div class="profile-picture-wrapper">
+      <img src="{{ user.profile_picture.url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png' }}"
+           alt="Profile Picture"
+           class="profile-picture">
+    </div>
+
+    <div class="profile-details">
+      <p><strong>Username:</strong> {{ user.username }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Company Name:</strong> {{ user.company }}</p>
+      <p><strong>Location:</strong> {{ user.location }}</p>
+      <p><strong>Contact:</strong> {{ user.contact }}</p>
+    </div>
   </div>
+</div>
+
+<style>
+  .employer-profile {
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 14px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+    max-width: 600px;
+    margin: 2rem auto;
+  }
+
+  .glow-header {
+    text-align: center;
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .profile-card {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .profile-picture-wrapper {
+    flex-shrink: 0;
+  }
+
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ddd;
+  }
+
+  .profile-details p {
+    margin: 5px 0;
+    font-size: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .profile-card {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+</style>
+<h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
 {% endblock %}
