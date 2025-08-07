@@ -29,6 +29,7 @@ class CustomUser(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     first_name = models.CharField(max_length=255, default='')
+    skills = models.TextField(blank=True)
     last_name = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=255, blank=True)
