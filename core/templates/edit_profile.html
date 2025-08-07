@@ -113,10 +113,10 @@
 
     <!-- Profile Picture Preview -->
     <div class="profile-preview">
-        {% if profile_picture_url %}
-            <img src="{{ profile_picture_url }}" alt="Profile Picture">
+        {% if user.profile_pic %}
+            <img src="{{ request.user.profile_pic_url }}">
         {% else %}
-            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png" alt="Default Avatar">
+            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png">
         {% endif %}
     </div>
 
