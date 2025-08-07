@@ -16,6 +16,7 @@ class Profile(models.Model):
     experience = models.TextField(blank=True)
     education = models.TextField(blank=True)
     skills = models.TextField(blank=True)
+    is_employer = models.BooleanField(default=False)
 
     def __str__(self):
         return self.full_name
