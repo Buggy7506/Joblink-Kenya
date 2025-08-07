@@ -101,13 +101,13 @@
 </style>
 
 <div class="profile-container">
-  <div class="profile-pic">
-    {% if user.profile_pic %}
-      <img src="{{ request.user.profile_pic_url }}">
-    {% else %}
-      <img src= "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png">
-    {% endif %}
-  </div>
+<div class="profile-pic">
+  {% if request.user.profile.profile_pic %}
+    <img src="{{ request.user.profile.profile_pic.url }}">
+  {% else %}
+    <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png">
+  {% endif %}
+</div>
 
   <div class="profile-info">
     <div>
