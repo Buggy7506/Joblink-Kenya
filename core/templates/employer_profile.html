@@ -39,7 +39,7 @@
     {% if request.user.profile_picture %}
       <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="profile-img">
     {% else %}
-      <img src="{% static 'images/default-avatar.png' %}" alt="Default Avatar" class="profile-img">
+      <img src="{% static 'img/suggest.jpg' %}" alt="Default Avatar" class="profile-img">
     {% endif %}
     <h2>⚙️ My Profile</h2>
     <p><strong>Username:</strong> {{ request.user.username }}</p>
