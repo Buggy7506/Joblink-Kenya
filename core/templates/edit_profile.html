@@ -32,6 +32,21 @@
             color: #f1faee;
         }
 
+        .profile-preview {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #a8dadc;
+            box-shadow: 0 0 10px #a8dadc;
+        }
+
         form {
             display: flex;
             flex-direction: column;
@@ -83,6 +98,16 @@
 <body>
     <div class="container">
         <h2>Edit Your Profile</h2>
+
+        <!-- Profile picture preview -->
+        <div class="profile-preview">
+            {% if user.profile_pic %}
+                <img src="{{ user.profile_pic.url }}" alt="Profile Picture">
+            {% else %}
+                <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png" alt="Default Avatar">
+            {% endif %}
+        </div>
+
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
@@ -94,6 +119,7 @@
 
             <button type="submit">Save Changes</button>
         </form>
+
         <a href="{% url 'profile' %}">← Back to Profile</a>
     </div>
 </body>
