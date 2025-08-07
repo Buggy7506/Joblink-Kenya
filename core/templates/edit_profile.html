@@ -86,6 +86,12 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
+
+            {% if form.profile_picture %}
+                <label for="id_profile_picture">Profile Picture</label>
+                {{ form.profile_picture }}
+            {% endif %}
+
             <button type="submit">Save Changes</button>
         </form>
         <a href="{% url 'profile' %}">← Back to Profile</a>
