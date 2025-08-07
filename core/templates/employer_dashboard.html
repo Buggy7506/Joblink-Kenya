@@ -2,17 +2,6 @@
 {% block title %}Employer Control Panel - JobLink Kenya{% endblock %}
 
 {% block content %}
-<div class="employer-dashboard">
-  <!-- Profile Picture -->
-  <div class="employer-avatar">
-    {% if user.profile_pic %}
-      <img src="{{ user.profile_pic.url }}" alt="Profile Picture">
-    {% else %}
-      <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png" alt="Default Avatar">
-    {% endif %}
-    <p>{{ user.username }}</p>
-  </div>
-
   <h2 class="glow-header">🏢 Employer Control Panel</h2>
 
   <div class="dashboard-actions">
