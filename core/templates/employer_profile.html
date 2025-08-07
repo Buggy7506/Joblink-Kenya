@@ -16,45 +16,32 @@
       max-width: 500px;
       margin: auto;
       box-shadow: 0 0 15px cyan;
-      text-align: center;
     }
     .profile-pic {
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
+      display: block;
+      margin: 0 auto 20px auto;
+      width: 150px;
+      height: 150px;
       object-fit: cover;
-      border: 3px solid cyan;
-      margin-bottom: 15px;
+      border-radius: 50%;
       box-shadow: 0 0 10px cyan;
     }
     h2 {
+      text-align: center;
       margin-bottom: 20px;
     }
     p {
       margin-bottom: 10px;
     }
-    a {
-      color: cyan;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
   </style>
-
+</head>
+<body>
   <div class="profile-box">
-    {% if request.user.profile_pic_url %}
-      <img class="profile-pic" src="{{ request.user.profile_pic_url }}" alt="Profile Picture">
-    {% else %}
-      <img class="profile-pic" src="https://res.cloudinary.com/demo/image/upload/v1690835125/icon.png" alt="Default Profile Picture">
-    {% endif %}
-    
-    <h2>⚙️ My Profile</h2>
+    <img src="{{ request.user.profile_pic_url }}" alt="Profile Picture" class="profile-pic">
     <p><strong>Username:</strong> {{ request.user.username }}</p>
     <p><strong>Email:</strong> {{ request.user.email }}</p>
-    <p><strong>Date Joined:</strong> {{ request.user.date_joined|date:"F j, Y" }}</p>
-
+    <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
     <h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
   </div>
+</body>
 {% endblock %}
