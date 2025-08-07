@@ -164,7 +164,7 @@
     </div>
     <div>
       <p>Skills</p>
-{% if user.profile.skills %}
+{% if request.user.profile.skills %}
       <p>{{ user.profile.skills }}</p>
 {% else %}
       <p>No skills added yet.</p>
