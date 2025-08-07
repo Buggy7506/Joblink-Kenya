@@ -1,73 +1,71 @@
 {% extends 'base.html' %}
-{% block title %}Employer Profile - JobLink Kenya{% endblock %}
-
+{% block title %}Employer Profile{% endblock %}
 {% block content %}
-<div class="employer-profile">
-  <h2 class="glow-header">👤 Employer Profile</h2>
-
-  <div class="profile-card">
-    <div class="profile-picture-wrapper">
-      <img src="{{ user.profile_picture.url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png' }}"
-           alt="Profile Picture"
-           class="profile-picture">
-    </div>
-
-    <div class="profile-details">
-      <p><strong>Username:</strong> {{ user.username }}</p>
-      <p><strong>Email:</strong> {{ user.email }}</p>
-      <p><strong>Company Name:</strong> {{ user.company }}</p>
-      <p><strong>Location:</strong> {{ user.location }}</p>
-      <p><strong>Contact:</strong> {{ user.contact }}</p>
-    </div>
-  </div>
-</div>
-
-<style>
-  .employer-profile {
-    padding: 2rem;
-    background-color: #fff;
-    border-radius: 14px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
-    max-width: 600px;
-    margin: 2rem auto;
-  }
-
-  .glow-header {
-    text-align: center;
-    font-size: 28px;
-    color: #333;
-    margin-bottom: 20px;
-  }
-
-  .profile-card {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-  }
-
-  .profile-picture-wrapper {
-    flex-shrink: 0;
-  }
-
-  .profile-picture {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #ddd;
-  }
-
-  .profile-details p {
-    margin: 5px 0;
-    font-size: 16px;
-  }
-
-  @media (max-width: 600px) {
-    .profile-card {
-      flex-direction: column;
-      align-items: center;
+  <style>
+    body {
+      background: linear-gradient(to right, #16222A, #3A6073);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
     }
-  }
-</style>
-<h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
+
+    .profile-box {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 30px;
+      border-radius: 18px;
+      max-width: 550px;
+      margin: auto;
+      box-shadow: 0 0 20px cyan;
+      text-align: center;
+    }
+
+    .profile-pic {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid cyan;
+      box-shadow: 0 0 15px cyan;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-bottom: 15px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .edit-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: cyan;
+      color: black;
+      border-radius: 10px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+    .edit-btn:hover {
+      background-color: #00ffe5;
+      box-shadow: 0 0 10px cyan;
+    }
+  </style>
+
+  <div class="profile-box">
+    {% if profile_picture_url %}
+      <img src="{{ profile_picture_url }}" alt="Profile Picture" class="profile-pic">
+    {% else %}
+      <img src="https://res.cloudinary.com/demo/image/upload/v1690198451/icon.png" alt="Default Avatar" class="profile-pic">
+    {% endif %}
+
+    <h2>👤 {{ request.user.get_full_name|default:request.user.username }}</h2>
+    <p><strong>📧 Email:</strong> {{ request.user.email }}</p>
+    <p><strong>🕓 Joined:</strong> {{ request.user.date_joined|date:"F d, Y" }}</p>
+    
+    <a href="{% url 'edit_profile' %}" class="edit-btn">✏️ Edit Profile</a>
+  </div>
 {% endblock %}
