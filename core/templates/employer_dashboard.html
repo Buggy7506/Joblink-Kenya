@@ -2,6 +2,7 @@
 {% block title %}Employer Control Panel - JobLink Kenya{% endblock %}
 
 {% block content %}
+<div class="employer-dashboard">
   <h2 class="glow-header">🏢 Employer Control Panel</h2>
 
   <div class="dashboard-actions">
@@ -34,30 +35,6 @@
   color: white;
   text-align: center;
 }
-
-.employer-avatar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.employer-avatar img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #ffb347;
-  box-shadow: 0 0 12px #ffb347;
-  margin-bottom: 10px;
-}
-
-.employer-avatar p {
-  font-weight: bold;
-  color: #fcd34d;
-}
-
-/* Glow header */
 .glow-header {
   font-size: 2.2rem;
   color: #ffb347;
@@ -65,7 +42,7 @@
   margin-bottom: 30px;
 }
 
-/* Buttons */
+/* updated styles here */
 .dashboard-actions {
   margin-bottom: 25px;
   display: flex;
@@ -89,7 +66,6 @@
   transform: scale(1.05);
 }
 
-/* Summary boxes */
 .summary-boxes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
