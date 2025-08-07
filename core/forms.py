@@ -60,6 +60,8 @@ User = get_user_model()
 class EditProfileForm(forms.ModelForm):
     phone = forms.CharField(max_length=20, required=False)
     location = forms.CharField(max_length=100, required=False)
+    profile_pic = forms.ImageField(required=False)
+    skills = forms.CharField(max_length=255, required=False)
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
 
@@ -68,15 +70,16 @@ class EditProfileForm(forms.ModelForm):
         fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone']
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)  # Pass user instance
+        self.user = kwargs.pop('user', None)
         super(EditProfileForm, self).__init__(*args, **kwargs)
 
-        # Prepopulate profile fields
         if self.user:
             profile = getattr(self.user, 'profile', None)
             if profile:
                 self.fields['phone'].initial = profile.phone
                 self.fields['location'].initial = profile.location
+                self.fields['profile_pic'].initial = profile.profile_pic
+                self.fields['skills'].initial = profile.skills
 
     def clean(self):
         cleaned_data = super().clean()
@@ -92,11 +95,17 @@ class EditProfileForm(forms.ModelForm):
             user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
-            # Update profile fields
+
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.phone = self.cleaned_data['phone']
             profile.location = self.cleaned_data['location']
+            profile.skills = self.cleaned_data.get('skills', '')
+
+            if self.cleaned_data.get('profile_pic'):
+                profile.profile_pic = self.cleaned_data['profile_pic']
+
             profile.save()
+
         return user
         
 # Job Posting Form (excluding employer to auto-assign it in views)
@@ -162,4 +171,7 @@ class UserForm(forms.ModelForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['full_name', 'phone', 'location', 'profile_pic']
+        fields = ['full_name', 'phone', 'location', 'profile_pic', 'skills']
+        widgets = {
+            'profile_pic': ClearableFileInput(attrs={'class': 'form-control-file'}),
+        }
