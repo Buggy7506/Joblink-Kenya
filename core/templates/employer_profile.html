@@ -3,7 +3,6 @@
 {% block content %}
   <style>
     body {
-      background: #1a1a2e;
       background: linear-gradient(to right, #16222A, #3A6073);
       color: white;
       font-family: 'Segoe UI', sans-serif;
@@ -16,32 +15,37 @@
       max-width: 500px;
       margin: auto;
       box-shadow: 0 0 15px cyan;
+      text-align: center;
     }
     .profile-pic {
-      display: block;
-      margin: 0 auto 20px auto;
       width: 150px;
       height: 150px;
       object-fit: cover;
       border-radius: 50%;
       box-shadow: 0 0 10px cyan;
-    }
-    h2 {
-      text-align: center;
       margin-bottom: 20px;
+    }
+    h2 a {
+      color: cyan;
+      text-decoration: none;
+    }
+    h2 a:hover {
+      text-decoration: underline;
     }
     p {
       margin-bottom: 10px;
     }
   </style>
-</head>
-<body>
+
   <div class="profile-box">
-    <img src="{{ request.user.profile_pic_url }}" alt="Phttps://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png">
+    <img 
+      src="{{ request.user.profile.profile_pic_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}" 
+      alt="Profile Picture" 
+      class="profile-pic"
+    >
     <p><strong>Username:</strong> {{ request.user.username }}</p>
     <p><strong>Email:</strong> {{ request.user.email }}</p>
     <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
     <h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
   </div>
-</body>
 {% endblock %}
