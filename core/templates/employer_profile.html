@@ -39,10 +39,10 @@
 
   <div class="profile-box">
     <img 
-      src="{{ request.user.profile.profile_pic_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}" 
-      alt="Profile Picture" 
-      class="profile-pic"
-    >
+  src="{{ request.user.profile.profile_pic.url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}" 
+  alt="Profile Picture" 
+  class="profile-pic"
+>
     <p><strong>Username:</strong> {{ request.user.username }}</p>
     <p><strong>Email:</strong> {{ request.user.email }}</p>
     <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
