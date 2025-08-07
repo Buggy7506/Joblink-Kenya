@@ -40,6 +40,7 @@
     border-radius: 50%;
     border: 3px solid #a855f7;
     box-shadow: 0 0 15px #a855f7;
+    cursor: pointer;
   }
 
   .profile-info {
@@ -98,16 +99,47 @@
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Modal */
+  #imgModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.9);
+  }
+
+  #imgModal img {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  #imgModal span {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+  }
 </style>
 
 <div class="profile-container">
-<div class="profile-pic">
-  {% if request.user.profile.profile_pic %}
-    <img src="{{ request.user.profile.profile_pic.url }}">
-  {% else %}
-    <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png">
-  {% endif %}
-</div>
+  <div class="profile-pic">
+    {% if request.user.profile.profile_pic %}
+      <img id="profile-pic" src="{{ request.user.profile.profile_pic.url }}" alt="Profile Picture">
+    {% else %}
+      <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+    {% endif %}
+  </div>
 
   <div class="profile-info">
     <div>
@@ -131,6 +163,10 @@
       <p>{{ user.role|capfirst }}</p>
     </div>
     <div>
+      <p>Skills</p>
+      <p>{{ user.profile.skills }}</p>
+    </div>
+    <div>
       <p>CV</p>
       <p>
         {% if user_cv %}
@@ -146,4 +182,27 @@
     <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
   </div>
 </div>
+
+<!-- Modal for image preview -->
+<div id="imgModal">
+  <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
+  <img id="imgPreview" src="">
+</div>
+
+<script>
+  const profilePic = document.getElementById('profile-pic');
+  const modal = document.getElementById('imgModal');
+  const imgPreview = document.getElementById('imgPreview');
+
+  profilePic.addEventListener('click', () => {
+    imgPreview.src = profilePic.src;
+    modal.style.display = 'block';
+  });
+
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+</script>
 {% endblock %}
