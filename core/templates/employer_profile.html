@@ -16,6 +16,7 @@
       max-width: 500px;
       margin: auto;
       box-shadow: 0 0 15px cyan;
+      text-align: center;
     }
     h2 {
       text-align: center;
@@ -24,13 +25,25 @@
     p {
       margin-bottom: 10px;
     }
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid cyan;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
   <div class="profile-box">
+    {% if request.user.profile_picture %}
+      <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="profile-img">
+    {% endif %}
     <h2>⚙️ My Profile</h2>
     <p><strong>Username:</strong> {{ request.user.username }}</p>
     <p><strong>Email:</strong> {{ request.user.email }}</p>
+    <p><strong>Role:</strong> {{ request.user.role }}</p>
     <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
     <h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
   </div>
