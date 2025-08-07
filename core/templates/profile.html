@@ -164,7 +164,11 @@
     </div>
     <div>
       <p>Skills</p>
-      <p>{{ user.skills|linebreaks }}</p>
+{% if user.profile.skills %}
+      <p>{{ user.profile.skills }}</p>
+{% else %}
+      <p>No skills added yet.</p>
+{% endif %}
     </div>
     <div>
       <p>CV</p>
