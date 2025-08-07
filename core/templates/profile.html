@@ -162,12 +162,8 @@
       <p>Role</p>
       <p>{{ user.role|capfirst }}</p>
     </div>
-    {% if request.user.profile.skills %}
-        <div class="mt-4">
-          <p>Skills:</p>
-          <p>{{ request.user.profile.skills|linebreaks }}</p>
-        </div>
-    {% endif %}
+      <p>Skills:</p>
+      <p>{{ user.skills|linebreaks }}</p>
     <div>
       <p>CV</p>
       <p>
