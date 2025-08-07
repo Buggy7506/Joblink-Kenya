@@ -130,21 +130,27 @@ def dashboard(request):
     # Fallback
     return redirect('login')
 
+@login_required
 def profile_view(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
     try:
         user_cv = CVUpload.objects.filter(applicant=request.user).latest('id')
     except CVUpload.DoesNotExist:
         user_cv = None
+
+    context = {
+        'user': request.user,
+        'profile': profile,
+        'user_cv': user_cv,
+        'skills': profile.skills.split(',') if profile.skills else [],
+        'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
+    }
+
     if request.user.role == 'employer':
-        return render(request, 'employer_profile.html', {
-            'user': request.user,
-            'user_cv': user_cv
-        })
+        return render(request, 'employer_profile.html', context)
     else:
-        return render(request, 'profile.html', {
-            'user': request.user,
-            'user_cv': user_cv
-        })
+        return render(request, 'profile.html', context)
 
 @login_required
 def view_posted_jobs(request):
