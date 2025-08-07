@@ -3,69 +3,58 @@
 {% block content %}
   <style>
     body {
+      background: #1a1a2e;
       background: linear-gradient(to right, #16222A, #3A6073);
       color: white;
       font-family: 'Segoe UI', sans-serif;
       padding: 30px;
     }
-
     .profile-box {
-      background: rgba(255, 255, 255, 0.07);
-      padding: 30px;
-      border-radius: 18px;
-      max-width: 550px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 500px;
       margin: auto;
-      box-shadow: 0 0 20px cyan;
+      box-shadow: 0 0 15px cyan;
       text-align: center;
     }
-
     .profile-pic {
       width: 130px;
       height: 130px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid cyan;
-      box-shadow: 0 0 15px cyan;
+      margin-bottom: 15px;
+      box-shadow: 0 0 10px cyan;
+    }
+    h2 {
       margin-bottom: 20px;
     }
-
-    h2 {
-      margin-bottom: 15px;
-    }
-
     p {
-      margin: 8px 0;
+      margin-bottom: 10px;
     }
-
-    .edit-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: cyan;
-      color: black;
-      border-radius: 10px;
-      font-weight: bold;
+    a {
+      color: cyan;
       text-decoration: none;
-      transition: 0.3s ease;
+      font-weight: bold;
     }
-
-    .edit-btn:hover {
-      background-color: #00ffe5;
-      box-shadow: 0 0 10px cyan;
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 
   <div class="profile-box">
-    {% if profile_picture_url %}
-      <img src="{{ profile_picture_url }}" alt="Profile Picture" class="profile-pic">
+    {% if request.user.profile_pic_url %}
+      <img class="profile-pic" src="{{ request.user.profile_pic_url }}" alt="Profile Picture">
     {% else %}
-      <img src="https://res.cloudinary.com/demo/image/upload/v1690198451/icon.png" alt="Default Avatar" class="profile-pic">
+      <img class="profile-pic" src="https://res.cloudinary.com/demo/image/upload/v1690835125/icon.png" alt="Default Profile Picture">
     {% endif %}
-
-    <h2>👤 {{ request.user.get_full_name|default:request.user.username }}</h2>
-    <p><strong>📧 Email:</strong> {{ request.user.email }}</p>
-    <p><strong>🕓 Joined:</strong> {{ request.user.date_joined|date:"F d, Y" }}</p>
     
-    <a href="{% url 'edit_profile' %}" class="edit-btn">✏️ Edit Profile</a>
+    <h2>⚙️ My Profile</h2>
+    <p><strong>Username:</strong> {{ request.user.username }}</p>
+    <p><strong>Email:</strong> {{ request.user.email }}</p>
+    <p><strong>Date Joined:</strong> {{ request.user.date_joined|date:"F j, Y" }}</p>
+
+    <h2><a href="{% url 'edit_profile' %}">✏️ Edit Profile</a></h2>
   </div>
 {% endblock %}
