@@ -99,7 +99,7 @@ class EditProfileForm(forms.ModelForm):
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.phone = self.cleaned_data['phone']
             profile.location = self.cleaned_data['location']
-            profile.skills = self.cleaned_data.get('skills') 
+            profile.skills = self.cleaned_data.get('skills', '') 
 
             if self.cleaned_data.get('profile_pic'):
                 profile.profile_pic = self.cleaned_data['profile_pic']
