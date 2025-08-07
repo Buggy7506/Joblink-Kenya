@@ -236,7 +236,10 @@ def edit_profile(request):
     else:
         form = EditProfileForm(instance=request.user)
 
-    return render(request, 'change_credentials.html', {'form': form})
+    return render(request, 'change_credentials.html', {
+    'form': form,
+    'profile_picture_url': request.user.profile.profile_pic.url if request.user.profile.profile_pic else None
+})
 
 #Job Posting
 
