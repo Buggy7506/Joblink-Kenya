@@ -222,24 +222,29 @@ def admin_profile(request):
 @login_required
 def edit_profile(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
-        form = EditProfileForm(request.POST or None, instance=request.user, user=request.user)
+        form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
+
         if form.is_valid():
-            form.save()
+            user = form.save()
+            profile.profile_pic = form.cleaned_data.get('profile_pic') or profile.profile_pic
+            profile.save()
+
             # Redirect to correct profile automatically
-            if request.user.is_superuser or request.user.role == 'admin':
+            if user.is_superuser or user.role == 'admin':
                 return redirect('admin_profile')
-            elif request.user.role == 'employer':
+            elif user.role == 'employer':
                 return redirect('employer_profile')
             else:
                 return redirect('profile')
     else:
-        form = EditProfileForm(instance=request.user)
+        form = EditProfileForm(instance=request.user, user=request.user)
 
     return render(request, 'change_credentials.html', {
-    'form': form,
-    'profile_picture_url': request.user.profile.profile_pic.url if request.user.profile.profile_pic else None
-})
+        'form': form,
+        'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None
+    })
 
 #Job Posting
 
