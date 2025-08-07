@@ -120,13 +120,26 @@
     {% endif %}
     </div>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 
-        {{ form.as_p }}
+    <label for="id_username">Username</label>
+    {{ form.username }}
 
-        <button type="submit">💾 Save Changes</button>
-    </form>
+    <label for="id_email">Email</label>
+    {{ form.email }}
+
+    <label for="id_profile_pic">Profile Picture</label>
+    {{ form.profile_pic }}
+
+    <label for="id_phone">Phone</label>
+    {{ form.phone }}
+
+    <label for="id_location">Location</label>
+    {{ form.location }}
+
+    <button type="submit">💾 Save Changes</button>
+</form>
 
     <a href="{% url 'profile' %}">← Back to Profile</a>
 </div>
