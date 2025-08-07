@@ -67,7 +67,7 @@ class EditProfileForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone', 'skills']
+        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone'] 
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -99,7 +99,7 @@ class EditProfileForm(forms.ModelForm):
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.phone = self.cleaned_data['phone']
             profile.location = self.cleaned_data['location']
-            profile.skills = self.cleaned_data['skills'] 
+            profile.skills = self.cleaned_data.get('skills') 
 
             if self.cleaned_data.get('profile_pic'):
                 profile.profile_pic = self.cleaned_data['profile_pic']
