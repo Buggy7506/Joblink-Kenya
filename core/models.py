@@ -10,8 +10,7 @@ class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, blank=True)
-    location = models.CharField(max_length=255, blank=True)
-    profile_pic = CloudinaryField('image', blank=True, null=True)  # 👈 Fix here
+    location = models.CharField(max_length=255, blank=True)  
     bio = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     education = models.TextField(blank=True)
@@ -32,7 +31,7 @@ class CustomUser(AbstractUser):
     last_name = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=255, blank=True)
-    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    profile_pic = CloudinaryField('image', blank=True, null=True)
     def __str__(self):
         return self.username
         
