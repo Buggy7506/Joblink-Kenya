@@ -113,11 +113,11 @@
 
     <!-- Profile Picture Preview -->
     <div class="profile-preview">
-        {% if user.profile_pic %}
-            <img src="{{ request.user.profile_pic_url }}">
-        {% else %}
-            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png">
-        {% endif %}
+    {% if request.user.profile.profile_pic %}
+        <img src="{{ request.user.profile.profile_pic.url }}" alt="Profile Picture">
+    {% else %}
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png" alt="Default Picture">
+    {% endif %}
     </div>
 
     <form method="post" enctype="multipart/form-data">
