@@ -105,9 +105,9 @@
 
   <div class="profile-pic">
     {% if user.profile_pic %}
-      <img src="{{ user.profile_pic.url }}" alt="Profile Picture">
+      <img src="{{ request.user.profile_pic_url }}" alt="Profile Picture">
     {% else %}
-      <img src="{{ user.profile_pic.url }}" alt="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png">
+      <img src="{{ request.user.profile_pic_url }}" alt="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png">
     {% endif %}
   </div>
 
