@@ -164,11 +164,17 @@
     </div>
     <div>
       <p>Skills</p>
-{% if user.profile.skills %}
-      <p>{{ user.profile.skills|linebreaks }}</p>
-{% else %}
-      <p>No skills added yet.</p>
-{% endif %}
+      {% if skills %}
+        <div>
+          {% for skill in skills %}
+            <span style="background:#9333ea; color:white; padding:5px 10px; border-radius:15px; margin:3px; display:inline-block;">
+              {{ skill|trim }}
+            </span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No skills added yet.</p>
+      {% endif %}
     </div>
     <div>
       <p>CV</p>
