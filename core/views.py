@@ -140,15 +140,11 @@ def profile_view(request):
     except CVUpload.DoesNotExist:
         user_cv = None
 
-    # Prepare skills list
-    skills_list = []
-    if profile.skills:
-        skills_list = user.skills.split(',')  # now a list of skills
     context = {
         'profile': profile,  # full profile object for phone, location, profile_pic
         'user': request.user,  # keep this for username/email
         'user_cv': user_cv,
-        'skills': skills_list,
+        'skills': skills,
         'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
     }
 
