@@ -134,27 +134,28 @@ def dashboard(request):
 def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
+    # Latest CV
     try:
         user_cv = CVUpload.objects.filter(applicant=request.user).latest('id')
     except CVUpload.DoesNotExist:
         user_cv = None
 
+    # Prepare skills list
     skills_list = []
     if profile.skills:
         skills_list = [s.strip() for s in profile.skills.split(',') if s.strip()]
-        
-    context = {
-    'user': request.user,
-    'profile': profile,
-    'user_cv': user_cv,
-    'skills': skills_list,
-    'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
-}
 
-    if request.user.role == 'employer':
-        return render(request, 'employer_profile.html', context)
-    else:
-        return render(request, 'profile.html', context)
+    context = {
+        'profile': profile,  # full profile object for phone, location, profile_pic
+        'user': request.user,  # keep this for username/email
+        'user_cv': user_cv,
+        'skills': skills_list,
+        'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
+    }
+
+    template_name = 'employer_profile.html' if request.user.role == 'employer' else 'profile.html'
+    return render(request, template_name, context)
+
 
 @login_required
 def view_posted_jobs(request):
