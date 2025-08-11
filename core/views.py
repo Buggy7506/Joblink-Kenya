@@ -139,7 +139,7 @@ def profile_view(request):
     except CVUpload.DoesNotExist:
         user_cv = None
 
-        skills_list = []
+    skills_list = []
     if profile.skills:
         skills_list = [s.strip() for s in profile.skills.split(',') if s.strip()]
         
