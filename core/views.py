@@ -225,28 +225,31 @@ def admin_profile(request):
 
 @login_required
 def edit_profile(request):
-    profile, created = Profile.objects.get_or_create(user=request.user)
+profile, created = Profile.objects.get_or_create(user=request.user)
 
-    if request.method == 'POST':
-        form = EditProfileForm(request.POST, request.FILES, instance=profile)
+if request.method == 'POST':  
+    form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)  
 
-        if form.is_valid():
-            form.save()  # saves skills, profile pic, etc.
+    if form.is_valid():  
+        user = form.save()  
+        profile.profile_pic = form.cleaned_data.get('profile_pic') or profile.profile_pic  
+        profile.save()  
 
-            # Redirect based on role
-            if request.user.is_superuser or profile.role == 'admin':
-                return redirect('admin_profile')
-            elif profile.role == 'employer':
-                return redirect('employer_profile')
-            else:
-                return redirect('profile')
-    else:
-        form = EditProfileForm(instance=profile)
+        # Redirect to correct profile automatically  
+        if user.is_superuser or user.role == 'admin':  
+            return redirect('admin_profile')  
+        elif user.role == 'employer':  
+            return redirect('employer_profile')  
+        else:  
+            return redirect('profile')  
+else:  
+    form = EditProfileForm(instance=request.user, user=request.user)  
 
-    return render(request, 'change_credentials.html', {
-        'form': form,
-        'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None
-    })
+return render(request, 'change_credentials.html', {  
+    'form': form,  
+    'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None  
+})
+
 #Job Posting
 
 @login_required
