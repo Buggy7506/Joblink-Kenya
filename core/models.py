@@ -15,7 +15,7 @@ class Profile(models.Model):
     bio = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     education = models.TextField(blank=True)
-    skills = models.TextField(blank=True)
+    skills = models.CharField(max_length=255, blank=True, null=True)
     
     def __str__(self):
         return self.full_name
