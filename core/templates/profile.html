@@ -152,11 +152,11 @@
     </div>
     <div>
       <p>Phone</p>
-      <p>{{ profile.phone }}</p>
+      <p>{{ user.phone }}</p>
     </div>
     <div>
       <p>Location</p>
-      <p>{{ profile.location }}</p>
+      <p>{{ user.location }}</p>
     </div>
     <div>
       <p>Role</p>
@@ -164,9 +164,9 @@
     </div>
     <div>
       <p>Skills</p>
-      {% if skills %}
+      {% if user.skills %}
         <ul style="margin:0; padding-left: 20px; color: #c084fc;">
-          {% for skill in skills %}
+          {% for skill in user.skills %}
             <li>{{ skill }}</li>
           {% endfor %}
         </ul>
