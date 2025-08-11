@@ -67,7 +67,7 @@ class EditProfileForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone'] 
+        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone', 'skills'] 
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
