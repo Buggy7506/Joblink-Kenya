@@ -143,7 +143,7 @@ def profile_view(request):
     if profile.skills:
         skills_list = [s.strip() for s in profile.skills.split(',') if s.strip()]
         
-        context = {
+    context = {
     'user': request.user,
     'profile': profile,
     'user_cv': user_cv,
