@@ -143,7 +143,7 @@ def profile_view(request):
         'user': request.user,
         'profile': profile,
         'user_cv': user_cv,
-        'skills': profile.skills.split(',') if profile.skills else [],
+        'skills': [s.strip() for s in profile.skills.split(',')] if profile.skills else [],
         'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
     }
 
