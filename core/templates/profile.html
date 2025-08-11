@@ -166,9 +166,9 @@
       <p>Skills</p>
       {% if profile.skills %}
         <div>
-          {% for skill in profile.skills %}
+          {% for skill in skills %}
             <span style="background:#9333ea; color:white; padding:5px 10px; border-radius:15px; margin:3px; display:inline-block;">
-              {{ profile.skills }}
+              {{ skill }}
             </span>
           {% endfor %}
         </div>
