@@ -143,8 +143,7 @@ def profile_view(request):
     # Prepare skills list
     skills_list = []
     if profile.skills:
-        skills_list = [s.strip() for s in profile.skills.split(',') if s.strip()]
-
+        skills_list = user.skills.split(',')  # now a list of skills
     context = {
         'profile': profile,  # full profile object for phone, location, profile_pic
         'user': request.user,  # keep this for username/email
