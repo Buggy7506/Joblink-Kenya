@@ -88,6 +88,11 @@ class EditProfileForm(forms.ModelForm):
         if password and password != confirm:
             raise forms.ValidationError("Passwords do not match.")
         return cleaned_data
+        
+    def clean_skills(self):
+        skills = self.cleaned_data.get('skills', '') # Normalize skills: trim spaces and remove empty entries, then re-join as CSV
+        skills_list = [s.strip() for s in skills.split(',') if s.strip()]
+        return ', '.join(skills_list)
 
     def save(self, commit=True):
         user = super().save(commit=False)
