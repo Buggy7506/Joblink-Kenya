@@ -58,17 +58,17 @@ class UserRegisterForm(forms.ModelForm):
 User = get_user_model()
 
 class EditProfileForm(forms.ModelForm):
+class EditProfileForm(forms.ModelForm):
     phone = forms.CharField(max_length=20, required=False)
     location = forms.CharField(max_length=100, required=False)
     profile_pic = forms.ImageField(required=False)
-    skills = forms.CharField(max_length=255, required=False)  # stays here
+    skills = forms.CharField(max_length=255, required=False)
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone'] 
-        # removed skills from here
+        fields = ['username', 'email', 'first_name', 'last_name']  # removed location, phone, skills
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -97,14 +97,13 @@ class EditProfileForm(forms.ModelForm):
         if commit:
             user.save()
 
+            # Save profile-specific fields
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.phone = self.cleaned_data['phone']
             profile.location = self.cleaned_data['location']
-            profile.skills = self.cleaned_data.get('skills', '') 
-
+            profile.skills = self.cleaned_data.get('skills', '')  # force save here
             if self.cleaned_data.get('profile_pic'):
                 profile.profile_pic = self.cleaned_data['profile_pic']
-
             profile.save()
 
         return user
