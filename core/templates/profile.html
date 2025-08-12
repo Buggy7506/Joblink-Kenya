@@ -152,11 +152,11 @@
     </div>
     <div>
       <p>Phone</p>
-      <p>{{ user.phone }}</p>
+      <p>{{ profile.phone }}</p>
     </div>
     <div>
       <p>Location</p>
-      <p>{{ user.location }}</p>
+      <p>{{ profile.location }}</p>
     </div>
     <div>
       <p>Role</p>
@@ -164,15 +164,11 @@
     </div>
     <div>
       <p>Skills</p>
-      {% if skills %}
-        <ul>
-          {% for skill in skills %}
-            <li>{{ skill }}</li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No skills added yet</p>
-      {% endif %}
+{% if profile.skills %}
+    <p>{{ profile.skills }}</p>
+{% else %}
+    <p>No skills added yet</p>
+{% endif %}
     </div>
     <div>
       <p>CV</p>
