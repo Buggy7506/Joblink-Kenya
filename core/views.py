@@ -142,7 +142,7 @@ def profile_view(request):
 
     # Convert skills string to a list (comma-separated)
     skills_list = []
-    if profile.skills:
+    if request.user.skills:
         skills_list = [skill.strip() for skill in profile.skills.split(',')]
 
     context = {
