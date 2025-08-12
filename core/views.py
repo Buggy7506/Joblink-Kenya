@@ -132,6 +132,8 @@ def dashboard(request):
 
 @login_required
 def profile_view(request):
+@login_required
+def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
     # Latest CV
@@ -140,7 +142,7 @@ def profile_view(request):
     except CVUpload.DoesNotExist:
         user_cv = None
 
-    # Get skills from profile (assuming stored as comma-separated string)
+    # Convert skills string to a list (comma-separated)
     skills_list = []
     if profile.skills:
         skills_list = [skill.strip() for skill in profile.skills.split(',')]
@@ -149,12 +151,10 @@ def profile_view(request):
         'profile': profile,
         'user': request.user,
         'user_cv': user_cv,
-        'skills': skills_list,
+        'skills': skills_list,  # Pass the list
         'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
     }
-
-    return render(request, 'profile.html', context)
-
+    
     template_name = 'employer_profile.html' if request.user.role == 'employer' else 'profile.html'
     return render(request, template_name, context)
 
