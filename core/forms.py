@@ -61,13 +61,14 @@ class EditProfileForm(forms.ModelForm):
     phone = forms.CharField(max_length=20, required=False)
     location = forms.CharField(max_length=100, required=False)
     profile_pic = forms.ImageField(required=False)
-    skills = forms.CharField(max_length=255, required=False)
+    skills = forms.CharField(max_length=255, required=False)  # stays here
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone', 'skills'] 
+        fields = ['username', 'email', 'first_name', 'last_name', 'location', 'phone'] 
+        # removed skills from here
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
