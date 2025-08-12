@@ -132,8 +132,6 @@ def dashboard(request):
 
 @login_required
 def profile_view(request):
-@login_required
-def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
     # Latest CV
