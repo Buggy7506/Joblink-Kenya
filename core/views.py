@@ -430,13 +430,15 @@ def download_resume_pdf(request):
 @login_required
 def job_suggestions(request):
     user = request.user
-    skills = user.profile.skills.split(',') if hasattr(user, 'profile') and user.profile.skills else []
+    skills = user.skills.split(',') if user.skills else []
+    
     suggested_jobs = Job.objects.none()
     for skill in skills:
         suggested_jobs |= Job.objects.filter(title__icontains=skill.strip())
+    
     suggested_jobs = suggested_jobs.distinct()
     return render(request, 'suggestions.html', {'suggested_jobs': suggested_jobs})
-
+    
 #Premium Job Upgrade
 
 @login_required
