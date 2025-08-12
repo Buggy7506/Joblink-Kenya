@@ -134,8 +134,8 @@
 
 <div class="profile-container">
   <div class="profile-pic">
-    {% if request.user.profile.profile_pic %}
-      <img id="profile-pic" src="{{ request.user.profile.profile_pic.url }}" alt="Profile Picture">
+    {% if user.profile_pic %}
+      <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
     {% else %}
       <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
     {% endif %}
@@ -152,11 +152,11 @@
     </div>
     <div>
       <p>Phone</p>
-      <p>{{ profile.phone }}</p>
+      <p>{{ user.phone }}</p>
     </div>
     <div>
       <p>Location</p>
-      <p>{{ profile.location }}</p>
+      <p>{{ user.location }}</p>
     </div>
     <div>
       <p>Role</p>
@@ -164,11 +164,15 @@
     </div>
     <div>
       <p>Skills</p>
-{% if profile.skills %}
-    <p>{{ profile.skills }}</p>
-{% else %}
-    <p>No skills added yet</p>
-{% endif %}
+      {% if skills %}
+        <ul>
+          {% for skill in skills %}
+            <li>{{ skill }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No skills added yet</p>
+      {% endif %}
     </div>
     <div>
       <p>CV</p>
