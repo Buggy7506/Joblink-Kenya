@@ -140,13 +140,20 @@ def profile_view(request):
     except CVUpload.DoesNotExist:
         user_cv = None
 
+    # Get skills from profile (assuming stored as comma-separated string)
+    skills_list = []
+    if profile.skills:
+        skills_list = [skill.strip() for skill in profile.skills.split(',')]
+
     context = {
-        'profile': profile,  # full profile object for phone, location, profile_pic
-        'user': request.user,  # keep this for username/email
+        'profile': profile,
+        'user': request.user,
         'user_cv': user_cv,
-        'skills': skills,
+        'skills': skills_list,
         'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
     }
+
+    return render(request, 'profile.html', context)
 
     template_name = 'employer_profile.html' if request.user.role == 'employer' else 'profile.html'
     return render(request, template_name, context)
