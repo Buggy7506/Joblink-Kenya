@@ -58,7 +58,6 @@ class UserRegisterForm(forms.ModelForm):
 User = get_user_model()
 
 class EditProfileForm(forms.ModelForm):
-class EditProfileForm(forms.ModelForm):
     phone = forms.CharField(max_length=20, required=False)
     location = forms.CharField(max_length=100, required=False)
     profile_pic = forms.ImageField(required=False)
