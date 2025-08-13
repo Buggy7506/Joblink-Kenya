@@ -298,11 +298,9 @@ def post_job(request):
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    # Check if user has already applied
-    job_application, created = Application.objects.get_or_create(user=request.user, job=job)
-
     if not job.is_premium:
-        # Non-premium job: redirect with correct applied status
+        # Non-premium job: create application immediately
+        application, created = Application.objects.get_or_create(user=request.user, job=job)
         applied_status = 'yes' if created else 'already'
         return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
@@ -324,7 +322,7 @@ def apply_job(request, job_id):
                     'quantity': 1,
                 }],
                 mode='payment',
-                # Include 'applied=yes' in success_url
+                # Redirect to a webhook handler or success page
                 success_url=request.build_absolute_uri(f'/apply-success/{job.id}/yes/'),
                 cancel_url=request.build_absolute_uri(f'/apply-cancel/{job.id}/'),
                 metadata={
@@ -340,7 +338,8 @@ def apply_job(request, job_id):
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
     return render(request, 'apply_job.html', {'job': job})
-    
+
+
 @login_required
 def apply_job_success(request, job_id, applied=True):
     job = get_object_or_404(Job, pk=job_id)
