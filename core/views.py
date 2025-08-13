@@ -480,6 +480,28 @@ def upgrade_job(request, job_id):
     return render(request, 'upgrade_job.html', {'form': form, 'job': job})
 
 @login_required
+def payment_success(request, job_id, plan_id):
+    job = get_object_or_404(Job, pk=job_id, employer=request.user)
+    plan = get_object_or_404(JobPlan, pk=plan_id)
+
+    # Save payment record
+    JobPayment.objects.create(
+        employer=request.user,
+        job=job,
+        plan=plan,
+        amount=plan.price,
+        is_successful=True
+    )
+
+    # Mark job as premium
+    job.premium = True
+    job.premium_expiry = timezone.now() + timezone.timedelta(days=plan.duration_days)
+    job.save()
+
+    messages.success(request, "Job upgraded to premium successfully!")
+    return redirect('dashboard')
+    
+@login_required
 def change_username_password(request):
     # Instantiate correctly both GET and POST
     if request.method == 'POST':
