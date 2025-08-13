@@ -398,6 +398,18 @@ def delete_alert(request, alert_id):
 def delete_alert_success(request):
     return render(request, 'delete_alert_success.html')
 
+
+@login_required
+def confirm_delete(request, job_id):
+    job = get_object_or_404(Job, id=job_id, posted_by=request.user)  # Ensure user owns the job
+
+    if request.method == "POST":
+        job.delete()
+        messages.success(request, "✅ Job deleted successfully!")
+        return redirect('job_list')  # Redirect to list after deletion
+
+    return render(request, 'confirm_delete.html', {'job': job})
+    
 #Admin Dashboard
 
 @login_required
