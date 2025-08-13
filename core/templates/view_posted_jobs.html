@@ -6,13 +6,22 @@
 <div class="container">
   <h2 class="glow-header text-center">📄 My Posted Jobs</h2>
 
+  <!-- Display Success or Error Messages -->
+  {% if messages %}
+    <div class="messages text-center">
+      {% for message in messages %}
+        <p class="message-text {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   {% for job in jobs %}
     <div class="job-card glow-card">
       <h3 class="glow-text"><strong>Title:</strong> {{ job.title }}</h3>
       <p><strong>Description:</strong> {{ job.description|truncatewords:30 }}</p>
       <p><strong>Posted on:</strong> {{ job.posted_on }}</p>
 
-      <!-- Redirect to Confirmation Page -->
+      <!-- Link to Confirmation Page -->
       <a href="{% url 'confirm_delete' job.id %}" class="btn-glow">❌ Delete Job</a>
     </div>
   {% empty %}
@@ -71,5 +80,42 @@
     box-shadow: 0 0 25px rgba(255, 42, 57, 1);
     transform: scale(1.05);
   }
+
+  /* Messages Styling */
+  .messages {
+    margin-bottom: 20px;
+  }
+
+  .message-text {
+    display: inline-block;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(90deg, #00ff00, #00cc00);
+    box-shadow: 0 0 15px #00ff00, 0 0 25px #00cc00;
+    font-size: 1rem;
+    opacity: 1;
+    transition: opacity 1s ease-out;
+  }
+
+  .message-text.error {
+    background: linear-gradient(90deg, #ff4b5c, #ff2a39);
+    box-shadow: 0 0 15px #ff4b5c, 0 0 25px #ff2a39;
+  }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-fade messages after 4 seconds
+  setTimeout(function() {
+    const messages = document.querySelectorAll('.message-text');
+    messages.forEach(msg => {
+      msg.style.opacity = '0';
+      setTimeout(() => msg.remove(), 1000); // remove element after fade
+    });
+  }, 4000);
+</script>
 {% endblock %}
