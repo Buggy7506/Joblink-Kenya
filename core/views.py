@@ -500,6 +500,10 @@ def payment_success(request, job_id, plan_id):
 
     messages.success(request, "Job upgraded to premium successfully!")
     return redirect('dashboard')
+
+def payment_cancelled(request):
+    messages.error(request, "Payment was cancelled.")
+    return redirect('dashboard')
     
 @login_required
 def change_username_password(request):
