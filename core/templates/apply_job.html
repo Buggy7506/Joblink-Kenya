@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Apply for {{ job.title }}{% endblock %}
+{% block content %}
+
+<style>
+  body {
+    background: radial-gradient(circle at top left, #0f0f1f, #000);
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+  }
+
+  .apply-container {
+    max-width: 700px;
+    margin: 80px auto;
+    padding: 40px;
+    background: rgba(20, 20, 30, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5),
+                0 0 50px rgba(0, 255, 255, 0.2);
+    animation: fadeIn 0.7s ease-out;
+  }
+
+  h1 {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #00eaff;
+    text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+  }
+
+  p {
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 25px;
+    color: #ccc;
+  }
+
+  .glow-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(90deg, #ff00cc, #3333ff);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 0, 204, 0.7), 0 0 30px rgba(51, 51, 255, 0.6);
+  }
+
+  .glow-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 0, 204, 1), 0 0 50px rgba(51, 51, 255, 1);
+  }
+
+  .error-message {
+    background: rgba(255, 0, 0, 0.1);
+    padding: 10px;
+    border: 1px solid red;
+    border-radius: 10px;
+    color: red;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="apply-container">
+  <h1>Apply for {{ job.title }}</h1>
+  <p>You're about to apply for <strong>{{ job.company_name }}</strong>.</p>
+
+  {% if error %}
+    <div class="error-message">{{ error }}</div>
+  {% endif %}
+
+  {% if job.is_premium %}
+    <p>This is a <span style="color: #ff00cc; font-weight: bold;">Premium Job</span> 💎  
+    An application fee of <strong>KES 200</strong> is required.</p>
+  {% else %}
+    <p>This is a <span style="color: #00ff99; font-weight: bold;">Free Job</span> ✅  
+    You can apply instantly without payment.</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="glow-btn">
+      {% if job.is_premium %}
+        Pay & Apply
+      {% else %}
+        Apply Now
+      {% endif %}
+    </button>
+  </form>
+</div>
+
+{% endblock %}
