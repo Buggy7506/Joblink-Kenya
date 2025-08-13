@@ -8,9 +8,9 @@
 
   <!-- Display Success or Error Messages -->
   {% if messages %}
-    <div class="messages text-center">
+    <div id="messages-popup">
       {% for message in messages %}
-        <p class="message-text {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+        <div class="message {{ message.tags }}">{{ message }}</div>
       {% endfor %}
     </div>
   {% endif %}
@@ -82,40 +82,65 @@
   }
 
   /* Messages Styling */
-  .messages {
-    margin-bottom: 20px;
+  #messages-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .message-text {
-    display: inline-block;
-    padding: 12px 20px;
+  .message {
+    padding: 12px 25px;
     border-radius: 25px;
     font-weight: bold;
     text-align: center;
     color: #fff;
-    background: linear-gradient(90deg, #00ff00, #00cc00);
-    box-shadow: 0 0 15px #00ff00, 0 0 25px #00cc00;
     font-size: 1rem;
-    opacity: 1;
-    transition: opacity 1s ease-out;
+    box-shadow: 0 0 15px #00ff00, 0 0 25px #00cc00;
+    opacity: 0.95;
+    animation: slideDown 0.5s forwards;
   }
 
-  .message-text.error {
+  .message.success {
+    background: linear-gradient(90deg, #00ff00, #00cc00);
+    box-shadow: 0 0 15px #00ff00, 0 0 25px #00cc00;
+  }
+
+  .message.error {
     background: linear-gradient(90deg, #ff4b5c, #ff2a39);
     box-shadow: 0 0 15px #ff4b5c, 0 0 25px #ff2a39;
+  }
+
+  @keyframes slideDown {
+    to { transform: translateY(0); }
+  }
+
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-50px); }
   }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Auto-fade messages after 4 seconds
-  setTimeout(function() {
-    const messages = document.querySelectorAll('.message-text');
-    messages.forEach(msg => {
-      msg.style.opacity = '0';
-      setTimeout(() => msg.remove(), 1000); // remove element after fade
-    });
-  }, 4000);
+  // Auto-fade and remove messages
+  window.addEventListener('DOMContentLoaded', () => {
+    const messages = document.querySelectorAll('#messages-popup .message');
+    if (messages.length > 0) {
+      setTimeout(() => {
+        messages.forEach(msg => {
+          msg.style.animation = 'fadeOut 0.7s forwards';
+        });
+      }, 4000);
+
+      setTimeout(() => {
+        messages.forEach(msg => msg.remove());
+      }, 4700);
+    }
+  });
 </script>
 {% endblock %}
