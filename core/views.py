@@ -303,16 +303,17 @@ def apply_job(request, job_id):
         return redirect('job_list')
 
     # ---------- FREE JOB FLOW ----------
-if not job.is_premium:
-    if request.method == "POST":
-        application, created = Application.objects.get_or_create(
-            applicant=request.user, job=job
-        )
-        applied_status = 'yes' if created else 'already'
-        messages.success(request, "✅ You have successfully applied to the job!")
-        return redirect('apply_job_success', job_id=job.id, applied=applied_status)
-    return render(request, 'apply_job.html', {'job': job})
-    
+    if not job.is_premium:
+        if request.method == "POST":
+            application, created = Application.objects.get_or_create(
+                applicant=request.user,
+                job=job
+            )
+            applied_status = 'yes' if created else 'already'
+            messages.success(request, "✅ You have successfully applied to the job!")
+            return redirect('apply_job_success', job_id=job.id, applied=applied_status)
+
+        return render(request, 'apply_job.html', {'job': job})
 
     # ---------- PREMIUM JOB FLOW ----------
     amount = 200 * 100  # KES 200 in cents
@@ -345,7 +346,6 @@ if not job.is_premium:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e.user_message)})
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
-            
 
 @login_required
 def apply_job_success(request, job_id, applied=True):
