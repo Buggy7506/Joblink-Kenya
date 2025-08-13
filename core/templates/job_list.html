@@ -83,9 +83,49 @@
     color: #aaa;
     font-style: italic;
   }
+
+  /* Messages Styling */
+  .messages {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .message-text {
+    display: inline-block;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    font-size: 1rem;
+    opacity: 1;
+    transition: opacity 1s ease-out, transform 0.3s ease;
+    box-shadow: 0 0 15px rgba(0,255,255,0.6), 0 0 25px rgba(0,255,255,0.4);
+    margin-bottom: 10px;
+  }
+
+  .message-text.error {
+    background: linear-gradient(90deg, #ff4b5c, #ff2a39);
+    box-shadow: 0 0 15px #ff4b5c, 0 0 25px #ff2a39;
+  }
+
+  .message-text.success {
+    background: linear-gradient(90deg, #00ff99, #00cc66);
+    box-shadow: 0 0 15px #00ff99, 0 0 25px #00cc66;
+  }
 </style>
 
 <div class="container">
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <p class="message-text {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <h2>🌟 Featured Jobs</h2>
   {% for job in premium_jobs %}
     <div class="premium-job">
@@ -110,4 +150,17 @@
     <p class="no-jobs">No jobs found at the moment.</p>
   {% endfor %}
 </div>
+
+<script>
+  // Auto-fade messages
+  setTimeout(function() {
+    const messages = document.querySelectorAll('.message-text');
+    messages.forEach(msg => {
+      msg.style.opacity = '0';
+      msg.style.transform = 'translateY(-10px)';
+      setTimeout(() => msg.remove(), 1000);
+    });
+  }, 4000);
+</script>
+
 {% endblock %}
