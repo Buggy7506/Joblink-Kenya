@@ -401,7 +401,7 @@ def delete_alert_success(request):
 
 @login_required
 def confirm_delete(request, job_id):
-    job = get_object_or_404(Job, id=job_id, posted_by=request.user)  # Ensure user owns the job
+    job = get_object_or_404(Job, id=job_id, employer=request.user)  # Ensure user owns the job
 
     if request.method == "POST":
         job.delete()
