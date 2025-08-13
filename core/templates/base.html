@@ -46,15 +46,6 @@
 </style>
 </head>
 <body>
-{% if messages %}
-  <div class="fixed top-5 right-5 z-50 space-y-2">
-    {% for message in messages %}
-      <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
 
 <header class="nav-bg">
   <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
