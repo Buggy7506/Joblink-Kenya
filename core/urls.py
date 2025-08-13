@@ -22,7 +22,10 @@ urlpatterns = [
 
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'), name='password_reset_complete'),
-
+    
+    path('upgrade-job/<int:job_id>/', views.upgrade_job, name='upgrade_job'),
+    path('payment-success/<int:job_id>/<int:plan_id>/', views.payment_success, name='payment_success'),
+    path('payment-cancelled/', views.payment_cancelled, name='payment_cancelled'),
     # Employers: Post a job
     path('post-job/', views.post_job, name='post_job'),
     path('admin-only/', views.admin_only_view, name='admin_only'),
