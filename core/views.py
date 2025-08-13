@@ -303,19 +303,16 @@ def apply_job(request, job_id):
         return redirect('job_list')
 
     # ---------- FREE JOB FLOW ----------
-    if not job.is_premium:
-        if request.method == "POST":
-            choice = request.POST.get('choice')
-            if choice == 'upgrade':
-                return redirect('upgrade_job', job_id=job.id)
-            elif choice == 'continue':
-                application, created = Application.objects.get_or_create(
-                    applicant=request.user, job=job
-                )
-                applied_status = 'yes' if created else 'already'
-                messages.success(request, "✅ You have successfully applied to the job!")
-                return redirect('apply_job_success', job_id=job.id, applied=applied_status)
-
+if not job.is_premium:
+    if request.method == "POST":
+        application, created = Application.objects.get_or_create(
+            applicant=request.user, job=job
+        )
+        applied_status = 'yes' if created else 'already'
+        messages.success(request, "✅ You have successfully applied to the job!")
+        return redirect('apply_job_success', job_id=job.id, applied=applied_status)
+    return render(request, 'apply_job.html', {'job': job})
+    
         # First time landing on apply page for free job → show apply_job.html
         return render(request, 'apply_job.html', {'job': job})
 
