@@ -313,8 +313,6 @@ if not job.is_premium:
         return redirect('apply_job_success', job_id=job.id, applied=applied_status)
     return render(request, 'apply_job.html', {'job': job})
     
-        # First time landing on apply page for free job → show apply_job.html
-        return render(request, 'apply_job.html', {'job': job})
 
     # ---------- PREMIUM JOB FLOW ----------
     amount = 200 * 100  # KES 200 in cents
