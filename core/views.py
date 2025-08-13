@@ -294,16 +294,50 @@ def post_job(request):
 
 #Apply Job
 
+from django.conf import settings
+import stripe
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Job, Application
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 @login_required
 def apply_job(request, job_id):
-    job = get_object_or_404(Job, pk=job_id)
-    if job.employer == request.user:
-        messages.error(request, "You cannot apply to your own job posting.")
-        return redirect('job_list')
-    if Application.objects.filter(applicant=request.user, job=job).exists():
-        return redirect('apply_job_success', job_id=job.id, applied=False)
-    Application.objects.create(applicant=request.user, job=job)
-    return redirect('apply_job_success', job_id=job.id, applied=True)
+    job = get_object_or_404(Job, id=job_id)
+
+    # Amount in cents (KES 200 in this example)
+    amount = 200 * 100
+
+    if request.method == "POST":
+        try:
+            # Create Stripe checkout session
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'kes',  # Change to 'usd' if needed
+                        'product_data': {
+                            'name': f"Application Fee - {job.title}",
+                        },
+                        'unit_amount': amount,
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=request.build_absolute_uri(f'/apply-success/{job.id}/'),
+                cancel_url=request.build_absolute_uri(f'/apply-cancel/{job.id}/'),
+                metadata={
+                    'job_id': job.id,
+                    'user_id': request.user.id
+                }
+            )
+            return redirect(checkout_session.url)
+
+        except Exception as e:
+            return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
+
+    return render(request, 'apply_job.html', {'job': job})
 
 @login_required
 def apply_job_success(request, job_id, applied=True):
