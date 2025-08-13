@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Apply for {{ job.title }}{% endblock %}
+{% block content %}
+<div class="form-container">
+  <h2>Apply for {{ job.title }} 🎯</h2>
+  <p>This is a free job, but you can upgrade to a <strong>premium job</strong> for more visibility.</p>
+
+  <form method="POST">
+    {% csrf_token %}
+    <button name="choice" value="upgrade" class="glow-btn">💎 Upgrade Job</button>
+    <button name="choice" value="continue" class="glow-btn" style="background:#00ccff; color:#000; margin-top:10px;">➡️ Continue Application</button>
+  </form>
+
+  <h4><a href="{% url 'job_list' %}">← Back to Job Listings</a></h4>
+</div>
+
+<style>
+.form-container {
+  max-width: 450px;
+  margin: 80px auto;
+  padding: 40px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0,255,150,0.3);
+  text-align: center;
+  color: #fff;
+}
+.glow-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00ffcc, 0 0 30px #00ffcc;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+.glow-btn:hover { 
+  box-shadow: 0 0 20px #00ffee, 0 0 50px #00ffee;
+}
+</style>
+{% endblock %}
