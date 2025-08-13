@@ -51,7 +51,7 @@
   margin-bottom: 30px;
 }
 
-/* updated styles here */
+/* Dashboard buttons */
 .dashboard-actions {
   margin-bottom: 25px;
   display: flex;
@@ -59,7 +59,6 @@
   justify-content: center;
   gap: 15px;
 }
-
 .btn-glow {
   padding: 12px 20px;
   background-color: #ffb347;
@@ -70,17 +69,16 @@
   box-shadow: 0 0 10px #ffb347, 0 0 20px #ffb347;
   transition: transform 0.2s ease-in-out;
 }
-
 .btn-glow:hover {
   transform: scale(1.05);
 }
 
+/* Summary boxes */
 .summary-boxes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
 }
-
 .glow-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(5px);
@@ -92,35 +90,53 @@
 /* Messages Popup */
 #messages-popup {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
   z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slideDown 0.5s forwards;
 }
 .message {
   background-color: #ffb347;
   color: #000;
   padding: 12px 20px;
-  margin-bottom: 10px;
   border-radius: 25px;
   font-weight: bold;
   box-shadow: 0 0 10px #ffb347, 0 0 20px #ffb347;
-  animation: fadeOut 0.5s ease-in-out 3s forwards;
+  opacity: 0.95;
 }
 .message.error {
   background-color: #ff4b5c;
   color: #fff;
   box-shadow: 0 0 10px #ff4b5c, 0 0 20px #ff4b5c;
 }
+
+/* Slide down animation */
+@keyframes slideDown {
+  to { transform: translateX(-50%) translateY(20px); }
+}
+
+/* Fade out animation */
 @keyframes fadeOut {
-  to { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 0; transform: translateX(-50%) translateY(-50px); }
 }
 </style>
 
 <script>
-  // Automatically remove messages after 3.5 seconds
+  // Automatically fade and remove messages
   setTimeout(() => {
     const popup = document.getElementById('messages-popup');
-    if (popup) popup.style.display = 'none';
+    if (popup) {
+      popup.style.animation = 'fadeOut 0.5s forwards';
+    }
+  }, 3000);
+
+  setTimeout(() => {
+    const popup = document.getElementById('messages-popup');
+    if (popup) popup.remove();
   }, 3500);
 </script>
 {% endblock %}
