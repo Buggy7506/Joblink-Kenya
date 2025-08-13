@@ -301,7 +301,7 @@ def apply_job(request, job_id):
     # If the job is not premium, skip payment
     if not job.is_premium:
         # You could directly create the application record here
-        return redirect('apply_success', job_id=job.id)
+        return redirect('apply_job_success', job_id=job.id)
 
     amount = 200 * 100  # KES 200 in cents
 
