@@ -294,15 +294,24 @@ def post_job(request):
 
 #Apply Job
 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from .models import Job, JobApplication
+import stripe
+
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    # If the job is not premium, skip payment
-    if not job.is_premium:
-        # You could directly create the application record here
-        return redirect('apply_job_success', job_id=job.id)
+    # Check if user has already applied
+    job_application, created = JobApplication.objects.get_or_create(user=request.user, job=job)
 
+    if not job.is_premium:
+        # Non-premium job: redirect with correct applied status
+        applied_status = 'yes' if created else 'already'
+        return redirect('apply_job_success', job_id=job.id, applied=applied_status)
+
+    # Premium job: handle payment
     amount = 200 * 100  # KES 200 in cents
 
     if request.method == "POST":
@@ -320,7 +329,8 @@ def apply_job(request, job_id):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=request.build_absolute_uri(f'/apply-success/{job.id}/'),
+                # Include 'applied=yes' in success_url
+                success_url=request.build_absolute_uri(f'/apply-success/{job.id}/yes/'),
                 cancel_url=request.build_absolute_uri(f'/apply-cancel/{job.id}/'),
                 metadata={
                     'job_id': job.id,
@@ -335,8 +345,6 @@ def apply_job(request, job_id):
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
     return render(request, 'apply_job.html', {'job': job})
-
-
 @login_required
 def apply_job_success(request, job_id, applied=True):
     job = get_object_or_404(Job, pk=job_id)
