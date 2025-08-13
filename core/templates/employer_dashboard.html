@@ -5,6 +5,15 @@
 <div class="employer-dashboard">
   <h2 class="glow-header">🏢 Employer Control Panel</h2>
 
+  <!-- Messages Popup -->
+  {% if messages %}
+    <div id="messages-popup">
+      {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <div class="dashboard-actions">
     <a href="{% url 'post_job' %}" class="btn-glow">➕ Post a New Job</a>
     <a href="{% url 'view_posted_jobs' %}" class="btn-glow">📄 My Posted Jobs</a>
@@ -79,5 +88,39 @@
   padding: 20px;
   box-shadow: 0 0 15px rgba(255, 180, 71, 0.4);
 }
+
+/* Messages Popup */
+#messages-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+.message {
+  background-color: #ffb347;
+  color: #000;
+  padding: 12px 20px;
+  margin-bottom: 10px;
+  border-radius: 25px;
+  font-weight: bold;
+  box-shadow: 0 0 10px #ffb347, 0 0 20px #ffb347;
+  animation: fadeOut 0.5s ease-in-out 3s forwards;
+}
+.message.error {
+  background-color: #ff4b5c;
+  color: #fff;
+  box-shadow: 0 0 10px #ff4b5c, 0 0 20px #ff4b5c;
+}
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-20px); }
+}
 </style>
+
+<script>
+  // Automatically remove messages after 3.5 seconds
+  setTimeout(() => {
+    const popup = document.getElementById('messages-popup');
+    if (popup) popup.style.display = 'none';
+  }, 3500);
+</script>
 {% endblock %}
