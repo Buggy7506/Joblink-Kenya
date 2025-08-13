@@ -347,10 +347,7 @@ if not job.is_premium:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e.user_message)})
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
-
-    # First time landing on apply page for premium job
-    return render(request, 'apply_job.html', {'job': job})
-
+            
 
 @login_required
 def apply_job_success(request, job_id, applied=True):
