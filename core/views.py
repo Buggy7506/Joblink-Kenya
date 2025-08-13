@@ -294,29 +294,24 @@ def post_job(request):
 
 #Apply Job
 
-from django.conf import settings
-import stripe
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Job, Application
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    # Amount in cents (KES 200 in this example)
-    amount = 200 * 100
+    # If the job is not premium, skip payment
+    if not job.is_premium:
+        # You could directly create the application record here
+        return redirect('apply_success', job_id=job.id)
+
+    amount = 200 * 100  # KES 200 in cents
 
     if request.method == "POST":
         try:
-            # Create Stripe checkout session
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
                     'price_data': {
-                        'currency': 'kes',  # Change to 'usd' if needed
+                        'currency': 'kes',
                         'product_data': {
                             'name': f"Application Fee - {job.title}",
                         },
@@ -334,10 +329,13 @@ def apply_job(request, job_id):
             )
             return redirect(checkout_session.url)
 
+        except stripe.error.StripeError as e:
+            return render(request, 'apply_job.html', {'job': job, 'error': str(e.user_message)})
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
     return render(request, 'apply_job.html', {'job': job})
+
 
 @login_required
 def apply_job_success(request, job_id, applied=True):
