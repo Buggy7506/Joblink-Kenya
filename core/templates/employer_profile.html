@@ -73,12 +73,12 @@
     }
   </style>
  <div class="profile-box">
-    <img 
-      id="profile-pic"
-      src="{% if request.user.profile.profile_pic %}{{ request.user.profile.profile_pic.url }}{% else %}https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png{% endif %}" 
-      alt="Profile Picture" 
-      class="profile-pic"
-    >
+    {% if user.profile_pic %}
+      <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
+    {% else %}
+      <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+    {% endif %}
+   
     <p><strong>Username:</strong> {{ request.user.username }}</p>
     <p><strong>Email:</strong> {{ request.user.email }}</p>
     <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
