@@ -297,6 +297,11 @@ def post_job(request):
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
+    # Prevent employer from applying to their own job
+    if job.employer == request.user:
+        messages.error(request, "❌ You cannot apply to your own job posting.")
+        return redirect('job_list')  # Redirect back to jobs list
+
     if not job.is_premium:
         # Non-premium job: create application immediately
         application, created = Application.objects.get_or_create(applicant=request.user, job=job)
