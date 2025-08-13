@@ -72,11 +72,10 @@
       cursor: pointer;
     }
   </style>
-
-  <div class="profile-box">
+ <div class="profile-box">
     <img 
       id="profile-pic"
-      src="{{ request.user.profile.profile_pic.url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}" 
+      src="{% if request.user.profile.profile_pic %}{{ request.user.profile.profile_pic.url }}{% else %}https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png{% endif %}" 
       alt="Profile Picture" 
       class="profile-pic"
     >
