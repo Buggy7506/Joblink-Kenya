@@ -3,6 +3,8 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    # Confirm delete page
+    path('delete-job/<int:job_id>/', views.confirm_delete, name='confirm_delete'),
     path('', views.home, name='home'),  # Homepage
     path('profile/', views.profile_view, name='profile'),
     # User registration
