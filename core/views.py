@@ -300,15 +300,24 @@ def apply_job(request, job_id):
     # Prevent employer from applying to their own job
     if job.employer == request.user:
         messages.error(request, "❌ You cannot apply to your own job posting.")
-        return redirect('job_list')  # Redirect back to jobs list
+        return redirect('job_list')
 
+    # ---------- FREE JOB FLOW ----------
     if not job.is_premium:
-        # Non-premium job: create application immediately
-        application, created = Application.objects.get_or_create(applicant=request.user, job=job)
-        applied_status = 'yes' if created else 'already'
-        return redirect('apply_job_success', job_id=job.id, applied=applied_status)
+        if request.method == "POST":
+            choice = request.POST.get('choice')
+            if choice == 'upgrade':
+                return redirect('upgrade_job', job_id=job.id)
+            elif choice == 'continue':
+                application, created = Application.objects.get_or_create(applicant=request.user, job=job)
+                applied_status = 'yes' if created else 'already'
+                messages.success(request, "✅ You have successfully applied to the job!")
+                return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
-    # Premium job: handle payment
+        # First time landing on apply page for free job → show apply_job.html
+        return render(request, 'apply_job.html', {'job': job})
+
+    # ---------- PREMIUM JOB FLOW ----------
     amount = 200 * 100  # KES 200 in cents
 
     if request.method == "POST":
@@ -326,7 +335,6 @@ def apply_job(request, job_id):
                     'quantity': 1,
                 }],
                 mode='payment',
-                # Redirect to success page
                 success_url=request.build_absolute_uri(f'/apply-success/{job.id}/yes/'),
                 cancel_url=request.build_absolute_uri(f'/apply-cancel/{job.id}/'),
                 metadata={
@@ -341,6 +349,7 @@ def apply_job(request, job_id):
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
+    # First time landing on apply page for premium job
     return render(request, 'apply_job.html', {'job': job})
 
     # **Free job: show upgrade prompt first**
