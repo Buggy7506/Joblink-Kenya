@@ -411,7 +411,7 @@ def confirm_delete(request, job_id):
     if request.method == "POST":
         job.delete()
         messages.success(request, "✅ Job deleted successfully!")
-        return redirect('job_list')  # Redirect to list after deletion
+        return redirect('view_posted_jobs')  # Redirect to list after deletion
 
     return render(request, 'confirm_delete.html', {'job': job})
     
