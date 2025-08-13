@@ -15,6 +15,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+import stripe
+from django.conf import settings
 
 @login_required
 def process_application(request, app_id):
@@ -441,27 +443,40 @@ def job_suggestions(request):
     
 #Premium Job Upgrade
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 @login_required
 def upgrade_job(request, job_id):
     job = get_object_or_404(Job, pk=job_id, employer=request.user)
+
     if request.method == 'POST':
         form = JobPlanSelectForm(request.POST)
         if form.is_valid():
             plan = form.cleaned_data['plan']
-            payment = JobPayment.objects.create(
-                employer=request.user,
-                job=job,
-                plan=plan,
-                amount=plan.price,
-                is_successful=True
+
+            # Create Stripe Checkout Session
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'kes',  # Or 'usd' depending on your Stripe setup
+                        'unit_amount': int(plan.price * 100),  # Stripe uses cents
+                        'product_data': {
+                            'name': f"Premium Upgrade - {plan.name}",
+                        },
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=request.build_absolute_uri(f'/payment-success/{job.id}/{plan.id}/'),
+                cancel_url=request.build_absolute_uri('/payment-cancelled/'),
             )
-            job.premium = True
-            job.premium_expiry = timezone.now() + timezone.timedelta(days=plan.duration_days)
-            job.save()
-            messages.success(request, "Job upgraded to premium successfully.")
-            return redirect('dashboard')
+
+            return redirect(checkout_session.url, code=303)
+
     else:
         form = JobPlanSelectForm()
+
     return render(request, 'upgrade_job.html', {'form': form, 'job': job})
 
 @login_required
