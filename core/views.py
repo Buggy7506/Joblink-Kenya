@@ -294,17 +294,12 @@ def post_job(request):
 
 #Apply Job
 
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required
-from .models import Job, JobApplication
-import stripe
-
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
     # Check if user has already applied
-    job_application, created = JobApplication.objects.get_or_create(user=request.user, job=job)
+    job_application, created = Application.objects.get_or_create(user=request.user, job=job)
 
     if not job.is_premium:
         # Non-premium job: redirect with correct applied status
@@ -345,6 +340,7 @@ def apply_job(request, job_id):
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
     return render(request, 'apply_job.html', {'job': job})
+    
 @login_required
 def apply_job_success(request, job_id, applied=True):
     job = get_object_or_404(Job, pk=job_id)
