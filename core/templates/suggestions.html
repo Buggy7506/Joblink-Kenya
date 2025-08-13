@@ -4,6 +4,14 @@
 <div class="suggestions-container">
   <h2 class="glow-header">🎯 Job Suggestions Just for You</h2>
 
+  {% if messages %}
+    <div id="messages-popup">
+      {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   {% if suggested_jobs %}
     <div class="job-grid">
       {% for job in suggested_jobs %}
@@ -20,6 +28,7 @@
     <p class="no-results">🚫 No suggestions found. Update your profile or check back later.</p>
   {% endif %}
 </div>
+
 <style>
 .suggestions-container {
   padding: 30px;
@@ -62,5 +71,57 @@
   font-size: 1.2rem;
   color: #ddd;
 }
+
+/* Messages Popup Styling */
+#messages-popup {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slideDown 0.5s forwards;
+}
+.message {
+  background-color: #00ffd5;
+  color: #000;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  box-shadow: 0 0 10px #00ffd5, 0 0 20px #00ffd5;
+  opacity: 0.95;
+}
+.message.error {
+  background-color: #ff4b5c;
+  color: #fff;
+  box-shadow: 0 0 10px #ff4b5c, 0 0 20px #ff4b5c;
+}
+
+/* Slide down animation */
+@keyframes slideDown {
+  to { transform: translateX(-50%) translateY(20px); }
+}
+
+/* Fade out animation */
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(-50px); }
+}
 </style>
+
+<script>
+  // Automatically fade and remove messages
+  setTimeout(() => {
+    const popup = document.getElementById('messages-popup');
+    if (popup) {
+      popup.style.animation = 'fadeOut 0.5s forwards';
+    }
+  }, 3000);
+
+  setTimeout(() => {
+    const popup = document.getElementById('messages-popup');
+    if (popup) popup.remove();
+  }, 3500);
+</script>
 {% endblock %}
