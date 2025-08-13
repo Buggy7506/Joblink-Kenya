@@ -189,4 +189,10 @@ EMAIL_HOST_USER = 'linux7506@gmail.com'
 EMAIL_HOST_PASSWORD = 'eldc oxrf sqco cfsj'
 DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
 
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
+
+
+
+
 CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
