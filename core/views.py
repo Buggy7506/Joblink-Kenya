@@ -309,7 +309,9 @@ def apply_job(request, job_id):
             if choice == 'upgrade':
                 return redirect('upgrade_job', job_id=job.id)
             elif choice == 'continue':
-                application, created = Application.objects.get_or_create(applicant=request.user, job=job)
+                application, created = Application.objects.get_or_create(
+                    applicant=request.user, job=job
+                )
                 applied_status = 'yes' if created else 'already'
                 messages.success(request, "✅ You have successfully applied to the job!")
                 return redirect('apply_job_success', job_id=job.id, applied=applied_status)
@@ -351,20 +353,6 @@ def apply_job(request, job_id):
 
     # First time landing on apply page for premium job
     return render(request, 'apply_job.html', {'job': job})
-
-    # **Free job: show upgrade prompt first**
-    if request.method == "POST":
-        choice = request.POST.get('choice')
-        if choice == 'upgrade':
-            return redirect('upgrade_job', job_id=job.id)
-        elif choice == 'continue':
-            # Create the application immediately
-            application, created = Application.objects.get_or_create(applicant=request.user, job=job)
-            applied_status = 'yes' if created else 'already'
-            messages.success(request, "✅ You have successfully applied to the job!")
-            return redirect('apply_job_success', job_id=job.id, applied=applied_status)
-
-    return render(request, 'apply_job_prompt.html', {'job': job})
 
 
 @login_required
