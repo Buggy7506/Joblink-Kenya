@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .confirm-box {
+    max-width: 500px;
+    margin: 100px auto;
+    padding: 30px;
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 0 20px #ff4c4c;
+    text-align: center;
+  }
+
+  .confirm-box h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #ff4c4c;
+  }
+
+  .confirm-box p {
+    font-size: 18px;
+    margin-bottom: 30px;
+  }
+
+  .btn-glow {
+    background: linear-gradient(45deg, #ff4c4c, #ff0000);
+    color: #fff;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 5px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 15px #ff4c4c, 0 0 25px #ff0000;
+    transform: scale(1.05);
+  }
+</style>
+
+<div class="confirm-box">
+  <h2>Confirm Delete</h2>
+  <p>Are you sure you want to delete the job: <strong>{{ job.title }}</strong>?</p>
+  
+  <form method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn-glow">✅ Yes, Delete</button>
+  </form>
+
+  <a href="{% url 'job_list' %}" class="btn-glow">❌ Cancel</a>
+</div>
+{% endblock %}
