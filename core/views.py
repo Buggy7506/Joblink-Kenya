@@ -462,7 +462,7 @@ def build_resume(request):
         if form.is_valid():
             form.save()
             messages.success(request, "✅ Resume saved successfully.")
-            return redirect('view_resume')  # Go straight to view
+            return redirect('resume_success')  # Go straight to view
         else:
             messages.error(request, "❌ Please fix the errors below.")
     else:
