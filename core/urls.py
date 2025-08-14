@@ -60,7 +60,7 @@ urlpatterns = [
 
     # Download resume as PDF
     path('resume/edit/', views.edit_resume, name='edit_resume'),
-    path('resume/download/', views.download_resume, name='download_resume'),
+    path('resume/download/', views.download_resume_pdf, name='download_resume'),
 
     # Personalized job suggestions
     path('suggestions/', views.job_suggestions, name='job_suggestions'),
