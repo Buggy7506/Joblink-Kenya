@@ -294,7 +294,6 @@ def post_job(request):
 
 #Apply Job
 @login_required
-@login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
@@ -447,31 +446,34 @@ def admin_only_view(request):
     if request.user.role != 'admin':
         return redirect('home')
     return render(request, 'admin_only.html')
+    
 #Resume Builder / download / suggestions
-
-@login_required
-def resume_success(request):
-    return render(request, 'resume_success.html')
-
 @login_required
 def build_resume(request):
-    if request.method == 'POST':
-        form = ResumeForm(request.POST, request.FILES)
-        if form.is_valid():
-            resume = form.save(commit=False)
-            resume.user = request.user
-            resume.save()
-            return redirect('resume_success')
-    else:
-        form = ResumeForm()
-    return render(request, 'resume_builder.html', {'form': form})
-
-@login_required
-def edit_resume(request):
+    """Create a new resume or update the existing one."""
     resume, created = Resume.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        form = ResumeForm(request.POST, instance=resume)
+        form = ResumeForm(request.POST, request.FILES, instance=resume)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Resume saved successfully.")
+            return redirect('view_resume')  # Go straight to view
+        else:
+            messages.error(request, "❌ Please fix the errors below.")
+    else:
+        form = ResumeForm(instance=resume)
+
+    return render(request, 'resume_builder.html', {'form': form})
+
+
+@login_required
+def edit_resume(request):
+    """Edit an existing resume."""
+    resume = get_object_or_404(Resume, user=request.user)
+
+    if request.method == 'POST':
+        form = ResumeForm(request.POST, request.FILES, instance=resume)
         if form.is_valid():
             form.save()
             messages.success(request, "✅ Your resume has been updated successfully.")
@@ -483,28 +485,28 @@ def edit_resume(request):
 
     return render(request, 'edit_resume.html', {'form': form})
 
+
 @login_required
-def view_resume(request, resume_id):
-    resume = get_object_or_404(Resume, id=resume_id, user=request.user)
+def view_resume(request):
+    """Display the logged-in user's resume."""
+    resume = get_object_or_404(Resume, user=request.user)
     return render(request, 'resume_template.html', {'resume': resume})
+
 
 @login_required
 def download_resume_pdf(request):
-    profile = request.user.profile
-    resume_data = {
-        'name': request.user.get_full_name(),
-        'email': request.user.email,
-        'phone': profile.phone,
-        'education': profile.education,
-        'skills': profile.skills.split(','),
-        'experience': profile.experience.split(';'),
-    }
-    html = render_to_string('users/resume_template.html', {'resume': resume_data})
+    """Generate and download resume as PDF."""
+    resume = get_object_or_404(Resume, user=request.user)
+
+    html = render_to_string('resume_template.html', {'resume': resume})
     config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')
     pdf = pdfkit.from_string(html, False, configuration=config)
+
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="resume.pdf"'
     return response
+
+
 
 @login_required
 def job_suggestions(request):
