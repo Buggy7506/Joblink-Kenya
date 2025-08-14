@@ -17,6 +17,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 import stripe
 from django.conf import settings
+from weasyprint import HTML
 
 @login_required
 def process_application(request, app_id):
@@ -496,20 +497,19 @@ def view_resume(request):
     resume = get_object_or_404(Resume, user=request.user)
     return render(request, 'view_resume.html', {'resume': resume})
 
-
 @login_required
 def download_resume_pdf(request):
-    """Generate and download resume as PDF."""
+    """Generate and download resume as PDF without wkhtmltopdf."""
     resume = get_object_or_404(Resume, user=request.user)
+    html_string = render_to_string('resume_template.html', {'resume': resume})
 
-    html = render_to_string('resume_template.html', {'resume': resume})
-    config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')
-    pdf = pdfkit.from_string(html, False, configuration=config)
+    # Generate PDF from HTML string
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
-    response = HttpResponse(pdf, content_type='application/pdf')
+    # Send PDF as a downloadable file
+    response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="resume.pdf"'
     return response
-
 
 
 @login_required
