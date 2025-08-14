@@ -59,7 +59,8 @@ urlpatterns = [
     path('alerts/delete/<int:alert_id>/', views.delete_alert, name='delete_alert'),
 
     # Download resume as PDF
-    path('resume/<int:resume_id>/download/', views.download_resume_pdf, name='download_resume'),
+    path('resume/edit/', views.edit_resume, name='edit_resume'),
+    path('resume/download/', views.download_resume, name='download_resume'),
 
     # Personalized job suggestions
     path('suggestions/', views.job_suggestions, name='job_suggestions'),
