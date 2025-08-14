@@ -467,6 +467,23 @@ def build_resume(request):
     return render(request, 'resume_builder.html', {'form': form})
 
 @login_required
+def edit_resume(request):
+    resume, created = Resume.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = ResumeForm(request.POST, instance=resume)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Your resume has been updated successfully.")
+            return redirect('view_resume')
+        else:
+            messages.error(request, "❌ Please fix the errors below.")
+    else:
+        form = ResumeForm(instance=resume)
+
+    return render(request, 'edit_resume.html', {'form': form})
+
+@login_required
 def view_resume(request, resume_id):
     resume = get_object_or_404(Resume, id=resume_id, user=request.user)
     return render(request, 'resume_template.html', {'resume': resume})
