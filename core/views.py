@@ -494,7 +494,7 @@ def edit_resume(request):
 def view_resume(request):
     """Display the logged-in user's resume."""
     resume = get_object_or_404(Resume, user=request.user)
-    return render(request, 'resume_template.html', {'resume': resume})
+    return render(request, 'view_resume.html', {'resume': resume})
 
 
 @login_required
