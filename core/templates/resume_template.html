@@ -7,21 +7,16 @@
     body {
       margin: 40px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #0f172a, #1e293b);
+      background: linear-gradient(135deg, #0f172a, #1e293b);
       color: #f1f5f9;
+      overflow-x: hidden;
     }
 
     h1 {
       font-size: 36px;
       color: #38bdf8;
-      text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9;
-    }
-
-    p, li {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #e2e8f0;
-      word-break: break-word;
+      text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
+      animation: neonPulse 2s infinite alternate;
     }
 
     h2 {
@@ -30,7 +25,15 @@
       color: #a5f3fc;
       border-bottom: 2px solid #38bdf8;
       padding-bottom: 6px;
-      text-shadow: 0 0 3px #67e8f9;
+      text-shadow: 0 0 3px #67e8f9, 0 0 6px #38bdf8;
+      animation: neonPulse 2s infinite alternate;
+    }
+
+    p, li {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      word-break: break-word;
     }
 
     ul {
@@ -45,11 +48,20 @@
       padding: 20px;
       margin-top: 20px;
       box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
-      transition: 0.3s;
+      transition: all 0.3s ease-in-out;
+      animation: glowPulse 3s infinite alternate;
     }
 
     section:hover {
-      box-shadow: 0 0 15px #0ea5e9, 0 0 30px rgba(14, 165, 233, 0.5);
+      box-shadow: 0 0 25px #0ea5e9, 0 0 50px rgba(14, 165, 233, 0.7);
+      transform: scale(1.02);
+    }
+
+    .contact {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-top: -10px;
+      text-shadow: 0 0 2px #38bdf8;
     }
 
     hr {
@@ -57,25 +69,40 @@
       margin: 30px 0;
     }
 
-    .contact {
-      font-size: 14px;
-      color: #cbd5e1;
-      margin-top: -10px;
+    @keyframes neonPulse {
+      0% {
+        text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
+      }
+      50% {
+        text-shadow: 0 0 10px #0ea5e9, 0 0 20px #38bdf8, 0 0 30px #67e8f9;
+      }
+      100% {
+        text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
+      }
+    }
+
+    @keyframes glowPulse {
+      0% {
+        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5);
+      }
+      100% {
+        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+      }
     }
 
     @media screen and (max-width: 600px) {
       body {
         margin: 20px;
       }
-
       h1 {
         font-size: 28px;
       }
-
       h2 {
         font-size: 20px;
       }
-
       section {
         padding: 15px;
       }
@@ -95,14 +122,10 @@
   <section>
     <h2>🎓 Education</h2>
     <ul>
-      {% if resume.education %}
-        {% if resume.education|length > 0 %}
-          {% for edu in resume.education %}
-            <li>{{ edu }}</li>
-          {% endfor %}
-        {% else %}
-          <li>{{ resume.education }}</li>
-        {% endif %}
+      {% if education_list %}
+        {% for edu in education_list %}
+          <li>{{ edu }}</li>
+        {% endfor %}
       {% else %}
         <li>No education information available.</li>
       {% endif %}
@@ -112,14 +135,10 @@
   <section>
     <h2>💼 Experience</h2>
     <ul>
-      {% if resume.experience %}
-        {% if resume.experience|length > 0 %}
-          {% for job in resume.experience %}
-            <li>{{ job }}</li>
-          {% endfor %}
-        {% else %}
-          <li>{{ resume.experience }}</li>
-        {% endif %}
+      {% if experience_list %}
+        {% for job in experience_list %}
+          <li>{{ job }}</li>
+        {% endfor %}
       {% else %}
         <li>No experience listed.</li>
       {% endif %}
@@ -129,14 +148,10 @@
   <section>
     <h2>🛠 Skills</h2>
     <ul>
-      {% if resume.skills %}
-        {% if resume.skills|length > 0 %}
-          {% for skill in resume.skills %}
-            <li>{{ skill }}</li>
-          {% endfor %}
-        {% else %}
-          <li>{{ resume.skills }}</li>
-        {% endif %}
+      {% if skills_list %}
+        {% for skill in skills_list %}
+          <li>{{ skill }}</li>
+        {% endfor %}
       {% else %}
         <li>No skills added.</li>
       {% endif %}
