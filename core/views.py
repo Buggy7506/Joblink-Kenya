@@ -495,7 +495,22 @@ def edit_resume(request):
 def view_resume(request):
     """Display the logged-in user's resume."""
     resume = get_object_or_404(Resume, user=request.user)
-    return render(request, 'view_resume.html', {'resume': resume})
+
+    # Convert comma-separated strings to lists
+    education_list = [e.strip() for e in resume.education.split(',')] if resume.education else []
+    experience_list = [e.strip() for e in resume.experience.split(',')] if resume.experience else []
+    skills_list = [s.strip() for s in resume.skills.split(',')] if resume.skills else []
+
+    context = {
+        'resume': resume,
+        'education_list': education_list,
+        'experience_list': experience_list,
+        'skills_list': skills_list,
+    }
+
+    return render(request, 'view_resume.html', context)
+
+
 
 @login_required
 def download_resume_pdf(request):
