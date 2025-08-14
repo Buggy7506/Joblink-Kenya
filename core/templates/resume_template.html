@@ -88,14 +88,14 @@
 
   <section>
     <h2>✨ Summary</h2>
-    <p>{{ resume.summary }}</p>
+    <p>{{ resume.summary|default:"No summary provided." }}</p>
   </section>
 
   <section>
     <h2>🎓 Education</h2>
     <ul>
-      {% for edu in resume.education %}
-        <li>{{ edu }}</li>
+      {% for edu in resume.education|default_if_none:""|split:"," %}
+        {% if edu.strip %}<li>{{ edu.strip }}</li>{% endif %}
       {% empty %}
         <li>No education information available.</li>
       {% endfor %}
@@ -105,8 +105,8 @@
   <section>
     <h2>💼 Experience</h2>
     <ul>
-      {% for job in resume.experience %}
-        <li>{{ job }}</li>
+      {% for job in resume.experience|default_if_none:""|split:"," %}
+        {% if job.strip %}<li>{{ job.strip }}</li>{% endif %}
       {% empty %}
         <li>No experience listed.</li>
       {% endfor %}
@@ -116,8 +116,8 @@
   <section>
     <h2>🛠 Skills</h2>
     <ul>
-      {% for skill in resume.skills %}
-        <li>{{ skill }}</li>
+      {% for skill in resume.skills|default_if_none:""|split:"," %}
+        {% if skill.strip %}<li>{{ skill.strip }}</li>{% endif %}
       {% empty %}
         <li>No skills added.</li>
       {% endfor %}
