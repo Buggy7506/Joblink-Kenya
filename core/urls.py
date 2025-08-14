@@ -54,7 +54,7 @@ urlpatterns = [
     path('apply/<int:job_id>/', views.apply_job, name='apply_job'),
     path('apply-success/<int:job_id>/<str:applied>/', views.apply_job_success, name='apply_job_success'),
     # View a specific resume
-    path('resume/<int:resume_id>/', views.view_resume, name='view_resume'),
+    path('resume/view/', views.view_resume, name='view_resume'),
     path('alerts/delete/success', views.delete_alert_success, name='delete_alert_success'),
     path('alerts/delete/<int:alert_id>/', views.delete_alert, name='delete_alert'),
 
