@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Build Your Resume</title>
@@ -14,86 +15,135 @@
       display: flex;
       align-items: center;
       justify-content: center;
-    }.container {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 20px;
-  box-shadow: 0 0 25px #00ffff;
-  padding: 40px;
-  width: 90%;
-  max-width: 600px;
-  backdrop-filter: blur(10px);
-  border: 1px solid #00ffff;
-}
+    }
 
-h1 {
-  text-align: center;
-  font-size: 2.2em;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff;
-  margin-bottom: 30px;
-}
+    .container {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 20px;
+      box-shadow: 0 0 25px #00ffff;
+      padding: 40px;
+      width: 90%;
+      max-width: 600px;
+      backdrop-filter: blur(10px);
+      border: 1px solid #00ffff;
+    }
 
-form label {
-  display: block;
-  margin-bottom: 5px;
-  color: #00ffff;
-  font-weight: bold;
-  text-shadow: 0 0 5px #00ffff;
-}
+    h1 {
+      text-align: center;
+      font-size: 2.2em;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      margin-bottom: 30px;
+    }
 
-form input[type="text"],
-form input[type="email"],
-form input[type="file"],
-form textarea,
-form select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 8px;
-  background-color: #1e1e1e;
-  color: #00ffff;
-  box-shadow: 0 0 10px #00ffff;
-  outline: none;
-}
+    form label {
+      display: block;
+      margin-bottom: 5px;
+      color: #00ffff;
+      font-weight: bold;
+      text-shadow: 0 0 5px #00ffff;
+    }
 
-form input[type="submit"],
-.btn {
-  width: 100%;
-  padding: 12px;
-  background-color: #00ffff;
-  color: #000;
-  font-size: 1.1em;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 0 15px #00ffff;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
+    form input[type="text"],
+    form input[type="email"],
+    form input[type="file"],
+    form textarea,
+    form select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 8px;
+      background-color: #1e1e1e;
+      color: #00ffff;
+      box-shadow: 0 0 10px #00ffff;
+      outline: none;
+    }
 
-form input[type="submit"]:hover,
-.btn:hover {
-  background-color: #00dddd;
-  transform: scale(1.03);
-  box-shadow: 0 0 25px #00ffff, 0 0 10px #00ffff inset;
-}
+    form input[type="submit"],
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #00ffff;
+      color: #000;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 15px #00ffff;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
 
-.glow-border {
-  border: 1px solid #00ffff;
-  box-shadow: 0 0 10px #00ffff inset;
-}
+    form input[type="submit"]:hover,
+    .btn:hover {
+      background-color: #00dddd;
+      transform: scale(1.03);
+      box-shadow: 0 0 25px #00ffff, 0 0 10px #00ffff inset;
+    }
 
+    .glow-border {
+      border: 1px solid #00ffff;
+      box-shadow: 0 0 10px #00ffff inset;
+    }
+
+    /* Messages Styling */
+    .messages {
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      animation: fadeOut 1.5s ease forwards;
+      animation-delay: 1.5s;
+    }
+
+    .messages.success {
+      background-color: rgba(0, 255, 255, 0.1);
+      border: 1px solid #00ffff;
+      color: #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+    }
+
+    .messages.error {
+      background-color: rgba(255, 0, 0, 0.1);
+      border: 1px solid #ff4d4d;
+      color: #ff4d4d;
+      box-shadow: 0 0 15px #ff4d4d;
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateY(-10px); }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>💼 Build Your Resume</h1>
+
+    <!-- Django messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="messages {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.as_p }}
       <input type="submit" value="Submit" class="btn">
     </form>
   </div>
+
+  <!-- Auto-remove messages from DOM -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      setTimeout(function() {
+        document.querySelectorAll('.messages').forEach(function(msg) {
+          msg.remove();
+        });
+      }, 3000); // remove after 3 seconds
+    });
+  </script>
 </body>
 </html>
