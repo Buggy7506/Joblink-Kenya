@@ -515,24 +515,28 @@ def download_resume_pdf(request):
 @login_required
 def job_suggestions(request):
     user = request.user
-    skills = [s.strip() for s in user.skills.split(',')] if user.skills else []
+    skills = [s.strip() for s in getattr(user, 'skills', '').split(',') if s.strip()]
 
-    if not skills:
-        # No skills added
-        messages.info(request, "Add skills in your profile to get job suggestions.")
-        return render(request, 'suggestions.html', {'suggested_jobs': Job.objects.none()})
-
-    # Use Q objects to search across multiple fields
-    query = Q()
-    for skill in skills:
-        if skill:  # skip empty strings
+    if skills:
+        # Build search query based on skills
+        query = Q()
+        for skill in skills:
             query |= Q(title__icontains=skill) | Q(description__icontains=skill)
 
-    suggested_jobs = Job.objects.filter(query).distinct()
+        suggested_jobs = Job.objects.filter(query).distinct()
 
-    return render(request, 'suggestions.html', {'suggested_jobs': suggested_jobs})
+        # Fallback: if no matches found
+        if not suggested_jobs.exists():
+            suggested_jobs = Job.objects.all().order_by('-created_at')[:5]
+    else:
+        # If no skills added, show latest jobs
+        messages.info(request, "Add skills in your profile to get better job matches.")
+        suggested_jobs = Job.objects.all().order_by('-created_at')[:5]
 
-
+    return render(request, 'suggestions.html', {
+        'suggested_jobs': suggested_jobs
+    })
+    
 #Premium Job Upgrade
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
