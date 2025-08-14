@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}My Resume{% endblock %}
+{% block content %}
+<style>
+/* Container */
+.resume-container {
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 40px;
+  background: linear-gradient(135deg, #0a0a0a, #111);
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.3);
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Header */
+.resume-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.resume-header h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(90deg, #00ffc3, #00bfff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.resume-header p {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* Section Styling */
+.resume-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  border-left: 4px solid #00ffc3;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+.resume-section:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+}
+
+/* Headings */
+.resume-section h3 {
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+  color: #00ffc3;
+}
+
+/* Buttons */
+.btn-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+.glow-btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #00ffc3, #00bfff);
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.glow-btn:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 200, 0.8);
+  transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="resume-container">
+  <div class="resume-header">
+    <h1>{{ resume.full_name }}</h1>
+    <p>{{ resume.email }} | {{ resume.phone }}</p>
+  </div>
+
+  <div class="resume-section">
+    <h3>Summary</h3>
+    <p>{{ resume.summary }}</p>
+  </div>
+
+  <div class="resume-section">
+    <h3>Skills</h3>
+    <p>{{ resume.skills }}</p>
+  </div>
+
+  <div class="resume-section">
+    <h3>Experience</h3>
+    <p>{{ resume.experience }}</p>
+  </div>
+
+  <div class="resume-section">
+    <h3>Education</h3>
+    <p>{{ resume.education }}</p>
+  </div>
+
+  <div class="btn-container">
+    <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
+    <a href="{% url 'edit_resume' %}" class="glow-btn">✏ Edit Resume</a>
+  </div>
+</div>
+{% endblock %}
