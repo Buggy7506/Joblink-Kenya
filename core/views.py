@@ -449,6 +449,10 @@ def admin_only_view(request):
     
 #Resume Builder / download / suggestions
 @login_required
+def resume_success(request):
+return render(request, 'resume_success.html')
+
+@login_required
 def build_resume(request):
     """Create a new resume or update the existing one."""
     resume, created = Resume.objects.get_or_create(user=request.user)
