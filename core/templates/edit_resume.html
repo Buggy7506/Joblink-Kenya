@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Edit Resume{% endblock %}
+{% block content %}
+<style>
+.edit-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 40px;
+  background: linear-gradient(135deg, #0a0a0a, #111);
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.3);
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.8s ease-in-out;
+}
+.edit-container h1 {
+  text-align: center;
+  font-size: 2rem;
+  background: linear-gradient(90deg, #00ffc3, #00bfff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+form {
+  margin-top: 20px;
+}
+form label {
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+}
+form input, form textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  margin-bottom: 15px;
+}
+form input:focus, form textarea:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+}
+.glow-btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #00ffc3, #00bfff);
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+.glow-btn:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 200, 0.8);
+  transform: scale(1.05);
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="edit-container">
+  <h1>Edit Your Resume</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="glow-btn">💾 Save Changes</button>
+  </form>
+</div>
+{% endblock %}
