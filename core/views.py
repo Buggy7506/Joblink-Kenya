@@ -294,6 +294,7 @@ def post_job(request):
 
 #Apply Job
 @login_required
+@login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
@@ -313,6 +314,7 @@ def apply_job(request, job_id):
             messages.success(request, "✅ You have successfully applied to the job!")
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
+        # GET request → Show application page
         return render(request, 'apply_job.html', {'job': job})
 
     # ---------- PREMIUM JOB FLOW ----------
@@ -346,6 +348,10 @@ def apply_job(request, job_id):
             return render(request, 'apply_job.html', {'job': job, 'error': str(e.user_message)})
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
+
+    # GET request for premium job → Show application page
+    return render(request, 'apply_job.html', {'job': job})
+
 
 @login_required
 def apply_job_success(request, job_id, applied=True):
