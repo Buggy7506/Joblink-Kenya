@@ -496,17 +496,8 @@ def view_resume(request):
     """Display the logged-in user's resume."""
     resume = get_object_or_404(Resume, user=request.user)
 
-    def to_list(value):
-        if not value:
-            return []
-        parts = [v.strip() for v in value.split(',') if v.strip()]
-        return parts if parts else [value.strip()]
-
     context = {
-        'resume': resume,
-        'education_list': to_list(resume.education),
-        'experience_list': to_list(resume.experience),
-        'skills_list': to_list(resume.skills),
+        'resume': resume
     }
 
     return render(request, 'view_resume.html', context)
