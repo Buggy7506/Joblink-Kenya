@@ -11,14 +11,12 @@
       color: #f1f5f9;
       overflow-x: hidden;
     }
-
     h1 {
       font-size: 36px;
       color: #38bdf8;
       text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
       animation: neonPulse 2s infinite alternate;
     }
-
     h2 {
       font-size: 24px;
       margin-top: 30px;
@@ -28,19 +26,12 @@
       text-shadow: 0 0 3px #67e8f9, 0 0 6px #38bdf8;
       animation: neonPulse 2s infinite alternate;
     }
-
-    p, li {
+    p {
       font-size: 16px;
       line-height: 1.6;
       color: #e2e8f0;
       word-break: break-word;
     }
-
-    ul {
-      list-style-type: disc;
-      padding-left: 20px;
-    }
-
     section {
       background: rgba(30, 41, 59, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -48,39 +39,28 @@
       padding: 20px;
       margin-top: 20px;
       box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
-      transition: all 0.3s ease-in-out;
       animation: glowPulse 3s infinite alternate;
     }
-
-    section:hover {
-      box-shadow: 0 0 25px #0ea5e9, 0 0 50px rgba(14, 165, 233, 0.7);
-      transform: scale(1.02);
-    }
-
     .contact {
       font-size: 14px;
       color: #cbd5e1;
       margin-top: -10px;
       text-shadow: 0 0 2px #38bdf8;
     }
-
     hr {
       border: 1px solid #38bdf8;
       margin: 30px 0;
     }
-
     @keyframes neonPulse {
       0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8; }
       50% { text-shadow: 0 0 10px #0ea5e9, 0 0 20px #38bdf8, 0 0 30px #67e8f9; }
       100% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8; }
     }
-
     @keyframes glowPulse {
       0% { box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3); }
       50% { box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5); }
       100% { box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3); }
     }
-
     @media screen and (max-width: 600px) {
       body { margin: 20px; }
       h1 { font-size: 28px; }
@@ -100,40 +80,22 @@
 
   <section>
     <h2>✨ Summary</h2>
-    <p>{% if resume.summary %}{{ resume.summary }}{% else %}No summary provided.{% endif %}</p>
+    <p>{% if resume.summary %}{{ resume.summary|linebreaks }}{% else %}No summary provided.{% endif %}</p>
   </section>
 
   <section>
     <h2>🎓 Education</h2>
-    <ul>
-      {% for edu in education_list %}
-        <li>{{ edu }}</li>
-      {% empty %}
-        <li>No education information available.</li>
-      {% endfor %}
-    </ul>
+    <p>{% if resume.education %}{{ resume.education|linebreaks }}{% else %}No education information available.{% endif %}</p>
   </section>
 
   <section>
     <h2>💼 Experience</h2>
-    <ul>
-      {% for job in experience_list %}
-        <li>{{ job }}</li>
-      {% empty %}
-        <li>No experience listed.</li>
-      {% endfor %}
-    </ul>
+    <p>{% if resume.experience %}{{ resume.experience|linebreaks }}{% else %}No experience listed.{% endif %}</p>
   </section>
 
   <section>
     <h2>🛠 Skills</h2>
-    <ul>
-      {% for skill in skills_list %}
-        <li>{{ skill }}</li>
-      {% empty %}
-        <li>No skills added.</li>
-      {% endfor %}
-    </ul>
+    <p>{% if resume.skills %}{{ resume.skills|linebreaks }}{% else %}No skills added.{% endif %}</p>
   </section>
 </body>
 </html>
