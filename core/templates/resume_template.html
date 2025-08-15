@@ -123,7 +123,7 @@
     <h2>🎓 Education</h2>
     <ul>
       {% if education_list %}
-        {% for edu in resume.education_list %}
+        {% for edu in education_list %}
           <li>{{ edu }}</li>
         {% endfor %}
       {% else %}
@@ -136,7 +136,7 @@
     <h2>💼 Experience</h2>
     <ul>
       {% if experience_list %}
-        {% for job in resume.experience_list %}
+        {% for job in experience_list %}
           <li>{{ job }}</li>
         {% endfor %}
       {% else %}
@@ -149,7 +149,7 @@
     <h2>🛠 Skills</h2>
     <ul>
       {% if skills_list %}
-        {% for skill in resume.skills_list %}
+        {% for skill in skills_list %}
           <li>{{ skill }}</li>
         {% endfor %}
       {% else %}
