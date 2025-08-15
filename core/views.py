@@ -516,7 +516,7 @@ def view_resume(request):
 def download_resume_pdf(request):
     """Generate and download resume as PDF without wkhtmltopdf."""
     resume = get_object_or_404(Resume, user=request.user)
-    html_string = render_to_string('view_resume.html', {'resume': resume})
+    html_string = render_to_string('resume_template.html', {'resume': resume})
 
     # Generate PDF from HTML string
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
