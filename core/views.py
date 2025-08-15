@@ -496,16 +496,17 @@ def view_resume(request):
     """Display the logged-in user's resume."""
     resume = get_object_or_404(Resume, user=request.user)
 
-    # Convert comma-separated strings to lists & remove blanks
-    education_list = [e.strip() for e in resume.education.split(',') if e.strip()] if resume.education else []
-    experience_list = [e.strip() for e in resume.experience.split(',') if e.strip()] if resume.experience else []
-    skills_list = [s.strip() for s in resume.skills.split(',') if s.strip()] if resume.skills else []
+    def to_list(value):
+        if not value:
+            return []
+        parts = [v.strip() for v in value.split(',') if v.strip()]
+        return parts if parts else [value.strip()]
 
     context = {
         'resume': resume,
-        'education_list': education_list,
-        'experience_list': experience_list,
-        'skills_list': skills_list,
+        'education_list': to_list(resume.education),
+        'experience_list': to_list(resume.experience),
+        'skills_list': to_list(resume.skills),
     }
 
     return render(request, 'view_resume.html', context)
