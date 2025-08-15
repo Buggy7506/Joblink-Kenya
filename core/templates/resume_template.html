@@ -70,91 +70,69 @@
     }
 
     @keyframes neonPulse {
-      0% {
-        text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
-      }
-      50% {
-        text-shadow: 0 0 10px #0ea5e9, 0 0 20px #38bdf8, 0 0 30px #67e8f9;
-      }
-      100% {
-        text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
-      }
+      0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8; }
+      50% { text-shadow: 0 0 10px #0ea5e9, 0 0 20px #38bdf8, 0 0 30px #67e8f9; }
+      100% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8; }
     }
 
     @keyframes glowPulse {
-      0% {
-        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
-      }
-      50% {
-        box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5);
-      }
-      100% {
-        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
-      }
+      0% { box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3); }
+      50% { box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5); }
+      100% { box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3); }
     }
 
     @media screen and (max-width: 600px) {
-      body {
-        margin: 20px;
-      }
-      h1 {
-        font-size: 28px;
-      }
-      h2 {
-        font-size: 20px;
-      }
-      section {
-        padding: 15px;
-      }
+      body { margin: 20px; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      section { padding: 15px; }
     }
   </style>
 </head>
 <body>
   <h1>{{ resume.full_name }}</h1>
-  <p class="contact">📧 {{ resume.email }} | 📞 {{ resume.phone }} | 📍 {{ resume.address }}</p>
+  <p class="contact">
+    {% if resume.email %}📧 {{ resume.email }}{% endif %}
+    {% if resume.phone %} | 📞 {{ resume.phone }}{% endif %}
+    {% if resume.address %} | 📍 {{ resume.address }}{% endif %}
+  </p>
   <hr>
 
   <section>
     <h2>✨ Summary</h2>
-    <p>{{ resume.summary }}</p>
+    <p>{% if resume.summary %}{{ resume.summary }}{% else %}No summary provided.{% endif %}</p>
   </section>
 
   <section>
     <h2>🎓 Education</h2>
     <ul>
-      {% if education_list %}
-        {% for edu in education_list %}
-          <li>{{ edu }}</li>
-        {% endfor %}
-      {% else %}
+      {% for edu in education_list %}
+        <li>{{ edu }}</li>
+      {% empty %}
         <li>No education information available.</li>
-      {% endif %}
+      {% endfor %}
     </ul>
   </section>
 
   <section>
     <h2>💼 Experience</h2>
     <ul>
-      {% if experience_list %}
-        {% for job in experience_list %}
-          <li>{{ job }}</li>
-        {% endfor %}
-      {% else %}
+      {% for job in experience_list %}
+        <li>{{ job }}</li>
+      {% empty %}
         <li>No experience listed.</li>
-      {% endif %}
+      {% endfor %}
     </ul>
   </section>
 
   <section>
     <h2>🛠 Skills</h2>
     <ul>
-      {% if skills_list %}
-        {% for skill in skills_list %}
-          <li>{{ skill }}</li>
-        {% endfor %}
-      {% else %}
+      {% for skill in skills_list %}
+        <li>{{ skill }}</li>
+      {% empty %}
         <li>No skills added.</li>
-      {% endif %}
+      {% endfor %}
     </ul>
   </section>
 </body>
