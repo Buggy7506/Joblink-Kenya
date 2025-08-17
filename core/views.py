@@ -402,12 +402,24 @@ def job_alerts_view(request):
         return redirect('job_alerts')
     return render(request, 'job_alerts.html', {'alerts': alerts})
 
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from .models import JobAlert
+
 def delete_alert(request, alert_id):
-    alert = get_object_or_404(JobAlert, id=alert_id, user=request.user)
+    try:
+        alert = JobAlert.objects.get(id=alert_id, user=request.user)
+    except JobAlert.DoesNotExist:
+        messages.warning(request, "That job alert does not exist or was already deleted.")
+        return redirect('delete_alert_success')
+
     if request.method == 'POST':
         alert.delete()
+        messages.success(request, "Job alert deleted successfully.")
         return redirect('delete_alert_success')
+
     return render(request, 'delete_alert.html', {'alert': alert})
+
 
 def delete_alert_success(request):
     return render(request, 'delete_alert_success.html')
