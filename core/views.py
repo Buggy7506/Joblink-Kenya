@@ -545,7 +545,7 @@ def job_suggestions(request):
 
         # Fallback: if no matches found
         if not suggested_jobs.exists():
-            suggested_jobs = Job.objects.all().order_by('-created_at')[:5]
+            suggested_jobs = Job.objects.all().order_by('-posted_on')[:5]
     else:
         # If no skills added, show latest jobs
         messages.info(request, "Add skills in your profile to get better job matches.")
