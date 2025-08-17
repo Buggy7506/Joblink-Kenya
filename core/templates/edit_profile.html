@@ -65,6 +65,7 @@
             border: none;
             border-radius: 8px;
             font-size: 16px;
+            width: 100%;
         }
 
         input[type="file"] {
@@ -75,6 +76,11 @@
         input:focus, textarea:focus, select:focus {
             outline: none;
             border: 2px solid #a8dadc;
+        }
+
+        ::placeholder {
+            color: #b0c4de;
+            font-style: italic;
         }
 
         button {
@@ -113,33 +119,33 @@
 
     <!-- Profile Picture Preview -->
     <div class="profile-preview">
-    {% if request.user.profile.profile_pic %}
-        <img src="{{ request.user.profile.profile_pic.url }}" alt="Profile Picture">
-    {% else %}
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png" alt="Default Picture">
-    {% endif %}
+        {% if request.user.profile.profile_pic %}
+            <img src="{{ request.user.profile.profile_pic.url }}" alt="Profile Picture">
+        {% else %}
+            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754568238/icon.png" alt="Default Picture">
+        {% endif %}
     </div>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <label for="id_username">Username</label>
+        {{ form.username.as_widget(attrs={'placeholder': 'Enter your username'}) }}
 
-    <label for="id_username">Username</label>
-    {{ form.username }}
+        <label for="id_email">Email</label>
+        {{ form.email.as_widget(attrs={'placeholder': 'Enter your email address'}) }}
 
-    <label for="id_email">Email</label>
-    {{ form.email }}
+        <label for="id_profile_pic">Profile Picture</label>
+        {{ form.profile_pic.as_widget(attrs={'placeholder': 'Upload your profile picture'}) }}
 
-    <label for="id_profile_pic">Profile Picture</label>
-    {{ form.profile_pic }}
+        <label for="id_phone">Phone</label>
+        {{ form.phone.as_widget(attrs={'placeholder': 'Enter your phone number'}) }}
 
-    <label for="id_phone">Phone</label>
-    {{ form.phone }}
+        <label for="id_location">Location</label>
+        {{ form.location.as_widget(attrs={'placeholder': 'Enter your location'}) }}
 
-    <label for="id_location">Location</label>
-    {{ form.location }}
-
-    <button type="submit">💾 Save Changes</button>
-</form>
+        <button type="submit">💾 Save Changes</button>
+    </form>
 
     <a href="{% url 'profile' %}">← Back to Profile</a>
 </div>
