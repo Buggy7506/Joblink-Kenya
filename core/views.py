@@ -533,7 +533,6 @@ def download_resume_pdf(request):
 
 
 @login_required
-@login_required
 def job_suggestions(request):
     user = request.user
     
@@ -553,14 +552,16 @@ def job_suggestions(request):
         if not suggested_jobs.exists():
             suggested_jobs = Job.objects.all().order_by("-posted_on")[:5]
     else:
-        # If no skills added, show latest jobs
-        messages.info(request, "Add skills in your profile to get better job matches.")
+        # Show the message only once per session
+        if not request.session.get("skills_message_shown", False):
+            messages.info(request, "Add skills in your profile to get better job matches.")
+            request.session["skills_message_shown"] = True
+        
         suggested_jobs = Job.objects.all().order_by("-posted_on")[:5]
 
     return render(request, "suggestions.html", {
         "suggested_jobs": suggested_jobs
     })
-    
     
 #Premium Job Upgrade
 
