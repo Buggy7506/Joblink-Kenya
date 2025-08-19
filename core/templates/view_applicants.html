@@ -61,7 +61,7 @@
       {% if applicant.applicant.cvupload_set.last %}
         <div class="cv-actions">
           <a href="{{ applicant.applicant.cvupload_set.last.cv.url }}" target="_blank">📄 View CV</a>
-          <a href="{{ applicant.applicant.cvupload_set.last.cv.url }}" download>⬇️ Download CV</a>
+          <a href="{% url 'download_cv' applicant.applicant.cvupload_set.last.id %}">⬇️ Download CV</a>
         </div>
       {% else %}
         <span style="color:#f87171;">No CV uploaded yet</span>
