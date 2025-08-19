@@ -405,11 +405,24 @@ def download_cv(request, cv_id):
     if not cv.cv:
         return HttpResponse("No CV uploaded.", status=404)
 
-    # Redirect to Cloudinary URL to force download
-    download_url = f"{cv.cv.url}?dl=1"
-    return HttpResponseRedirect(download_url)
+    # Download file from Cloudinary
+    response = requests.get(cv.cv.url, stream=True)
+    if response.status_code != 200:
+        return HttpResponse("Error downloading CV.", status=500)
 
+    # Save to temporary file
+    temp_file = NamedTemporaryFile(delete=True)
+    for chunk in response.iter_content(1024):
+        temp_file.write(chunk)
+    temp_file.flush()
 
+    # Serve file as attachment
+    return FileResponse(
+        open(temp_file.name, 'rb'),
+        as_attachment=True,
+        filename=f"{cv.user.username}_CV.pdf"  # optional: dynamic filename
+                           )
+    
 #Job Listings
 
 def job_list(request):
