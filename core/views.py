@@ -533,9 +533,13 @@ def download_resume_pdf(request):
 
 
 @login_required
+@login_required
 def job_suggestions(request):
     user = request.user
-    skills = [s.strip() for s in getattr(user, 'skills', '').split(',') if s.strip()]
+    
+    # Ensure skills is always a string before splitting
+    skills_str = getattr(user, "skills", "") or ""
+    skills = [s.strip() for s in skills_str.split(",") if s.strip()]
 
     if skills:
         # Build search query based on skills
@@ -547,15 +551,16 @@ def job_suggestions(request):
 
         # Fallback: if no matches found
         if not suggested_jobs.exists():
-            suggested_jobs = Job.objects.all().order_by('-posted_on')[:5]
+            suggested_jobs = Job.objects.all().order_by("-posted_on")[:5]
     else:
         # If no skills added, show latest jobs
         messages.info(request, "Add skills in your profile to get better job matches.")
-        suggested_jobs = Job.objects.all().order_by('-posted_on')[:5]
+        suggested_jobs = Job.objects.all().order_by("-posted_on")[:5]
 
-    return render(request, 'suggestions.html', {
-        'suggested_jobs': suggested_jobs
+    return render(request, "suggestions.html", {
+        "suggested_jobs": suggested_jobs
     })
+    
     
 #Premium Job Upgrade
 
