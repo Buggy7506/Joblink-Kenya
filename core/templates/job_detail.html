@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} - Job Details{% endblock %}
+
+{% block content %}
+<div class="job-detail-container">
+  <div class="job-card glow-card">
+    <h2 class="job-title">{{ job.title }}</h2>
+    <p><strong>Company:</strong> {{ job.company }}</p>
+    <p><strong>Location:</strong> {{ job.location }}</p>
+    <p><strong>Category:</strong> {{ job.category }}</p>
+    <p><strong>Posted on:</strong> {{ job.posted_on|date:"F j, Y" }}</p>
+
+    <h3>Job Description</h3>
+    <p>{{ job.description|linebreaks }}</p>
+
+    <div class="job-actions">
+      <a href="{% url 'apply_job' job.id %}" class="btn-glow">⚡ Apply Now</a>
+      <a href="{% url 'job_list' %}" class="btn-glow-secondary">⬅ Back to Jobs</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.job-detail-container {
+  max-width: 850px;
+  margin: 80px auto;
+  padding: 40px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.job-card {
+  background: rgba(10, 10, 10, 0.85);
+  border-radius: 20px;
+  padding: 30px;
+  color: #fff;
+  box-shadow: 0 0 25px rgba(0,255,200,0.4), 0 0 40px rgba(0,255,200,0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.job-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 40px rgba(0,255,200,0.7), 0 0 60px rgba(0,255,200,0.4);
+}
+
+.job-title {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #00ffcc;
+  text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffaa;
+}
+
+.job-actions {
+  margin-top: 25px;
+  display: flex;
+  gap: 20px;
+}
+
+.btn-glow {
+  background: #00ffcc;
+  color: #000;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffaa;
+  transition: all 0.3s ease;
+}
+.btn-glow:hover {
+  background: #00ffaa;
+  box-shadow: 0 0 25px #00ffaa, 0 0 50px #00ffcc;
+}
+
+.btn-glow-secondary {
+  background: #222;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 12px;
+  text-decoration: none;
+  box-shadow: 0 0 10px #666;
+  transition: all 0.3s ease;
+}
+.btn-glow-secondary:hover {
+  background: #333;
+  color: #00ffcc;
+  box-shadow: 0 0 20px #00ffcc;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
