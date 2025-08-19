@@ -16,6 +16,7 @@
     box-shadow: 0 0 25px rgba(0, 255, 200, 0.4);
     animation: fadeIn 1s ease-in-out;
     color: #fff;
+    box-sizing: border-box; /* prevents content from overflowing */
   }
 
   .edit-job-container h2 {
@@ -50,14 +51,15 @@
     color: #fff;
     font-size: 1rem;
     box-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
-    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    transition: box-shadow 0.3s ease;
+    box-sizing: border-box;
   }
 
   .edit-job-container input:focus,
   .edit-job-container textarea:focus,
   .edit-job-container select:focus {
     box-shadow: 0 0 15px #00ffc6, 0 0 25px #00ffc6;
-    transform: scale(1.02);
+    /* Removed transform scaling to stop zooming */
   }
 
   .edit-job-container textarea {
