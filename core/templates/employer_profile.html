@@ -16,9 +16,9 @@
       width: 100%;
       margin: auto;
       box-shadow: 0 0 15px cyan;
-      text-align: center;
       color: white;
       font-family: 'Segoe UI', sans-serif;
+      text-align: center;
     }
 
     .employer-profile-container .profile-pic {
@@ -37,6 +37,16 @@
       cursor: pointer;
     }
 
+    /* Left-align user details only */
+    .employer-profile-container .user-details {
+      text-align: left;
+      margin-top: 20px;
+    }
+
+    .employer-profile-container .user-details p {
+      margin-bottom: 10px;
+    }
+
     .employer-profile-container h2 a {
       color: cyan;
       text-decoration: none;
@@ -46,12 +56,9 @@
       text-decoration: underline;
     }
 
-    .employer-profile-container p {
-      margin-bottom: 10px;
-    }
-
     .employer-profile-container .edit-button {
       margin-top: 40px;
+      text-align: center;
     }
 
     .employer-profile-container .edit-button a {
@@ -112,9 +119,12 @@
         {% endif %}
       </div>
 
-      <p><strong>Username:</strong> {{ request.user.username }}</p>
-      <p><strong>Email:</strong> {{ request.user.email }}</p>
-      <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
+      <!-- Left-aligned user details -->
+      <div class="user-details">
+        <p><strong>Username:</strong> {{ request.user.username }}</p>
+        <p><strong>Email:</strong> {{ request.user.email }}</p>
+        <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
+      </div>
 
       <div class="edit-button">
         <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
