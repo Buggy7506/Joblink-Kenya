@@ -17,7 +17,7 @@
       {% for job in suggested_jobs %}
         <div class="job-card glow-card">
           <h3>{{ job.title }}</h3>
-          <p><strong>Company:</strong> {{ job.company_name }}</p>
+          <p><strong>Company:</strong> {{ job.company }}</p>
           <p><strong>Location:</strong> {{ job.location }}</p>
           <p>{{ job.description|truncatechars:120 }}</p>
           <a href="{% url 'job_detail' job.id %}" class="btn-glow-small">View Job</a>
