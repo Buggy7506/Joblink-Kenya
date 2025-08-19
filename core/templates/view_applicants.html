@@ -3,12 +3,13 @@
 
 {% block content %}
 <style>
-  body {
-    background: #0f2027;
+  .view-applicants-page {
     background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
     color: white;
     font-family: Arial, sans-serif;
     padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 15px rgba(0, 255, 150, 0.3);
   }
   .applicant {
     background: rgba(255, 255, 255, 0.07);
@@ -17,14 +18,16 @@
     border-radius: 15px;
     box-shadow: 0 0 10px lime;
   }
-  h2 {
+  .view-applicants-page h2 {
     text-align: center;
     margin-bottom: 30px;
+    text-shadow: 0 0 10px #00ffc6;
   }
   .cv-actions a {
     color: #34d399;
     margin-right: 15px;
     text-decoration: none;
+    font-weight: bold;
   }
   .cv-actions a:hover {
     text-decoration: underline;
@@ -36,37 +39,42 @@
     border-radius: 8px;
     color: #fff;
     cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s ease;
   }
   .accept-btn { background-color: #22c55e; }
+  .accept-btn:hover { background-color: #16a34a; }
   .reject-btn { background-color: #ef4444; }
+  .reject-btn:hover { background-color: #dc2626; }
 </style>
 
-<h2>👥 View Applicants</h2>
+<div class="view-applicants-page">
+  <h2>👥 View Applicants</h2>
 
-{% for applicant in applicants %}
-  <div class="applicant">
-    <p><strong>Name:</strong> {{ applicant.applicant.username }}</p>
-    <p><strong>Email:</strong> {{ applicant.applicant.email }}</p>
-    <p><strong>Applied For:</strong> {{ applicant.job.title }}</p>
-    <p><strong>Status:</strong> {{ applicant.status|title }}</p>
+  {% for applicant in applicants %}
+    <div class="applicant">
+      <p><strong>Name:</strong> {{ applicant.applicant.username }}</p>
+      <p><strong>Email:</strong> {{ applicant.applicant.email }}</p>
+      <p><strong>Applied For:</strong> {{ applicant.job.title }}</p>
+      <p><strong>Status:</strong> {{ applicant.status|title }}</p>
 
-    {% if applicant.applicant.cvupload_set.last %}
-      <div class="cv-actions">
-        <a href="{{ applicant.applicant.cvupload_set.last.cv.url }}" target="_blank">📄 View CV</a>
-        <a href="{{ applicant.applicant.cvupload_set.last.cv.url }}" download>⬇️ Download CV</a>
-      </div>
-    {% else %}
-      <span style="color:#f87171;">No CV uploaded yet</span>
-    {% endif %}
+      {% if applicant.applicant.cvupload_set.last %}
+        <div class="cv-actions">
+          <a href="{{ applicant.applicant.cvupload_set.last.cv.url }}" target="_blank">📄 View CV</a>
+          <a href="{{ applicant.applicant.cvupload_set.last.cv.url }}" download>⬇️ Download CV</a>
+        </div>
+      {% else %}
+        <span style="color:#f87171;">No CV uploaded yet</span>
+      {% endif %}
 
-    <form method="POST" action="{% url 'process_application' applicant.id %}">
-      {% csrf_token %}
-      <button name="action" value="accept" class="action-btn accept-btn">Accept</button>
-      <button name="action" value="reject" class="action-btn reject-btn">Reject</button>
-    </form>
-  </div>
-{% empty %}
-  <p>No applicants yet.</p>
-{% endfor %}
-
+      <form method="POST" action="{% url 'process_application' applicant.id %}">
+        {% csrf_token %}
+        <button name="action" value="accept" class="action-btn accept-btn">✅ Accept</button>
+        <button name="action" value="reject" class="action-btn reject-btn">❌ Reject</button>
+      </form>
+    </div>
+  {% empty %}
+    <p>No applicants yet.</p>
+  {% endfor %}
+</div>
 {% endblock %}
