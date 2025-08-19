@@ -2,75 +2,74 @@
 {% block title %}Employer Profile{% endblock %}
 {% block content %}
   <style>
-    body {
-      background: linear-gradient(to right, #16222A, #3A6073);
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
+    .employer-profile-container {
       padding: 30px;
+      display: flex;
+      justify-content: center;
     }
 
-    .profile-box {
+    .employer-profile-container .profile-box {
       background: rgba(255, 255, 255, 0.05);
       padding: 25px;
       border-radius: 15px;
       max-width: 500px;
+      width: 100%;
       margin: auto;
       box-shadow: 0 0 15px cyan;
       text-align: center;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
     }
 
-  .profile-pic {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
-  }
+    .employer-profile-container .profile-pic {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
 
-  .profile-pic img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid cyan;
-    box-shadow: 0 0 15px cyan;
-    cursor: pointer;
-  }
+    .employer-profile-container .profile-pic img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid cyan;
+      box-shadow: 0 0 15px cyan;
+      cursor: pointer;
+    }
 
-
-    h2 a {
+    .employer-profile-container h2 a {
       color: cyan;
       text-decoration: none;
     }
 
-    h2 a:hover {
+    .employer-profile-container h2 a:hover {
       text-decoration: underline;
     }
 
-    p {
+    .employer-profile-container p {
       margin-bottom: 10px;
     }
 
-  .edit-button {
-    display: block;
-    text-align: center;
-    margin-top: 40px;
-  }
+    .employer-profile-container .edit-button {
+      margin-top: 40px;
+    }
 
-  .edit-button a {
-    display: inline-block;
-    background: #9333ea;
-    color: #fff;
-    padding: 12px 30px;
-    font-size: 16px;
-    border-radius: 30px;
-    text-decoration: none;
-    box-shadow: 0 0 12px #9333ea;
-    transition: 0.3s;
-  }
+    .employer-profile-container .edit-button a {
+      display: inline-block;
+      background: #9333ea;
+      color: #fff;
+      padding: 12px 30px;
+      font-size: 16px;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 0 12px #9333ea;
+      transition: 0.3s;
+    }
 
-  .edit-button a:hover {
-    background: #7e22ce;
-    box-shadow: 0 0 20px #a855f7;
-  }
+    .employer-profile-container .edit-button a:hover {
+      background: #7e22ce;
+      box-shadow: 0 0 20px #a855f7;
+    }
 
     /* Modal styles */
     #imgModal {
@@ -102,21 +101,24 @@
       cursor: pointer;
     }
   </style>
- <div class="profile-box">
-    <div class="profile-pic">
-    {% if user.profile_pic %}
-      <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
-    {% else %}
-      <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
-    {% endif %}
-    </div>
-   
-    <p><strong>Username:</strong> {{ request.user.username }}</p>
-    <p><strong>Email:</strong> {{ request.user.email }}</p>
-    <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
-   
-    <div class="edit-button">
-       <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+
+  <div class="employer-profile-container">
+    <div class="profile-box">
+      <div class="profile-pic">
+        {% if user.profile_pic %}
+          <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
+        {% else %}
+          <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+        {% endif %}
+      </div>
+
+      <p><strong>Username:</strong> {{ request.user.username }}</p>
+      <p><strong>Email:</strong> {{ request.user.email }}</p>
+      <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
+
+      <div class="edit-button">
+        <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+      </div>
     </div>
   </div>
 
