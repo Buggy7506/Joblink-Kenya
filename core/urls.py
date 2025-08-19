@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     # Confirm delete page
     path('delete-job/<int:job_id>/', views.confirm_delete, name='confirm_delete'),
+    path("jobs/<int:job_id>/", views.job_detail, name="job_detail"),
     path('', views.home, name='home'),  # Homepage
     path('profile/', views.profile_view, name='profile'),
     # User registration
