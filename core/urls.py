@@ -8,6 +8,7 @@ urlpatterns = [
     path("jobs/<int:job_id>/", views.job_detail, name="job_detail"),
     path('', views.home, name='home'),  # Homepage
     path('profile/', views.profile_view, name='profile'),
+    path('jobs/<int:job_id>/edit/', views.edit_job, name='edit_job'),
     # User registration
     path('signup/', views.signup_view, name='signup'),
     path('change/', views.change_username_password, name='change_username_password'),
