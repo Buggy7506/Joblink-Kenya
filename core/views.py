@@ -398,26 +398,18 @@ def upload_cv(request):
         return redirect('profile')
     return render(request, 'upload_CV.html', {'form': form})
 
-
 @login_required
-def download_cv(request, candidate_id):
-    candidate = get_object_or_404(Candidate, id=candidate_id)
+def download_cv(request, cv_id):
+    cv = get_object_or_404(CVUpload, id=cv_id)
 
-    if not candidate.cv:
+    if not cv.cv:
         return HttpResponse("No CV uploaded.", status=404)
 
-    # Download CV from Cloudinary URL
-    response = requests.get(candidate.cv.url, stream=True)
-    if response.status_code != 200:
-        return HttpResponse("Error downloading CV.", status=500)
+    # Redirect to Cloudinary URL to force download
+    download_url = f"{cv.cv.url}?dl=1"
+    return HttpResponseRedirect(download_url)
 
-    temp_file = NamedTemporaryFile(delete=True)
-    for chunk in response.iter_content(1024):
-        temp_file.write(chunk)
-    temp_file.flush()
 
-    return FileResponse(open(temp_file.name, 'rb'), as_attachment=True, filename="cv.pdf")
-    
 #Job Listings
 
 def job_list(request):
