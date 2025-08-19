@@ -16,7 +16,7 @@
     box-shadow: 0 0 25px rgba(0, 255, 200, 0.4);
     animation: fadeIn 1s ease-in-out;
     color: #fff;
-    box-sizing: border-box; /* prevents content from overflowing */
+    box-sizing: border-box;
   }
 
   .edit-job-container h2 {
@@ -59,12 +59,66 @@
   .edit-job-container textarea:focus,
   .edit-job-container select:focus {
     box-shadow: 0 0 15px #00ffc6, 0 0 25px #00ffc6;
-    /* Removed transform scaling to stop zooming */
   }
 
   .edit-job-container textarea {
     min-height: 120px;
     resize: vertical;
+  }
+
+  /* Toggle Switch Styles */
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    border-radius: 34px;
+    transition: 0.4s;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: 0.4s;
+  }
+
+  input:checked + .slider {
+    background-color: #00ffc6;
+    box-shadow: 0 0 20px #00ffc6, 0 0 40px #00ffc6;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(30px);
+    background-color: #111;
   }
 
   .edit-job-container .btn {
@@ -139,6 +193,15 @@
     <div class="form-group">
       <label for="location">Location</label>
       <input type="text" id="location" name="location" value="{{ form.location.value }}">
+    </div>
+
+    <!-- Premium Toggle -->
+    <div class="form-group toggle-container">
+      <label for="is_premium">Premium Job</label>
+      <label class="switch">
+        <input type="checkbox" id="is_premium" name="is_premium" {% if form.is_premium.value %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
     </div>
 
     <button type="submit" class="btn btn-save">💾 Save Changes</button>
