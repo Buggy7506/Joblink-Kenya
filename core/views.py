@@ -538,25 +538,29 @@ def job_suggestions(request):
     
     # Ensure skills is always a string before splitting
     skills_str = getattr(user, "skills", "") or ""
-    skills = [s.strip() for s in skills_str.split(",") if s.strip()]
+    skills = [s.strip().lower() for s in skills_str.split(",") if s.strip()]
 
     if skills:
-        # Build search query based on skills
         query = Q()
         for skill in skills:
-            query |= Q(title__icontains=skill) | Q(description__icontains=skill)
+            # Split multi-word skills into words
+            for word in skill.split():
+                # Partial + case-insensitive match
+                query |= Q(title__icontains=word) | Q(description__icontains=word)
 
         suggested_jobs = Job.objects.filter(query).distinct()
 
         if not suggested_jobs.exists():
-            messages.warning(request, "No jobs matched your skills. Try updating your profile for better matches.")
+            messages.warning(
+                request,
+                "No jobs matched your skills. Try updating your profile for better matches."
+            )
     else:
-        # If no skills added at all
         if not request.session.get("skills_message_shown", False):
             messages.info(request, "Add skills in your profile to get better job matches.")
             request.session["skills_message_shown"] = True
-        
-        suggested_jobs = Job.objects.none()  # don't show random jobs
+
+        suggested_jobs = Job.objects.none()
 
     return render(request, "suggestions.html", {
         "suggested_jobs": suggested_jobs
