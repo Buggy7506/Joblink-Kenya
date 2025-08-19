@@ -293,6 +293,25 @@ def post_job(request):
         form = JobForm()
     return render(request, 'post_job.html', {'form': form})
 
+@login_required
+def edit_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id, employer=request.user)  # only employer can edit
+
+    if request.method == 'POST':
+        form = JobForm(request.POST, instance=job)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.employer = request.user  # just to be safe
+            job.save()
+
+            messages.success(request, "Job updated successfully.")
+            return redirect('dashboard')  # or job_detail page
+    else:
+        form = JobForm(instance=job)
+
+    return render(request, 'edit_job.html', {'form': form, 'job': job})
+
+
 #Apply Job
 @login_required
 def apply_job(request, job_id):
