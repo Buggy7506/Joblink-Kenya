@@ -20,6 +20,10 @@ from django.conf import settings
 from weasyprint import HTML
 from django.http import FileResponse, Http404
 import os
+from django.http import HttpResponseRedirect, FileResponse
+import requests
+from django.core.files.temp import NamedTemporaryFile
+
 
 @login_required
 def process_application(request, app_id):
@@ -385,10 +389,17 @@ def apply_job_success(request, job_id, applied=True):
 #CV Upload
 
 @login_required
-from django.http import HttpResponseRedirect, FileResponse
-import requests
-from django.core.files.temp import NamedTemporaryFile
+def upload_cv(request):
+    form = CVUploadForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        cv = form.save(commit=False)
+        cv.applicant = request.user
+        cv.save()
+        return redirect('profile')
+    return render(request, 'upload_CV.html', {'form': form})
 
+
+@login_required
 def download_cv(request, candidate_id):
     candidate = get_object_or_404(Candidate, id=candidate_id)
 
@@ -407,17 +418,6 @@ def download_cv(request, candidate_id):
 
     return FileResponse(open(temp_file.name, 'rb'), as_attachment=True, filename="cv.pdf")
     
-@login_required
-def download_cv(request, cv_id):
-    from .models import CVUpload  # adjust path to your model
-    try:
-        cv = CVUpload.objects.get(id=cv_id)
-        file_path = cv.cv.path  # actual file path
-        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
-    except CVUpload.DoesNotExist:
-        raise Http404("CV not found")
-
-
 #Job Listings
 
 def job_list(request):
