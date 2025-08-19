@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Job - {{ job.title }}{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .edit-job-container {
+    background: rgba(15, 15, 30, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.4);
+    animation: fadeIn 1s ease-in-out;
+  }
+
+  .edit-job-container h2 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #00ffc6;
+    text-shadow: 0 0 10px #00ffc6, 0 0 20px #00ffc6;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #00ffc6;
+    text-shadow: 0 0 5px #00ffc6;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    background: #111;
+    color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    box-shadow: 0 0 15px #00ffc6, 0 0 25px #00ffc6;
+    transform: scale(1.02);
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 30px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .btn-save {
+    background: #00ffc6;
+    color: #111;
+    box-shadow: 0 0 15px #00ffc6, 0 0 30px #00ffc6;
+  }
+
+  .btn-save:hover {
+    background: #0ae2aa;
+    box-shadow: 0 0 25px #00ffc6, 0 0 50px #00ffc6;
+    transform: translateY(-2px);
+  }
+
+  .btn-cancel {
+    background: #ff0044;
+    color: #fff;
+    box-shadow: 0 0 15px #ff0044, 0 0 30px #ff0044;
+    margin-left: 15px;
+  }
+
+  .btn-cancel:hover {
+    background: #e6003b;
+    box-shadow: 0 0 25px #ff0044, 0 0 50px #ff0044;
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="edit-job-container">
+  <h2>Edit Job Posting</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="title">Job Title</label>
+      <input type="text" id="title" name="title" value="{{ form.title.value }}">
+    </div>
+
+    <div class="form-group">
+      <label for="description">Job Description</label>
+      <textarea id="description" name="description">{{ form.description.value }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category</label>
+      {{ form.category }}
+    </div>
+
+    <div class="form-group">
+      <label for="location">Location</label>
+      <input type="text" id="location" name="location" value="{{ form.location.value }}">
+    </div>
+
+    <button type="submit" class="btn btn-save">💾 Save Changes</button>
+    <a href="{% url 'job_detail' job.id %}" class="btn btn-cancel">❌ Cancel</a>
+  </form>
+</div>
+{% endblock %}
