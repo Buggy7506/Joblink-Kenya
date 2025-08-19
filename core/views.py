@@ -548,16 +548,15 @@ def job_suggestions(request):
 
         suggested_jobs = Job.objects.filter(query).distinct()
 
-        # Fallback: if no matches found
         if not suggested_jobs.exists():
-            suggested_jobs = Job.objects.all().order_by("-posted_on")[:5]
+            messages.warning(request, "No jobs matched your skills. Try updating your profile for better matches.")
     else:
-        # Show the message only once per session
+        # If no skills added at all
         if not request.session.get("skills_message_shown", False):
             messages.info(request, "Add skills in your profile to get better job matches.")
             request.session["skills_message_shown"] = True
         
-        suggested_jobs = Job.objects.all().order_by("-posted_on")[:5]
+        suggested_jobs = Job.objects.none()  # don't show random jobs
 
     return render(request, "suggestions.html", {
         "suggested_jobs": suggested_jobs
