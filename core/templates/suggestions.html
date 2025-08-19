@@ -20,7 +20,7 @@
           <p><strong>Company:</strong> {{ job.company_name }}</p>
           <p><strong>Location:</strong> {{ job.location }}</p>
           <p>{{ job.description|truncatechars:120 }}</p>
-          <a href="{% url 'job_list' job.id %}" class="btn-glow-small">View Job</a>
+          <a href="{% url 'job_detail' job.id %}" class="btn-glow-small">View Job</a>
         </div>
       {% endfor %}
     </div>
