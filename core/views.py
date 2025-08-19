@@ -383,6 +383,11 @@ def job_list(request):
         'jobs': regular_jobs
     })
 
+
+def job_detail(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    return render(request, "job_detail.html", {"job": job})
+
 #Learning Resources
 
 def resources(request):
@@ -402,9 +407,6 @@ def job_alerts_view(request):
         return redirect('job_alerts')
     return render(request, 'job_alerts.html', {'alerts': alerts})
 
-from django.contrib import messages
-from django.shortcuts import redirect, render
-from .models import JobAlert
 
 def delete_alert(request, alert_id):
     try:
