@@ -5,24 +5,17 @@
 
 {% block content %}
 <style>
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
-    color: #fff;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
   .edit-job-container {
+    font-family: 'Poppins', sans-serif;
     background: rgba(15, 15, 30, 0.95);
     border-radius: 20px;
     padding: 40px;
     max-width: 700px;
     width: 100%;
+    margin: 40px auto;
     box-shadow: 0 0 25px rgba(0, 255, 200, 0.4);
     animation: fadeIn 1s ease-in-out;
+    color: #fff;
   }
 
   .edit-job-container h2 {
@@ -33,11 +26,11 @@
     text-shadow: 0 0 10px #00ffc6, 0 0 20px #00ffc6;
   }
 
-  .form-group {
+  .edit-job-container .form-group {
     margin-bottom: 20px;
   }
 
-  label {
+  .edit-job-container label {
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
@@ -45,7 +38,9 @@
     text-shadow: 0 0 5px #00ffc6;
   }
 
-  input, textarea, select {
+  .edit-job-container input,
+  .edit-job-container textarea,
+  .edit-job-container select {
     width: 100%;
     padding: 12px;
     border-radius: 12px;
@@ -58,17 +53,19 @@
     transition: box-shadow 0.3s ease, transform 0.2s ease;
   }
 
-  input:focus, textarea:focus, select:focus {
+  .edit-job-container input:focus,
+  .edit-job-container textarea:focus,
+  .edit-job-container select:focus {
     box-shadow: 0 0 15px #00ffc6, 0 0 25px #00ffc6;
     transform: scale(1.02);
   }
 
-  textarea {
+  .edit-job-container textarea {
     min-height: 120px;
     resize: vertical;
   }
 
-  .btn {
+  .edit-job-container .btn {
     display: inline-block;
     padding: 12px 30px;
     border-radius: 25px;
@@ -82,26 +79,26 @@
     text-decoration: none;
   }
 
-  .btn-save {
+  .edit-job-container .btn-save {
     background: #00ffc6;
     color: #111;
     box-shadow: 0 0 15px #00ffc6, 0 0 30px #00ffc6;
   }
 
-  .btn-save:hover {
+  .edit-job-container .btn-save:hover {
     background: #0ae2aa;
     box-shadow: 0 0 25px #00ffc6, 0 0 50px #00ffc6;
     transform: translateY(-2px);
   }
 
-  .btn-cancel {
+  .edit-job-container .btn-cancel {
     background: #ff0044;
     color: #fff;
     box-shadow: 0 0 15px #ff0044, 0 0 30px #ff0044;
     margin-left: 15px;
   }
 
-  .btn-cancel:hover {
+  .edit-job-container .btn-cancel:hover {
     background: #e6003b;
     box-shadow: 0 0 25px #ff0044, 0 0 50px #ff0044;
     transform: translateY(-2px);
