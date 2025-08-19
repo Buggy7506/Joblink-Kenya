@@ -18,6 +18,8 @@ from django.core.mail import send_mail
 import stripe
 from django.conf import settings
 from weasyprint import HTML
+from django.http import FileResponse, Http404
+import os
 
 @login_required
 def process_application(request, app_id):
@@ -391,6 +393,17 @@ def upload_cv(request):
         cv.save()
         return redirect('profile')
     return render(request, 'upload_CV.html', {'form': form})
+
+@login_required
+def download_cv(request, cv_id):
+    from .models import CVUpload  # adjust path to your model
+    try:
+        cv = CVUpload.objects.get(id=cv_id)
+        file_path = cv.cv.path  # actual file path
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+    except CVUpload.DoesNotExist:
+        raise Http404("CV not found")
+
 
 #Job Listings
 
