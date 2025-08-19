@@ -416,13 +416,19 @@ def download_cv(request, cv_id):
         temp_file.write(chunk)
     temp_file.flush()
 
+    # Use the correct applicant field for filename
+    applicant_name = getattr(cv, 'applicant', None)
+    if applicant_name:
+        filename = f"{cv.applicant.username}_CV.pdf"
+    else:
+        filename = "CV.pdf"
+
     # Serve file as attachment
     return FileResponse(
         open(temp_file.name, 'rb'),
         as_attachment=True,
-        filename=f"{cv.user.username}_CV.pdf"  # optional: dynamic filename
-                           )
-    
+        filename=filename
+    )
 #Job Listings
 
 def job_list(request):
