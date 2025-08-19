@@ -385,15 +385,28 @@ def apply_job_success(request, job_id, applied=True):
 #CV Upload
 
 @login_required
-def upload_cv(request):
-    form = CVUploadForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        cv = form.save(commit=False)
-        cv.applicant = request.user
-        cv.save()
-        return redirect('profile')
-    return render(request, 'upload_CV.html', {'form': form})
+from django.http import HttpResponseRedirect, FileResponse
+import requests
+from django.core.files.temp import NamedTemporaryFile
 
+def download_cv(request, candidate_id):
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+
+    if not candidate.cv:
+        return HttpResponse("No CV uploaded.", status=404)
+
+    # Download CV from Cloudinary URL
+    response = requests.get(candidate.cv.url, stream=True)
+    if response.status_code != 200:
+        return HttpResponse("Error downloading CV.", status=500)
+
+    temp_file = NamedTemporaryFile(delete=True)
+    for chunk in response.iter_content(1024):
+        temp_file.write(chunk)
+    temp_file.flush()
+
+    return FileResponse(open(temp_file.name, 'rb'), as_attachment=True, filename="cv.pdf")
+    
 @login_required
 def download_cv(request, cv_id):
     from .models import CVUpload  # adjust path to your model
