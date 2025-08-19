@@ -21,8 +21,11 @@
       <p><strong>Description:</strong> {{ job.description|truncatewords:30 }}</p>
       <p><strong>Posted on:</strong> {{ job.posted_on }}</p>
 
-      <!-- Link to Confirmation Page -->
-      <a href="{% url 'confirm_delete' job.id %}" class="btn-glow">❌ Delete Job</a>
+      <!-- Action Buttons -->
+      <div class="job-actions">
+        <a href="{% url 'edit_job' job.id %}" class="btn-glow edit-btn">✏️ Edit Job</a>
+        <a href="{% url 'confirm_delete' job.id %}" class="btn-glow delete-btn">❌ Delete Job</a>
+      </div>
     </div>
   {% empty %}
     <p class="text-center text-white">No jobs posted yet.</p>
@@ -61,21 +64,44 @@
     text-shadow: 0 0 5px #ffb347, 0 0 10px #ffb347, 0 0 20px #ffb347;
   }
 
-  /* Glowing Delete Button */
+  /* Action Buttons Container */
+  .job-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  /* Shared Button Style */
   .btn-glow {
     padding: 10px 20px;
-    background-color: #ff4b5c;
     color: #fff;
     border: none;
     border-radius: 25px;
     font-weight: bold;
     text-decoration: none;
-    box-shadow: 0 0 10px rgba(255, 75, 92, 0.7), 0 0 20px rgba(255, 75, 92, 0.7);
     transition: all 0.3s ease;
     display: inline-block;
   }
 
-  .btn-glow:hover {
+  /* Edit Button */
+  .edit-btn {
+    background-color: #1e90ff;
+    box-shadow: 0 0 10px rgba(30, 144, 255, 0.7), 0 0 20px rgba(30, 144, 255, 0.7);
+  }
+
+  .edit-btn:hover {
+    background-color: #0066cc;
+    box-shadow: 0 0 25px rgba(0, 102, 204, 1);
+    transform: scale(1.05);
+  }
+
+  /* Delete Button */
+  .delete-btn {
+    background-color: #ff4b5c;
+    box-shadow: 0 0 10px rgba(255, 75, 92, 0.7), 0 0 20px rgba(255, 75, 92, 0.7);
+  }
+
+  .delete-btn:hover {
     background-color: #ff2a39;
     box-shadow: 0 0 25px rgba(255, 42, 57, 1);
     transform: scale(1.05);
