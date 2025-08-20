@@ -563,8 +563,11 @@ def edit_resume(request):
 
 @login_required
 def view_resume(request):
-    """Display the logged-in user's resume."""
-    resume = get_object_or_404(Resume, user=request.user)
+    """Display the logged-in user's resume or show a friendly message if none exists."""
+    try:
+        resume = Resume.objects.get(user=request.user)
+    except Resume.DoesNotExist:
+        resume = None  # User hasn't created a resume yet
 
     context = {
         'resume': resume
