@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 
 <style>
+/* General styling */
 body {margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right,#0f172a,#1e293b); color:#e0f7fa; display:flex; flex-direction:column; min-height:100vh;}
 a{text-decoration:none;color:inherit;}
 .container{width:90%; max-width:1200px; margin:0 auto;}
@@ -61,17 +62,15 @@ nav a{margin:0 1rem; font-weight:bold;}
           {% elif user.role == 'employer' %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'employer_job_chat' job.id %}" class="hover-glow">Chat</a>
           {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
           {% endif %}
           <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
           <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
       {% else %}
           <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
-          <a href="{% url 'signup' %}" class="hover-glow" style="color:#4ade80;">Sign Up</a>
+          <a href="{% url 'signup' %}" class="hover-glow">Sign Up</a>
       {% endif %}
     </nav>
     <div class="mobile-toggle">
@@ -87,11 +86,9 @@ nav a{margin:0 1rem; font-weight:bold;}
         {% elif user.role == 'employer' %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'employer_job_chat' job.id %}" class="hover-glow">Chat</a>
         {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
         {% endif %}
         <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
         <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
@@ -106,13 +103,13 @@ nav a{margin:0 1rem; font-weight:bold;}
   {% block content %}{% endblock %}
 </main>
 
-<footer class="footer glow-border">
+ <footer class="footer glow-border">
   <p>&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
 </footer>
 
 {% if user.is_authenticated %}
-  {% if user.role == 'applicant' %}
-    <!-- Applicant Chat Button -->
+  {% if user.role in 'applicant employer' %}
+    <!-- Chat Button -->
     <button id="chat-btn"><i class="fas fa-comments"></i></button>
 
     <div id="chat-modal" data-user-id="{{ user.id }}">
@@ -122,42 +119,25 @@ nav a{margin:0 1rem; font-weight:bold;}
         </div>
         <div id="chat-modal-body">
             <div id="chat-jobs-list">
-                {% for application in user.applications.all %}
-                    <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
-                        {{ application.job.title }}
-                    </div>
-                {% empty %}
-                    <p style="color:#ccc;">You haven't applied to any jobs yet.</p>
-                {% endfor %}
-            </div>
-            <div id="chat-messages">
-                <p style="color:#ccc;">Select a job above to load chat.</p>
-            </div>
-            <div id="chat-input-container">
-                <input type="text" id="chat-input" placeholder="Type a message..." />
-                <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-  {% elif user.role == 'employer' %}
-    <!-- Employer Chat Button -->
-    <button id="chat-btn"><i class="fas fa-comments"></i></button>
-
-    <div id="chat-modal" data-user-id="{{ user.id }}">
-        <div id="chat-modal-header">
-            Chat
-            <span id="chat-close"><i class="fas fa-times"></i></span>
-        </div>
-        <div id="chat-modal-body">
-            <div id="chat-jobs-list">
-                {% for job in user.jobs_posted.all %}
-                    <div class="chat-job-item" data-chat-url="{% url 'employer_job_chat' job.id %}">
-                        {{ job.title }}
-                    </div>
-                {% empty %}
-                    <p style="color:#ccc;">You haven't posted any jobs yet.</p>
-                {% endfor %}
+                {% if user.role == 'applicant' %}
+                    {% for application in user.applications.all %}
+                        {% if application.job.is_premium %}
+                            <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
+                                {{ application.job.title }}
+                            </div>
+                        {% endif %}
+                    {% empty %}
+                        <p style="color:#ccc;">You haven't applied to any premium jobs yet.</p>
+                    {% endfor %}
+                {% elif user.role == 'employer' %}
+                    {% for job in user.jobs_posted.all %}
+                        <div class="chat-job-item" data-chat-url="{% url 'employer_job_chat' job.id %}">
+                            {{ job.title }}
+                        </div>
+                    {% empty %}
+                        <p style="color:#ccc;">You haven't posted any jobs yet.</p>
+                    {% endfor %}
+                {% endif %}
             </div>
             <div id="chat-messages">
                 <p style="color:#ccc;">Select a job above to load chat.</p>
@@ -169,14 +149,15 @@ nav a{margin:0 1rem; font-weight:bold;}
         </div>
     </div>
   {% endif %}
-  {% endif %}
+{% endif %}
+
 <script>
 AOS.init();
 
 // Mobile menu toggle
-document.getElementById('menuToggle').addEventListener('click',()=>{
-    const menu=document.getElementById('mobileMenu');
-    menu.style.display=(menu.style.display==='none'||menu.style.display==='')?'flex':'none';
+document.getElementById('menuToggle').addEventListener('click', () => {
+    const menu = document.getElementById('mobileMenu');
+    menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'flex' : 'none';
 });
 
 // Chat modal toggle
@@ -187,42 +168,46 @@ const chatMessages = $('#chat-messages');
 const chatInput = $('#chat-input');
 const chatSend = $('#chat-send');
 
-// Toggle modal
-chatBtn.addEventListener('click', ()=>{
-    chatModal.style.display = chatModal.style.display === 'flex' ? 'none' : 'flex';
-    chatModal.style.flexDirection = 'column';
-});
+if(chatBtn && chatModal){
+    chatBtn.addEventListener('click', () => {
+        chatModal.style.display = chatModal.style.display === 'flex' ? 'none' : 'flex';
+        chatModal.style.flexDirection = 'column';
+    });
 
-chatClose.addEventListener('click', ()=>{
-    chatModal.style.display = 'none';
-});
+    chatClose.addEventListener('click', () => {
+        chatModal.style.display = 'none';
+    });
 
-// Load chat dynamically when clicking a job
-$('.chat-job-item').on('click', function(){
-    const chatUrl = $(this).data('chat-url');
-    chatModal.dataset.chatUrl = chatUrl;
-    loadChat(chatUrl);
-});
+    // Load chat when clicking a job
+    $('.chat-job-item').on('click', function(){
+        const chatUrl = $(this).data('chat-url');
+        chatModal.dataset.chatUrl = chatUrl;
+        loadChat(chatUrl);
+    });
 
-// Function to load chat dynamically
-function loadChat(chatUrl) {
-    $.get(chatUrl, function(data){
-        chatMessages.html('');
-        data.messages.forEach(msg => {
-            const msgClass = msg.sender_id == {{ user.id }} ? 'sender' : 'receiver';
-            chatMessages.append(`<div class="chat-message ${msgClass}">${msg.text}</div>`);
+    // Load chat dynamically
+    function loadChat(chatUrl){
+        $.get(chatUrl, function(data){
+            chatMessages.html('');
+            data.messages.forEach(msg => {
+                const msgClass = msg.sender_id == {{ user.id }} ? 'sender' : 'receiver';
+                chatMessages.append(`<div class="chat-message ${msgClass}">${msg.text}</div>`);
+            });
+            chatMessages.scrollTop(chatMessages[0].scrollHeight);
         });
-        chatMessages.scrollTop(chatMessages[0].scrollHeight);
+    }
+
+    // Send message
+    chatSend.on('click', function(){
+        const text = chatInput.val();
+        if(!text) return;
+        $.post(chatModal.dataset.chatUrl, { message: text, csrfmiddlewaretoken: '{{ csrf_token }}' }, function(data){
+            loadChat(chatModal.dataset.chatUrl);
+            chatInput.val('');
+        });
     });
 }
-
-// Function to send message
-chatSend.on('click', function(){
-    const text = chatInput.val();
-    if(!text) return;
-    $.post(chatModal.dataset.chatUrl, { message: text, csrfmiddlewaretoken: '{{ csrf_token }}' }, function(data){
-        loadChat(chatModal.dataset.chatUrl);
-        chatInput.val('');
-    });
-});
 </script>
+
+</body>
+</html>
