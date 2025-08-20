@@ -713,7 +713,7 @@ def change_username_password(request):
 def job_chat(request, application_id):
     """Applicant chat view"""
     app = get_object_or_404(
-        JobApplication.objects.select_related("job", "applicant", "job__employer"),
+        Application.objects.select_related("job", "applicant", "job__employer"),
         id=application_id
     )
 
@@ -744,8 +744,8 @@ def employer_job_chat(request, job_id):
     if selected_app_id:
         try:
             selected_app_id = int(selected_app_id)
-            selected_app = get_object_or_404(JobApplication, id=selected_app_id, job=job)
-        except (ValueError, JobApplication.DoesNotExist):
+            selected_app = get_object_or_404(Application, id=selected_app_id, job=job)
+        except (ValueError, Application.DoesNotExist):
             selected_app = None
     if not selected_app:
         selected_app = applications.first() if applications else None
