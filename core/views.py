@@ -704,3 +704,64 @@ def change_username_password(request):
         form = ChangeUsernamePasswordForm(user=request.user, instance=request.user)
 
     return render(request, 'change_username_password.html', {'form': form})
+
+
+@login_required
+def job_chat(request, application_id):
+    """Applicant chat view"""
+    app = get_object_or_404(
+        JobApplication.objects.select_related("job", "applicant", "job__employer"),
+        id=application_id
+    )
+
+    # Only premium + applicant/employer allowed
+    if not app.job.is_premium:
+        return redirect("job_detail", job_id=app.job_id)
+    if request.user.id not in (app.applicant_id, app.job.employer_id):
+        return redirect("job_detail", job_id=app.job_id)
+
+    messages = app.messages.all()  # already ordered
+
+    return render(request, "chat/job_chat.html", {"application": app, "messages": messages})
+
+
+@login_required
+def employer_job_chat(request, job_id):
+    """Employer chat view with sidebar + real-time unread badges"""
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+
+    if not job.is_premium:
+        return redirect("job_detail", job_id=job.id)
+
+    applications = job.applications.select_related("applicant").all()
+
+    # Determine selected applicant
+    selected_app_id = request.GET.get("app_id")
+    selected_app = None
+    if selected_app_id:
+        try:
+            selected_app_id = int(selected_app_id)
+            selected_app = get_object_or_404(JobApplication, id=selected_app_id, job=job)
+        except (ValueError, JobApplication.DoesNotExist):
+            selected_app = None
+    if not selected_app:
+        selected_app = applications.first() if applications else None
+
+    # Fetch messages for selected applicant
+    messages = selected_app.messages.all() if selected_app else []
+
+    # Mark unread messages from applicant as read
+    if selected_app:
+        ChatMessage.objects.filter(
+            application=selected_app,
+            sender_id=selected_app.applicant_id,
+            is_read=False
+        ).update(is_read=True)
+
+    return render(request, "chat/employer_chat.html", {
+        "job": job,
+        "applications": applications,
+        "selected_app": selected_app,
+        "messages": messages,
+    })
+    
