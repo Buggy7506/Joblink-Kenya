@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Chat — {{ application.job.title }}{% endblock %}
 {% block content %}
+
 <style>
 .chat-wrap { max-width: 800px; margin: 30px auto; }
 .chat-card { background: rgba(15,15,30,0.95); color: #fff; border-radius: 16px; box-shadow: 0 0 22px rgba(0,255,200,0.25); overflow: hidden; }
@@ -14,8 +15,19 @@
 .chat-input input { flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; }
 .chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background: linear-gradient(135deg,#00ffc6,#00ff88); color:#111; }
 @keyframes fadeIn { from {opacity:0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+
+/* Floating Chat Popup */
+#chat-popup-button { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
+#chat-popup-button button { padding:12px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:18px; }
+#chat-popup { display:none; position:fixed; bottom:70px; right:20px; width:400px; max-height:500px; background: rgba(15,15,30,0.95); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.25); overflow:hidden; z-index:999; }
+#chat-popup-header { padding:12px; background:#111; color:#fff; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
+#chat-popup-body { padding:12px; overflow-y:auto; height:350px; }
+#chat-popup-form { display:flex; padding:12px; border-top:1px solid rgba(0,255,200,0.2); }
+#chat-popup-form input { flex:1; padding:8px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; }
+#chat-popup-form button { padding:8px 12px; border:none; border-radius:10px; background:#00ffc6; color:#111; cursor:pointer; }
 </style>
 
+<!-- Original Page Chat -->
 <div class="chat-wrap">
   <div class="chat-card">
     <div class="chat-header">
@@ -46,14 +58,32 @@
   </div>
 </div>
 
+<!-- Floating Chat Popup -->
+<div id="chat-popup">
+  <div id="chat-popup-header">
+    Chat
+    <span id="close-chat" style="cursor:pointer;">✖</span>
+  </div>
+  <div id="chat-popup-body">
+    <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
+  </div>
+  <form id="chat-popup-form">
+    {% csrf_token %}
+    <input id="chat-popup-input" type="text" placeholder="Type a message…" />
+    <button type="button" id="chat-popup-send">Send</button>
+  </form>
+</div>
+
+<button id="chat-popup-button"><span>💬</span></button>
+
 <script>
 (function() {
+  // Page Chat WebSocket
   const appId = {{ application.id }};
   const userName = "{{ request.user.username|escapejs }}";
   const chatBox = document.getElementById("chat-box");
   const input = document.getElementById("msg-input");
   const sendBtn = document.getElementById("send-btn");
-
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
 
@@ -97,14 +127,10 @@
 
   socket.onmessage = function(e) {
     const data = JSON.parse(e.data);
-
-    // Typing indicator
     if (data.typing !== undefined) {
       if (data.sender !== userName) typingIndicator.textContent = data.typing ? `${data.sender} is typing…` : "";
       return;
     }
-
-    // Read receipts
     if (data.read_messages !== undefined) {
       data.read_messages.forEach(id => {
         const bubble = document.querySelector(`.bubble[data-id='${id}']`);
@@ -115,20 +141,53 @@
       });
       return;
     }
-
-    // New message
     const bubble = document.createElement("div");
     bubble.className = `bubble ${data.sender === userName ? "me" : "them"}`;
     bubble.dataset.id = data.id;
-    bubble.innerHTML = `
-      <div><strong>${data.sender}</strong></div>
-      <div>${data.message}</div>
-      <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>
-    `;
+    bubble.innerHTML = `<div><strong>${data.sender}</strong></div><div>${data.message}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
     chatBox.appendChild(bubble);
     scrollToBottom();
     markVisibleMessagesRead();
   };
+
+  // Floating Chat Popup
+  const chatButton = document.getElementById("chat-popup-button");
+  const chatPopup = document.getElementById("chat-popup");
+  const chatClose = document.getElementById("close-chat");
+  const popupInput = document.getElementById("chat-popup-input");
+  const popupSend = document.getElementById("chat-popup-send");
+  const popupBody = document.getElementById("chat-popup-body");
+
+  chatButton.addEventListener("click", () => chatPopup.style.display = "block");
+  chatClose.addEventListener("click", () => chatPopup.style.display = "none");
+
+  // Use same WebSocket for popup
+  popupSend.addEventListener("click", () => {
+    const text = popupInput.value.trim();
+    if (!text || socket.readyState !== 1) return;
+    socket.send(JSON.stringify({ message: text }));
+    popupInput.value = "";
+  });
+
+  popupInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); popupSend.click(); } });
+
+  // Mirror messages to popup
+  socket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    if (data.typing !== undefined) return;
+    if (data.read_messages !== undefined) return;
+    const bubble = document.createElement("div");
+    bubble.className = `bubble ${data.sender === userName ? "me" : "them"}`;
+    bubble.dataset.id = data.id;
+    bubble.innerHTML = `<div><strong>${data.sender}</strong></div><div>${data.message}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+    chatBox.appendChild(bubble);
+    popupBody.appendChild(bubble.cloneNode(true));
+    scrollToBottom();
+    chatBox.scrollTop = chatBox.scrollHeight;
+    popupBody.scrollTop = popupBody.scrollHeight;
+  };
+
 })();
 </script>
+
 {% endblock %}
