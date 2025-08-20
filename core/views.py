@@ -722,7 +722,7 @@ def job_chat(request, application_id):
 
     messages = app.messages.all()  # already ordered
 
-    return render(request, "chat/job_chat.html", {
+    return render(request, "job_chat.html", {
         "application": app,
         "messages": messages
     })
@@ -759,7 +759,7 @@ def employer_job_chat(request, job_id):
             is_read=False
         ).update(is_read=True)
 
-    return render(request, "chat/employer_chat.html", {
+    return render(request, "employer_chat.html", {
         "job": job,
         "applications": applications,
         "selected_app": selected_app,
