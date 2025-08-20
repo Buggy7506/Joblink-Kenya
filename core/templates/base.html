@@ -59,7 +59,7 @@ nav a{margin:0 1rem; font-weight:bold;}
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile_admin' %}" class="hover-glow">Profile</a>
           {% elif user.role == 'employer' %}
-            <a href="{% url 'employer_dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
           {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
@@ -83,7 +83,7 @@ nav a{margin:0 1rem; font-weight:bold;}
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile_admin' %}" class="hover-glow">Profile</a>
         {% elif user.role == 'employer' %}
-            <a href="{% url 'employer_dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
         {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
