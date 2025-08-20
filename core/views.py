@@ -708,7 +708,6 @@ def change_username_password(request):
 
     return render(request, 'change_username_password.html', {'form': form})
 
-
 @login_required
 def job_chat(request, application_id):
     """Applicant chat view"""
@@ -717,15 +716,16 @@ def job_chat(request, application_id):
         id=application_id
     )
 
-    # Only premium + applicant/employer allowed
-    if not app.job.is_premium:
-        return redirect("job_detail", job_id=app.job_id)
+    # Allow chat for all jobs (free or premium)
     if request.user.id not in (app.applicant_id, app.job.employer_id):
         return redirect("job_detail", job_id=app.job_id)
 
     messages = app.messages.all()  # already ordered
 
-    return render(request, "chat/job_chat.html", {"application": app, "messages": messages})
+    return render(request, "chat/job_chat.html", {
+        "application": app,
+        "messages": messages
+    })
 
 
 @login_required
@@ -733,9 +733,7 @@ def employer_job_chat(request, job_id):
     """Employer chat view with sidebar + real-time unread badges"""
     job = get_object_or_404(Job, id=job_id, employer=request.user)
 
-    if not job.is_premium:
-        return redirect("job_detail", job_id=job.id)
-
+    # Allow chat for all jobs (free or premium)
     applications = job.applications.select_related("applicant").all()
 
     # Determine selected applicant
@@ -767,4 +765,3 @@ def employer_job_chat(request, job_id):
         "selected_app": selected_app,
         "messages": messages,
     })
-    
