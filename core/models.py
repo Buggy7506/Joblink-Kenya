@@ -45,62 +45,97 @@ class JobCategory(models.Model):
         return self.name
 
 # Job Postings
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+# Job Categories (assumed to exist)
+class JobCategory(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class Job(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     category = models.ForeignKey(JobCategory, on_delete=models.SET_NULL, blank=True, null=True)
     location = models.CharField(max_length=100)
-    employer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    employer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="jobs_posted")
     posted_on = models.DateTimeField(auto_now_add=True)
     is_premium = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     premium_expiry = models.DateTimeField(null=True, blank=True)
     company = models.CharField(max_length=200, blank=True)
-    
+
     def check_premium_status(self):
-        if self.premium_expiry and self.premium_expiry < timezone.now():
+        """Automatically disable premium if expired."""
+        if self.is_premium and self.premium_expiry and self.premium_expiry < timezone.now():
             self.is_premium = False
+            self.save()
+
+    def mark_as_inactive_if_needed(self):
+        """Optional: deactivate job if past expiry or not active."""
+        if not self.is_active:
+            self.is_active = False
             self.save()
 
     def __str__(self):
         return self.title
 
-# Student Job Applications
+
 class Application(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_ACCEPTED = 'accepted'
+    STATUS_REJECTED = 'rejected'
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_ACCEPTED, 'Accepted'),
+        (STATUS_REJECTED, 'Rejected'),
     ]
 
-    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
     applicant = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        limit_choices_to={'role': 'applicant'}
+        limit_choices_to={'role': 'applicant'},
+        related_name="applications"
     )
     applied_on = models.DateTimeField(auto_now_add=True)
-
-    # New fields you requested
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
     is_paid = models.BooleanField(default=False)
     mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("job", "applicant")  # One application per job/applicant
+
+    def unread_messages_for_user(self, user):
+        """Return queryset of unread messages for this user."""
+        return self.messages.filter(is_read=False).exclude(sender=user)
 
     def __str__(self):
         return f"{self.applicant.username} → {self.job.title}"
 
+
 class ChatMessage(models.Model):
     application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="messages")
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)  # ✅ Tracks if recipient has read it
+    is_read = models.BooleanField(default=False)  # Tracks if recipient has read the message
 
     class Meta:
         ordering = ["timestamp"]
 
+    def mark_as_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.save()
+
     def __str__(self):
-        return f"{self.sender} @ {self.timestamp}"
+        return f"{self.sender.username} @ {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
 
 
 # CV Uploads
