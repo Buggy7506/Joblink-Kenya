@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'core',
     'cloudinary',
     'cloudinary_storage',
+    'channels',
 ]
 
 # -----------------------------------------------
@@ -93,7 +94,9 @@ TEMPLATES = [
     },
 ]
 
+# WSGI & ASGI
 WSGI_APPLICATION = 'joblink.wsgi.application'
+ASGI_APPLICATION = 'joblink.asgi.application'
 
 
 # Database
@@ -196,3 +199,21 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawU
 
 
 CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
+
+# Channels layers
+if os.getenv("REDIS_URL"):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [os.getenv("REDIS_URL")]},
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
+
+# Channels & chat defaults
+CHAT_MAX_MESSAGE_LENGTH = 2000
