@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Chat — {{ job.title }}{% endblock %}
+{% block content %}
+<style>
+.chat-wrap { display: flex; max-width: 1200px; margin: 30px auto; gap: 20px; }
+.sidebar { width: 260px; background: rgba(15,15,30,0.95); border-radius: 16px; overflow: hidden; }
+.sidebar h3 { padding: 14px; border-bottom: 1px solid rgba(0,255,200,0.2); }
+.applicant { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid rgba(0,255,200,0.1); display: flex; justify-content: space-between; align-items: center; }
+.applicant.selected { background: rgba(0,255,200,0.15); font-weight: bold; }
+.badge { background: #00ffc6; color: #111; border-radius: 50%; padding: 2px 8px; font-size: 12px; }
+.chat-container { flex: 1; display: flex; flex-direction: column; background: rgba(15,15,30,0.95); border-radius: 16px; }
+.chat-box { flex: 1; overflow-y: auto; padding: 14px; }
+.bubble { max-width: 70%; margin: 8px 0; padding: 10px 12px; border-radius: 12px; word-wrap: break-word; animation: fadeIn 0.2s ease-in; }
+.me { margin-left: auto; background: rgba(0,255,200,0.18); border: 1px solid rgba(0,255,200,0.4); }
+.them { margin-right: auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
+.meta { font-size: 11px; opacity: .7; margin-top: 4px; }
+.chat-input { display: flex; gap: 10px; padding: 12px; border-top: 1px solid rgba(0,255,200,0.2); background: rgba(9,12,20,0.9); }
+.chat-input input { flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; }
+.chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background: linear-gradient(135deg,#00ffc6,#00ff88); color:#111; }
+@keyframes fadeIn { from {opacity:0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+</style>
+
+<div class="chat-wrap">
+  <div class="sidebar">
+    <h3>Applicants</h3>
+    {% for app in applications %}
+      <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
+        {{ app.applicant.username }}
+        {% with unread_count=app.messages.filter(sender=app.applicant, is_read=False).count %}
+          {% if unread_count %}
+            <span class="badge">{{ unread_count }}</span>
+          {% endif %}
+        {% endwith %}
+      </a>
+    {% empty %}
+      <p style="padding:12px; opacity:.7;">No applicants yet</p>
+    {% endfor %}
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box">
+      {% for m in messages %}
+        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %}" data-id="{{ m.id }}">
+          <div><strong>{{ m.sender.username }}</strong></div>
+          <div>{{ m.message }}</div>
+          <div class="meta">{{ m.timestamp }}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
+        </div>
+      {% empty %}
+        <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
+      {% endfor %}
+    </div>
+
+    <form id="chat-form" class="chat-input" onsubmit="return false;">
+      {% csrf_token %}
+      <input id="msg-input" type="text" placeholder="Type a message…" autocomplete="off" maxlength="2000" />
+      <button id="send-btn" type="button">Send</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function() {
+  const appId = {{ selected_app.id if selected_app else 'null' }};
+  if (!appId) return;
+
+  const userName = "{{ request.user.username|escapejs }}";
+  const chatBox = document.getElementById("chat-box");
+  const input = document.getElementById("msg-input");
+  const sendBtn = document.getElementById("send-btn");
+
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
+
+  function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
+  scrollToBottom();
+
+  const typingIndicator = document.createElement("div");
+  typingIndicator.style.opacity = 0.7;
+  typingIndicator.style.fontSize = "12px";
+  typingIndicator.style.margin = "4px 0";
+  chatBox.appendChild(typingIndicator);
+
+  let typingTimeout;
+  input.addEventListener("input", () => {
+    socket.send(JSON.stringify({ typing: true }));
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => socket.send(JSON.stringify({ typing: false })), 1000);
+  });
+
+  function sendMessage() {
+    const text = input.value.trim();
+    if (!text || socket.readyState !== 1) return;
+    socket.send(JSON.stringify({ message: text }));
+    input.value = "";
+    socket.send(JSON.stringify({ typing: false }));
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); sendMessage(); } });
+
+  function markVisibleMessagesRead() {
+    const unseen = Array.from(document.querySelectorAll(".bubble.them:not(.read)"));
+    const ids = unseen.map(b => b.dataset.id);
+    if (!ids.length) return;
+    unseen.forEach(b => b.classList.add("read"));
+    socket.send(JSON.stringify({ read_messages: ids }));
+  }
+
+  chatBox.addEventListener("scroll", markVisibleMessagesRead);
+  markVisibleMessagesRead();
+
+  socket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+
+    if (data.typing !== undefined) {
+      if (data.sender !== userName) typingIndicator.textContent = data.typing ? `${data.sender} is typing…` : "";
+      return;
+    }
+
+    if (data.read_messages !== undefined) {
+      data.read_messages.forEach(id => {
+        const bubble = document.querySelector(`.bubble[data-id='${id}']`);
+        if (bubble) {
+          const meta = bubble.querySelector(".meta");
+          if (!meta.textContent.includes("✓")) meta.textContent += " ✓";
+        }
+      });
+      return;
+    }
+
+    // New message
+    const bubble = document.createElement("div");
+    bubble.className = `bubble ${data.sender === userName ? "me" : "them"}`;
+    bubble.dataset.id = data.id;
+    bubble.innerHTML = `
+      <div><strong>${data.sender}</strong></div>
+      <div>${data.message}</div>
+      <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>
+    `;
+    chatBox.appendChild(bubble);
+    scrollToBottom();
+    markVisibleMessagesRead();
+  };
+})();
+</script>
+{% endblock %}
