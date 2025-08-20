@@ -25,18 +25,7 @@ nav a{margin:0 1rem; font-weight:bold;}
 @keyframes fade-in{from{opacity:0; transform:translateY(-10px);}to{opacity:1; transform:translateY(0);}}
 .animate-fade-in{animation:fade-in 0.5s ease-out forwards;}
 
-/* Chat popup */
-#chat-popup{position:fixed; bottom:20px; right:20px; width:320px; max-height:480px; background:rgba(15,15,30,0.95); color:#fff; border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.25); display:flex; flex-direction:column; overflow:hidden; z-index:1000; display:none;}
-#chat-popup.active{display:flex;}
-#chat-popup .chat-header{padding:14px 18px; border-bottom:1px solid rgba(0,255,200,0.2); display:flex; justify-content:space-between; align-items:center; cursor:grab;}
-#chat-popup select{width:100%; margin-bottom:8px; padding:6px 8px; border-radius:8px; border:none; outline:none; background:#111; color:#fff;}
-#chat-popup .chat-box{flex:1; overflow-y:auto; padding:14px 16px;}
-#chat-popup .bubble{max-width:70%; margin:8px 0; padding:10px 12px; border-radius:12px; word-wrap:break-word;}
-#chat-popup .me{margin-left:auto; background: rgba(0,255,200,0.18); border:1px solid rgba(0,255,200,0.4);}
-#chat-popup .them{margin-right:auto; background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);}
-#chat-popup .chat-input{display:flex; gap:10px; padding:12px; border-top:1px solid rgba(0,255,200,0.2); background: rgba(9,12,20,0.9);}
-#chat-popup .chat-input input{flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff;}
-#chat-popup .chat-input button{padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111;}
+/* Chat popup shared styling */
 #chat-btn{position:fixed; bottom:20px; right:20px; z-index:999; background:linear-gradient(135deg,#00ffc6,#00ff88); border:none; border-radius:50%; width:60px; height:60px; font-size:24px; color:#111; cursor:pointer; box-shadow:0 0 22px rgba(0,255,200,0.25);}
 </style>
 </head>
@@ -90,41 +79,11 @@ nav a{margin:0 1rem; font-weight:bold;}
 </footer>
 
 {% if user.is_authenticated %}
-<button id="chat-btn"><i class="fas fa-comment"></i></button>
-
-<div id="chat-popup" data-role="{% if user.role=='employer' %}employer{% else %}applicant{% endif %}">
-    <div class="chat-header">
-        <span>Chat</span>
-        <button id="close-chat" style="background:none;border:none;color:#0ff;font-size:18px;cursor:pointer;">&times;</button>
-    </div>
-
-    {% if user.role=='employer' %}
-        <select id="chat-applicant-select">
-            {% for job in user.jobs_employer.all %}
-                {% for app in job.applications.all %}
-                    <option value="{{ app.id }}">{{ app.applicant.username }} — {{ job.title }}</option>
-                {% endfor %}
-            {% endfor %}
-        </select>
+    {% if user.role == 'employer' %}
+        {% include 'employer_chat.html' %}
     {% else %}
-        <select id="chat-job-select">
-            <option value="">Select a job to chat</option>
-            {% for app in user.applications.all %}
-    <option value="{{ app.id }}">{{ app.job.title }}</option>
-{% endfor %}
-</select>
-{% endif %}
-
-<div class="chat-box" id="popup-chat-box">
-    <p style="text-align:center;opacity:.7;margin-top:16px;">Select to start chatting</p>
-</div>
-
-<form class="chat-input" id="popup-chat-form" onsubmit="return false;">
-    {% csrf_token %}
-    <input type="text" id="popup-msg-input" placeholder="Type a message…" autocomplete="off" maxlength="2000">
-    <button type="button" id="popup-send-btn">Send</button>
-</form>
-</div>
+        {% include 'job_chat.html' %}
+    {% endif %}
 {% endif %}
 
 <script>
@@ -135,58 +94,6 @@ document.getElementById('menuToggle').addEventListener('click',()=>{
     const menu=document.getElementById('mobileMenu');
     menu.style.display=(menu.style.display==='none'||menu.style.display==='')?'flex':'none';
 });
-
-// Chat popup toggle
-const chatBtn = document.getElementById('chat-btn');
-const chatPopup = document.getElementById('chat-popup');
-const closeBtn = document.getElementById('close-chat');
-if(chatBtn){
-    chatBtn.addEventListener('click',()=>{ chatPopup.classList.add('active'); });
-    closeBtn.addEventListener('click',()=>{ chatPopup.classList.remove('active'); });
-}
-
-// Chat WebSocket
-let currentSocket;
-const chatBox = document.getElementById('popup-chat-box');
-const msgInput = document.getElementById('popup-msg-input');
-const sendBtn = document.getElementById('popup-send-btn');
-
-function connectSocket(appId){
-    if(currentSocket){ currentSocket.close(); }
-    if(!appId) return;
-    chatBox.innerHTML='<p style="text-align:center;opacity:.7;margin-top:16px;">Loading chat...</p>';
-    const wsScheme=window.location.protocol==="https:"?"wss":"ws";
-    currentSocket=new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
-    currentSocket.onmessage=function(e){
-        const data=JSON.parse(e.data);
-        if(data.message){
-            const bubble=document.createElement('div');
-            bubble.className=data.sender==="{{ user.username }}"?'bubble me':'bubble them';
-            bubble.innerHTML=`<div><strong>${data.sender}</strong></div><div>${data.message}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
-            chatBox.appendChild(bubble);
-            chatBox.scrollTop=chatBox.scrollHeight;
-        }
-    };
-}
-
-// Role-based select handling
-const role=chatPopup.dataset.role;
-if(role==='employer'){
-    const selectEl=document.getElementById('chat-applicant-select');
-    selectEl?.addEventListener('change',()=>{ connectSocket(selectEl.value); });
-}else{
-    const selectEl=document.getElementById('chat-job-select');
-    selectEl?.addEventListener('change',()=>{ connectSocket(selectEl.value); });
-}
-
-// Send message
-sendBtn.addEventListener('click',()=>{
-    const text=msgInput.value.trim();
-    if(!text||!currentSocket||currentSocket.readyState!==1) return;
-    currentSocket.send(JSON.stringify({message:text}));
-    msgInput.value='';
-});
-msgInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 </script>
 
 </body>
