@@ -71,6 +71,16 @@ nav a { margin:0 1rem; font-weight:bold; }
     align-items: center;
     cursor: grab;
 }
+#chat-popup select {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background:#111;
+    color:#fff;
+}
 #chat-popup .chat-box { flex: 1; overflow-y: auto; padding: 14px 16px; }
 #chat-popup .bubble { max-width: 70%; margin: 8px 0; padding: 10px 12px; border-radius: 12px; word-wrap: break-word; }
 #chat-popup .me { margin-left:auto; background: rgba(0,255,200,0.18); border:1px solid rgba(0,255,200,0.4); }
@@ -134,7 +144,7 @@ nav a { margin:0 1rem; font-weight:bold; }
       <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
       <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
-      <a href="{% url 'signup' %}" class="hover-glow" style="color:#4ade80;">Sign Up</a>
+      <a href="{% url 'signup' %}" class="hover-glow">Sign Up</a>
     {% endif %}
   </div>
 </header>
@@ -147,8 +157,8 @@ nav a { margin:0 1rem; font-weight:bold; }
   <p>&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
 </footer>
 
-<!-- Chat button -->
 {% if user.is_authenticated %}
+<!-- Chat button -->
 <button id="chat-btn"><i class="fas fa-comment"></i></button>
 
 <div id="chat-popup">
@@ -156,9 +166,21 @@ nav a { margin:0 1rem; font-weight:bold; }
         <span>Chat</span>
         <button id="close-chat" style="background:none;border:none;color:#0ff;font-size:18px;cursor:pointer;">&times;</button>
     </div>
+
+    <!-- Select job to chat -->
+    <select id="chat-job-select">
+        <option value="">Select a job to chat</option>
+        {% for app in user.applications.all %}
+            {% if app.job.is_premium %}
+                <option value="{{ app.id }}">{{ app.job.title }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
     <div class="chat-box" id="popup-chat-box">
         <p style="text-align:center;opacity:.7;margin-top:16px;">Select a job to chat</p>
     </div>
+
     <form class="chat-input" id="popup-chat-form" onsubmit="return false;">
         {% csrf_token %}
         <input type="text" id="popup-msg-input" placeholder="Type a message…" autocomplete="off" maxlength="2000">
@@ -169,11 +191,12 @@ nav a { margin:0 1rem; font-weight:bold; }
 
 <script>
 AOS.init();
+
+// Mobile menu toggle
 const toggle = document.getElementById('menuToggle');
 const menu = document.getElementById('mobileMenu');
 toggle.addEventListener('click',()=>{
-    if(menu.style.display==='none'||menu.style.display===''){menu.style.display='flex';}
-    else{menu.style.display='none';}
+    menu.style.display = (menu.style.display==='none'||menu.style.display==='')?'flex':'none';
 });
 
 // Chat popup toggle
@@ -184,6 +207,21 @@ if(chatBtn){
     chatBtn.addEventListener('click',()=>{ chatPopup.classList.add('active'); });
     closeBtn.addEventListener('click',()=>{ chatPopup.classList.remove('active'); });
 }
+
+// Chat job selection
+const jobSelect = document.getElementById('chat-job-select');
+const chatBox = document.getElementById('popup-chat-box');
+if(jobSelect){
+    jobSelect.addEventListener('change',()=>{
+        if(jobSelect.value){
+            chatBox.innerHTML = '<p style="text-align:center;opacity:.7;margin-top:16px;">Chatting on selected job...</p>';
+            // TODO: Connect WebSocket here for selected job
+        } else {
+            chatBox.innerHTML = '<p style="text-align:center;opacity:.7;margin-top:16px;">Select a job to chat</p>';
+        }
+    });
+}
 </script>
+
 </body>
 </html>
