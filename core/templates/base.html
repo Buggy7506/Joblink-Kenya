@@ -107,36 +107,65 @@ nav a{margin:0 1rem; font-weight:bold;}
 </footer>
 
 {% if user.is_authenticated %}
-<!-- Chat button -->
-<button id="chat-btn"><i class="fas fa-comments"></i></button>
+  {% if user.role == 'applicant' %}
+    <!-- Applicant Chat Button -->
+    <button id="chat-btn"><i class="fas fa-comments"></i></button>
 
-<!-- Chat modal -->
-<div id="chat-modal" data-user-id="{{ user.id }}">
-    <div id="chat-modal-header">
-        Chat
-        <span id="chat-close"><i class="fas fa-times"></i></span>
+    <div id="chat-modal" data-user-id="{{ user.id }}">
+        <div id="chat-modal-header">
+            Chat
+            <span id="chat-close"><i class="fas fa-times"></i></span>
+        </div>
+        <div id="chat-modal-body">
+            <div id="chat-jobs-list">
+                {% for application in user.applications.all %}
+                    <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
+                        {{ application.job.title }}
+                    </div>
+                {% empty %}
+                    <p style="color:#ccc;">You haven't applied to any jobs yet.</p>
+                {% endfor %}
+            </div>
+            <div id="chat-messages">
+                <p style="color:#ccc;">Select a job above to load chat.</p>
+            </div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type a message..." />
+                <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
     </div>
-    <div id="chat-modal-body">
-        <div id="chat-jobs-list">
-            {% for application in user.applications.all %}
-                <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
-                    {{ application.job.title }}
-                </div>
-            {% empty %}
-                <p style="color:#ccc;">You haven't applied to any jobs yet.</p>
-            {% endfor %}
-        </div>
-        <div id="chat-messages">
-            <p style="color:#ccc;">Select a job above to load chat.</p>
-        </div>
-        <div id="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Type a message..." />
-            <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-</div>
-{% endif %}
 
+  {% elif user.role == 'employer' %}
+    <!-- Employer Chat Button -->
+    <button id="chat-btn"><i class="fas fa-comments"></i></button>
+
+    <div id="chat-modal" data-user-id="{{ user.id }}">
+        <div id="chat-modal-header">
+            Chat
+            <span id="chat-close"><i class="fas fa-times"></i></span>
+        </div>
+        <div id="chat-modal-body">
+            <div id="chat-jobs-list">
+                {% for job in user.jobs_posted.all %}
+                    <div class="chat-job-item" data-chat-url="{% url 'employer_job_chat' job.id %}">
+                        {{ job.title }}
+                    </div>
+                {% empty %}
+                    <p style="color:#ccc;">You haven't posted any jobs yet.</p>
+                {% endfor %}
+            </div>
+            <div id="chat-messages">
+                <p style="color:#ccc;">Select a job above to load chat.</p>
+            </div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type a message..." />
+                <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+  {% endif %}
+  {% endif %}
 <script>
 AOS.init();
 
