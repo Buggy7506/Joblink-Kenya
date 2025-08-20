@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
-from .models import JobApplication, ChatMessage
+from .models import Application, ChatMessage
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -34,7 +34,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return
             chat_msg = await self.save_message(self.application_id, user.id, msg)
             event = {
-                "type": "chat.message",
+                "type": "chat_message",
                 "id": chat_msg["id"],
                 "sender": chat_msg["sender"],
                 "message": chat_msg["message"],
@@ -47,7 +47,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.group_name,
                 {
-                    "type": "chat.typing",
+                    "type": "chat_typing",
                     "sender": user.username,
                     "typing": payload["typing"],
                 }
@@ -60,7 +60,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.group_name,
                 {
-                    "type": "chat.read",
+                    "type": "chat_read",
                     "read_messages": read_ids,
                     "sender": user.username,
                 }
@@ -70,18 +70,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
 
-    async def chat.typing(self, event):
+    async def chat_typing(self, event):
         await self.send(text_data=json.dumps(event))
 
-    async def chat.read(self, event):
+    async def chat_read(self, event):
         await self.send(text_data=json.dumps(event))
 
     # --- Helpers ---
     @database_sync_to_async
     def user_can_join(self, application_id, user_id):
         try:
-            app = JobApplication.objects.select_related("job", "applicant", "job__employer").get(id=application_id)
-        except JobApplication.DoesNotExist:
+            app = Application.objects.select_related(
+                "job", "applicant", "job__employer"
+            ).get(id=application_id)
+        except Application.DoesNotExist:
             return False
         if not app.job.is_premium:
             return False
@@ -89,7 +91,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, application_id, sender_id, message):
-        app = JobApplication.objects.get(id=application_id)
+        app = Application.objects.get(id=application_id)
         obj = ChatMessage.objects.create(application=app, sender_id=sender_id, message=message)
         return {
             "id": obj.id,
@@ -101,4 +103,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def mark_messages_read(self, message_ids):
         ChatMessage.objects.filter(id__in=message_ids).update(is_read=True)
-      
+        
