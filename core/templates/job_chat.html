@@ -32,7 +32,7 @@
   <div class="chat-card">
     <div class="chat-header">
       <div>
-        <div><strong>{{ application.job.title }}</strong> {% if application.job.company %}— {{ application.job.company }}{% endif %}</div>
+        <div><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
         <small>Chat between <strong>{{ application.applicant.username }}</strong> and <strong>{{ application.job.employer.username }}</strong></small>
       </div>
     </div>
@@ -76,18 +76,20 @@
 <button id="chat-popup-button"><span>💬</span></button>
 
 <script>
-(function() {
+(function(){
   const appId = {{ application.id }};
-  const userName = "{{ request.user.username|escapejs }}";
+  const username = "{{ request.user.username|escapejs }}";
   const chatBox = document.getElementById("chat-box");
   const input = document.getElementById("msg-input");
   const sendBtn = document.getElementById("send-btn");
+
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
 
-  function scrollToBottom(el=chatBox){ el.scrollTop = el.scrollHeight; }
-  scrollToBottom();
+  function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
+  scrollBottom(chatBox);
 
+  // Typing indicator
   const typingIndicator = document.createElement("div");
   typingIndicator.style.opacity = 0.7;
   typingIndicator.style.fontSize = "12px";
@@ -96,34 +98,34 @@
 
   let typingTimeout;
   input.addEventListener("input", () => {
-    socket.send(JSON.stringify({ typing: true }));
+    socket.send(JSON.stringify({ typing:true }));
     clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => socket.send(JSON.stringify({ typing: false })), 1000);
+    typingTimeout = setTimeout(()=>socket.send(JSON.stringify({ typing:false })), 1000);
   });
 
   function sendMessage(msgInput=input){
     const text = msgInput.value.trim();
     if(!text || socket.readyState!==1) return;
-    socket.send(JSON.stringify({ message: text }));
+    socket.send(JSON.stringify({ message:text }));
     msgInput.value = "";
-    socket.send(JSON.stringify({ typing: false }));
+    socket.send(JSON.stringify({ typing:false }));
   }
 
   sendBtn.addEventListener("click", ()=>sendMessage());
-  input.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
 
-  function markVisibleMessagesRead(){
+  // Mark visible messages as read
+  function markRead(){
     const unseen = Array.from(document.querySelectorAll(".bubble.them:not(.read)"));
-    const ids = unseen.map(b => b.dataset.id);
+    const ids = unseen.map(b=>b.dataset.id);
     if(!ids.length) return;
-    unseen.forEach(b => b.classList.add("read"));
-    socket.send(JSON.stringify({ read_messages: ids }));
+    unseen.forEach(b=>b.classList.add("read"));
+    socket.send(JSON.stringify({ read_messages:ids }));
   }
+  chatBox.addEventListener("scroll", markRead);
+  markRead();
 
-  chatBox.addEventListener("scroll", markVisibleMessagesRead);
-  markVisibleMessagesRead();
-
-  // Floating Chat Popup
+  // Popup chat
   const chatButton = document.getElementById("chat-popup-button");
   const chatPopup = document.getElementById("chat-popup");
   const chatClose = document.getElementById("close-chat");
@@ -133,15 +135,15 @@
 
   chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
   chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
-
   popupSend.addEventListener("click", ()=>sendMessage(popupInput));
   popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
 
+  // WebSocket message handling
   socket.onmessage = function(e){
     const data = JSON.parse(e.data);
 
     if(data.typing!==undefined){
-      if(data.sender!==userName) typingIndicator.textContent = data.typing ? `${data.sender} is typing…` : "";
+      if(data.sender!==username) typingIndicator.textContent = data.typing ? `${data.sender} is typing…` : "";
       return;
     }
 
@@ -157,14 +159,15 @@
     }
 
     const bubble = document.createElement("div");
-    bubble.className = `bubble ${data.sender===userName?"me":"them"}`;
+    bubble.className = `bubble ${data.sender===username?"me":"them"}`;
     bubble.dataset.id = data.id;
     bubble.innerHTML = `<div><strong>${data.sender}</strong></div><div>${data.message}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+
     chatBox.appendChild(bubble);
     popupBody.appendChild(bubble.cloneNode(true));
-    scrollToBottom(chatBox);
-    scrollToBottom(popupBody);
-    markVisibleMessagesRead();
+    scrollBottom(chatBox);
+    scrollBottom(popupBody);
+    markRead();
   };
 })();
 </script>
