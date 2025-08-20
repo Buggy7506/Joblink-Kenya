@@ -89,6 +89,20 @@ class Application(models.Model):
     def __str__(self):
         return f"{self.applicant.username} → {self.job.title}"
 
+class ChatMessage(models.Model):
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)  # ✅ Tracks if recipient has read it
+
+    class Meta:
+        ordering = ["timestamp"]
+
+    def __str__(self):
+        return f"{self.sender} @ {self.timestamp}"
+
+
 # CV Uploads
 class CVUpload(models.Model):
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'applicant'})
