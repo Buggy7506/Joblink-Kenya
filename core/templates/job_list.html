@@ -142,7 +142,7 @@
   {% for job in jobs %}
     <div class="normal-job">
       <div class="job-title">{{ job.title }}</div>
-      <p class="job-meta">Company: {{ job.company_name }}</p>
+      <p class="job-meta">Company: {{ job.company }}</p>
       <p class="job-meta">Location: {{ job.location }}</p>
       <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
