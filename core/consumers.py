@@ -79,20 +79,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # --- Helpers ---
     @database_sync_to_async
     def user_can_join(self, application_id, user_id):
+        """
+        Allow chat access for the applicant or the employer.
+        Works for free and premium jobs.
+        """
         try:
             app = Application.objects.select_related(
                 "job", "applicant", "job__employer"
             ).get(id=application_id)
         except Application.DoesNotExist:
             return False
-        if not app.job.is_premium:
-            return False
+
+        # Only the applicant or employer can join
         return user_id in (app.applicant_id, app.job.employer_id)
 
     @database_sync_to_async
     def save_message(self, application_id, sender_id, message):
         app = Application.objects.get(id=application_id)
-        obj = ChatMessage.objects.create(application=app, sender_id=sender_id, message=message)
+        obj = ChatMessage.objects.create(
+            application=app, sender_id=sender_id, message=message
+        )
         return {
             "id": obj.id,
             "sender": obj.sender.username,
@@ -103,4 +109,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def mark_messages_read(self, message_ids):
         ChatMessage.objects.filter(id__in=message_ids).update(is_read=True)
-        
+
