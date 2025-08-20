@@ -25,7 +25,7 @@ nav a{margin:0 1rem; font-weight:bold;}
 @keyframes fade-in{from{opacity:0; transform:translateY(-10px);}to{opacity:1; transform:translateY(0);}}
 .animate-fade-in{animation:fade-in 0.5s ease-out forwards;}
 
-/* Chat popup shared styling */
+/* Chat button styling */
 #chat-btn{position:fixed; bottom:20px; right:20px; z-index:999; background:linear-gradient(135deg,#00ffc6,#00ff88); border:none; border-radius:50%; width:60px; height:60px; font-size:24px; color:#111; cursor:pointer; box-shadow:0 0 22px rgba(0,255,200,0.25);}
 </style>
 </head>
@@ -78,12 +78,20 @@ nav a{margin:0 1rem; font-weight:bold;}
   <p>&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
 </footer>
 
+{% comment %}
+Chat button: Opens the appropriate chat page depending on role.
+Requires `job` or `application` in template context.
+{% endcomment %}
 {% if user.is_authenticated %}
-    {% if user.role == 'employer' %}
-        {% include 'employer_chat.html' %}
-    {% else %}
-        {% include 'job_chat.html' %}
-    {% endif %}
+  {% if user.role == 'employer' and job %}
+    <a id="chat-btn" href="{% url 'employer_chat' job.id %}" title="Chat with applicants">
+      <i class="fas fa-comments"></i>
+    </a>
+  {% elif user.role != 'employer' and application %}
+    <a id="chat-btn" href="{% url 'job_chat' application.id %}" title="Chat with employer">
+      <i class="fas fa-comments"></i>
+    </a>
+  {% endif %}
 {% endif %}
 
 <script>
