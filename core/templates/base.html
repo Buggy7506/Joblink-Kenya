@@ -32,8 +32,11 @@ nav a{margin:0 1rem; font-weight:bold;}
 #chat-modal{display:none; position:fixed; bottom:90px; right:20px; width:350px; max-height:500px; background:rgba(15,23,42,0.95); border-radius:16px; overflow:hidden; box-shadow:0 0 20px rgba(0,255,200,0.3); z-index:1000; flex-direction:column;}
 #chat-modal-header{background:#0ea5e9; padding:0.5rem; color:#fff; font-weight:bold; display:flex; justify-content:space-between; align-items:center;}
 #chat-close{cursor:pointer;}
-#chat-modal-body{flex-grow:1; padding:1rem; overflow-y:auto; color:#fff;}
-#chat-messages { max-height:350px; overflow-y:auto; }
+#chat-modal-body{flex-grow:1; padding:1rem; overflow-y:auto; color:#fff; display:flex; flex-direction:column;}
+#chat-jobs-list{max-height:140px; overflow-y:auto; margin-bottom:0.5rem;}
+.chat-job-item{padding:0.5rem; border-radius:8px; margin-bottom:0.3rem; cursor:pointer; background:rgba(0,255,255,0.05);}
+.chat-job-item:hover{background:rgba(0,255,255,0.15);}
+#chat-messages { flex-grow:1; overflow-y:auto; margin-bottom:0.5rem; }
 .chat-message { margin-bottom:0.5rem; padding:0.5rem; border-radius:8px; }
 .chat-message.sender { background:#22d3ee; color:#111; text-align:right; }
 .chat-message.receiver { background:#0f172a; color:#fff; text-align:left; }
@@ -102,8 +105,17 @@ nav a{margin:0 1rem; font-weight:bold;}
       <span id="chat-close"><i class="fas fa-times"></i></span>
     </div>
     <div id="chat-modal-body">
+      <div id="chat-jobs-list">
+        {% for application in user.applications.all %}
+          <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
+            {{ application.job.title }}
+          </div>
+        {% empty %}
+          <p style="color:#ccc;">You haven't applied to any jobs yet.</p>
+        {% endfor %}
+      </div>
       <div id="chat-messages">
-        <p style="color:#ccc;">Click a job/application to load chat.</p>
+        <p style="color:#ccc;">Select a job above to load chat.</p>
       </div>
       <div id="chat-input-container">
         <input type="text" id="chat-input" placeholder="Type a message..." />
@@ -130,7 +142,6 @@ const chatMessages = $('#chat-messages');
 const chatInput = $('#chat-input');
 const chatSend = $('#chat-send');
 
-// Toggle modal
 chatBtn.addEventListener('click', ()=>{
     chatModal.style.display = chatModal.style.display === 'flex' ? 'none' : 'flex';
     chatModal.style.flexDirection = 'column';
@@ -140,10 +151,10 @@ chatClose.addEventListener('click', ()=>{
     chatModal.style.display = 'none';
 });
 
-// Function to load chat dynamically
+// Load chat messages
 function loadChat(chatUrl) {
     $.get(chatUrl, function(data){
-        chatMessages.html('');  // Clear previous messages
+        chatMessages.html('');
         data.messages.forEach(msg => {
             const msgClass = msg.sender_id == {{ user.id }} ? 'sender' : 'receiver';
             chatMessages.append(`<div class="chat-message ${msgClass}">${msg.text}</div>`);
@@ -152,7 +163,7 @@ function loadChat(chatUrl) {
     });
 }
 
-// Function to send message
+// Send message
 chatSend.on('click', function(){
     const text = chatInput.val();
     if(!text) return;
@@ -162,12 +173,10 @@ chatSend.on('click', function(){
     });
 });
 
-// Example: set chat URL when clicking job/application link
-$('.open-chat').on('click', function(e){
-    e.preventDefault();
-    const chatUrl = $(this).attr('data-chat-url');
+// Click job to load chat
+$('#chat-jobs-list').on('click', '.chat-job-item', function(){
+    const chatUrl = $(this).data('chat-url');
     chatModal.dataset.chatUrl = chatUrl;
     loadChat(chatUrl);
-    chatModal.style.display = 'flex';
 });
 </script>
