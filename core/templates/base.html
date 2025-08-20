@@ -9,7 +9,7 @@
 <script src="https://kit.fontawesome.com/a2c5a4f60f.js" crossorigin="anonymous"></script>
 
 <style>
-body { margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right,#0f172a,#1e293b); color:#e0f7fa; display:flex; flex-direction:column; min-height:100vh;}
+body {margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right,#0f172a,#1e293b); color:#e0f7fa; display:flex; flex-direction:column; min-height:100vh;}
 a{text-decoration:none;color:inherit;}
 .container{width:90%; max-width:1200px; margin:0 auto;}
 .glow{text-shadow:0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #0ff;}
@@ -90,32 +90,40 @@ nav a{margin:0 1rem; font-weight:bold;}
 </footer>
 
 {% if user.is_authenticated %}
-<!-- Chat button -->
 <button id="chat-btn"><i class="fas fa-comment"></i></button>
 
-<div id="chat-popup">
+<div id="chat-popup" data-role="{% if user.role=='employer' %}employer{% else %}applicant{% endif %}">
     <div class="chat-header">
         <span>Chat</span>
         <button id="close-chat" style="background:none;border:none;color:#0ff;font-size:18px;cursor:pointer;">&times;</button>
     </div>
 
-    <!-- Select job to chat -->
-    <select id="chat-job-select">
-        <option value="">Select a job to chat</option>
-        {% for app in user.applications.all %}
-            <option value="{{ app.id }}">{{ app.job.title }}</option>
-        {% endfor %}
-    </select>
+    {% if user.role=='employer' %}
+        <select id="chat-applicant-select">
+            {% for job in user.jobs_employer.all %}
+                {% for app in job.applications.all %}
+                    <option value="{{ app.id }}">{{ app.applicant.username }} — {{ job.title }}</option>
+                {% endfor %}
+            {% endfor %}
+        </select>
+    {% else %}
+        <select id="chat-job-select">
+            <option value="">Select a job to chat</option>
+            {% for app in user.applications.all %}
+    <option value="{{ app.id }}">{{ app.job.title }}</option>
+{% endfor %}
+</select>
+{% endif %}
 
-    <div class="chat-box" id="popup-chat-box">
-        <p style="text-align:center;opacity:.7;margin-top:16px;">Select a job to chat</p>
-    </div>
+<div class="chat-box" id="popup-chat-box">
+    <p style="text-align:center;opacity:.7;margin-top:16px;">Select to start chatting</p>
+</div>
 
-    <form class="chat-input" id="popup-chat-form" onsubmit="return false;">
-        {% csrf_token %}
-        <input type="text" id="popup-msg-input" placeholder="Type a message…" autocomplete="off" maxlength="2000">
-        <button type="button" id="popup-send-btn">Send</button>
-    </form>
+<form class="chat-input" id="popup-chat-form" onsubmit="return false;">
+    {% csrf_token %}
+    <input type="text" id="popup-msg-input" placeholder="Type a message…" autocomplete="off" maxlength="2000">
+    <button type="button" id="popup-send-btn">Send</button>
+</form>
 </div>
 {% endif %}
 
@@ -123,9 +131,10 @@ nav a{margin:0 1rem; font-weight:bold;}
 AOS.init();
 
 // Mobile menu toggle
-const toggle = document.getElementById('menuToggle');
-const menu = document.getElementById('mobileMenu');
-toggle.addEventListener('click',()=>{ menu.style.display = (menu.style.display==='none'||menu.style.display==='')?'flex':'none'; });
+document.getElementById('menuToggle').addEventListener('click',()=>{
+    const menu=document.getElementById('mobileMenu');
+    menu.style.display=(menu.style.display==='none'||menu.style.display==='')?'flex':'none';
+});
 
 // Chat popup toggle
 const chatBtn = document.getElementById('chat-btn');
@@ -136,9 +145,8 @@ if(chatBtn){
     closeBtn.addEventListener('click',()=>{ chatPopup.classList.remove('active'); });
 }
 
-// Chat WebSocket logic
+// Chat WebSocket
 let currentSocket;
-const jobSelect = document.getElementById('chat-job-select');
 const chatBox = document.getElementById('popup-chat-box');
 const msgInput = document.getElementById('popup-msg-input');
 const sendBtn = document.getElementById('popup-send-btn');
@@ -146,38 +154,39 @@ const sendBtn = document.getElementById('popup-send-btn');
 function connectSocket(appId){
     if(currentSocket){ currentSocket.close(); }
     if(!appId) return;
-    chatBox.innerHTML = '<p style="text-align:center;opacity:.7;margin-top:16px;">Loading chat...</p>';
-    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-    currentSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
-
-    currentSocket.onmessage = function(e){
-        const data = JSON.parse(e.data);
+    chatBox.innerHTML='<p style="text-align:center;opacity:.7;margin-top:16px;">Loading chat...</p>';
+    const wsScheme=window.location.protocol==="https:"?"wss":"ws";
+    currentSocket=new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
+    currentSocket.onmessage=function(e){
+        const data=JSON.parse(e.data);
         if(data.message){
-            const bubble = document.createElement('div');
-            bubble.className = data.sender === "{{ user.username }}" ? 'bubble me' : 'bubble them';
-            bubble.innerHTML = `<div><strong>${data.sender}</strong></div><div>${data.message}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+            const bubble=document.createElement('div');
+            bubble.className=data.sender==="{{ user.username }}"?'bubble me':'bubble them';
+            bubble.innerHTML=`<div><strong>${data.sender}</strong></div><div>${data.message}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
             chatBox.appendChild(bubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            chatBox.scrollTop=chatBox.scrollHeight;
         }
     };
 }
 
-jobSelect.addEventListener('change',()=>{
-    const appId = jobSelect.value;
-    if(appId){ connectSocket(appId); } 
-    else { chatBox.innerHTML = '<p style="text-align:center;opacity:.7;margin-top:16px;">Select a job to chat</p>'; }
-});
+// Role-based select handling
+const role=chatPopup.dataset.role;
+if(role==='employer'){
+    const selectEl=document.getElementById('chat-applicant-select');
+    selectEl?.addEventListener('change',()=>{ connectSocket(selectEl.value); });
+}else{
+    const selectEl=document.getElementById('chat-job-select');
+    selectEl?.addEventListener('change',()=>{ connectSocket(selectEl.value); });
+}
 
+// Send message
 sendBtn.addEventListener('click',()=>{
-    const text = msgInput.value.trim();
-    if(!text || !currentSocket || currentSocket.readyState!==1) return;
-    currentSocket.send(JSON.stringify({ message: text }));
+    const text=msgInput.value.trim();
+    if(!text||!currentSocket||currentSocket.readyState!==1) return;
+    currentSocket.send(JSON.stringify({message:text}));
     msgInput.value='';
 });
-
-msgInput.addEventListener('keydown', e=>{
-    if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); }
-});
+msgInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 </script>
 
 </body>
