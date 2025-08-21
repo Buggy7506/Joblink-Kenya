@@ -740,9 +740,9 @@ def chat_view(request, application_id=None, job_id=None):
             return redirect("job_detail", job_id=app.job_id)
 
         if request.method == "POST":
-            content = request.POST.get("message")
-            if content:
-                ChatMessage.objects.create(application=app, sender=user, content=content)
+            text = request.POST.get("message")
+            if text:
+                ChatMessage.objects.create(application=app, sender=user, message=text)
 
         messages = app.messages.all()
         context["messages"] = messages
@@ -773,9 +773,9 @@ def chat_view(request, application_id=None, job_id=None):
             selected_app = applications.first() if applications else None
 
         if request.method == "POST" and selected_app:
-            content = request.POST.get("message")
-            if content:
-                ChatMessage.objects.create(application=selected_app, sender=user, content=content)
+            text = request.POST.get("message")
+            if text:
+                ChatMessage.objects.create(application=selected_app, sender=user, message=text)
 
         messages = selected_app.messages.all() if selected_app else []
         context["job"] = job
@@ -800,7 +800,7 @@ def chat_view(request, application_id=None, job_id=None):
                 {
                     "id": msg.id,
                     "sender_id": msg.sender_id,
-                    "text": msg.content,
+                    "text": msg.message,  # fixed
                     "created": msg.created_at.strftime("%Y-%m-%d %H:%M"),
                 }
                 for msg in messages
@@ -810,4 +810,4 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Otherwise render template
     return render(request, "chat.html", context)
-
+    
