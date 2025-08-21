@@ -122,7 +122,7 @@ nav a{margin:0 1rem; font-weight:bold;}
             <div id="chat-jobs-list">
                 {% if user.role == 'applicant' %}
                     {% for application in user.applications.all %}
-                        <div class="chat-job-item" data-chat-url="{% url 'job_chat' 'applicant' application.id %}">
+                        <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
                             {{ application.job.title }}
                         </div>
                     {% empty %}
@@ -130,7 +130,7 @@ nav a{margin:0 1rem; font-weight:bold;}
                     {% endfor %}
                 {% elif user.role == 'employer' %}
                     {% for job in user.jobs_posted.all %}
-                        <div class="chat-job-item" data-chat-url="{% url 'employer_chat' 'employer' job.id %}">
+                        <div class="chat-job-item" data-chat-url="{% url 'employer_chat' job.id %}">
                             {{ job.title }}
                         </div>
                     {% empty %}
