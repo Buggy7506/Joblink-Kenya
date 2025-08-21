@@ -3,10 +3,8 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    # Applicant-side chat page (after applying)
-    path("chat/<int:application_id>/", views.job_chat, name="job_chat"),
-    # Employer-side chat page
-    path("employer/chat/<int:job_id>/", views.employer_job_chat, name="employer_job_chat"),
+    path("chat/application/<int:application_id>/", views.chat_view, name="job_chat"),   # applicant or employer per application
+    path("chat/job/<int:job_id>/", views.chat_view, name="employer_chat"), 
     # Confirm delete page
     path('delete-job/<int:job_id>/', views.confirm_delete, name='confirm_delete'),
     path("jobs/<int:job_id>/", views.job_detail, name="job_detail"),
