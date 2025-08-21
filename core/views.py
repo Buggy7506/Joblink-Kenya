@@ -709,7 +709,6 @@ def change_username_password(request):
     return render(request, 'change_username_password.html', {'form': form})
 
 @login_required
-@login_required
 def chat_view(request, application_id=None, job_id=None):
     """
     Unified chat view for both applicants and employers.
@@ -717,21 +716,33 @@ def chat_view(request, application_id=None, job_id=None):
     - Employers access via job_id (with optional ?app_id= query param)
     """
     user = request.user
+    messages = []
+    app = None
+    job = None
 
-    # Case 1: Applicant chat (access via application_id)
+    # Case 1: Applicant chat
     if application_id:
         app = get_object_or_404(
             Application.objects.select_related("job", "applicant", "job__employer"),
             id=application_id
         )
-
-        # Security: ensure only applicant or employer can access
         if user.id not in (app.applicant_id, app.job.employer_id):
             return redirect("job_detail", job_id=app.job_id)
 
-        messages = app.messages.all()  # already ordered
+        # handle sending
+        if request.method == "POST":
+            content = request.POST.get("message")
+            if content:
+                ChatMessage.objects.create(
+                    application=app,
+                    sender=user,
+                    content=content
+                )
+                return redirect("job_chat", application_id=app.id)
 
-        # Mark employer's unread messages as read (if applicant is viewing)
+        messages = app.messages.all()
+
+        # mark employer’s msgs as read if applicant is viewing
         if user == app.applicant:
             ChatMessage.objects.filter(
                 application=app,
@@ -744,12 +755,11 @@ def chat_view(request, application_id=None, job_id=None):
             "messages": messages,
         })
 
-    # Case 2: Employer chat (access via job_id)
+    # Case 2: Employer chat
     elif job_id:
         job = get_object_or_404(Job, id=job_id, employer=user)
         applications = job.applications.select_related("applicant").all()
 
-        # Determine selected applicant
         selected_app_id = request.GET.get("app_id")
         selected_app = None
         if selected_app_id:
@@ -761,9 +771,20 @@ def chat_view(request, application_id=None, job_id=None):
         if not selected_app:
             selected_app = applications.first() if applications else None
 
+        # handle sending
+        if request.method == "POST" and selected_app:
+            content = request.POST.get("message")
+            if content:
+                ChatMessage.objects.create(
+                    application=selected_app,
+                    sender=user,
+                    content=content
+                )
+                return redirect(f"{request.path}?app_id={selected_app.id}")
+
         messages = selected_app.messages.all() if selected_app else []
 
-        # Mark applicant's unread messages as read
+        # mark applicant’s msgs as read
         if selected_app:
             ChatMessage.objects.filter(
                 application=selected_app,
@@ -779,5 +800,5 @@ def chat_view(request, application_id=None, job_id=None):
         })
 
     else:
-        # Neither application_id nor job_id provided
-        return redirect("dashboard")  # or some safe fallback
+        return redirect("dashboard")
+
