@@ -23,6 +23,7 @@ import os
 from django.http import HttpResponseRedirect, FileResponse
 import requests
 from django.core.files.temp import NamedTemporaryFile
+from django.http import JsonResponse
 
 
 @login_required
@@ -708,6 +709,7 @@ def change_username_password(request):
 
     return render(request, 'change_username_password.html', {'form': form})
 
+
 @login_required
 def chat_view(request, application_id=None, job_id=None):
     """
@@ -724,6 +726,9 @@ def chat_view(request, application_id=None, job_id=None):
         "messages": [],
     }
 
+    messages = []
+    selected_app = None
+
     # Case 1: Applicant chat
     if application_id:
         app = get_object_or_404(
@@ -731,26 +736,20 @@ def chat_view(request, application_id=None, job_id=None):
             id=application_id
         )
 
-        # Only applicant or employer can view
         if user.id not in (app.applicant_id, app.job.employer_id):
             return redirect("job_detail", job_id=app.job_id)
 
-        # Sending a new message
         if request.method == "POST":
             content = request.POST.get("message")
             if content:
-                ChatMessage.objects.create(
-                    application=app,
-                    sender=user,
-                    content=content
-                )
-                return redirect("job_chat", application_id=app.id)
+                ChatMessage.objects.create(application=app, sender=user, content=content)
 
-        # Load messages
-        context["messages"] = app.messages.all()
+        messages = app.messages.all()
+        context["messages"] = messages
         context["application"] = app
 
-        # Mark employer’s messages as read if applicant is viewing
+        selected_app = app
+
         if user == app.applicant:
             ChatMessage.objects.filter(
                 application=app,
@@ -764,7 +763,6 @@ def chat_view(request, application_id=None, job_id=None):
         applications = job.applications.select_related("applicant").all()
 
         selected_app_id = request.GET.get("app_id")
-        selected_app = None
         if selected_app_id:
             try:
                 selected_app_id = int(selected_app_id)
@@ -774,24 +772,17 @@ def chat_view(request, application_id=None, job_id=None):
         if not selected_app:
             selected_app = applications.first() if applications else None
 
-        # Sending a new message
         if request.method == "POST" and selected_app:
             content = request.POST.get("message")
             if content:
-                ChatMessage.objects.create(
-                    application=selected_app,
-                    sender=user,
-                    content=content
-                )
-                return redirect(f"{request.path}?app_id={selected_app.id}")
+                ChatMessage.objects.create(application=selected_app, sender=user, content=content)
 
-        # Load messages
+        messages = selected_app.messages.all() if selected_app else []
         context["job"] = job
         context["applications"] = applications
         context["selected_app"] = selected_app
-        context["messages"] = selected_app.messages.all() if selected_app else []
+        context["messages"] = messages
 
-        # Mark applicant’s messages as read
         if selected_app:
             ChatMessage.objects.filter(
                 application=selected_app,
@@ -802,5 +793,21 @@ def chat_view(request, application_id=None, job_id=None):
     else:
         return redirect("dashboard")
 
+    # ✅ Return JSON if AJAX request
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "messages": [
+                {
+                    "id": msg.id,
+                    "sender_id": msg.sender_id,
+                    "text": msg.content,
+                    "created": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+                }
+                for msg in messages
+            ],
+            "selected_app_id": selected_app.id if selected_app else None
+        })
+
+    # Otherwise render template
     return render(request, "chat.html", context)
 
