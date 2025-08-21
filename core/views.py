@@ -709,59 +709,75 @@ def change_username_password(request):
     return render(request, 'change_username_password.html', {'form': form})
 
 @login_required
-def job_chat(request, application_id):
-    """Applicant chat view"""
-    app = get_object_or_404(
-        Application.objects.select_related("job", "applicant", "job__employer"),
-        id=application_id
-    )
-
-    # Allow chat for all jobs (free or premium)
-    if request.user.id not in (app.applicant_id, app.job.employer_id):
-        return redirect("job_detail", job_id=app.job_id)
-
-    messages = app.messages.all()  # already ordered
-
-    return render(request, "job_chat.html", {
-        "application": app,
-        "messages": messages
-    })
-
-
 @login_required
-def employer_job_chat(request, job_id):
-    """Employer chat view with sidebar + real-time unread badges"""
-    job = get_object_or_404(Job, id=job_id, employer=request.user)
+def chat_view(request, application_id=None, job_id=None):
+    """
+    Unified chat view for both applicants and employers.
+    - Applicants access via application_id
+    - Employers access via job_id (with optional ?app_id= query param)
+    """
+    user = request.user
 
-    # Allow chat for all jobs (free or premium)
-    applications = job.applications.select_related("applicant").all()
+    # Case 1: Applicant chat (access via application_id)
+    if application_id:
+        app = get_object_or_404(
+            Application.objects.select_related("job", "applicant", "job__employer"),
+            id=application_id
+        )
 
-    # Determine selected applicant
-    selected_app_id = request.GET.get("app_id")
-    selected_app = None
-    if selected_app_id:
-        try:
-            selected_app_id = int(selected_app_id)
-            selected_app = get_object_or_404(Application, id=selected_app_id, job=job)
-        except (ValueError, Application.DoesNotExist):
-            selected_app = None
-    if not selected_app:
-        selected_app = applications.first() if applications else None
+        # Security: ensure only applicant or employer can access
+        if user.id not in (app.applicant_id, app.job.employer_id):
+            return redirect("job_detail", job_id=app.job_id)
 
-    # Fetch messages for selected applicant
-    messages = selected_app.messages.all() if selected_app else []
+        messages = app.messages.all()  # already ordered
 
-    # Mark unread messages from applicant as read
-    if selected_app:
-        ChatMessage.objects.filter(
-            application=selected_app,
-            sender_id=selected_app.applicant_id,
-            is_read=False
-        ).update(is_read=True)
+        # Mark employer's unread messages as read (if applicant is viewing)
+        if user == app.applicant:
+            ChatMessage.objects.filter(
+                application=app,
+                sender_id=app.job.employer_id,
+                is_read=False
+            ).update(is_read=True)
 
-    return render(request, "employer_chat.html", {
-        "job": job,
-        "applications": applications,
-        "selected_app": selected_app,
-        "messages": messages,
-    })
+        return render(request, "job_chat.html", {
+            "application": app,
+            "messages": messages,
+        })
+
+    # Case 2: Employer chat (access via job_id)
+    elif job_id:
+        job = get_object_or_404(Job, id=job_id, employer=user)
+        applications = job.applications.select_related("applicant").all()
+
+        # Determine selected applicant
+        selected_app_id = request.GET.get("app_id")
+        selected_app = None
+        if selected_app_id:
+            try:
+                selected_app_id = int(selected_app_id)
+                selected_app = get_object_or_404(Application, id=selected_app_id, job=job)
+            except (ValueError, Application.DoesNotExist):
+                selected_app = None
+        if not selected_app:
+            selected_app = applications.first() if applications else None
+
+        messages = selected_app.messages.all() if selected_app else []
+
+        # Mark applicant's unread messages as read
+        if selected_app:
+            ChatMessage.objects.filter(
+                application=selected_app,
+                sender_id=selected_app.applicant_id,
+                is_read=False
+            ).update(is_read=True)
+
+        return render(request, "employer_chat.html", {
+            "job": job,
+            "applications": applications,
+            "selected_app": selected_app,
+            "messages": messages,
+        })
+
+    else:
+        # Neither application_id nor job_id provided
+        return redirect("dashboard")  # or some safe fallback
