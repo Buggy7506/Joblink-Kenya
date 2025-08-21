@@ -716,9 +716,13 @@ def chat_view(request, application_id=None, job_id=None):
     - Employers access via job_id (with optional ?app_id= query param)
     """
     user = request.user
-    messages = []
-    app = None
-    job = None
+    context = {
+        "application": None,
+        "job": None,
+        "applications": [],
+        "selected_app": None,
+        "messages": [],
+    }
 
     # Case 1: Applicant chat
     if application_id:
@@ -726,10 +730,12 @@ def chat_view(request, application_id=None, job_id=None):
             Application.objects.select_related("job", "applicant", "job__employer"),
             id=application_id
         )
+
+        # Only applicant or employer can view
         if user.id not in (app.applicant_id, app.job.employer_id):
             return redirect("job_detail", job_id=app.job_id)
 
-        # handle sending
+        # Sending a new message
         if request.method == "POST":
             content = request.POST.get("message")
             if content:
@@ -740,20 +746,17 @@ def chat_view(request, application_id=None, job_id=None):
                 )
                 return redirect("job_chat", application_id=app.id)
 
-        messages = app.messages.all()
+        # Load messages
+        context["messages"] = app.messages.all()
+        context["application"] = app
 
-        # mark employer’s msgs as read if applicant is viewing
+        # Mark employer’s messages as read if applicant is viewing
         if user == app.applicant:
             ChatMessage.objects.filter(
                 application=app,
                 sender_id=app.job.employer_id,
                 is_read=False
             ).update(is_read=True)
-
-        return render(request, "job_chat.html", {
-            "application": app,
-            "messages": messages,
-        })
 
     # Case 2: Employer chat
     elif job_id:
@@ -771,7 +774,7 @@ def chat_view(request, application_id=None, job_id=None):
         if not selected_app:
             selected_app = applications.first() if applications else None
 
-        # handle sending
+        # Sending a new message
         if request.method == "POST" and selected_app:
             content = request.POST.get("message")
             if content:
@@ -782,9 +785,13 @@ def chat_view(request, application_id=None, job_id=None):
                 )
                 return redirect(f"{request.path}?app_id={selected_app.id}")
 
-        messages = selected_app.messages.all() if selected_app else []
+        # Load messages
+        context["job"] = job
+        context["applications"] = applications
+        context["selected_app"] = selected_app
+        context["messages"] = selected_app.messages.all() if selected_app else []
 
-        # mark applicant’s msgs as read
+        # Mark applicant’s messages as read
         if selected_app:
             ChatMessage.objects.filter(
                 application=selected_app,
@@ -792,13 +799,8 @@ def chat_view(request, application_id=None, job_id=None):
                 is_read=False
             ).update(is_read=True)
 
-        return render(request, "employer_chat.html", {
-            "job": job,
-            "applications": applications,
-            "selected_app": selected_app,
-            "messages": messages,
-        })
-
     else:
         return redirect("dashboard")
+
+    return render(request, "chat.html", context)
 
