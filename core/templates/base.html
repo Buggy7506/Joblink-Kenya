@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,13 +12,92 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 
 <style>
-/* same CSS as yours (kept unchanged for brevity) */
+/* General styling */
+body {margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right,#0f172a,#1e293b); color:#e0f7fa; display:flex; flex-direction:column; min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+.container{width:90%; max-width:1200px; margin:0 auto;}
+.glow{text-shadow:0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #0ff;}
+.glow-border{border:2px solid transparent; border-image:linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice:1;}
+.nav-bg{background-color:rgba(30,41,59,0.8);backdrop-filter:blur(6px);}
+.hover-glow:hover{color:#0ff;text-shadow:0 0 6px #00f0ff;}
+header{position:sticky;top:0; z-index:50; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,0.3);}
+nav a{margin:0 1rem; font-weight:bold;}
+.main{flex-grow:1; padding:2rem 0;}
+.footer{background:linear-gradient(to right,#0f172a,#1e293b);padding:1rem 0;text-align:center;color:#ccc;}
+.mobile-menu{display:none; flex-direction:column; gap:0.5rem; padding:1rem; border-radius:0.5rem; background-color:rgba(15,23,42,0.9); backdrop-filter:blur(10px);}
+@media(max-width:768px){.desktop-nav{display:none;}.mobile-menu{display:flex;}}
+@keyframes fade-in{from{opacity:0; transform:translateY(-10px);}to{opacity:1; transform:translateY(0);}}
+.animate-fade-in{animation:fade-in 0.5s ease-out forwards;}
+
+/* Chat button & modal */
+#chat-btn{position:fixed; bottom:20px; right:20px; z-index:999; background:linear-gradient(135deg,#00ffc6,#00ff88); border:none; border-radius:50%; width:60px; height:60px; font-size:24px; color:#111; cursor:pointer; box-shadow:0 0 22px rgba(0,255,200,0.25);}
+#chat-modal{display:none; position:fixed; bottom:90px; right:20px; width:350px; max-height:500px; background:rgba(15,23,42,0.95); border-radius:16px; overflow:hidden; box-shadow:0 0 20px rgba(0,255,200,0.3); z-index:1000; flex-direction:column;}
+#chat-modal-header{background:#0ea5e9; padding:0.5rem; color:#fff; font-weight:bold; display:flex; justify-content:space-between; align-items:center;}
+#chat-close{cursor:pointer;}
+#chat-modal-body{flex-grow:1; padding:1rem; overflow-y:auto; color:#fff; display:flex; flex-direction:column;}
+#chat-jobs-list{max-height:140px; overflow-y:auto; margin-bottom:0.5rem;}
+.chat-job-item{padding:0.5rem; border-radius:8px; margin-bottom:0.3rem; cursor:pointer; background:rgba(0,255,255,0.05);}
+.chat-job-item:hover{background:rgba(0,255,255,0.15);}
+#chat-messages { flex-grow:1; overflow-y:auto; margin-bottom:0.5rem; }
+.chat-message { margin-bottom:0.5rem; padding:0.5rem; border-radius:8px; }
+.chat-message.sender { background:#22d3ee; color:#111; text-align:right; }
+.chat-message.receiver { background:#0f172a; color:#fff; text-align:left; }
+#chat-input-container { display:flex; margin-top:0.5rem; }
+#chat-input { flex-grow:1; padding:0.5rem; border-radius:8px; border:none; }
+#chat-send { background:#0ea5e9; border:none; color:#fff; padding:0 1rem; border-radius:8px; cursor:pointer; }
 </style>
 </head>
 <body>
 
 <header class="nav-bg">
-  <!-- nav kept unchanged -->
+  <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
+    <h1 class="glow" style="font-size:2rem; font-weight:bold;">
+      <a href="{% url 'home' %}">JobLink <span style="color:#22d3ee;">Kenya</span></a>
+    </h1>
+    <nav class="desktop-nav">
+      <a href="{% url 'home' %}" class="hover-glow">Home</a>
+      {% if user.is_authenticated %}
+          {% if user.is_superuser or user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
+          {% elif user.role == 'employer' %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+          {% else %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+          {% endif %}
+          <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
+          <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+      {% else %}
+          <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
+          <a href="{% url 'signup' %}" class="hover-glow">Sign Up</a>
+      {% endif %}
+    </nav>
+    <div class="mobile-toggle">
+      <button id="menuToggle" style="font-size:1.5rem; color:white;"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+  <div id="mobileMenu" class="mobile-menu" style="display:none;">
+    <a href="{% url 'home' %}" class="hover-glow">Home</a>
+    {% if user.is_authenticated %}
+        {% if user.is_superuser or user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
+        {% elif user.role == 'employer' %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+        {% endif %}
+        <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
+        <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
+        <a href="{% url 'signup' %}" class="hover-glow">Sign Up</a>
+    {% endif %}
+  </div>
 </header>
 
 <main class="main container" data-aos="fade-up">
@@ -42,19 +122,15 @@
             <div id="chat-jobs-list">
                 {% if user.role == 'applicant' %}
                     {% for application in user.applications.all %}
-                        {% if application.job.is_premium %}
-                            <div class="chat-job-item" 
-                                 data-chat-url="{% url 'chat_view' application_id=application.id %}">
-                                {{ application.job.title }}
-                            </div>
-                        {% endif %}
+                        <div class="chat-job-item" data-chat-url="{% url 'chat_view' 'applicant' application.id %}">
+                            {{ application.job.title }}
+                        </div>
                     {% empty %}
-                        <p style="color:#ccc;">You haven't applied to any premium jobs yet.</p>
+                        <p style="color:#ccc;">You haven't applied to any jobs yet.</p>
                     {% endfor %}
                 {% elif user.role == 'employer' %}
                     {% for job in user.jobs_posted.all %}
-                        <div class="chat-job-item" 
-                             data-chat-url="{% url 'chat_view' job_id=job.id %}">
+                        <div class="chat-job-item" data-chat-url="{% url 'chat_view' 'employer' job.id %}">
                             {{ job.title }}
                         </div>
                     {% empty %}
@@ -108,19 +184,15 @@ if(chatBtn && chatModal){
         loadChat(chatUrl);
     });
 
-    // Load chat dynamically (expects JSON response)
+    // Load chat dynamically
     function loadChat(chatUrl){
-        $.get(chatUrl, {format: "json"}, function(data){
+        $.get(chatUrl, function(data){
             chatMessages.html('');
-            if(data.messages.length === 0){
-                chatMessages.append('<p style="color:#ccc;">No messages yet.</p>');
-            } else {
-                data.messages.forEach(msg => {
-                    const msgClass = msg.sender_id == {{ user.id }} ? 'sender' : 'receiver';
-                    chatMessages.append(`<div class="chat-message ${msgClass}">${msg.text}</div>`);
-                });
-                chatMessages.scrollTop(chatMessages[0].scrollHeight);
-            }
+            data.messages.forEach(msg => {
+                const msgClass = msg.sender_id == {{ user.id }} ? 'sender' : 'receiver';
+                chatMessages.append(`<div class="chat-message ${msgClass}">${msg.text}</div>`);
+            });
+            chatMessages.scrollTop(chatMessages[0].scrollHeight);
         });
     }
 
@@ -128,11 +200,7 @@ if(chatBtn && chatModal){
     chatSend.on('click', function(){
         const text = chatInput.val();
         if(!text) return;
-        $.post(chatModal.dataset.chatUrl, {
-            message: text,
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-            format: "json"
-        }, function(data){
+        $.post(chatModal.dataset.chatUrl, { message: text, csrfmiddlewaretoken: '{{ csrf_token }}' }, function(data){
             loadChat(chatModal.dataset.chatUrl);
             chatInput.val('');
         });
