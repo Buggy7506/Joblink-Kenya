@@ -1,81 +1,158 @@
-{% extends 'base.html' %}
-{% block title %}Notifications - JobLink Kenya{% endblock %}
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
 
 {% block content %}
+<div class="notifications-container">
+    <h2 class="glow-heading">🔔 Notifications</h2>
+
+    {% if notifications %}
+        <ul class="notification-list">
+            {% for note in notifications %}
+                <li class="notification-item">
+                    <div class="notification-card">
+                        <h4>{{ note.title }}</h4>
+                        <p>{{ note.message }}</p>
+                        <small>{{ note.timestamp|date:"M d, Y H:i" }}</small>
+                        
+                        {% if role == "applicant" %}
+                            <span class="role-badge applicant">For Applicants</span>
+                        {% elif role == "employer" %}
+                            <span class="role-badge employer">For Employers</span>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-msg">✨ No notifications yet. Stay tuned!</p>
+    {% endif %}
+</div>
+
 <style>
-  .notifications-section {
-    background: linear-gradient(to bottom right, #000000, #1a1a1a);
-    color: white;
-    min-height: 100vh;
-    padding: 2.5rem 1.5rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
+/* Container with neon glow */
+.notifications-container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
+    padding: 30px;
+    border-radius: 20px;
+    color: #fff;
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.3), 0 0 60px rgba(0, 255, 200, 0.15);
+    border: 1px solid rgba(0, 255, 200, 0.2);
+    animation: pulseGlow 4s infinite alternate;
+}
 
-  .notifications-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
+/* Neon glowing heading */
+.glow-heading {
+    font-size: 2.5rem;
     text-align: center;
-    color: #38bdf8;
-  }
+    margin-bottom: 30px;
+    color: #0ff;
+    text-shadow: 0 0 5px #0ff,
+                 0 0 15px #0ff,
+                 0 0 30px #00e6e6,
+                 0 0 45px #00cccc;
+}
 
-  .notification-card {
-    background: linear-gradient(to bottom right, #1e293b, #1f2937);
-    border-left: 5px solid #3b82f6;
-    border-radius: 1rem;
-    padding: 1rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    transition: box-shadow 0.3s ease-in-out;
-  }
+/* Notification list styling */
+.notification-list {
+    list-style: none;
+    padding: 0;
+}
+.notification-item {
+    margin-bottom: 20px;
+}
 
-  .notification-card:hover {
-    box-shadow: 0 8px 20px rgba(0, 255, 255, 0.2);
-  }
+/* Glowing notification cards */
+.notification-card {
+    background: rgba(25, 25, 40, 0.95);
+    padding: 20px;
+    border-radius: 15px;
+    border-left: 4px solid #0ff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.4),
+                0 0 20px rgba(0, 255, 200, 0.2);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease both;
+}
+.notification-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 20px #0ff,
+                0 0 40px #00e6e6;
+}
 
-  .notification-title {
-    color: #60a5fa;
-    font-weight: 600;
-    font-size: 1.125rem;
-  }
+/* Title with glow */
+.notification-card h4 {
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+    color: #0ff;
+    text-shadow: 0 0 10px #0ff;
+}
 
-  .notification-msg {
-    margin-top: 0.25rem;
-    color: #cbd5e1;
-    font-size: 0.875rem;
-  }
+/* Message text */
+.notification-card p {
+    margin: 0 0 10px;
+    color: #ccc;
+}
 
-  .notification-time {
-    font-size: 0.75rem;
-    color: #9ca3af;
-  }
+/* Timestamps */
+.notification-card small {
+    color: #aaa;
+    font-size: 0.85rem;
+}
 
-  .no-notifications {
+/* Role badges with glow */
+.role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 5px;
+    box-shadow: 0 0 8px currentColor;
+}
+.role-badge.applicant {
+    background: rgba(0, 123, 255, 0.15);
+    color: #00aaff;
+    border: 1px solid #00aaff;
+    text-shadow: 0 0 10px #00aaff;
+}
+.role-badge.employer {
+    background: rgba(255, 102, 0, 0.15);
+    color: #ff6600;
+    border: 1px solid #ff6600;
+    text-shadow: 0 0 10px #ff6600;
+}
+
+/* Empty state */
+.empty-msg {
     text-align: center;
-    color: #9ca3af;
-    font-size: 1.125rem;
-    margin-top: 2rem;
-  }
+    font-size: 1.2rem;
+    color: #888;
+    text-shadow: 0 0 10px #444;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+    from {
+        box-shadow: 0 0 20px rgba(0, 255, 200, 0.2),
+                    0 0 40px rgba(0, 255, 200, 0.1);
+    }
+    to {
+        box-shadow: 0 0 40px rgba(0, 255, 200, 0.4),
+                    0 0 80px rgba(0, 255, 200, 0.2);
+    }
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 </style>
-
-<section class="notifications-section">
-  <h1 class="notifications-title">🔔 Notifications</h1>
-
-  {% if notifications %}
-    <ul class="space-y-6 max-w-4xl mx-auto">
-      {% for note in notifications %}
-        <li class="notification-card">
-          <div class="flex justify-between items-center">
-            <div>
-              <h3 class="notification-title">{{ note.title }}</h3>
-              <p class="notification-msg">{{ note.message }}</p>
-            </div>
-            <span class="notification-time">{{ note.timestamp|timesince }} ago</span>
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="no-notifications">You have no new notifications.</p>
-  {% endif %}
-</section>
 {% endblock %}
