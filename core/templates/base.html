@@ -69,7 +69,9 @@ nav a{margin:0 1rem; font-weight:bold;}
           {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
+            {% if application %} 
+               <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
+            {% endif %} 
           {% endif %}
           <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
           <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
@@ -97,7 +99,9 @@ nav a{margin:0 1rem; font-weight:bold;}
         {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
+            {% if application %} 
+               <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
+            {% endif %} 
         {% endif %}
         <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
         <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
