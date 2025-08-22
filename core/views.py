@@ -24,7 +24,22 @@ from django.http import HttpResponseRedirect, FileResponse
 import requests
 from django.core.files.temp import NamedTemporaryFile
 from django.http import JsonResponse
+from .models import Notification
 
+@login_required
+def notifications(request):
+    """
+    Display notifications for both applicants and employers in one template.
+    """
+    user = request.user
+
+    # Fetch all notifications for this user
+    notifications = Notification.objects.filter(user=user).order_by('-timestamp')
+
+    return render(request, "notifications.html", {
+        "notifications": notifications,
+        "role": getattr(user, "role", None),  # Pass role to template if available
+    })
 
 @login_required
 def process_application(request, app_id):
