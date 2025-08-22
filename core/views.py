@@ -110,35 +110,38 @@ def logout_success(request):
     return render(request, 'logout_success.html')
 
 #Dashboard
-
+@login_required
 def dashboard(request):
     user = request.user
 
-    if not user.is_authenticated:
-        return redirect('login')
+    # If admin, redirect them to the admin dashboard
+    if user.is_superuser or getattr(user, "role", None) == "admin":
+        return redirect("admin_dashboard")
 
-    # If admin, redirect them to the admin dashboard instead of applicant/employer
-    if user.is_superuser or user.role == 'admin':
-        return redirect('admin_dashboard')
+    # Applicant dashboard
+    if getattr(user, "role", None) == "applicant":
+        applications = Application.objects.filter(applicant=user)
+        premium_jobs = applications.filter(job__is_premium=True).count()
 
-    # Normal logic for employer/applicant
-    if hasattr(user, 'role'):
-        if user.role == 'applicant':
-            return render(request, 'applicant_dashboard.html')
+        return render(request, "applicant_dashboard.html", {
+            "applications": applications,
+            "premium_jobs": premium_jobs,
+        })
 
-        elif user.role == 'employer':
-            posted_jobs_count = Job.objects.filter(employer=user).count()
-            active_jobs = Job.objects.filter(employer=user, is_active=True).count()
-            applicants_count = Application.objects.filter(job__employer=user).count()
+    # Employer dashboard
+    elif getattr(user, "role", None) == "employer":
+        posted_jobs_count = Job.objects.filter(employer=user).count()
+        active_jobs = Job.objects.filter(employer=user, is_active=True).count()
+        applicants_count = Application.objects.filter(job__employer=user).count()
 
-            return render(request, 'employer_dashboard.html', {
-                'posted_jobs_count': posted_jobs_count,
-                'active_jobs': active_jobs,
-                'applicants_count': applicants_count
-            })
+        return render(request, "employer_dashboard.html", {
+            "posted_jobs_count": posted_jobs_count,
+            "active_jobs": active_jobs,
+            "applicants_count": applicants_count,
+        })
 
-    # Fallback
-    return redirect('login')
+    # Fallback → unknown role
+    return redirect("login")
 
 @login_required
 def profile_view(request):
