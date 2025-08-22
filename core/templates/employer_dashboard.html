@@ -18,6 +18,7 @@
     <a href="{% url 'post_job' %}" class="btn-glow">➕ Post a New Job</a>
     <a href="{% url 'view_posted_jobs' %}" class="btn-glow">📄 My Posted Jobs</a>
     <a href="{% url 'view_applicants' %}" class="btn-glow">👥 View Applicants</a>
+    <a href="{% url 'notifications' %}" class="btn-glow">🔔 Notifications</a>
   </div>
 
   <div class="summary-boxes">
@@ -32,6 +33,10 @@
     <div class="card glow-card">
       <h3>Active Jobs</h3>
       <p>{{ active_jobs }}</p>
+    </div>
+    <div class="card glow-card notify-card">
+      <h3>Notifications</h3>
+      <p>{{ notifications_count|default:"0" }}</p>
     </div>
   </div>
 </div>
@@ -85,6 +90,16 @@
   border-radius: 15px;
   padding: 20px;
   box-shadow: 0 0 15px rgba(255, 180, 71, 0.4);
+}
+
+/* Highlight notification card */
+.notify-card {
+  border: 1px solid #ff4b5c;
+  box-shadow: 0 0 15px rgba(255, 75, 92, 0.7);
+}
+.notify-card h3 {
+  color: #ff4b5c;
+  text-shadow: 0 0 6px #ff4b5c;
 }
 
 /* Messages Popup */
