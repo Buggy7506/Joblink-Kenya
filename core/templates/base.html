@@ -61,9 +61,11 @@ nav a{margin:0 1rem; font-weight:bold;}
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
           {% elif user.role == 'employer' %}
-            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>} 
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-            <a href="{% url 'employer_chat' job.id %}" class="hover-glow">Chat</a>
+            {% if job %} 
+              <a href="{% url 'employer_chat' job.id %}" class="hover-glow">Chat</a>
+            {% endif %} 
           {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
