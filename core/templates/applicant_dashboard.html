@@ -76,6 +76,19 @@
     text-decoration: none;
     color: inherit;
   }
+
+  /* Small notification badge */
+  .badge {
+    display: inline-block;
+    background: #ff007f;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    box-shadow: 0 0 8px #ff007f;
+  }
 </style>
 
 <div class="dashboard-container">
@@ -132,11 +145,31 @@
       </div>
     </a>
 
+    <a href="{% url 'applied_jobs' %}">
+      <div class="card">
+        <img src="{% static 'img/resume.jpg' %}" alt="Applied Jobs">
+        <h2>Applied Jobs</h2>
+        <p>Track jobs you have applied for in one place.</p>
+      </div>
+    </a>
+
     <a href="{% url 'job_alerts' %}">
       <div class="card">
         <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
         <h2>Job Alerts</h2>
         <p>Stay updated on jobs that match your profile.</p>
+      </div>
+    </a>
+
+    <a href="{% url 'notifications' %}">
+      <div class="card">
+        <img src="{% static 'img/upload_cv.jpg' %}" alt="Notifications">
+        <h2>Notifications 
+          {% if notifications_count and notifications_count > 0 %}
+            <span class="badge">{{ notifications_count }}</span>
+          {% endif %}
+        </h2>
+        <p>Stay updated with job alerts and recruiter messages.</p>
       </div>
     </a>
 
