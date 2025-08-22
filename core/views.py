@@ -36,11 +36,15 @@ def notifications(request):
     # Fetch all notifications for this user
     notifications = Notification.objects.filter(user=user).order_by('-timestamp')
 
+    # Count unread notifications
+    notification_count = notifications.filter(is_read=False).count()
+
     return render(request, "notifications.html", {
         "notifications": notifications,
+        "notification_count": notification_count,
         "role": getattr(user, "role", None),  # Pass role to template if available
     })
-
+    
 @login_required
 def process_application(request, app_id):
     """
