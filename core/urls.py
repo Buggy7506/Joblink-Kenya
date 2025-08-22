@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    path("notifications/", views.notifications, name="notifications"),
     path("applied-jobs/", views.view_applications, name="applied_jobs"),
     path("chat/application/<int:application_id>/", views.chat_view, name="job_chat"),   # applicant or employer per application
     path("chat/job/<int:job_id>/", views.chat_view, name="employer_chat"), 
