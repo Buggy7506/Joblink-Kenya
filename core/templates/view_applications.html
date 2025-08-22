@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* Container */
+.applications-container {
+  background: rgba(15, 15, 30, 0.95);
+  border-radius: 16px;
+  padding: 30px;
+  margin: 40px auto;
+  max-width: 900px;
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Heading */
+.glow-heading {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 25px;
+  color: #00f5ff;
+  text-shadow: 0 0 8px #00f5ff, 0 0 16px #00f5ff;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(20, 20, 40, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 255, 200, 0.15);
+}
+
+.table thead {
+  background: linear-gradient(90deg, #00f5ff, #00ff99);
+  color: #111;
+}
+
+.table th, 
+.table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.table tbody tr {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(0, 255, 200, 0.1);
+}
+
+.table tbody tr:hover {
+  background: rgba(0, 255, 255, 0.08);
+  box-shadow: inset 0 0 10px rgba(0, 255, 200, 0.3);
+}
+
+/* Links */
+.table a {
+  color: #00f5ff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.table a:hover {
+  color: #00ff99;
+  text-shadow: 0 0 8px #00ff99;
+}
+
+/* Status Labels */
+.text-success {
+  color: #00ff99;
+  font-weight: bold;
+  text-shadow: 0 0 6px #00ff99;
+}
+
+.text-danger {
+  color: #ff4f6d;
+  font-weight: bold;
+  text-shadow: 0 0 6px #ff4f6d;
+}
+
+.text-warning {
+  color: #f5e342;
+  font-weight: bold;
+  text-shadow: 0 0 6px #f5e342;
+}
+
+/* Fade Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="applications-container" data-aos="zoom-in">
+  <h2 class="glow-heading">💼 My Job Applications</h2>
+
+  {% if applications %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Job Title</th>
+          <th>Employer</th>
+          <th>Status</th>
+          <th>Applied On</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr>
+          <td><a href="{% url 'job_detail' app.job.id %}">{{ app.job.title }}</a></td>
+          <td>{{ app.job.employer.username }}</td>
+          <td>
+            {% if app.status == "accepted" %}
+              <span class="text-success">✅ Accepted</span>
+            {% elif app.status == "rejected" %}
+              <span class="text-danger">❌ Rejected</span>
+            {% else %}
+              <span class="text-warning">⏳ Pending</span>
+            {% endif %}
+          </td>
+          <td>{{ app.created_at|date:"M d, Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="text-align:center; font-size:1.1rem; color:#aaa;">🚀 You haven’t applied for any jobs yet.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
