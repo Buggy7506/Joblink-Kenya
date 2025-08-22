@@ -810,4 +810,20 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Otherwise render template
     return render(request, "chat.html", context)
-    
+
+@login_required
+def view_applications(request):
+    """
+    Show the jobs the logged-in applicant has applied to
+    with the current status (pending, accepted, rejected).
+    """
+    if request.user.role != "applicant":
+        messages.error(request, "❌ Only applicants can access this page.")
+        return redirect("dashboard")
+
+    applications = Application.objects.filter(applicant=request.user).select_related("job", "job__employer")
+
+    return render(request, "view_applications.html", {
+        "applications": applications,
+        "applications_count": applications.count(),
+    })
