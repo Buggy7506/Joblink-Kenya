@@ -8,12 +8,16 @@
     <h1 class="dashboard-title">Welcome to Your Dashboard</h1>
 
     <div class="dashboard-grid">
-      <!-- Post Job -->
+      
+      {% if user.role == "employer" %}
+      <!-- Post Job (Employer only) -->
       <a href="{% url 'post_job' %}" class="dashboard-card cyan-glow">
         <h2>Post a Job</h2>
         <p>Share new opportunities with qualified Kenyan youth.</p>
       </a>
+      {% endif %}
 
+      {% if user.role == "applicant" %}
       <!-- Upload CV -->
       <a href="{% url 'upload_cv' %}" class="dashboard-card pink-glow">
         <h2>Upload CV</h2>
@@ -26,19 +30,20 @@
         <p>AI-matched jobs based on your CV and interests.</p>
       </a>
 
-      <!-- Access Resources -->
-      <a href="{% url 'resources' %}" class="dashboard-card yellow-glow">
-        <h2>Career Resources</h2>
-        <p>Guides, templates, and training materials to support your journey.</p>
-      </a>
-
       <!-- View Applied Jobs -->
       <a href="{% url 'applied_jobs' %}" class="dashboard-card indigo-glow">
         <h2>Applied Jobs</h2>
         <p>Track jobs you've applied for in one place.</p>
       </a>
+      {% endif %}
 
-      <!-- Notifications -->
+      <!-- Access Resources (Visible to all) -->
+      <a href="{% url 'resources' %}" class="dashboard-card yellow-glow">
+        <h2>Career Resources</h2>
+        <p>Guides, templates, and training materials to support your journey.</p>
+      </a>
+
+      <!-- Notifications (Visible to all) -->
       <a href="{% url 'notifications' %}" class="dashboard-card rose-glow">
         <h2>Notifications</h2>
         <p>Stay updated with job alerts and messages.</p>
