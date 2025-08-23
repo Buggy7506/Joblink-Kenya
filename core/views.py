@@ -85,15 +85,26 @@ def notifications(request):
 
     return render(request, "notifications.html", context)
 
+
 @login_required
 def mark_all_read(request):
     """
-    Marks all unread notifications for the logged-in user as read.
+    Marks all unread notifications and unread chat messages for the logged-in user as read.
     """
     user = request.user
+
+    # Mark standard notifications as read
     Notification.objects.filter(user=user, is_read=False).update(is_read=True)
-    return redirect("notifications")  # redirect back to notifications page
-    
+
+    # Mark unread chat messages as read
+    ChatMessage.objects.filter(
+        is_read=False
+    ).filter(
+        Q(application__applicant=user) & ~Q(sender=user) |
+        Q(application__job__employer=user) & ~Q(sender=user)
+    ).update(is_read=True)
+
+    return redirect("notifications")  # back to notifications page
     
 @login_required
 def process_application(request, app_id):
