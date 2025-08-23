@@ -774,6 +774,8 @@ def change_username_password(request):
     return render(request, 'change_username_password.html', {'form': form})
 
 
+from django.db.models import Count, Q, F
+
 @login_required
 def chat_view(request, application_id=None, job_id=None):
     """
@@ -793,22 +795,25 @@ def chat_view(request, application_id=None, job_id=None):
     messages = []
     selected_app = None
 
+    # -----------------------------
     # Case 1: Applicant chat
+    # -----------------------------
     if application_id:
         app = get_object_or_404(
             Application.objects.select_related("job", "applicant", "job__employer"),
             id=application_id
         )
 
+        # Security check
         if user.id not in (app.applicant_id, app.job.employer_id):
             return redirect("job_detail", job_id=app.job_id)
 
+        # Handle new message
         if request.method == "POST":
             text = request.POST.get("message")
             if text:
                 ChatMessage.objects.create(application=app, sender=user, message=text)
 
-                # ✅ Notify the other party
                 recipient = app.job.employer if user == app.applicant else app.applicant
                 Notification.objects.create(
                     user=recipient,
@@ -817,10 +822,9 @@ def chat_view(request, application_id=None, job_id=None):
                 )
 
         messages = app.messages.all()
-        context["messages"] = messages
-        context["application"] = app
         selected_app = app
 
+        # Mark employer messages as read when applicant views
         if user == app.applicant:
             ChatMessage.objects.filter(
                 application=app,
@@ -828,27 +832,49 @@ def chat_view(request, application_id=None, job_id=None):
                 is_read=False
             ).update(is_read=True)
 
+        # Attach unread count (messages from employer → applicant)
+        app.unread_count = app.messages.filter(
+            sender_id=app.job.employer_id, is_read=False
+        ).count()
+
+        context.update({
+            "application": app,
+            "messages": messages,
+            "selected_app": selected_app,
+        })
+
+    # -----------------------------
     # Case 2: Employer chat
+    # -----------------------------
     elif job_id:
         job = get_object_or_404(Job, id=job_id, employer=user)
-        applications = job.applications.select_related("applicant").all()
 
+        # Precompute unread counts (only applicant → employer messages)
+        applications = job.applications.select_related("applicant").annotate(
+            unread_count=Count(
+                "messages",
+                filter=Q(messages__is_read=False) & Q(messages__sender_id=F("applicant_id")),
+            )
+        )
+
+        # Pick selected application
         selected_app_id = request.GET.get("app_id")
         if selected_app_id:
             try:
                 selected_app_id = int(selected_app_id)
-                selected_app = get_object_or_404(Application, id=selected_app_id, job=job)
-            except (ValueError, Application.DoesNotExist):
+                selected_app = applications.filter(id=selected_app_id).first()
+            except ValueError:
                 selected_app = None
+
         if not selected_app:
             selected_app = applications.first() if applications else None
 
+        # Handle new message
         if request.method == "POST" and selected_app:
             text = request.POST.get("message")
             if text:
                 ChatMessage.objects.create(application=selected_app, sender=user, message=text)
 
-                # ✅ Notify the applicant
                 Notification.objects.create(
                     user=selected_app.applicant,
                     title="New Chat Message",
@@ -856,13 +882,8 @@ def chat_view(request, application_id=None, job_id=None):
                 )
 
         messages = selected_app.messages.all() if selected_app else []
-        context.update({
-            "job": job,
-            "applications": applications,
-            "selected_app": selected_app,
-            "messages": messages,
-        })
 
+        # Mark applicant messages as read when employer views
         if selected_app:
             ChatMessage.objects.filter(
                 application=selected_app,
@@ -870,10 +891,19 @@ def chat_view(request, application_id=None, job_id=None):
                 is_read=False
             ).update(is_read=True)
 
+        context.update({
+            "job": job,
+            "applications": applications,
+            "selected_app": selected_app,
+            "messages": messages,
+        })
+
     else:
         return redirect("dashboard")
 
-    # ✅ Return JSON if AJAX request
+    # -----------------------------
+    # AJAX response
+    # -----------------------------
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
             "messages": [
@@ -888,8 +918,9 @@ def chat_view(request, application_id=None, job_id=None):
             "selected_app_id": selected_app.id if selected_app else None
         })
 
-    # Otherwise render template
+    # Render normal template
     return render(request, "chat.html", context)
+    
 
 @login_required
 def view_applications(request):
