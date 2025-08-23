@@ -14,7 +14,21 @@
     <p>{{ job.description|linebreaks }}</p>
 
     <div class="job-actions">
-      <a href="{% url 'apply_job' job.id %}" class="btn-glow">⚡ Apply Now</a>
+      <!-- Apply button (only for applicants) -->
+      {% if user.is_authenticated and user.role == "applicant" %}
+        <a href="{% url 'apply_job' job.id %}" class="btn-glow">⚡ Apply Now</a>
+      {% endif %}
+
+      <!-- Chat button (for both applicants and employers) -->
+      {% if user.is_authenticated %}
+        {% if user.role == "applicant" %}
+          <a href="{% url 'job_chat' application_id=application.id %}" class="btn-glow">💬 Chat with Employer</a>
+        {% elif user.role == "employer" and job.employer == user %}
+          <a href="{% url 'employer_chat' job_id=job.id %}" class="btn-glow">💬 Chat with Applicants</a>
+        {% endif %}
+      {% endif %}
+
+      <!-- Back button -->
       <a href="{% url 'job_list' %}" class="btn-glow-secondary">⬅ Back to Jobs</a>
     </div>
   </div>
@@ -51,6 +65,7 @@
 .job-actions {
   margin-top: 25px;
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
