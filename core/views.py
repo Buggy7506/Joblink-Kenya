@@ -30,20 +30,33 @@ from .models import Notification
 def notifications(request):
     """
     Display notifications for both applicants and employers in one template.
+    Each user sees only their own notifications.
+    Employers: get alerts about new applications, chats, etc.
+    Applicants: get alerts about application status, messages, etc.
     """
     user = request.user
+    role = getattr(user, "role", None)
 
     # Fetch all notifications for this user
-    notifications = Notification.objects.filter(user=user).order_by('-timestamp')
+    notifications = Notification.objects.filter(user=user).order_by("-timestamp")
 
     # Count unread notifications
-    notification_count = notifications.filter(is_read=False).count()
+    unread_count = notifications.filter(is_read=False).count()
 
-    return render(request, "notifications.html", {
+    # Add friendly message if no notifications
+    if not notifications.exists():
+        messages.info(request, "🔔 You don’t have any notifications yet.")
+
+    context = {
         "notifications": notifications,
-        "notification_count": notification_count,
-        "role": getattr(user, "role", None),  # Pass role to template if available
-    })
+        "unread_count": unread_count,
+        "role": role,
+        "title": "My Notifications",
+    }
+
+    return render(request, "notifications.html", context)
+
+
     
 @login_required
 def process_application(request, app_id):
