@@ -72,12 +72,6 @@
     font-size: 0.9rem;
   }
 
-  .card a {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  /* Small notification badge */
   .badge {
     display: inline-block;
     background: #ff007f;
@@ -95,6 +89,7 @@
   <h1 class="dashboard-title">🎓 Welcome to Your Dashboard</h1>
   <div class="card-grid">
     
+    <!-- Upload CV -->
     <a href="{% url 'upload_cv' %}">
       <div class="card">
         <img src="{% static 'img/upload_cv.jpg' %}" alt="Upload CV">
@@ -103,6 +98,7 @@
       </div>
     </a>
 
+    <!-- Browse Jobs -->
     <a href="{% url 'job_list' %}">
       <div class="card">
         <img src="{% static 'img/jobs.jpg' %}" alt="Browse Jobs">
@@ -111,6 +107,7 @@
       </div>
     </a>
 
+    <!-- Job Suggestions -->
     <a href="{% url 'job_suggestions' %}">
       <div class="card">
         <img src="{% static 'img/suggest.jpg' %}" alt="Job Suggestions">
@@ -119,6 +116,7 @@
       </div>
     </a>
 
+    <!-- Resume Builder -->
     <a href="{% url 'build_resume' %}">
       <div class="card">
         <img src="{% static 'img/resume.jpg' %}" alt="Resume Builder">
@@ -127,7 +125,7 @@
       </div>
     </a>
 
-    <!-- NEW View Resume card -->
+    <!-- View Resume -->
     <a href="{% url 'view_resume' %}">
       <div class="card">
         <img src="{% static 'img/profile.jpg' %}" alt="View Resume">
@@ -135,8 +133,8 @@
         <p>See and download your created resume instantly.</p>
       </div>
     </a>
-    <!-- End of new card -->
 
+    <!-- Career Resources -->
     <a href="{% url 'resources' %}">
       <div class="card">
         <img src="{% static 'img/upload_cv.jpg' %}" alt="Career Resources">
@@ -145,6 +143,7 @@
       </div>
     </a>
 
+    <!-- Applied Jobs -->
     <a href="{% url 'applied_jobs' %}">
       <div class="card">
         <img src="{% static 'img/resume.jpg' %}" alt="Applied Jobs">
@@ -153,6 +152,7 @@
       </div>
     </a>
 
+    <!-- Job Alerts -->
     <a href="{% url 'job_alerts' %}">
       <div class="card">
         <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
@@ -161,18 +161,22 @@
       </div>
     </a>
 
+    <!-- Notifications (combined badges) -->
     <a href="{% url 'notifications' %}">
       <div class="card">
         <img src="{% static 'img/upload_cv.jpg' %}" alt="Notifications">
         <h2>Notifications 
-          {% if notifications_count and notifications_count > 0 %}
-            <span class="badge">{{ notifications_count }}</span>
+          {% if (notifications_count|default:0) + (unread_messages_count|default:0) > 0 %}
+            <span class="badge">
+              {{ notifications_count|default:0 }} + {{ unread_messages_count|default:0 }} 💬
+            </span>
           {% endif %}
         </h2>
         <p>Stay updated with job alerts and recruiter messages.</p>
       </div>
     </a>
 
+    <!-- Update Profile -->
     <a href="{% url 'edit_profile' %}">
       <div class="card">
         <img src="{% static 'img/profile.jpg' %}" alt="Update Profile">
