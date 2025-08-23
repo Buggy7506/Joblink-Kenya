@@ -26,6 +26,21 @@ from django.core.files.temp import NamedTemporaryFile
 from django.http import JsonResponse
 from .models import Notification
 
+# -----------------------------
+# HELPER FUNCTIONS
+# -----------------------------
+def get_unread_messages(user):
+    """
+    Returns the count of unread chat messages for the given user.
+    """
+    return ChatMessage.objects.filter(
+        is_read=False
+    ).filter(
+        Q(application__applicant=user) & ~Q(sender=user) |
+        Q(application__job__employer=user) & ~Q(sender=user)
+    ).count()
+
+
 @login_required
 def notifications(request):
     """
@@ -160,6 +175,9 @@ def logout_success(request):
 def dashboard(request):
     user = request.user
 
+    # Count unread chat messages
+    unread_messages_count = get_unread_messages(user)
+
     # If admin, redirect them to the admin dashboard
     if user.is_superuser or getattr(user, "role", None) == "admin":
         return redirect("admin_dashboard")
@@ -172,6 +190,7 @@ def dashboard(request):
         return render(request, "applicant_dashboard.html", {
             "applications": applications,
             "premium_jobs": premium_jobs,
+            "unread_messages_count": unread_messages_count,
         })
 
     # Employer dashboard
@@ -184,6 +203,7 @@ def dashboard(request):
             "posted_jobs_count": posted_jobs_count,
             "active_jobs": active_jobs,
             "applicants_count": applicants_count,
+            "unread_messages_count": unread_messages_count,
         })
 
     # Fallback → unknown role
