@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-/* Glow animation */
+/* 🔥 Glow animation */
 @keyframes glow {
   0% {
     box-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800, 0 0 30px #ff9800;
@@ -17,6 +17,7 @@
   }
 }
 
+/* 🔆 Page background */
 .signup-page {
   display: flex;
   justify-content: center;
@@ -26,6 +27,7 @@
   font-family: 'Helvetica Neue', sans-serif;
 }
 
+/* 📝 Form container */
 .signup-form {
   background: rgba(255, 255, 255, 0.95);
   padding: 40px;
@@ -35,6 +37,7 @@
   animation: glow 2s infinite alternate;
 }
 
+/* ✨ Headings */
 .signup-form h2 {
   text-align: center;
   margin-bottom: 25px;
@@ -46,10 +49,21 @@
 .signup-form h3 {
   text-align: center;
   margin-top: 40px;
-  font-size: 22px;
-  color: #555;
+  font-size: 18px;
+  color: #333;
 }
 
+.signup-form h3 a {
+  color: #ff5722;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.signup-form h3 a:hover {
+  text-decoration: underline;
+}
+
+/* 📌 Inputs */
 .signup-form input,
 .signup-form select {
   width: 100%;
@@ -69,6 +83,27 @@
   background: #fff3cd;
 }
 
+/* ℹ️ Help text */
+.signup-form .helptext {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.85em;
+  color: #ff8800;
+  text-shadow: 0 0 5px rgba(255, 136, 0, 0.6);
+}
+
+/* ⚠️ Error messages */
+.signup-form .errorlist {
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+  color: #ff1744;
+  font-size: 0.9em;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(255, 23, 68, 0.6);
+}
+
+/* 🚀 Button */
 .signup-form button {
   background: linear-gradient(45deg, #ff9800, #ff5722);
   color: white;
