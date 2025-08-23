@@ -46,6 +46,13 @@
   .accept-btn:hover { background-color: #16a34a; }
   .reject-btn { background-color: #ef4444; }
   .reject-btn:hover { background-color: #dc2626; }
+  .chat-btn {
+    background-color: #3b82f6;
+    margin-left: 10px;
+  }
+  .chat-btn:hover {
+    background-color: #2563eb;
+  }
 </style>
 
 <div class="view-applicants-page">
@@ -71,6 +78,8 @@
         {% csrf_token %}
         <button name="action" value="accept" class="action-btn accept-btn">✅ Accept</button>
         <button name="action" value="reject" class="action-btn reject-btn">❌ Reject</button>
+        <!-- ✅ Chat button for employer -->
+        <a href="{% url 'employer_chat' applicant.job.id %}?app_id={{ applicant.id }}" class="action-btn chat-btn">💬 Chat</a>
       </form>
     </div>
   {% empty %}
