@@ -495,7 +495,6 @@ def download_cv(request, cv_id):
         filename=filename
     )
 #Job Listings
-
 def job_list(request):
     premium_jobs = Job.objects.filter(is_premium=True).order_by('-posted_on')
     regular_jobs = Job.objects.filter(is_premium=False).order_by('-posted_on')
@@ -504,10 +503,23 @@ def job_list(request):
         'jobs': regular_jobs
     })
 
-
+@login_required
 def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
-    return render(request, "job_detail.html", {"job": job})
+
+    # Default: no application
+    application = None  
+
+    # If user is an applicant, check if they already applied
+    if request.user.role == "applicant":
+        application = Application.objects.filter(job=job, applicant=request.user).first()
+
+    context = {
+        "job": job,
+        "application": application,
+    }
+    return render(request, "job_detail.html", context)
+
 
 #Learning Resources
 
