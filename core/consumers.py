@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
-from .models import Application, ChatMessage
+from .models import Application, ChatMessage, PinnedMessage
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -40,6 +40,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "delete": self.handle_delete,
             "reply": self.handle_reply,
             "pin": self.handle_pin,
+            "get_pins": self.handle_get_pins,  # 🔥 new
         }
 
         if action in handlers:
@@ -96,13 +97,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.group_name, {"type": "chat.reply", **chat_msg})
 
     async def handle_pin(self, user, payload):
-        """Pin or unpin a message (any participant can do this)."""
+        """Pin or unpin a message (tracked in PinnedMessage)."""
         msg_id = payload.get("id")
         pin_state = bool(payload.get("pin", True))
-        if msg_id and await self.toggle_pin(msg_id, pin_state):
+        if msg_id and await self.toggle_pin(msg_id, user.id, pin_state):
             await self.channel_layer.group_send(
                 self.group_name, {"type": "chat.pin", "id": msg_id, "pinned": pin_state, "sender": user.username}
             )
+
+    async def handle_get_pins(self, user, payload):
+        """Send all pinned messages to requesting user only."""
+        pins = await self.get_pinned_messages(self.application_id)
+        await self.send(text_data=json.dumps({"type": "chat.pins", "pins": pins}))
 
     # ==========================
     # Event Handlers
@@ -130,7 +136,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def save_message(self, application_id, sender_id, message, reply_to=None):
         app = Application.objects.get(id=application_id)
         obj = ChatMessage.objects.create(application=app, sender_id=sender_id, message=message, reply_to_id=reply_to)
-        return {"id": obj.id, "sender": obj.sender.username, "message": obj.message, "timestamp": obj.timestamp.isoformat()}
+        return {
+            "id": obj.id,
+            "sender": obj.sender.username,
+            "message": obj.message,
+            "timestamp": obj.timestamp.isoformat(),
+        }
 
     @database_sync_to_async
     def mark_messages_read(self, message_ids):
@@ -156,11 +167,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
-    def toggle_pin(self, message_id, pin_state):
+    def toggle_pin(self, message_id, user_id, pin_state):
+        """Update ChatMessage + PinnedMessage history."""
         try:
             msg = ChatMessage.objects.get(id=message_id)
             msg.is_pinned = pin_state
             msg.save(update_fields=["is_pinned"])
+
+            if pin_state:
+                PinnedMessage.objects.get_or_create(message=msg, pinned_by_id=user_id)
+            else:
+                PinnedMessage.objects.filter(message=msg, pinned_by_id=user_id).delete()
+
             return True
         except ChatMessage.DoesNotExist:
             return False
+
+    @database_sync_to_async
+    def get_pinned_messages(self, application_id):
+        """Return all pinned messages for a chat session."""
+        qs = PinnedMessage.objects.filter(
+            message__application_id=application_id,
+            message__is_pinned=True
+        ).select_related("message", "pinned_by")
+
+        return [
+            {
+                "id": p.message.id,
+                "message": p.message.message,
+                "sender": p.message.sender.username,
+                "pinned_by": p.pinned_by.username,
+                "timestamp": p.message.timestamp.isoformat(),
+            }
+            for p in qs
+        ]
