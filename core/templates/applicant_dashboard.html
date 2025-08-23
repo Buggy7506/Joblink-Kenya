@@ -165,13 +165,17 @@
     <a href="{% url 'notifications' %}">
       <div class="card">
         <img src="{% static 'img/upload_cv.jpg' %}" alt="Notifications">
-        <h2>Notifications 
-          {% if (notifications_count|default:0) + (unread_messages_count|default:0) > 0 %}
-            <span class="badge">
-              {{ notifications_count|default:0 }} + {{ unread_messages_count|default:0 }} 💬
-            </span>
-          {% endif %}
-        </h2>
+        {% with notifications_count|default:0 as notif_count %}
+          {% with unread_messages_count|default:0 as unread_count %}
+            {% if notif_count|add:unread_count > 0 %}
+              <h2>Notifications 
+                <span class="badge">{{ notif_count|add:unread_count }} 💬</span>
+              </h2>
+            {% else %}
+              <h2>Notifications</h2>
+            {% endif %}
+          {% endwith %}
+        {% endwith %}
         <p>Stay updated with job alerts and recruiter messages.</p>
       </div>
     </a>
