@@ -28,23 +28,6 @@ nav a{margin:0 1rem; font-weight:bold;}
 @media(max-width:768px){.desktop-nav{display:none;}.mobile-menu{display:flex;}}
 @keyframes fade-in{from{opacity:0; transform:translateY(-10px);}to{opacity:1; transform:translateY(0);}}
 .animate-fade-in{animation:fade-in 0.5s ease-out forwards;}
-
-/* Chat button & modal */
-#chat-btn{position:fixed; bottom:20px; right:20px; z-index:999; background:linear-gradient(135deg,#00ffc6,#00ff88); border:none; border-radius:50%; width:60px; height:60px; font-size:24px; color:#111; cursor:pointer; box-shadow:0 0 22px rgba(0,255,200,0.25);}
-#chat-modal{display:none; position:fixed; bottom:90px; right:20px; width:350px; max-height:500px; background:rgba(15,23,42,0.95); border-radius:16px; overflow:hidden; box-shadow:0 0 20px rgba(0,255,200,0.3); z-index:1000; flex-direction:column;}
-#chat-modal-header{background:#0ea5e9; padding:0.5rem; color:#fff; font-weight:bold; display:flex; justify-content:space-between; align-items:center;}
-#chat-close{cursor:pointer;}
-#chat-modal-body{flex-grow:1; padding:1rem; overflow-y:auto; color:#fff; display:flex; flex-direction:column;}
-#chat-jobs-list{max-height:140px; overflow-y:auto; margin-bottom:0.5rem;}
-.chat-job-item{padding:0.5rem; border-radius:8px; margin-bottom:0.3rem; cursor:pointer; background:rgba(0,255,255,0.05);}
-.chat-job-item:hover{background:rgba(0,255,255,0.15);}
-#chat-messages { flex-grow:1; overflow-y:auto; margin-bottom:0.5rem; }
-.chat-message { margin-bottom:0.5rem; padding:0.5rem; border-radius:8px; }
-.chat-message.sender { background:#22d3ee; color:#111; text-align:right; }
-.chat-message.receiver { background:#0f172a; color:#fff; text-align:left; }
-#chat-input-container { display:flex; margin-top:0.5rem; }
-#chat-input { flex-grow:1; padding:0.5rem; border-radius:8px; border:none; }
-#chat-send { background:#0ea5e9; border:none; color:#fff; padding:0 1rem; border-radius:8px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -61,17 +44,11 @@ nav a{margin:0 1rem; font-weight:bold;}
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
           {% elif user.role == 'employer' %}
-            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>} 
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-            {% if job %} 
-              <a href="{% url 'employer_chat' job.id %}" class="hover-glow">Chat</a>
-            {% endif %} 
           {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            {% if application %} 
-               <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
-            {% endif %} 
           {% endif %}
           <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
           <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
@@ -93,15 +70,9 @@ nav a{margin:0 1rem; font-weight:bold;}
         {% elif user.role == 'employer' %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-            {% if job %} 
-              <a href="{% url 'employer_chat' job.id %}" class="hover-glow">Chat</a>
-            {% endif %} 
         {% else %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            {% if application %} 
-               <a href="{% url 'job_chat' application.id %}" class="hover-glow">Chat</a>
-            {% endif %} 
         {% endif %}
         <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
         <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
@@ -120,48 +91,6 @@ nav a{margin:0 1rem; font-weight:bold;}
   <p>&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
 </footer>
 
-{% if user.is_authenticated %}
-  {% if user.role in 'applicant employer' %}
-    <!-- Chat Button -->
-    <button id="chat-btn"><i class="fas fa-comments"></i></button>
-
-    <div id="chat-modal" data-user-id="{{ user.id }}">
-        <div id="chat-modal-header">
-            Chat
-            <span id="chat-close"><i class="fas fa-times"></i></span>
-        </div>
-        <div id="chat-modal-body">
-            <div id="chat-jobs-list">
-                {% if user.role == 'applicant' %}
-                    {% for application in user.applications.all %}
-                        <div class="chat-job-item" data-chat-url="{% url 'job_chat' application.id %}">
-                            {{ application.job.title }}
-                        </div>
-                    {% empty %}
-                        <p style="color:#ccc;">You haven't applied to any jobs yet.</p>
-                    {% endfor %}
-                {% elif user.role == 'employer' %}
-                    {% for job in user.jobs_posted.all %}
-                        <div class="chat-job-item" data-chat-url="{% url 'employer_chat' job.id %}">
-                            {{ job.title }}
-                        </div>
-                    {% empty %}
-                        <p style="color:#ccc;">You haven't posted any jobs yet.</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div id="chat-messages">
-                <p style="color:#ccc;">Select a job above to load chat.</p>
-            </div>
-            <div id="chat-input-container">
-                <input type="text" id="chat-input" placeholder="Type a message..." />
-                <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-  {% endif %}
-{% endif %}
-
 <script>
 AOS.init();
 
@@ -170,54 +99,6 @@ document.getElementById('menuToggle').addEventListener('click', () => {
     const menu = document.getElementById('mobileMenu');
     menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'flex' : 'none';
 });
-
-// Chat modal toggle
-const chatBtn = document.getElementById('chat-btn');
-const chatModal = document.getElementById('chat-modal');
-const chatClose = document.getElementById('chat-close');
-const chatMessages = $('#chat-messages');
-const chatInput = $('#chat-input');
-const chatSend = $('#chat-send');
-
-if(chatBtn && chatModal){
-    chatBtn.addEventListener('click', () => {
-        chatModal.style.display = chatModal.style.display === 'flex' ? 'none' : 'flex';
-        chatModal.style.flexDirection = 'column';
-    });
-
-    chatClose.addEventListener('click', () => {
-        chatModal.style.display = 'none';
-    });
-
-    // Load chat when clicking a job
-    $('.chat-job-item').on('click', function(){
-        const chatUrl = $(this).data('chat-url');
-        chatModal.dataset.chatUrl = chatUrl;
-        loadChat(chatUrl);
-    });
-
-    // Load chat dynamically
-    function loadChat(chatUrl){
-        $.get(chatUrl, function(data){
-            chatMessages.html('');
-            data.messages.forEach(msg => {
-                const msgClass = msg.sender_id == {{ user.id }} ? 'sender' : 'receiver';
-                chatMessages.append(`<div class="chat-message ${msgClass}">${msg.text}</div>`);
-            });
-            chatMessages.scrollTop(chatMessages[0].scrollHeight);
-        });
-    }
-
-    // Send message
-    chatSend.on('click', function(){
-        const text = chatInput.val();
-        if(!text) return;
-        $.post(chatModal.dataset.chatUrl, { message: text, csrfmiddlewaretoken: '{{ csrf_token }}' }, function(data){
-            loadChat(chatModal.dataset.chatUrl);
-            chatInput.val('');
-        });
-    });
-}
 </script>
 
 </body>
