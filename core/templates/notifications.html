@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Notifications{% endblock %}
+{% block title %}Notifications | JobLink Kenya{% endblock %}
 
 {% block content %}
 <div class="notifications-container">
@@ -24,15 +24,16 @@
                         </div>
                         <p>{{ note.message }}</p>
 
-                        {% if not note.is_read %}
-                            <span class="new-badge">NEW</span>
-                        {% endif %}
-
-                        {% if role == "applicant" %}
-                            <span class="role-badge applicant">For Applicants</span>
-                        {% elif role == "employer" %}
-                            <span class="role-badge employer">For Employers</span>
-                        {% endif %}
+                        <div class="badges">
+                            {% if not note.is_read %}
+                                <span class="new-badge">NEW</span>
+                            {% endif %}
+                            {% if role == "applicant" %}
+                                <span class="role-badge applicant">Applicant</span>
+                            {% elif role == "employer" %}
+                                <span class="role-badge employer">Employer</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </li>
             {% endfor %}
@@ -69,9 +70,11 @@
 /* Top bar */
 .actions-bar {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
+    gap: 10px;
 }
 .mark-read-btn {
     background: #00ffaa;
@@ -111,6 +114,7 @@
     border-left: 4px solid #0ff;
     transition: all 0.3s ease;
     animation: fadeInUp 0.6s ease both;
+    position: relative;
 }
 .notification-card:hover {
     transform: translateY(-4px) scale(1.01);
@@ -118,7 +122,7 @@
 }
 .notification-card.unread {
     border-left-color: #ff4f6d;
-    box-shadow: 0 0 10px #ff4f6d;
+    box-shadow: 0 0 12px #ff4f6d;
 }
 
 /* Card header */
@@ -145,6 +149,12 @@
 }
 
 /* Badges */
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
 .new-badge {
     display: inline-block;
     padding: 3px 8px;
@@ -152,7 +162,6 @@
     background: #ff4f6d;
     color: #fff;
     border-radius: 6px;
-    margin-top: 5px;
     box-shadow: 0 0 8px #ff4f6d;
 }
 .role-badge {
@@ -162,7 +171,6 @@
     font-size: 0.8rem;
     font-weight: bold;
     text-transform: uppercase;
-    margin-top: 6px;
     box-shadow: 0 0 8px currentColor;
 }
 .role-badge.applicant {
@@ -192,6 +200,19 @@
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .actions-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 </style>
 {% endblock %}
