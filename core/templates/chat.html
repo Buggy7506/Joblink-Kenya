@@ -3,7 +3,7 @@
 {% block content %}
 
 <style>
-/* Layout */
+/* --- Layout --- */
 .chat-wrap { display:flex; max-width:1200px; margin:30px auto; gap:20px; }
 .sidebar { width:260px; background:rgba(15,15,30,0.95); border-radius:16px; overflow:hidden; }
 .sidebar h3 { padding:14px; border-bottom:1px solid rgba(0,255,200,0.2); }
@@ -22,7 +22,7 @@
 .chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; }
 @keyframes fadeIn { from {opacity:0; transform:translateY(4px);} to {opacity:1; transform:none;} }
 
-/* Floating Chat Popup */
+/* --- Floating Chat Popup --- */
 #chat-popup-button { position:fixed; bottom:20px; right:20px; z-index:999; }
 #chat-popup-button button { padding:12px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:18px; }
 #chat-popup { display:none; position:fixed; bottom:70px; right:20px; width:400px; max-height:500px; background:rgba(15,15,30,0.95); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.25); overflow:hidden; z-index:999; }
@@ -32,7 +32,7 @@
 #chat-popup-form input { flex:1; padding:8px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; }
 #chat-popup-form button { padding:8px 12px; border:none; border-radius:10px; background:#00ffc6; color:#111; cursor:pointer; }
 
-/* Context Menu */
+/* --- Context Menu --- */
 #message-menu {
   position:absolute;
   background:#111;
@@ -44,11 +44,7 @@
   display:none;
 }
 #message-menu ul { list-style:none; padding:6px; margin:0; }
-#message-menu li {
-  padding:6px 12px;
-  cursor:pointer;
-  font-size:14px;
-}
+#message-menu li { padding:6px 12px; cursor:pointer; font-size:14px; }
 #message-menu li:hover { background:rgba(0,255,200,0.2); }
 </style>
 
@@ -153,14 +149,14 @@
 
     if(msgInput.dataset.editId){
       socket.send(JSON.stringify({
-        type:"edit",
+        action:"edit",  // ✅ fixed
         id: msgInput.dataset.editId,
         message:text
       }));
       delete msgInput.dataset.editId;
     } else {
       socket.send(JSON.stringify({
-        type:"message",
+        action:"message",  // ✅ fixed
         message:text
       }));
     }
@@ -259,10 +255,10 @@
       input.dataset.editId = msgId;
       input.focus();
     } else if(action==="delete-me"){
-      socket.send(JSON.stringify({ type:"delete", id: msgId, mode:"me" }));
+      socket.send(JSON.stringify({ action:"delete", id: msgId, mode:"me" })); // ✅ fixed
       msgElem.style.display="none";
     } else if(action==="delete-everyone"){
-      socket.send(JSON.stringify({ type:"delete", id: msgId, mode:"everyone" }));
+      socket.send(JSON.stringify({ action:"delete", id: msgId, mode:"everyone" })); // ✅ fixed
     } else if(action==="forward"){
       alert("Forward not yet implemented");
     } else if(action==="pin"){
