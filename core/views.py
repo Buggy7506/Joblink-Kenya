@@ -40,31 +40,38 @@ def get_unread_messages(user):
         Q(application__job__employer=user) & ~Q(sender=user)
     ).count()
 
-
 @login_required
 def notifications(request):
-    """
-    Display notifications including unread chat messages for both applicants and employers.
-    """
     user = request.user
 
-    # Standard in-app notifications
-    notifications = Notification.objects.filter(user=user).order_by('-timestamp')
+    # Standard notifications
+    notifications = list(Notification.objects.filter(user=user).order_by('-timestamp'))
 
-    # Count unread notifications
-    unread_count = notifications.filter(is_read=False).count()
-
-    # Count unread chat messages
+    # Unread chat messages as pseudo-notifications
     unread_chats = ChatMessage.objects.filter(
         is_read=False,
     ).filter(
-        Q(application__applicant=user) & ~Q(sender=user) | 
+        Q(application__applicant=user) & ~Q(sender=user) |
         Q(application__job__employer=user) & ~Q(sender=user)
-    ).count()
+    ).order_by('-timestamp')
 
-    total_unread = unread_count + unread_chats
+    # Convert unread chat messages to notification-like objects
+    for chat in unread_chats:
+        notifications.append(
+            type("ChatNotification", (), {
+                "title": f"New message from {chat.sender.username}",
+                "message": chat.content,
+                "timestamp": chat.timestamp,
+                "is_read": False,
+            })()
+        )
 
-    if not notifications.exists() and unread_chats == 0:
+    # Sort all notifications by timestamp descending
+    notifications.sort(key=lambda x: x.timestamp, reverse=True)
+
+    total_unread = sum(1 for n in notifications if not n.is_read)
+
+    if not notifications:
         messages.info(request, "🔔 You don’t have any notifications yet.")
 
     context = {
@@ -75,7 +82,6 @@ def notifications(request):
     }
 
     return render(request, "notifications.html", context)
-    
 
 @login_required
 def mark_all_read(request):
