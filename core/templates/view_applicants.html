@@ -48,11 +48,28 @@
   .reject-btn:hover { background-color: #dc2626; }
   .chat-btn {
     background-color: #3b82f6;
-    margin-left: 10px;
+    margin-top: 15px;
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    color: #fff;
   }
-  .chat-btn:hover {
-    background-color: #2563eb;
+  .chat-btn:hover { background-color: #2563eb; }
+
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    margin-left: 5px;
   }
+  .status-pending { background-color: #facc15; color: #111; }
+  .status-accepted { background-color: #22c55e; color: #fff; }
+  .status-rejected { background-color: #ef4444; color: #fff; }
 </style>
 
 <div class="view-applicants-page">
@@ -60,10 +77,27 @@
 
   {% for applicant in applicants %}
     <div class="applicant">
-      <p><strong>Name:</strong> {{ applicant.applicant.username }}</p>
-      <p><strong>Email:</strong> {{ applicant.applicant.email }}</p>
-      <p><strong>Applied For:</strong> {{ applicant.job.title }}</p>
-      <p><strong>Status:</strong> {{ applicant.status|title }}</p>
+      <p>
+        <strong>Name:</strong> {{ applicant.applicant.username }}
+      </p>
+      <p>
+        <strong>Email:</strong> {{ applicant.applicant.email }}
+      </p>
+      <p>
+        <strong>Applied For:</strong> {{ applicant.job.title }}
+      </p>
+      <p>
+        <strong>Status:</strong>
+        {% if applicant.status == 'pending' %}
+          <span class="status-badge status-pending">⏳ Pending</span>
+        {% elif applicant.status == 'accepted' %}
+          <span class="status-badge status-accepted">✅ Accepted</span>
+        {% elif applicant.status == 'rejected' %}
+          <span class="status-badge status-rejected">❌ Rejected</span>
+        {% else %}
+          <span class="status-badge status-pending">{{ applicant.status|title }}</span>
+        {% endif %}
+      </p>
 
       {% if applicant.applicant.cvupload_set.last %}
         <div class="cv-actions">
@@ -78,9 +112,10 @@
         {% csrf_token %}
         <button name="action" value="accept" class="action-btn accept-btn">✅ Accept</button>
         <button name="action" value="reject" class="action-btn reject-btn">❌ Reject</button>
-        <!-- ✅ Chat button for employer -->
-        <a href="{% url 'employer_chat' applicant.job.id %}?app_id={{ applicant.id }}" class="action-btn chat-btn">💬 Chat</a>
       </form>
+
+      <!-- Chat button outside form -->
+      <a href="{% url 'job_chat' application_id=applicant.id %}" class="chat-btn">💬 Chat</a>
     </div>
   {% empty %}
     <p>No applicants yet.</p>
