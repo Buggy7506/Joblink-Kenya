@@ -71,6 +71,9 @@
   box-shadow: 0 0 25px rgba(0, 255, 200, 0.4);
   transition: all 0.4s ease-in-out;
   color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .job-card:hover {
   transform: translateY(-8px) scale(1.02);
@@ -106,7 +109,6 @@
   border-radius: 25px;
   font-weight: bold;
   font-size: 1rem;
-  margin-right: 15px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -133,6 +135,13 @@
   background: #e6003b;
   box-shadow: 0 0 25px #ff0044, 0 0 50px #ff0044;
   transform: translateY(-2px);
+}
+
+/* Job Actions - align left & right */
+.job-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
 }
 
 /* Messages Popup */
