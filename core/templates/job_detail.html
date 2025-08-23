@@ -14,17 +14,15 @@
     <p>{{ job.description|linebreaks }}</p>
 
     <div class="job-actions">
-      <!-- Apply button (only for applicants) -->
       {% if user.is_authenticated and user.role == "applicant" %}
-        <a href="{% url 'apply_job' job.id %}" class="btn-glow">⚡ Apply Now</a>
-      {% endif %}
-
-      <!-- Chat button (for both applicants and employers) -->
-      {% if user.is_authenticated %}
-        {% if user.role == "applicant" %}
-          <a href="{% url 'job_chat' application_id=application.id %}" class="btn-glow">💬 Chat with Employer</a>
-        {% elif user.role == "employer" and job.employer == user %}
-          <a href="{% url 'employer_chat' job_id=job.id %}" class="btn-glow">💬 Chat with Applicants</a>
+        {% if application %}
+          <!-- Already applied → show chat -->
+          <a href="{% url 'job_chat' application_id=application.id %}" class="btn-glow">
+            💬 Chat with Employer
+          </a>
+        {% else %}
+          <!-- Not yet applied → show apply now -->
+          <a href="{% url 'apply_job' job.id %}" class="btn-glow">⚡ Apply Now</a>
         {% endif %}
       {% endif %}
 
@@ -41,7 +39,6 @@
   padding: 40px;
   animation: fadeIn 1s ease-in-out;
 }
-
 .job-card {
   background: rgba(10, 10, 10, 0.85);
   border-radius: 20px;
@@ -54,21 +51,18 @@
   transform: translateY(-6px);
   box-shadow: 0 0 40px rgba(0,255,200,0.7), 0 0 60px rgba(0,255,200,0.4);
 }
-
 .job-title {
   font-size: 2rem;
   margin-bottom: 15px;
   color: #00ffcc;
   text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffaa;
 }
-
 .job-actions {
   margin-top: 25px;
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
-
 .btn-glow {
   background: #00ffcc;
   color: #000;
@@ -83,7 +77,6 @@
   background: #00ffaa;
   box-shadow: 0 0 25px #00ffaa, 0 0 50px #00ffcc;
 }
-
 .btn-glow-secondary {
   background: #222;
   color: #fff;
@@ -98,7 +91,6 @@
   color: #00ffcc;
   box-shadow: 0 0 20px #00ffcc;
 }
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
