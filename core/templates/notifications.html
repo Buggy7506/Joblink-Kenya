@@ -6,14 +6,28 @@
     <h2 class="glow-heading">🔔 Notifications</h2>
 
     {% if notifications %}
+        <div class="actions-bar">
+            <form method="post" action="{% url 'mark_all_read' %}">
+                {% csrf_token %}
+                <button type="submit" class="mark-read-btn">✅ Mark all as read</button>
+            </form>
+            <span class="unread-count">Unread: {{ unread_count }}</span>
+        </div>
+
         <ul class="notification-list">
             {% for note in notifications %}
                 <li class="notification-item">
-                    <div class="notification-card">
-                        <h4>{{ note.title }}</h4>
+                    <div class="notification-card {% if not note.is_read %}unread{% endif %}">
+                        <div class="card-header">
+                            <h4>{{ note.title }}</h4>
+                            <small>{{ note.timestamp|date:"M d, Y H:i" }}</small>
+                        </div>
                         <p>{{ note.message }}</p>
-                        <small>{{ note.timestamp|date:"M d, Y H:i" }}</small>
-                        
+
+                        {% if not note.is_read %}
+                            <span class="new-badge">NEW</span>
+                        {% endif %}
+
                         {% if role == "applicant" %}
                             <span class="role-badge applicant">For Applicants</span>
                         {% elif role == "employer" %}
@@ -29,7 +43,7 @@
 </div>
 
 <style>
-/* Container with neon glow */
+/* Container */
 .notifications-container {
     max-width: 900px;
     margin: 40px auto;
@@ -37,24 +51,50 @@
     padding: 30px;
     border-radius: 20px;
     color: #fff;
-    box-shadow: 0 0 25px rgba(0, 255, 200, 0.3), 0 0 60px rgba(0, 255, 200, 0.15);
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.3),
+                0 0 60px rgba(0, 255, 200, 0.15);
     border: 1px solid rgba(0, 255, 200, 0.2);
     animation: pulseGlow 4s infinite alternate;
 }
 
-/* Neon glowing heading */
+/* Heading */
 .glow-heading {
     font-size: 2.5rem;
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     color: #0ff;
-    text-shadow: 0 0 5px #0ff,
-                 0 0 15px #0ff,
-                 0 0 30px #00e6e6,
-                 0 0 45px #00cccc;
+    text-shadow: 0 0 15px #0ff, 0 0 25px #00e6e6;
 }
 
-/* Notification list styling */
+/* Top bar */
+.actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.mark-read-btn {
+    background: #00ffaa;
+    color: #111;
+    font-weight: bold;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00ffaa, 0 0 20px #00e6e6;
+    transition: all 0.3s ease;
+}
+.mark-read-btn:hover {
+    background: #00e6e6;
+    box-shadow: 0 0 20px #00e6e6, 0 0 40px #00ffaa;
+}
+.unread-count {
+    font-size: 0.95rem;
+    color: #0ff;
+    text-shadow: 0 0 8px #0ff;
+}
+
+/* List */
 .notification-list {
     list-style: none;
     padding: 0;
@@ -63,44 +103,58 @@
     margin-bottom: 20px;
 }
 
-/* Glowing notification cards */
+/* Cards */
 .notification-card {
     background: rgba(25, 25, 40, 0.95);
-    padding: 20px;
+    padding: 18px 20px;
     border-radius: 15px;
     border-left: 4px solid #0ff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.4),
-                0 0 20px rgba(0, 255, 200, 0.2);
     transition: all 0.3s ease;
     animation: fadeInUp 0.6s ease both;
 }
 .notification-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 0 20px #0ff,
-                0 0 40px #00e6e6;
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 0 20px #0ff, 0 0 40px #00e6e6;
+}
+.notification-card.unread {
+    border-left-color: #ff4f6d;
+    box-shadow: 0 0 10px #ff4f6d;
 }
 
-/* Title with glow */
-.notification-card h4 {
-    margin: 0 0 8px;
-    font-size: 1.4rem;
+/* Card header */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.card-header h4 {
+    margin: 0;
+    font-size: 1.3rem;
     color: #0ff;
-    text-shadow: 0 0 10px #0ff;
+    text-shadow: 0 0 8px #0ff;
+}
+.card-header small {
+    color: #aaa;
+    font-size: 0.8rem;
 }
 
-/* Message text */
+/* Message */
 .notification-card p {
-    margin: 0 0 10px;
+    margin: 10px 0;
     color: #ccc;
 }
 
-/* Timestamps */
-.notification-card small {
-    color: #aaa;
-    font-size: 0.85rem;
+/* Badges */
+.new-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    background: #ff4f6d;
+    color: #fff;
+    border-radius: 6px;
+    margin-top: 5px;
+    box-shadow: 0 0 8px #ff4f6d;
 }
-
-/* Role badges with glow */
 .role-badge {
     display: inline-block;
     padding: 4px 10px;
@@ -108,21 +162,18 @@
     font-size: 0.8rem;
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 5px;
+    margin-top: 6px;
     box-shadow: 0 0 8px currentColor;
 }
 .role-badge.applicant {
     background: rgba(0, 123, 255, 0.15);
     color: #00aaff;
     border: 1px solid #00aaff;
-    text-shadow: 0 0 10px #00aaff;
 }
 .role-badge.employer {
     background: rgba(255, 102, 0, 0.15);
     color: #ff6600;
     border: 1px solid #ff6600;
-    text-shadow: 0 0 10px #ff6600;
 }
 
 /* Empty state */
@@ -135,24 +186,12 @@
 
 /* Animations */
 @keyframes pulseGlow {
-    from {
-        box-shadow: 0 0 20px rgba(0, 255, 200, 0.2),
-                    0 0 40px rgba(0, 255, 200, 0.1);
-    }
-    to {
-        box-shadow: 0 0 40px rgba(0, 255, 200, 0.4),
-                    0 0 80px rgba(0, 255, 200, 0.2);
-    }
+    from { box-shadow: 0 0 20px rgba(0, 255, 200, 0.2); }
+    to   { box-shadow: 0 0 40px rgba(0, 255, 200, 0.4); }
 }
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 </style>
 {% endblock %}
