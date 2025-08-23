@@ -118,23 +118,75 @@ class Application(models.Model):
         return f"{self.applicant.username} → {self.job.title}"
 
 
+from django.db import models
+from django.conf import settings
+
+
 class ChatMessage(models.Model):
-    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="messages")
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    application = models.ForeignKey(
+        "Application",
+        on_delete=models.CASCADE,
+        related_name="messages"
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)  # Tracks if recipient has read the message
+    is_read = models.BooleanField(default=False)        # Tracks if recipient has read the message
+    is_pinned = models.BooleanField(default=False)      # Marks message as pinned
+    reply_to = models.ForeignKey(                      # Self-referential for replies
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="replies"
+    )
+    is_edited = models.BooleanField(default=False)      # Marks if the message was edited
 
     class Meta:
         ordering = ["timestamp"]
 
     def mark_as_read(self):
+        """Mark this message as read."""
         if not self.is_read:
             self.is_read = True
-            self.save()
+            self.save(update_fields=["is_read"])
+
+    def edit(self, new_text):
+        """Edit the message content."""
+        self.message = new_text
+        self.is_edited = True
+        self.save(update_fields=["message", "is_edited"])
+
+    def toggle_pin(self, state=True):
+        """Pin or unpin this message."""
+        self.is_pinned = state
+        self.save(update_fields=["is_pinned"])
 
     def __str__(self):
-        return f"{self.sender.username} @ {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+        preview = (self.message[:30] + "...") if len(self.message) > 30 else self.message
+        return f"{self.sender.username}: {preview} @ {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+
+class PinnedMessage(models.Model):
+    message = models.ForeignKey(
+        "ChatMessage",
+        on_delete=models.CASCADE,
+        related_name="pinned_entries"
+    )
+    pinned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    pinned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-pinned_at"]
+
+    def __str__(self):
+        return f"Pinned by {self.pinned_by.username} -> {self.message.id} at {self.pinned_at.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
 
