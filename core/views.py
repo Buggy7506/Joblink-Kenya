@@ -197,7 +197,13 @@ def dashboard(request):
     # Count unread chat messages
     unread_messages_count = get_unread_messages(user)
 
-    # If admin, redirect them to the admin dashboard
+    # Count standard notifications for this user
+    notifications_count = Notification.objects.filter(user=user, is_read=False).count()
+
+    # Total notifications (notifications + unread messages)
+    total_notifications = notifications_count + unread_messages_count
+
+    # If admin, redirect to admin dashboard
     if user.is_superuser or getattr(user, "role", None) == "admin":
         return redirect("admin_dashboard")
 
@@ -209,7 +215,7 @@ def dashboard(request):
         return render(request, "applicant_dashboard.html", {
             "applications": applications,
             "premium_jobs": premium_jobs,
-            "unread_messages_count": unread_messages_count,
+            "notifications_count": total_notifications,  # pass total notifications
         })
 
     # Employer dashboard
@@ -222,7 +228,7 @@ def dashboard(request):
             "posted_jobs_count": posted_jobs_count,
             "active_jobs": active_jobs,
             "applicants_count": applicants_count,
-            "unread_messages_count": unread_messages_count,
+            "notifications_count": total_notifications,  # pass total notifications
         })
 
     # Fallback → unknown role
