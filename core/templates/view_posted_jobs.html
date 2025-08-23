@@ -54,8 +54,6 @@
     text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc, 0 0 40px #ff66ff;
     animation: pulseHeader 3s infinite alternate;
 }
-
-/* Pulse animation for header */
 @keyframes pulseHeader {
     0% { text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc; }
     50% { text-shadow: 0 0 20px #ff33cc, 0 0 40px #ff66ff; }
@@ -104,7 +102,7 @@
     margin-bottom: 20px;
 }
 
-/* Buttons */
+/* Buttons Base */
 .btn {
     display: inline-block;
     padding: 12px 25px;
@@ -112,10 +110,23 @@
     font-size: 0.95rem;
     border-radius: 30px;
     text-decoration: none;
-    transition: all 0.3s ease;
     text-align: center;
     color: #fff;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+.btn::before {
+    content: "";
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border-radius: 35px;
+    z-index: -1;
+    filter: blur(15px);
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
 }
 
 /* Edit Button */
@@ -123,31 +134,44 @@
     background: linear-gradient(135deg, #33ccff, #0066ff);
     border: 1px solid #33ccff;
     margin-right: 10px;
-    box-shadow: 0 0 15px #33ccff, 0 0 30px #0066ff;
+}
+.edit-btn::before {
+    background: linear-gradient(135deg, #33ccff, #0066ff);
+    animation: pulseGlowBlue 3s infinite alternate;
 }
 .edit-btn:hover {
-    background: linear-gradient(135deg, #66e0ff, #3399ff);
-    box-shadow: 0 0 30px #33ccff, 0 0 60px #66e0ff;
     transform: scale(1.08);
+    opacity: 0.95;
 }
 
 /* Delete Button */
 .delete-btn {
     background: linear-gradient(135deg, #ff3380, #ff0066);
     border: 1px solid #ff3380;
-    box-shadow: 0 0 15px #ff3380, 0 0 30px #ff0066;
+}
+.delete-btn::before {
+    background: linear-gradient(135deg, #ff3380, #ff0066);
+    animation: pulseGlowRed 3s infinite alternate;
 }
 .delete-btn:hover {
-    background: linear-gradient(135deg, #ff66a3, #ff3399);
-    box-shadow: 0 0 30px #ff3380, 0 0 60px #ff66a3;
     transform: scale(1.08);
+    opacity: 0.95;
+}
+
+/* Glow Animations */
+@keyframes pulseGlowBlue {
+    0%   { opacity: 0.4; filter: blur(10px); }
+    100% { opacity: 1; filter: blur(20px); }
+}
+@keyframes pulseGlowRed {
+    0%   { opacity: 0.4; filter: blur(10px); }
+    100% { opacity: 1; filter: blur(20px); }
 }
 
 /* Messages Popup */
 #messages-popup {
     position: fixed;
-    top: 20px;
-    left: 50%;
+    top: 20px; left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
     display: flex;
