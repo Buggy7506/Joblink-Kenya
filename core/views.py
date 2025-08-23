@@ -44,33 +44,35 @@ def get_unread_messages(user):
 def notifications(request):
     user = request.user
 
-    # Standard notifications
+    # Fetch standard notifications for the user
     notifications = list(Notification.objects.filter(user=user).order_by('-timestamp'))
 
-    # Unread chat messages as pseudo-notifications
+    # Fetch unread chat messages
     unread_chats = ChatMessage.objects.filter(
-        is_read=False,
+        is_read=False
     ).filter(
         Q(application__applicant=user) & ~Q(sender=user) |
         Q(application__job__employer=user) & ~Q(sender=user)
     ).order_by('-timestamp')
 
-    # Convert unread chat messages to notification-like objects
+    # Convert unread chat messages into notification-like objects
     for chat in unread_chats:
         notifications.append(
             type("ChatNotification", (), {
                 "title": f"New message from {chat.sender.username}",
-                "message": chat.content,
+                "message": chat.message,  # Corrected field
                 "timestamp": chat.timestamp,
                 "is_read": False,
             })()
         )
 
     # Sort all notifications by timestamp descending
-    notifications.sort(key=lambda x: x.timestamp, reverse=True)
+    notifications.sort(key=lambda n: n.timestamp, reverse=True)
 
+    # Count total unread notifications
     total_unread = sum(1 for n in notifications if not n.is_read)
 
+    # Display message if no notifications exist
     if not notifications:
         messages.info(request, "🔔 You don’t have any notifications yet.")
 
