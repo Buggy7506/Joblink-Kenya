@@ -1,240 +1,204 @@
 {% extends "base.html" %}
-{% block title %}Chat{% if job %} — {{ job.title }}{% elif application %} — {{ application.job.title }}{% endif %}{% endblock %}
+{% block title %}Chat{% endblock %}
+
 {% block content %}
-
-<style>
-/* --- Layout --- */
-.chat-wrap { display:flex; max-width:1200px; margin:30px auto; gap:20px; }
-.sidebar { width:260px; background:rgba(15,15,30,0.95); border-radius:16px; overflow:hidden; }
-.sidebar h3 { padding:14px; border-bottom:1px solid rgba(0,255,200,0.2); }
-.applicant { padding:12px 14px; cursor:pointer; border-bottom:1px solid rgba(0,255,200,0.1); display:flex; justify-content:space-between; align-items:center; }
-.applicant.selected { background:rgba(0,255,200,0.15); font-weight:bold; }
-.badge { background:#00ffc6; color:#111; border-radius:50%; padding:2px 8px; font-size:12px; }
-.chat-container { flex:1; display:flex; flex-direction:column; background:rgba(15,15,30,0.95); border-radius:16px; }
-.chat-header { padding:14px 18px; border-bottom:1px solid rgba(0,255,200,0.2); display:flex; justify-content:space-between; align-items:center; }
-.chat-box { flex:1; overflow-y:auto; padding:14px; }
-.bubble { max-width:70%; margin:8px 0; padding:10px 12px; border-radius:12px; word-wrap:break-word; animation:fadeIn 0.2s ease-in; position:relative; cursor:pointer; }
-.me { margin-left:auto; background:rgba(0,255,200,0.18); border:1px solid rgba(0,255,200,0.4); }
-.them { margin-right:auto; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); }
-.bubble.selected { background:#cce5ff; border:2px solid #3399ff; }
-.meta { font-size:11px; opacity:.7; margin-top:4px; }
-.chat-input { display:flex; gap:10px; padding:12px; border-top:1px solid rgba(0,255,200,0.2); background:rgba(9,12,20,0.9); }
-.chat-input input { flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; }
-.chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; }
-@keyframes fadeIn { from {opacity:0; transform:translateY(4px);} to {opacity:1; transform:none;} }
-
-/* --- Floating Chat Popup --- */
-#chat-popup-button { position:fixed; bottom:20px; right:20px; z-index:999; }
-#chat-popup-button button { padding:12px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:18px; }
-#chat-popup { display:none; position:fixed; bottom:70px; right:20px; width:400px; max-height:500px; background:rgba(15,15,30,0.95); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.25); overflow:hidden; z-index:999; }
-#chat-popup-header { padding:12px; background:#111; color:#fff; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
-#chat-popup-body { padding:12px; overflow-y:auto; height:350px; }
-#chat-popup-form { display:flex; padding:12px; border-top:1px solid rgba(0,255,200,0.2); }
-#chat-popup-form input { flex:1; padding:8px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; }
-#chat-popup-form button { padding:8px 12px; border:none; border-radius:10px; background:#00ffc6; color:#111; cursor:pointer; }
-</style>
-
-<div class="chat-wrap">
-  {% if job %}
-    <!-- Employer Sidebar -->
-    <div class="sidebar">
-      <h3>Applicants</h3>
-      {% for app in applications %}
-        <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
-          {{ app.applicant.username }}
-          {% if app.unread_count %}
-            <span class="badge">{{ app.unread_count }}</span>
-          {% endif %}
-        </a>
-      {% empty %}
-        <p style="padding:12px; opacity:.7;">No applicants yet</p>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <!-- Chat Container -->
-  <div class="chat-container">
-    <!-- Normal Header -->
-    <div id="chat-header" class="chat-header">
-      {% if job %}
-        <div><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
-      {% else %}
-        <div><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
-      {% endif %}
-    </div>
-
-    <!-- Selection Header (hidden initially) -->
-    <div id="selection-header" class="chat-header hidden">
-      <button onclick="clearSelection()">⬅️</button>
-      <span id="selected-count">0 selected</span>
-      <div>
-        <button onclick="deleteMessages()">🗑️</button>
-        <button onclick="copyMessages()">📋</button>
-        <button onclick="forwardMessages()">➡️</button>
+<div id="chat-container">
+  <div id="chat-box">
+    {% for message in messages %}
+      <div class="bubble {% if message.sender == request.user %}me{% else %}them{% endif %}" 
+           data-id="{{ message.id }}" 
+           data-text="{{ message.message }}">
+        <div><strong>{{ message.sender.username }}</strong></div>
+        <div>{{ message.message }}</div>
+        <div class="meta">{{ message.timestamp|date:"Y-m-d H:i" }}</div>
       </div>
-    </div>
+    {% endfor %}
+  </div>
 
-    <div id="chat-box" class="chat-box">
-      {% for m in messages %}
-        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %}" data-id="{{ m.id }}" data-text="{{ m.message }}">
-          <div><strong>{{ m.sender.username }}</strong></div>
-          <div>{{ m.message }}</div>
-          <div class="meta">{{ m.timestamp }}{% if m.edited_at %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
-        </div>
-      {% empty %}
-        <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
-      {% endfor %}
-    </div>
-
-    <form id="chat-form" class="chat-input" onsubmit="return false;">
-      {% csrf_token %}
-      <input id="msg-input" type="text" placeholder="Type a message…" autocomplete="off" maxlength="2000" />
-      <button id="send-btn" type="button">Send</button>
-    </form>
+  <div id="chat-input">
+    <input type="text" id="msg-input" placeholder="Type a message...">
+    <button id="send-btn">Send</button>
   </div>
 </div>
 
-<!-- Floating Chat Popup -->
+<!-- Floating chat button -->
+<button id="chat-popup-button">💬</button>
+
+<!-- Floating chat popup -->
 <div id="chat-popup">
   <div id="chat-popup-header">
-    Chat
-    <span id="close-chat" style="cursor:pointer;">✖</span>
+    <span>Chat</span>
+    <button id="close-chat">✖</button>
   </div>
-  <div id="chat-popup-body">
-    <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
+  <div id="chat-popup-body"></div>
+  <div id="chat-popup-input-box">
+    <input type="text" id="chat-popup-input" placeholder="Type a message...">
+    <button id="chat-popup-send">Send</button>
   </div>
-  <form id="chat-popup-form">
-    {% csrf_token %}
-    <input id="chat-popup-input" type="text" placeholder="Type a message…" />
-    <button type="button" id="chat-popup-send">Send</button>
-  </form>
 </div>
-<button id="chat-popup-button"><span>💬</span></button>
+
+<!-- Action Menu for multi-select -->
+<div id="action-menu" style="display:none;">
+  <button id="copy-msg">📋 Copy</button>
+  <button id="delete-msg">🗑 Delete</button>
+  <button id="forward-msg">➡️ Forward</button>
+</div>
+
+<style>
+#chat-container { max-width: 600px; margin: auto; padding: 10px; font-family: Arial, sans-serif; }
+#chat-box { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #f5f5f5; }
+.bubble { padding: 8px 12px; margin: 5px 0; border-radius: 10px; position: relative; cursor: pointer; }
+.me { background: #dcf8c6; text-align: right; margin-left: auto; max-width: 80%; }
+.them { background: #fff; text-align: left; margin-right: auto; max-width: 80%; }
+.bubble.selected { border: 2px solid #3399ff; background:#cce5ff; }
+.meta { font-size: 11px; color: #666; margin-top: 3px; }
+#chat-input { display: flex; gap: 5px; margin-top: 10px; }
+#msg-input { flex: 1; padding: 5px; }
+#send-btn { padding: 5px 10px; }
+
+#chat-popup-button { position: fixed; bottom: 20px; right: 20px; padding: 15px; border-radius: 50%; background: #007bff; color: #fff; border: none; cursor: pointer; }
+#chat-popup { display:none; position:fixed; bottom:80px; right:20px; width:300px; background:#fff; border:1px solid #ccc; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+#chat-popup-header { display:flex; justify-content:space-between; padding:10px; background:#007bff; color:#fff; border-radius:10px 10px 0 0; }
+#chat-popup-body { height:200px; overflow-y:auto; padding:10px; }
+#chat-popup-input-box { display:flex; gap:5px; padding:10px; }
+#chat-popup-input { flex:1; padding:5px; }
+
+#action-menu { position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:5px; z-index:1000; }
+#action-menu button { display:block; width:100%; padding:5px; background:none; border:none; text-align:left; cursor:pointer; }
+#action-menu button:hover { background:#f0f0f0; }
+</style>
 
 <script>
 (function(){
-  const username = "{{ request.user.username|escapejs }}";
-  const chatBox = document.getElementById("chat-box");
-  const input = document.getElementById("msg-input");
-  const sendBtn = document.getElementById("send-btn");
+const username = "{{ request.user.username|escapejs }}";
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("msg-input");
+const sendBtn = document.getElementById("send-btn");
+const actionMenu = document.getElementById("action-menu");
+let selectedMessages = new Set();
+let pressTimer = null;
+let currentBubble = null;
 
-  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
-  if(!appId) return;
+const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
+if(!appId) return;
 
-  const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
+const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
 
-  function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
+function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
+scrollBottom(chatBox);
+
+function sendMessage(msgInput=input){
+  const text = msgInput.value.trim();
+  if(!text || socket.readyState!==1) return;
+  socket.send(JSON.stringify({ action:"message", message:text }));
+  msgInput.value = "";
+}
+sendBtn.addEventListener("click", ()=>sendMessage());
+input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
+
+const chatButton = document.getElementById("chat-popup-button");
+const chatPopup = document.getElementById("chat-popup");
+const chatClose = document.getElementById("close-chat");
+const popupInput = document.getElementById("chat-popup-input");
+const popupSend = document.getElementById("chat-popup-send");
+const popupBody = document.getElementById("chat-popup-body");
+
+chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
+chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
+popupSend.addEventListener("click", ()=>sendMessage(popupInput));
+popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
+
+// Receive messages
+socket.onmessage = function(e){
+  const data = JSON.parse(e.data);
+  if(data.type==="message") addBubble(data);
+  if(data.type==="deleted"){
+    document.querySelectorAll(`.bubble[data-id='${data.id}']`).forEach(b=>b.remove());
+  }
+};
+
+function addBubble(data){
+  const bubble = document.createElement("div");
+  bubble.className = `bubble ${data.sender===username?"me":"them"}`;
+  bubble.dataset.id = data.id;
+  bubble.dataset.text = data.message;
+  bubble.innerHTML = `<div><strong>${data.sender}</strong></div>
+                      <div>${data.message}</div>
+                      <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+  chatBox.appendChild(bubble);
+  popupBody.appendChild(bubble.cloneNode(true));
   scrollBottom(chatBox);
+  scrollBottom(popupBody);
+  attachLongPress(bubble);
+}
 
-  function sendMessage(msgInput=input){
-    const text = msgInput.value.trim();
-    if(!text || socket.readyState!==1) return;
-    socket.send(JSON.stringify({ action:"message", message:text }));
-    msgInput.value = "";
-  }
-
-  sendBtn.addEventListener("click", ()=>sendMessage());
-  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
-
-  // Floating chat popup
-  const chatButton = document.getElementById("chat-popup-button");
-  const chatPopup = document.getElementById("chat-popup");
-  const chatClose = document.getElementById("close-chat");
-  const popupInput = document.getElementById("chat-popup-input");
-  const popupSend = document.getElementById("chat-popup-send");
-  const popupBody = document.getElementById("chat-popup-body");
-
-  chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
-  chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
-  popupSend.addEventListener("click", ()=>sendMessage(popupInput));
-  popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
-
-  socket.onmessage = function(e){
-    const data = JSON.parse(e.data);
-    if(data.type==="message"){
-      const bubble = document.createElement("div");
-      bubble.className = `bubble ${data.sender===username?"me":"them"}`;
-      bubble.dataset.id = data.id;
-      bubble.dataset.text = data.message;
-      bubble.innerHTML = `<div><strong>${data.sender}</strong></div>
-                          <div>${data.message}</div>
-                          <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
-      chatBox.appendChild(bubble);
-      popupBody.appendChild(bubble.cloneNode(true));
-      scrollBottom(chatBox);
-      scrollBottom(popupBody);
-    }
+// Long-press / multi-select
+function attachLongPress(bubble){
+  const startPress = (e) => {
+    e.preventDefault();
+    const touch = e.touches ? e.touches[0] : e;
+    pressTimer = setTimeout(()=>toggleSelection(bubble), 500);
   };
+  const cancelPress = ()=> clearTimeout(pressTimer);
 
-  /* --- WhatsApp-style selection --- */
-  let pressTimer;
-  let selectionMode = false;
-  let selectedMessages = new Set();
+  bubble.addEventListener("mousedown", startPress);
+  bubble.addEventListener("mouseup", cancelPress);
+  bubble.addEventListener("mouseleave", cancelPress);
+  bubble.addEventListener("touchstart", startPress);
+  bubble.addEventListener("touchend", cancelPress);
+}
 
-  chatBox.addEventListener("mousedown", e=>{
-    const target = e.target.closest(".bubble");
-    if(!target) return;
-    pressTimer = setTimeout(()=>startSelection(target), 500);
+function toggleSelection(bubble){
+  if(selectedMessages.has(bubble)){
+    bubble.classList.remove("selected");
+    selectedMessages.delete(bubble);
+  } else {
+    bubble.classList.add("selected");
+    selectedMessages.add(bubble);
+  }
+  if(selectedMessages.size) showMenuAtBubble(selectedMessages.values().next().value);
+  else hideMenu();
+}
+
+function showMenuAtBubble(bubble){
+  const rect = bubble.getBoundingClientRect();
+  actionMenu.style.left = rect.left + "px";
+  actionMenu.style.top = (rect.top - 50) + "px";
+  actionMenu.style.display = "block";
+}
+
+// Action buttons
+document.getElementById("copy-msg").addEventListener("click", ()=>{
+  const text = Array.from(selectedMessages).map(b=>b.dataset.text).join("\n");
+  navigator.clipboard.writeText(text);
+  alert("Copied!");
+  clearSelection();
+});
+document.getElementById("delete-msg").addEventListener("click", ()=>{
+  selectedMessages.forEach(b=>{
+    if(socket.readyState===1) socket.send(JSON.stringify({ action:"delete", id: b.dataset.id }));
   });
-  chatBox.addEventListener("mouseup", ()=>clearTimeout(pressTimer));
-  chatBox.addEventListener("mouseleave", ()=>clearTimeout(pressTimer));
+  clearSelection();
+});
+document.getElementById("forward-msg").addEventListener("click", ()=>{
+  const text = Array.from(selectedMessages).map(b=>b.dataset.text).join("\n");
+  alert("Forwarding:\n"+text);
+  clearSelection();
+});
 
-  chatBox.addEventListener("click", e=>{
-    const target = e.target.closest(".bubble");
-    if(selectionMode && target) toggleSelection(target);
-  });
+function clearSelection(){
+  selectedMessages.forEach(b=>b.classList.remove("selected"));
+  selectedMessages.clear();
+  hideMenu();
+}
 
-  function startSelection(msg){
-    selectionMode = true;
-    toggleSelection(msg);
-    document.getElementById("chat-header").classList.add("hidden");
-    document.getElementById("selection-header").classList.remove("hidden");
-  }
+document.addEventListener("click", e=>{
+  if(!actionMenu.contains(e.target) && !Array.from(selectedMessages).includes(e.target.closest(".bubble"))) hideMenu();
+});
 
-  function toggleSelection(msg){
-    if(selectedMessages.has(msg)){
-      msg.classList.remove("selected");
-      selectedMessages.delete(msg);
-    } else {
-      msg.classList.add("selected");
-      selectedMessages.add(msg);
-    }
-    updateCount();
-  }
-
-  function updateCount(){
-    document.getElementById("selected-count").innerText = `${selectedMessages.size} selected`;
-    if(selectedMessages.size===0) clearSelection();
-  }
-
-  window.clearSelection = function(){
-    selectedMessages.forEach(m=>m.classList.remove("selected"));
-    selectedMessages.clear();
-    selectionMode = false;
-    document.getElementById("chat-header").classList.remove("hidden");
-    document.getElementById("selection-header").classList.add("hidden");
-  };
-
-  window.deleteMessages = function(){
-    selectedMessages.forEach(m=>m.remove());
-    clearSelection();
-  };
-
-  window.copyMessages = function(){
-    let text = Array.from(selectedMessages).map(m=>m.dataset.text).join("\n");
-    navigator.clipboard.writeText(text);
-    alert("Copied:\n"+text);
-    clearSelection();
-  };
-
-  window.forwardMessages = function(){
-    let text = Array.from(selectedMessages).map(m=>m.dataset.text).join("\n");
-    alert("Forwarding:\n"+text);
-    clearSelection();
-  };
-
+// Attach to initial bubbles
+document.querySelectorAll(".bubble").forEach(b=>attachLongPress(b));
 })();
 </script>
-
 {% endblock %}
