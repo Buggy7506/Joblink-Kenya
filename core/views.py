@@ -166,24 +166,40 @@ def signup_view(request):
      return render(request, 'signup.html', {'form': form})
 
 #User Login
+from django.contrib.auth import get_user_model
 
-def login_view(request): 
-    if request.method == 'POST': 
-        username = request.POST['username'] 
-        password = request.POST['password'] 
-        user = authenticate(request, username=username, password=password) 
+User = get_user_model()
+
+def login_view(request):
+    if request.method == 'POST':
+        identifier = request.POST['username']  # username, email, or phone
+        password = request.POST['password']
+
+        try:
+            user_obj = User.objects.get(
+                Q(username=identifier) | 
+                Q(email=identifier) | 
+                Q(phone=identifier)
+            )
+            username = user_obj.username  # authenticate still needs username
+        except User.DoesNotExist:
+            messages.error(request, "Invalid credentials")
+            return render(request, 'login.html')
+
+        # Authenticate
+        user = authenticate(request, username=username, password=password)
+
         if user is not None:
             login(request, user)
 
-            # SUPERUSER GOES DIRECTLY TO ADMIN DASHBOARD
             if user.is_superuser:
                 return redirect('admin_dashboard')
-
-            # Normal users go to dashboard
             return redirect('dashboard')
         else:
             messages.error(request, "Invalid credentials")
+
     return render(request, 'login.html')
+
 
 #User Logout
 
