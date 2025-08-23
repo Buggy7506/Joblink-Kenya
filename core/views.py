@@ -42,6 +42,21 @@ def get_unread_messages(user):
 
 
 @login_required
+def delete_message(request, msg_id):
+    msg = get_object_or_404(ChatMessage, id=msg_id, sender=request.user)
+    msg.delete()
+    return JsonResponse({"status": "ok"})
+
+@login_required
+def edit_message(request, msg_id):
+    msg = get_object_or_404(ChatMessage, id=msg_id, sender=request.user)
+    new_text = request.POST.get("message")
+    if new_text:
+        msg.message = new_text
+        msg.save()
+    return JsonResponse({"status": "ok", "new_text": msg.message})
+
+@login_required
 def notifications(request):
     user = request.user
 
