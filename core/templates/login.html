@@ -1,22 +1,97 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>JobLink Kenya- Login</title>
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scaleable=no">
-</head>
-<body>
-    <div class="login-box">
-        <h2>Login</h2>
-        <form method="post">
-            {% csrf_token %}
-            <input type="text" name="username" placeholder="Username"><br>
-            <input type="password" name="password" placeholder="Password"><br>         {{ form.as_p }}
-            <button type="submit">Login</button>
-        </form>
-        <h3><a href="{% url 'password_reset' %}">Forgot Password?</a></h3>
-        <h3><a href="{% url 'signup' %}">Don't have an account?</a></h3>
-    </div>
-</body>
-</html>
+
+{% block title %}Login - JobLink Kenya{% endblock %}
+
+{% block content %}
+<div class="login-box">
+    <h2>Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username"><br>
+        <input type="password" name="password" placeholder="Password"><br>
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+    <h3><a href="{% url 'password_reset' %}">Forgot Password?</a></h3>
+    <h3><a href="{% url 'signup' %}">Don't have an account?</a></h3>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #0f172a, #1e293b);
+    color: #e0f7fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-box {
+    background: rgba(0, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    width: 350px;
+    border: 1px solid #00ffff;
+    backdrop-filter: blur(6px);
+    animation: pulseGlow 3s infinite alternate;
+}
+
+.login-box h2,
+.login-box h3 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #00eaff;
+    text-shadow: 0 0 8px #00eaff, 0 0 15px #00eaff;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #00ffff;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: #e0f7fa;
+    box-shadow: inset 0 0 5px rgba(0,255,255,0.3);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    box-shadow: 0 0 12px #00ffff;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00eaff;
+    color: #000;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0,255,255,0.5), 0 0 30px rgba(0,255,255,0.4);
+    transition: transform .2s, box-shadow .2s;
+    animation: pulseGlow 2s infinite alternate;
+}
+
+button:hover {
+    background-color: #00ffff;
+    transform: scale(1.05);
+}
+
+@keyframes pulseGlow {
+    from {
+        box-shadow: 0 0 10px rgba(0,255,255,0.3), 0 0 20px rgba(0,255,255,0.2);
+    }
+    to {
+        box-shadow: 0 0 25px rgba(0,255,255,0.8), 0 0 40px rgba(0,255,255,0.6);
+    }
+}
+</style>
+{% endblock %}
