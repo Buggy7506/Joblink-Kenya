@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container">
-  <h2 class="glow-header text-center">📄 My Posted Jobs</h2>
+  <h2 class="glow-header">📄 My Posted Jobs</h2>
 
   <!-- Display Success or Error Messages -->
   {% if messages %}
@@ -15,61 +15,70 @@
     </div>
   {% endif %}
 
-  {% for job in jobs %}
-    <div class="job-card glow-card">
-      <h3 class="glow-text"><strong>Title:</strong> {{ job.title }}</h3>
-      <p><strong>Description:</strong> {{ job.description|truncatewords:30 }}</p>
-      <p><strong>Posted on:</strong> {{ job.posted_on }}</p>
+  <!-- Job Cards -->
+  <div class="jobs-grid">
+    {% for job in jobs %}
+      <div class="job-card">
+        <h3 class="glow-text">{{ job.title }}</h3>
+        <p class="job-desc">{{ job.description|truncatewords:30 }}</p>
+        <p class="posted-date">📅 Posted on: {{ job.posted_on }}</p>
 
-      <!-- Action Buttons -->
-      <div class="job-actions">
-        <a href="{% url 'edit_job' job.id %}" class="btn-glow edit-btn">✏️ Edit Job</a>
-        <a href="{% url 'confirm_delete' job.id %}" class="btn-glow delete-btn">❌ Delete Job</a>
+        <!-- Action Buttons -->
+        <div class="job-actions">
+          <a href="{% url 'edit_job' job.id %}" class="btn edit-btn">✏️ Edit Job</a>
+          <a href="{% url 'confirm_delete' job.id %}" class="btn delete-btn">❌ Delete Job</a>
+        </div>
       </div>
-    </div>
-  {% empty %}
-    <p class="text-center text-white">No jobs posted yet.</p>
-  {% endfor %}
+    {% empty %}
+      <p class="text-center text-white">No jobs posted yet.</p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+/* Container */
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+
 /* Glowing Page Header */
 .glow-header {
     font-size: 3rem;
     color: #ff6ec7;
     text-align: center;
-    margin-bottom: 40px;
-    text-shadow:
-        0 0 5px #ff6ec7,
-        0 0 10px #ff6ec7,
-        0 0 20px #ff6ec7,
-        0 0 40px #ff3399;
+    margin-bottom: 50px;
+    text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc, 0 0 40px #ff66ff;
     animation: pulseHeader 3s infinite alternate;
 }
 
-/* Neon Pulse Animation */
+/* Pulse animation for header */
 @keyframes pulseHeader {
     0% { text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc; }
     50% { text-shadow: 0 0 20px #ff33cc, 0 0 40px #ff66ff; }
     100% { text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc; }
 }
 
-/* Job Card Neon Glow */
-.job-card {
-    background: rgba(10, 10, 20, 0.8);
-    padding: 25px;
-    border-radius: 20px;
-    margin-bottom: 25px;
-    border-left: 6px solid #ff33cc;
-    box-shadow: 0 0 15px rgba(255, 51, 204, 0.6),
-                0 0 30px rgba(255, 102, 255, 0.3),
-                0 0 60px rgba(255, 51, 204, 0.2);
-    transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+/* Job Grid */
+.jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
 }
 
-/* Job Card Hover Effect */
+/* Job Card */
+.job-card {
+    background: rgba(15, 15, 30, 0.9);
+    padding: 25px;
+    border-radius: 20px;
+    border-left: 6px solid #ff33cc;
+    box-shadow: 0 0 15px rgba(255, 51, 204, 0.6),
+                0 0 30px rgba(255, 102, 255, 0.3);
+    transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+}
 .job-card:hover {
     transform: translateY(-5px) scale(1.02);
     border-left-color: #ff66ff;
@@ -78,55 +87,63 @@
                 0 0 100px rgba(255, 51, 204, 0.5);
 }
 
-/* Neon Text Glow */
+/* Job Text */
 .glow-text {
     color: #ff33cc;
-    text-shadow:
-        0 0 5px #ff33cc,
-        0 0 10px #ff66ff,
-        0 0 20px #ff99ff,
-        0 0 40px #ff33cc;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px #ff33cc, 0 0 15px #ff66ff;
+}
+.job-desc {
+    color: #ddd;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+.posted-date {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
 }
 
-/* Action Buttons Neon */
-.btn-glow {
+/* Buttons */
+.btn {
+    display: inline-block;
     padding: 12px 25px;
     font-weight: bold;
+    font-size: 0.95rem;
     border-radius: 30px;
     text-decoration: none;
-    text-align: center;
     transition: all 0.3s ease;
-    box-shadow: 0 0 10px rgba(255, 51, 204, 0.6),
-                0 0 20px rgba(255, 102, 255, 0.4);
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
 }
 
-/* Edit Button Neon */
+/* Edit Button */
 .edit-btn {
     background: linear-gradient(135deg, #33ccff, #0066ff);
-    color: #fff;
     border: 1px solid #33ccff;
-    text-shadow: 0 0 5px #33ccff;
+    margin-right: 10px;
+    box-shadow: 0 0 15px #33ccff, 0 0 30px #0066ff;
 }
 .edit-btn:hover {
     background: linear-gradient(135deg, #66e0ff, #3399ff);
-    box-shadow: 0 0 25px #33ccff, 0 0 50px #66e0ff;
+    box-shadow: 0 0 30px #33ccff, 0 0 60px #66e0ff;
     transform: scale(1.08);
 }
 
-/* Delete Button Neon */
+/* Delete Button */
 .delete-btn {
     background: linear-gradient(135deg, #ff3380, #ff0066);
-    color: #fff;
     border: 1px solid #ff3380;
-    text-shadow: 0 0 5px #ff3380;
+    box-shadow: 0 0 15px #ff3380, 0 0 30px #ff0066;
 }
 .delete-btn:hover {
     background: linear-gradient(135deg, #ff66a3, #ff3399);
-    box-shadow: 0 0 25px #ff3380, 0 0 50px #ff66a3;
+    box-shadow: 0 0 30px #ff3380, 0 0 60px #ff66a3;
     transform: scale(1.08);
 }
 
-/* Messages Popup Neon */
+/* Messages Popup */
 #messages-popup {
     position: fixed;
     top: 20px;
@@ -137,7 +154,6 @@
     flex-direction: column;
     gap: 12px;
 }
-
 .message {
     padding: 15px 30px;
     border-radius: 30px;
@@ -149,32 +165,15 @@
     opacity: 0.95;
     animation: slideDown 0.5s forwards;
 }
-
 .message.success {
     background: linear-gradient(90deg, #33ff99, #00cc66);
-    box-shadow: 0 0 20px #33ff99, 0 0 40px #00cc66;
 }
-
 .message.error {
     background: linear-gradient(90deg, #ff3380, #ff0066);
-    box-shadow: 0 0 20px #ff3380, 0 0 40px #ff0066;
 }
-
-/* Slide Down and Fade Out Animations */
 @keyframes slideDown {
     from { transform: translateY(-50px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
-}
-@keyframes fadeOut {
-    to { opacity: 0; transform: translateY(-50px); }
-}
-
-/* Responsive Adjustments */
-@media (max-width: 600px) {
-    .job-actions {
-        flex-direction: column;
-        gap: 12px;
-    }
 }
 </style>
 {% endblock %}
