@@ -843,9 +843,14 @@ def view_applications(request):
         messages.error(request, "❌ Only applicants can access this page.")
         return redirect("dashboard")
 
-    applications = Application.objects.filter(applicant=request.user).select_related("job", "job__employer")
+    applications = (
+        Application.objects.filter(applicant=request.user)
+        .select_related("job", "job__employer")
+        .order_by("-applied_on")  # ✅ Show newest first
+    )
 
     return render(request, "view_applications.html", {
         "applications": applications,
         "applications_count": applications.count(),
     })
+    
