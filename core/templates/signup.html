@@ -4,15 +4,6 @@
 
 {% block extra_css %}
 <style>
-body {
-  background: linear-gradient(to right, #fceabb, #f8b500);
-  font-family: 'Helvetica Neue', sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 150vh;
-}
-
 /* Glow animation */
 @keyframes glow {
   0% {
@@ -24,6 +15,15 @@ body {
   100% {
     box-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800, 0 0 30px #ff9800;
   }
+}
+
+.signup-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to right, #fceabb, #f8b500);
+  font-family: 'Helvetica Neue', sans-serif;
 }
 
 .signup-form {
@@ -50,8 +50,8 @@ body {
   color: #555;
 }
 
-input,
-select {
+.signup-form input,
+.signup-form select {
   width: 100%;
   padding: 12px 14px;
   margin-top: 12px;
@@ -61,15 +61,15 @@ select {
   transition: all 0.3s ease;
 }
 
-input:focus,
-select:focus {
+.signup-form input:focus,
+.signup-form select:focus {
   outline: none;
   border-color: #ff5722;
   box-shadow: 0 0 8px rgba(255, 87, 34, 0.6);
   background: #fff3cd;
 }
 
-button {
+.signup-form button {
   background: linear-gradient(45deg, #ff9800, #ff5722);
   color: white;
   padding: 14px;
@@ -84,7 +84,7 @@ button {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-button:hover {
+.signup-form button:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 20px rgba(255, 87, 34, 0.6),
               0 6px 10px rgba(0, 0, 0, 0.2);
@@ -93,13 +93,15 @@ button:hover {
 {% endblock %}
 
 {% block content %}
-<div class="signup-form">
-    <h2>Create Account</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Sign Up</button>
-    </form>
-    <h3><a href="{% url 'login' %}">Already have an account?</a></h3>
+<div class="signup-page">
+  <div class="signup-form">
+      <h2>Create Account</h2>
+      <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit">Sign Up</button>
+      </form>
+      <h3><a href="{% url 'login' %}">Already have an account?</a></h3>
+  </div>
 </div>
 {% endblock %}
