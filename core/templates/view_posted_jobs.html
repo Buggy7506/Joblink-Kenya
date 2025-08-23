@@ -25,8 +25,8 @@
 
         <!-- Action Buttons -->
         <div class="job-actions">
-          <a href="{% url 'edit_job' job.id %}" class="btn edit-btn">✏️ Edit Job</a>
-          <a href="{% url 'confirm_delete' job.id %}" class="btn delete-btn">❌ Delete Job</a>
+          <a href="{% url 'edit_job' job.id %}" class="btn neon-btn edit-btn">✏️ Edit</a>
+          <a href="{% url 'confirm_delete' job.id %}" class="btn neon-btn delete-btn">❌ Delete</a>
         </div>
       </div>
     {% empty %}
@@ -38,134 +38,122 @@
 
 {% block extra_css %}
 <style>
-/* Container */
+/* Page Container */
 .container {
     max-width: 1100px;
     margin: auto;
     padding: 20px;
 }
 
-/* Glowing Page Header */
+/* Sexy Glowing Page Header */
 .glow-header {
     font-size: 3rem;
-    color: #ff6ec7;
+    color: #fff;
     text-align: center;
     margin-bottom: 50px;
-    text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc, 0 0 40px #ff66ff;
-    animation: pulseHeader 3s infinite alternate;
+    text-shadow: 0 0 10px #ff00ff, 0 0 25px #ff33cc, 0 0 45px #ff66ff;
+    animation: neonPulse 3s infinite alternate;
 }
-@keyframes pulseHeader {
-    0% { text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc; }
-    50% { text-shadow: 0 0 20px #ff33cc, 0 0 40px #ff66ff; }
-    100% { text-shadow: 0 0 10px #ff6ec7, 0 0 20px #ff33cc; }
+@keyframes neonPulse {
+    0% { text-shadow: 0 0 10px #ff00ff, 0 0 25px #ff33cc; }
+    100% { text-shadow: 0 0 20px #ff33cc, 0 0 50px #ff66ff; }
 }
 
-/* Job Grid */
+/* Jobs Grid */
 .jobs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 25px;
+    gap: 30px;
 }
 
-/* Job Card */
+/* Sexy Job Card */
 .job-card {
-    background: rgba(15, 15, 30, 0.9);
+    background: rgba(20, 20, 40, 0.95);
     padding: 25px;
     border-radius: 20px;
-    border-left: 6px solid #ff33cc;
-    box-shadow: 0 0 15px rgba(255, 51, 204, 0.6),
-                0 0 30px rgba(255, 102, 255, 0.3);
-    transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(255, 0, 150, 0.5), 0 0 40px rgba(255, 0, 200, 0.3);
+    transition: all 0.4s ease-in-out;
 }
 .job-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    border-left-color: #ff66ff;
-    box-shadow: 0 0 30px rgba(255, 51, 204, 1),
-                0 0 60px rgba(255, 102, 255, 0.8),
-                0 0 100px rgba(255, 51, 204, 0.5);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 0 30px rgba(255, 0, 200, 0.9), 0 0 60px rgba(255, 0, 200, 0.7);
+}
+
+/* Title Glow */
+.glow-text {
+    font-size: 1.6rem;
+    color: #ff00cc;
+    margin-bottom: 12px;
+    text-shadow: 0 0 10px #ff00cc, 0 0 25px #ff66ff;
 }
 
 /* Job Text */
-.glow-text {
-    color: #ff33cc;
-    margin-bottom: 10px;
-    text-shadow: 0 0 5px #ff33cc, 0 0 15px #ff66ff;
-}
 .job-desc {
-    color: #ddd;
-    margin-bottom: 10px;
-    line-height: 1.5;
+    color: #ccc;
+    margin-bottom: 12px;
+    line-height: 1.6;
 }
 .posted-date {
-    color: #aaa;
+    color: #999;
     font-size: 0.9rem;
     margin-bottom: 20px;
 }
 
-/* Buttons Base */
-.btn {
+/* Neon Buttons */
+.neon-btn {
     display: inline-block;
-    padding: 12px 25px;
+    padding: 12px 28px;
+    border-radius: 35px;
     font-weight: bold;
+    text-transform: uppercase;
     font-size: 0.95rem;
-    border-radius: 30px;
-    text-decoration: none;
-    text-align: center;
     color: #fff;
-    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 1px;
     position: relative;
+    transition: all 0.3s ease-in-out;
     overflow: hidden;
-    transition: transform 0.3s ease;
-    z-index: 1;
+    margin-right: 12px;
+    border: none;
 }
-.btn::before {
+
+/* Shared Glow Effect */
+.neon-btn::before {
     content: "";
     position: absolute;
-    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    inset: 0;
     border-radius: 35px;
-    z-index: -1;
-    filter: blur(15px);
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
+    padding: 2px;
+    background: linear-gradient(45deg, #ff00cc, #00ffff, #ff00cc);
+    background-size: 300% 300%;
+    animation: neonBorder 5s linear infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+}
+@keyframes neonBorder {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* Edit Button */
 .edit-btn {
-    background: linear-gradient(135deg, #33ccff, #0066ff);
-    border: 1px solid #33ccff;
-    margin-right: 10px;
-}
-.edit-btn::before {
-    background: linear-gradient(135deg, #33ccff, #0066ff);
-    animation: pulseGlowBlue 3s infinite alternate;
+    background: rgba(0, 128, 255, 0.2);
 }
 .edit-btn:hover {
+    background: rgba(0, 128, 255, 0.5);
     transform: scale(1.08);
-    opacity: 0.95;
 }
 
 /* Delete Button */
 .delete-btn {
-    background: linear-gradient(135deg, #ff3380, #ff0066);
-    border: 1px solid #ff3380;
-}
-.delete-btn::before {
-    background: linear-gradient(135deg, #ff3380, #ff0066);
-    animation: pulseGlowRed 3s infinite alternate;
+    background: rgba(255, 0, 128, 0.2);
 }
 .delete-btn:hover {
+    background: rgba(255, 0, 128, 0.5);
     transform: scale(1.08);
-    opacity: 0.95;
-}
-
-/* Glow Animations */
-@keyframes pulseGlowBlue {
-    0%   { opacity: 0.4; filter: blur(10px); }
-    100% { opacity: 1; filter: blur(20px); }
-}
-@keyframes pulseGlowRed {
-    0%   { opacity: 0.4; filter: blur(10px); }
-    100% { opacity: 1; filter: blur(20px); }
 }
 
 /* Messages Popup */
@@ -185,12 +173,12 @@
     text-align: center;
     color: #fff;
     font-size: 1rem;
-    box-shadow: 0 0 15px #ff33cc, 0 0 25px #ff66ff;
+    box-shadow: 0 0 15px #ff00cc, 0 0 25px #00ffff;
     opacity: 0.95;
     animation: slideDown 0.5s forwards;
 }
 .message.success {
-    background: linear-gradient(90deg, #33ff99, #00cc66);
+    background: linear-gradient(90deg, #00ffcc, #00cc88);
 }
 .message.error {
     background: linear-gradient(90deg, #ff3380, #ff0066);
