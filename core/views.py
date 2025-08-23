@@ -56,7 +56,18 @@ def notifications(request):
 
     return render(request, "notifications.html", context)
 
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def mark_all_read(request):
+    """
+    Marks all unread notifications for the logged-in user as read.
+    """
+    user = request.user
+    Notification.objects.filter(user=user, is_read=False).update(is_read=True)
+    return redirect("notifications")  # redirect back to notifications page
+    
     
 @login_required
 def process_application(request, app_id):
