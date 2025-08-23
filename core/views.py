@@ -29,35 +29,38 @@ from .models import Notification
 @login_required
 def notifications(request):
     """
-    Display notifications for both applicants and employers in one template.
-    Each user sees only their own notifications.
-    Employers: get alerts about new applications, chats, etc.
-    Applicants: get alerts about application status, messages, etc.
+    Display notifications including unread chat messages for both applicants and employers.
     """
     user = request.user
-    role = getattr(user, "role", None)
 
-    # Fetch all notifications for this user
-    notifications = Notification.objects.filter(user=user).order_by("-timestamp")
+    # Standard in-app notifications
+    notifications = Notification.objects.filter(user=user).order_by('-timestamp')
 
     # Count unread notifications
     unread_count = notifications.filter(is_read=False).count()
 
-    # Add friendly message if no notifications
-    if not notifications.exists():
+    # Count unread chat messages
+    unread_chats = ChatMessage.objects.filter(
+        is_read=False,
+    ).filter(
+        Q(application__applicant=user) & ~Q(sender=user) | 
+        Q(application__job__employer=user) & ~Q(sender=user)
+    ).count()
+
+    total_unread = unread_count + unread_chats
+
+    if not notifications.exists() and unread_chats == 0:
         messages.info(request, "🔔 You don’t have any notifications yet.")
 
     context = {
         "notifications": notifications,
-        "unread_count": unread_count,
-        "role": role,
+        "unread_count": total_unread,
+        "role": getattr(user, "role", None),
         "title": "My Notifications",
     }
 
     return render(request, "notifications.html", context)
-
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+    
 
 @login_required
 def mark_all_read(request):
