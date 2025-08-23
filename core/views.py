@@ -74,7 +74,7 @@ def notifications(request):
     # Convert unread chat messages into notification-like objects with URL
     for chat in unread_chats:
         if chat.application.applicant == user:
-            chat_url = reverse("applicant_chat", args=[chat.application.id])
+            chat_url = reverse("job_chat", args=[chat.application.id])
         else:
             chat_url = reverse("employer_chat", args=[chat.application.job.id]) + f"?app_id={chat.application.id}"
 
