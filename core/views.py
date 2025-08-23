@@ -305,7 +305,6 @@ def edit_profile(request):
     })
 
 #Job Posting
-
 @login_required
 def post_job(request):
     if request.method == 'POST':
@@ -326,6 +325,7 @@ def post_job(request):
             )
 
             for alert in matches:
+                # send email
                 html_content = render_to_string('job_alert_email.html', {
                     'user': alert.user,
                     'job': job,
@@ -338,9 +338,16 @@ def post_job(request):
                 )
                 msg.attach_alternative(html_content, "text/html")
                 msg.send()
+
+                # create in-app notification
+                Notification.objects.create(
+                    user=alert.user,
+                    title="New Job Alert",
+                    message=f"A new job '{job.title}' has been posted in {job.location}.",
+                )
             # -----------------------------------------------------
 
-            messages.success(request, "Job posted and email alerts sent to applicants.")
+            messages.success(request, "Job posted, email alerts & notifications sent.")
             return redirect('dashboard')
     else:
         form = JobForm()
@@ -382,8 +389,19 @@ def apply_job(request, job_id):
                 applicant=request.user,
                 job=job
             )
-            applied_status = 'yes' if created else 'already'
-            messages.success(request, "✅ You have successfully applied to the job!")
+            if created:
+                # ✅ Notify employer
+                Notification.objects.create(
+                    user=job.employer,
+                    title="New Job Application",
+                    message=f"{request.user.username} has applied for your job '{job.title}'."
+                )
+                messages.success(request, "✅ You have successfully applied to the job!")
+                applied_status = 'yes'
+            else:
+                applied_status = 'already'
+                messages.info(request, "ℹ️ You already applied for this job.")
+
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
         # GET request → Show application page
@@ -790,10 +808,17 @@ def chat_view(request, application_id=None, job_id=None):
             if text:
                 ChatMessage.objects.create(application=app, sender=user, message=text)
 
+                # ✅ Notify the other party
+                recipient = app.job.employer if user == app.applicant else app.applicant
+                Notification.objects.create(
+                    user=recipient,
+                    title="New Chat Message",
+                    message=f"{user.username} sent you a new message about '{app.job.title}'."
+                )
+
         messages = app.messages.all()
         context["messages"] = messages
         context["application"] = app
-
         selected_app = app
 
         if user == app.applicant:
@@ -823,11 +848,20 @@ def chat_view(request, application_id=None, job_id=None):
             if text:
                 ChatMessage.objects.create(application=selected_app, sender=user, message=text)
 
+                # ✅ Notify the applicant
+                Notification.objects.create(
+                    user=selected_app.applicant,
+                    title="New Chat Message",
+                    message=f"{user.username} (employer) sent you a new message about '{selected_app.job.title}'."
+                )
+
         messages = selected_app.messages.all() if selected_app else []
-        context["job"] = job
-        context["applications"] = applications
-        context["selected_app"] = selected_app
-        context["messages"] = messages
+        context.update({
+            "job": job,
+            "applications": applications,
+            "selected_app": selected_app,
+            "messages": messages,
+        })
 
         if selected_app:
             ChatMessage.objects.filter(
@@ -846,7 +880,7 @@ def chat_view(request, application_id=None, job_id=None):
                 {
                     "id": msg.id,
                     "sender_id": msg.sender_id,
-                    "text": msg.message,  # fixed
+                    "text": msg.message,
                     "created": msg.created_at.strftime("%Y-%m-%d %H:%M"),
                 }
                 for msg in messages
