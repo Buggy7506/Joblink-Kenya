@@ -172,7 +172,7 @@ User = get_user_model()
 
 def login_view(request):
     if request.method == 'POST':
-        identifier = request.POST['username']  # username, email, or phone
+        identifier = request.POST['identifier']  # username, email, or phone
         password = request.POST['password']
 
         try:
