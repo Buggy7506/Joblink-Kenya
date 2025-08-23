@@ -40,11 +40,12 @@ def get_unread_messages(user):
         Q(application__job__employer=user) & ~Q(sender=user)
     ).count()
 
+
 @login_required
 def notifications(request):
     user = request.user
 
-    # Fetch standard notifications for the user
+    # Fetch standard notifications
     notifications = list(Notification.objects.filter(user=user).order_by('-timestamp'))
 
     # Fetch unread chat messages
@@ -55,24 +56,30 @@ def notifications(request):
         Q(application__job__employer=user) & ~Q(sender=user)
     ).order_by('-timestamp')
 
-    # Convert unread chat messages into notification-like objects
+    # Convert unread chat messages into notification-like objects with URL
     for chat in unread_chats:
+        if chat.application.applicant == user:
+            chat_url = reverse("applicant_chat", args=[chat.application.id])
+        else:
+            chat_url = reverse("employer_chat", args=[chat.application.job.id]) + f"?app_id={chat.application.id}"
+
         notifications.append(
             type("ChatNotification", (), {
                 "title": f"New message from {chat.sender.username}",
-                "message": chat.message,  # Corrected field
+                "message": chat.message,
                 "timestamp": chat.timestamp,
                 "is_read": False,
+                "url": chat_url,  # Add the chat link here
             })()
         )
 
-    # Sort all notifications by timestamp descending
+    # Sort notifications by timestamp descending
     notifications.sort(key=lambda n: n.timestamp, reverse=True)
 
     # Count total unread notifications
     total_unread = sum(1 for n in notifications if not n.is_read)
 
-    # Display message if no notifications exist
+    # Show message if no notifications exist
     if not notifications:
         messages.info(request, "🔔 You don’t have any notifications yet.")
 
@@ -84,8 +91,7 @@ def notifications(request):
     }
 
     return render(request, "notifications.html", context)
-
-
+    
 @login_required
 def mark_all_read(request):
     """
