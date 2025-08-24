@@ -1,53 +1,141 @@
 {% extends "base.html" %}
-{% block title %}Chat{% endblock %}
-
+{% block title %}Chat{% if job %} — {{ job.title }}{% elif application %} — {{ application.job.title }}{% endif %}{% endblock %}
 {% block content %}
-<div id="chat-container">
-  <div id="chat-box">
-    {% for message in messages %}
-      <div class="bubble {% if message.sender == request.user %}me{% else %}them{% endif %}" 
-           data-id="{{ message.id }}" 
-           data-text="{{ message.message }}"
-           data-sender="{{ message.sender.username }}">
-        <div><strong>{{ message.sender.username }}</strong></div>
-        <div>{{ message.message }}</div>
-        <div class="meta">{{ message.timestamp|date:"Y-m-d H:i" }}</div>
-      </div>
-    {% endfor %}
-  </div>
-
-  <div id="chat-input">
-    <input type="text" id="msg-input" placeholder="Type a message...">
-    <button id="send-btn">Send</button>
-  </div>
-</div>
-
-<!-- Floating chat button -->
-<button id="chat-popup-button">💬</button>
-
-<!-- Floating chat popup -->
-<div id="chat-popup">
-  <div id="chat-popup-header">
-    <span>Chat</span>
-    <button id="close-chat">✖</button>
-  </div>
-  <div id="chat-popup-body"></div>
-  <div id="chat-popup-input-box">
-    <input type="text" id="chat-popup-input" placeholder="Type a message...">
-    <button id="chat-popup-send">Send</button>
-  </div>
-</div>
-
-<!-- Action Menu for Long-Press -->
-<div id="action-menu" style="display:none;">
-  <button id="copy-msg">📋 Copy</button>
-  <button id="edit-msg">✏️ Edit</button>
-  <button id="delete-msg">🗑 Delete</button>
-</div>
 
 <style>
-  /* ... same styles as before ... */
+/* --- Layout & Sidebar --- */
+.chat-wrap { display:flex; max-width:1200px; margin:30px auto; gap:20px; font-family: 'Poppins', sans-serif; }
+.sidebar { width:280px; background:linear-gradient(135deg, rgba(10,10,25,0.95), rgba(20,20,40,0.95)); border-radius:16px; overflow:hidden; box-shadow:0 0 15px rgba(0,255,200,0.3); }
+.sidebar h3 { padding:14px; border-bottom:1px solid rgba(0,255,200,0.2); color:#00ffc6; text-shadow:0 0 5px #00ffc6; }
+.applicant { padding:12px 14px; cursor:pointer; border-bottom:1px solid rgba(0,255,200,0.05); display:flex; justify-content:space-between; align-items:center; color:#fff; transition:all 0.2s ease-in-out; }
+.applicant:hover { background:rgba(0,255,200,0.05); box-shadow:0 0 8px #00ffc6; }
+.applicant.selected { background:rgba(0,255,200,0.15); font-weight:bold; box-shadow:0 0 10px #00ffc6; }
+.badge { background:#00ffc6; color:#111; border-radius:50%; padding:2px 8px; font-size:12px; font-weight:700; }
+
+/* --- Chat Container --- */
+.chat-container { flex:1; display:flex; flex-direction:column; background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 20px rgba(0,255,200,0.25); overflow:hidden; }
+.chat-header { padding:14px 18px; border-bottom:1px solid rgba(0,255,200,0.2); color:#00ffc6; text-shadow:0 0 6px #00ffc6; font-weight:bold; }
+.chat-box { flex:1; overflow-y:auto; padding:14px; background: rgba(10,10,20,0.9); display:flex; flex-direction:column; gap:8px; }
+.bubble { max-width:70%; margin:4px 0; padding:12px 16px; border-radius:20px; word-wrap:break-word; position:relative; color:#fff; box-shadow:0 0 8px rgba(0,255,200,0.2); transition: all 0.2s ease-in-out; }
+.bubble:hover { box-shadow:0 0 12px #00ffc6; }
+.me { margin-left:auto; background:linear-gradient(135deg, rgba(0,255,200,0.2), rgba(0,255,150,0.2)); border:1px solid #00ffc6; text-align:right; }
+.them { margin-right:auto; background:rgba(255,255,255,0.05); border:1px solid rgba(0,255,200,0.15); }
+.meta { font-size:11px; opacity:.6; margin-top:4px; color:#00ffc6; text-shadow:0 0 4px #00ffc6; }
+.chat-input { display:flex; gap:10px; padding:12px; border-top:1px solid rgba(0,255,200,0.2); background:rgba(10,10,20,0.95); }
+.chat-input input { flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
+.chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; box-shadow:0 0 10px #00ffc6; transition:all 0.2s ease; }
+.chat-input button:hover { transform:scale(1.05); box-shadow:0 0 20px #00ffc6; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(4px);} to {opacity:1; transform:none;} }
+
+/* --- Pop-in animation --- */
+@keyframes popIn { 0% { transform: scale(0.8); opacity:0; box-shadow:0 0 0 #00ffc6; } 50% { transform: scale(1.05); opacity:1; box-shadow:0 0 12px #00ffc6; } 100% { transform: scale(1); box-shadow:0 0 8px #00ffc6; } }
+.bubble.pop { animation: popIn 0.3s ease forwards; }
+
+/* --- Typing indicator --- */
+.typing { display:flex; align-items:center; gap:4px; max-width:60px; padding:10px 14px; border-radius:20px; background:rgba(255,255,255,0.08); border:1px solid rgba(0,255,200,0.15); box-shadow:0 0 8px rgba(0,255,200,0.2); animation:fadeIn 0.3s ease-in; }
+.dot { width:6px; height:6px; background:#00ffc6; border-radius:50%; animation:blink 1.2s infinite; }
+.dot:nth-child(2){ animation-delay:0.2s; }
+.dot:nth-child(3){ animation-delay:0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity:0.2; transform:scale(1); } 40% { opacity:1; transform:scale(1.3); } }
+
+/* --- Send button glow --- */
+@keyframes sendGlow { 0% { box-shadow:0 0 10px #00ffc6; transform:scale(1); } 50% { box-shadow:0 0 18px #00ffc6,0 0 25px rgba(0,255,200,0.5); transform:scale(1.1); } 100% { box-shadow:0 0 10px #00ffc6; transform:scale(1); } }
+.send-effect { animation:sendGlow 0.5s ease-out; }
+
+/* --- Floating Chat Popup --- */
+#chat-popup-button { position:fixed; bottom:20px; right:20px; z-index:999; }
+#chat-popup-button button { padding:14px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:22px; box-shadow:0 0 12px #00ffc6,0 0 25px rgba(0,255,200,0.3); transition:all 0.2s; }
+#chat-popup-button button:hover { transform:scale(1.1); box-shadow:0 0 18px #00ffc6,0 0 35px rgba(0,255,200,0.5); }
+#chat-popup { display:none; position:fixed; bottom:70px; right:20px; width:400px; max-height:500px; background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.3); overflow:hidden; z-index:999; }
+#chat-popup-header { padding:12px; background:#111; color:#00ffc6; font-weight:bold; display:flex; justify-content:space-between; align-items:center; text-shadow:0 0 6px #00ffc6; }
+#chat-popup-body { padding:12px; overflow-y:auto; height:350px; display:flex; flex-direction:column; gap:6px; }
+#chat-popup-form { display:flex; padding:12px; border-top:1px solid rgba(0,255,200,0.2); }
+#chat-popup-form input { flex:1; padding:8px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
+#chat-popup-form button { padding:8px 12px; border:none; border-radius:10px; background:#00ffc6; color:#111; cursor:pointer; box-shadow:0 0 10px #00ffc6; transition:all 0.2s ease; }
+#chat-popup-form button:hover { transform:scale(1.05); }
+
+/* --- Context Menu --- */
+#message-menu { position:absolute; background:#111; color:#00ffc6; border-radius:8px; border:1px solid rgba(0,255,200,0.4); box-shadow:0 2px 12px rgba(0,255,200,0.5); z-index:2000; display:none; }
+#message-menu ul { list-style:none; padding:6px; margin:0; }
+#message-menu li { padding:6px 12px; cursor:pointer; font-size:14px; transition:all 0.2s; }
+#message-menu li:hover { background:rgba(0,255,200,0.15); }
 </style>
+
+<div class="chat-wrap">
+  {% if job %}
+    <div class="sidebar">
+      <h3>Applicants</h3>
+      {% for app in applications %}
+        <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
+          {{ app.applicant.username }}
+          {% if app.unread_count %}
+            <span class="badge">{{ app.unread_count }}</span>
+          {% endif %}
+        </a>
+      {% empty %}
+        <p style="padding:12px; opacity:.7;">No applicants yet</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="chat-container">
+    <div class="chat-header">
+      {% if job %}
+        <div><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
+      {% else %}
+        <div><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
+      {% endif %}
+    </div>
+
+    <div id="chat-box" class="chat-box">
+      {% for m in messages %}
+        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} pop" data-id="{{ m.id }}" data-text="{{ m.message }}">
+          <div><strong>{{ m.sender.username }}</strong></div>
+          <div>{{ m.message }}</div>
+          <div class="meta">{{ m.timestamp }}{% if m.edited_at %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
+        </div>
+      {% empty %}
+        <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
+      {% endfor %}
+    </div>
+
+    <form id="chat-form" class="chat-input" onsubmit="return false;">
+      {% csrf_token %}
+      <input id="msg-input" type="text" placeholder="Type a message…" autocomplete="off" maxlength="2000" />
+      <button id="send-btn" type="button">Send</button>
+    </form>
+  </div>
+</div>
+
+<!-- Floating Chat Popup -->
+<div id="chat-popup">
+  <div id="chat-popup-header">
+    Chat
+    <span id="close-chat" style="cursor:pointer;">✖</span>
+  </div>
+  <div id="chat-popup-body">
+    <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
+  </div>
+  <form id="chat-popup-form">
+    {% csrf_token %}
+    <input id="chat-popup-input" type="text" placeholder="Type a message…" />
+    <button type="button" id="chat-popup-send">Send</button>
+  </form>
+</div>
+<button id="chat-popup-button"><span>💬</span></button>
+
+<!-- Context Menu -->
+<div id="message-menu">
+  <ul>
+    <li data-action="reply">Reply</li>
+    <li data-action="copy">Copy</li>
+    <li data-action="edit">Edit</li>
+    <li data-action="delete-me">Delete for Me</li>
+    <li data-action="delete-everyone">Delete for Everyone</li>
+    <li data-action="forward">Forward</li>
+    <li data-action="pin">Pin</li>
+  </ul>
+</div>
 
 <script>
 (function(){
@@ -55,8 +143,7 @@
   const chatBox = document.getElementById("chat-box");
   const input = document.getElementById("msg-input");
   const sendBtn = document.getElementById("send-btn");
-  const actionMenu = document.getElementById("action-menu");
-  let pressTimer, currentBubble, editTarget=null;
+  const menu = document.getElementById("message-menu");
 
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
@@ -67,15 +154,33 @@
   function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
   scrollBottom(chatBox);
 
+  // Typing indicator
+  let typingIndicator = null;
+  function showTyping(){
+    if(!typingIndicator){
+      typingIndicator = document.createElement("div");
+      typingIndicator.className = "bubble them typing";
+      typingIndicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+      chatBox.appendChild(typingIndicator);
+      scrollBottom(chatBox);
+    }
+  }
+  function hideTyping(){
+    if(typingIndicator){ typingIndicator.remove(); typingIndicator = null; }
+  }
+
   function sendMessage(msgInput=input){
     const text = msgInput.value.trim();
     if(!text || socket.readyState!==1) return;
 
-    if(editTarget){
-      socket.send(JSON.stringify({ action:"edit", id: editTarget.dataset.id, message: text }));
-      editTarget = null;
+    sendBtn.classList.add("send-effect");
+    setTimeout(()=>sendBtn.classList.remove("send-effect"),500);
+
+    if(msgInput.dataset.editId){
+      socket.send(JSON.stringify({action:"edit",id:msgInput.dataset.editId,message:text}));
+      delete msgInput.dataset.editId;
     } else {
-      socket.send(JSON.stringify({ action:"message", message:text }));
+      socket.send(JSON.stringify({action:"message",message:text}));
     }
     msgInput.value = "";
   }
@@ -83,6 +188,7 @@
   sendBtn.addEventListener("click", ()=>sendMessage());
   input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
 
+  // Popup logic
   const chatButton = document.getElementById("chat-popup-button");
   const chatPopup = document.getElementById("chat-popup");
   const chatClose = document.getElementById("close-chat");
@@ -98,102 +204,84 @@
   socket.onmessage = function(e){
     const data = JSON.parse(e.data);
 
-    if(data.type==="message" || data.type==="edit"){
-      addBubble(data, data.type==="edit");
-    }
-    if(data.type==="deleted"){
-      const bubble = document.querySelector(`.bubble[data-id='${data.id}']`);
-      if(bubble) bubble.remove();
-    }
-  };
+    if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
 
-  function addBubble(data, isEdit=false){
-    let bubble;
-    if(isEdit){
-      bubble = document.querySelector(`.bubble[data-id='${data.id}']`);
-      if(bubble){
-        bubble.dataset.text = data.message;
-        bubble.querySelector("div:nth-child(2)").innerText = data.message;
-        return;
-      }
-    } else {
-      bubble = document.createElement("div");
-      bubble.className = `bubble ${data.sender===username?"me":"them"}`;
+    else if(data.type==="message"){
+      const bubble = document.createElement("div");
+      bubble.className = `bubble ${data.sender===username?"me":"them"} pop`;
       bubble.dataset.id = data.id;
       bubble.dataset.text = data.message;
-      bubble.dataset.sender = data.sender; // important for edit check
       bubble.innerHTML = `<div><strong>${data.sender}</strong></div>
                           <div>${data.message}</div>
                           <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
       chatBox.appendChild(bubble);
-      popupBody.appendChild(bubble.cloneNode(true));
-      attachLongPress(bubble);
+      const popupBubble = bubble.cloneNode(true);
+      popupBody.appendChild(popupBubble);
       scrollBottom(chatBox);
       scrollBottom(popupBody);
     }
+    else if(data.type==="edit"){
+      [chatBox,popupBody].forEach(container=>{
+        const msgElem = container.querySelector(`.bubble[data-id="${data.id}"]`);
+        if(msgElem){
+          msgElem.dataset.text=data.message;
+          msgElem.querySelector("div:nth-child(2)").innerText=data.message;
+          const meta=msgElem.querySelector(".meta");
+          if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
+        }
+      });
+    }
+    else if(data.type==="delete"){
+      if(data.mode==="everyone"){
+        [chatBox,popupBody].forEach(container=>{
+          const msgElem=container.querySelector(`.bubble[data-id="${data.id}"]`);
+          if(msgElem) msgElem.remove();
+        });
+      } else if(data.mode==="me"){
+        const msgElem = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+        if(msgElem) msgElem.style.display="none";
+      }
+    }
+  };
+
+  // Long press detection
+  let pressTimer;
+  chatBox.addEventListener("mousedown", e=>{
+    const target = e.target.closest(".bubble");
+    if(!target) return;
+    pressTimer = setTimeout(()=>showMenu(e,target),500);
+  });
+  chatBox.addEventListener("mouseup", ()=>clearTimeout(pressTimer));
+  chatBox.addEventListener("mouseleave", ()=>clearTimeout(pressTimer));
+
+  function showMenu(e,msgElem){
+    e.preventDefault();
+    menu.style.left=e.pageX+"px";
+    menu.style.top=e.pageY+"px";
+    menu.style.display="block";
+
+    menu.querySelectorAll("li").forEach(item=>{
+      item.onclick = ()=>handleAction(item.dataset.action,msgElem);
+    });
   }
 
-  function showMenu(bubble, x, y){
-    currentBubble = bubble;
-    // Only allow edit if sender is current user
-    const editBtn = document.getElementById("edit-msg");
-    if(bubble.dataset.sender === username){
-      editBtn.style.display = "block";
-    } else {
-      editBtn.style.display = "none";
-    }
-    actionMenu.style.left = x+"px";
-    actionMenu.style.top = y+"px";
-    actionMenu.style.display = "block";
+  function handleAction(action,msgElem){
+    const msgId = msgElem.dataset.id;
+    const text = msgElem.dataset.text;
+
+    if(action==="copy"){ navigator.clipboard.writeText(text); }
+    else if(action==="reply"){ input.value = "Replying to: "+text+"\n"; }
+    else if(action==="edit"){ input.value=text; input.dataset.editId=msgId; input.focus(); }
+    else if(action==="delete-me"){ socket.send(JSON.stringify({action:"delete",id:msgId,mode:"me"})); msgElem.style.display="none"; }
+    else if(action==="delete-everyone"){ socket.send(JSON.stringify({action:"delete",id:msgId,mode:"everyone"})); }
+    else if(action==="forward"){ alert("Forward not yet implemented"); }
+    else if(action==="pin"){ alert("Pinned: "+text); }
+
+    menu.style.display="none";
   }
 
-  function hideMenu(){ actionMenu.style.display = "none"; }
-
-  function attachLongPress(bubble){
-    function startPress(e){
-      e.preventDefault();
-      const touch = e.touches ? e.touches[0] : e;
-      pressTimer = setTimeout(()=>showMenu(bubble, touch.pageX, touch.pageY), 600);
-    }
-    function cancelPress(){ clearTimeout(pressTimer); }
-
-    bubble.addEventListener("mousedown", startPress);
-    bubble.addEventListener("mouseup", cancelPress);
-    bubble.addEventListener("mouseleave", cancelPress);
-    bubble.addEventListener("touchstart", startPress);
-    bubble.addEventListener("touchend", cancelPress);
-  }
-
-  document.querySelectorAll(".bubble").forEach(b=>attachLongPress(b));
-
-  document.getElementById("copy-msg").addEventListener("click", ()=>{
-    if(currentBubble){
-      navigator.clipboard.writeText(currentBubble.dataset.text);
-      alert("Copied!");
-      hideMenu();
-    }
-  });
-
-  document.getElementById("edit-msg").addEventListener("click", ()=>{
-    if(currentBubble && currentBubble.dataset.sender === username){
-      input.value = currentBubble.dataset.text;
-      input.focus();
-      editTarget = currentBubble;
-      hideMenu();
-    }
-  });
-
-  document.getElementById("delete-msg").addEventListener("click", ()=>{
-    if(currentBubble && socket.readyState===1){
-      socket.send(JSON.stringify({ action:"delete", id: currentBubble.dataset.id }));
-      hideMenu();
-    }
-  });
-
-  document.addEventListener("click", e=>{
-    if(!actionMenu.contains(e.target)) hideMenu();
-  });
-
+  document.addEventListener("click", ()=>menu.style.display="none");
 })();
 </script>
+
 {% endblock %}
