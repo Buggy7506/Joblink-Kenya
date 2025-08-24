@@ -244,16 +244,38 @@
     }
   };
 
-  // Long press detection
+// Long press detection (mouse & touch)
   let pressTimer;
-  chatBox.addEventListener("mousedown", e=>{
-    const target = e.target.closest(".bubble");
-    if(!target) return;
-    pressTimer = setTimeout(()=>showMenu(e,target),500);
-  });
-  chatBox.addEventListener("mouseup", ()=>clearTimeout(pressTimer));
-  chatBox.addEventListener("mouseleave", ()=>clearTimeout(pressTimer));
+  let currentTarget;
 
+  function startPressTimer(e, target) {
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => showMenu(e, target), 600);
+  }
+
+  function cancelPressTimer() {
+    clearTimeout(pressTimer);
+  }
+
+  chatBox.addEventListener("mousedown", e => {
+    const target = e.target.closest(".bubble");
+    if (!target) return;
+    currentTarget = target;
+    startPressTimer(e, target);
+  });
+
+  chatBox.addEventListener("mouseup", cancelPressTimer);
+  chatBox.addEventListener("mouseleave", cancelPressTimer);
+
+  chatBox.addEventListener("touchstart", e => {
+    const target = e.target.closest(".bubble");
+    if (!target) return;
+    currentTarget = target;
+    startPressTimer(e, target);
+  });
+
+  chatBox.addEventListener("touchend", cancelPressTimer);
+  chatBox.addEventListener("touchcancel", cancelPressTimer);
   function showMenu(e,msgElem){
     e.preventDefault();
     menu.style.left=e.pageX+"px";
