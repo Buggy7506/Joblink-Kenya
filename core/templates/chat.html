@@ -43,17 +43,113 @@
 .send-effect { animation:sendGlow 0.5s ease-out; }
 
 /* --- Floating Chat Popup --- */
-#chat-popup-button { position:fixed; bottom:20px; right:20px; z-index:999; }
-#chat-popup-button button { padding:14px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:22px; box-shadow:0 0 12px #00ffc6,0 0 25px rgba(0,255,200,0.3); transition:all 0.2s; }
-#chat-popup-button button:hover { transform:scale(1.1); box-shadow:0 0 18px #00ffc6,0 0 35px rgba(0,255,200,0.5); }
-#chat-popup { display:none; position:fixed; bottom:70px; right:20px; width:400px; max-height:500px; background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.3); overflow:hidden; z-index:999; }
-#chat-popup-header { padding:12px; background:#111; color:#00ffc6; font-weight:bold; display:flex; justify-content:space-between; align-items:center; text-shadow:0 0 6px #00ffc6; }
-#chat-popup-body { padding:12px; overflow-y:auto; height:350px; display:flex; flex-direction:column; gap:6px; }
-#chat-popup-form { display:flex; padding:12px; border-top:1px solid rgba(0,255,200,0.2); }
-#chat-popup-form input { flex:1; padding:8px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
-#chat-popup-form button { padding:8px 12px; border:none; border-radius:10px; background:#00ffc6; color:#111; cursor:pointer; box-shadow:0 0 10px #00ffc6; transition:all 0.2s ease; }
-#chat-popup-form button:hover { transform:scale(1.05); }
+#chat-popup-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
 
+#chat-popup-button button {
+  padding: 14px 16px;
+  border-radius: 50%;
+  background: #00ffc6;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  box-shadow: 0 0 12px #00ffc6, 0 0 25px rgba(0, 255, 200, 0.3);
+  transition: all 0.2s;
+}
+
+#chat-popup-button button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 18px #00ffc6, 0 0 35px rgba(0, 255, 200, 0.5);
+}
+
+#chat-popup {
+  display: none;
+  position: fixed;
+  bottom: 90px; /* space from button */
+  right: 20px;
+  width: 100%;
+  max-width: 400px;
+  max-height: calc(100vh - 140px); /* responsive height */
+  background: linear-gradient(135deg, rgba(15, 15, 30, 0.95), rgba(20, 20, 40, 0.95));
+  border-radius: 16px;
+  box-shadow: 0 0 22px rgba(0, 255, 200, 0.3);
+  overflow: hidden;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+}
+
+#chat-popup-header {
+  padding: 12px 16px;
+  background: #111;
+  color: #00ffc6;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-shadow: 0 0 6px #00ffc6;
+  border-bottom: 1px solid rgba(0, 255, 200, 0.2);
+}
+
+#chat-popup-body {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: calc(100vh - 210px); /* accounts for header + form */
+  background: rgba(10, 10, 20, 0.95);
+}
+
+#chat-popup-form {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid rgba(0, 255, 200, 0.2);
+  background: rgba(10, 10, 20, 0.95);
+}
+
+#chat-popup-form input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: #111;
+  color: #fff;
+  box-shadow: 0 0 6px rgba(0, 255, 200, 0.3);
+}
+
+#chat-popup-form button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #00ffc6;
+  color: #111;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 0 10px #00ffc6;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+#chat-popup-form button:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  #chat-popup {
+    width: 90%;
+    right: 5%;
+    left: 5%;
+  }
+}
+  
 /* --- Context Menu --- */
 #message-menu { position:absolute; background:#111; color:#00ffc6; border-radius:8px; border:1px solid rgba(0,255,200,0.4); box-shadow:0 2px 12px rgba(0,255,200,0.5); z-index:2000; display:none; }
 #message-menu ul { list-style:none; padding:6px; margin:0; }
