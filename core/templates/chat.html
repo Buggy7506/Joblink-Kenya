@@ -175,7 +175,6 @@
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
   if(!appId) return;
-
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
 
   function scrollBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
@@ -194,7 +193,7 @@
   }
   function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
-  // Send message function
+  // Send message
   function sendMessage(msgInput=input, targetBody=chatBox){
     if(!msgInput) return;
     const text = msgInput.value.trim();
@@ -202,18 +201,15 @@
 
     function reallySend(){
       if(socket.readyState !== 1) return;
-
       const payload = msgInput.dataset.editId
         ? {action:"edit", id: msgInput.dataset.editId, message: text}
         : {action:"message", message: text};
-
       socket.send(JSON.stringify(payload));
-
       if(msgInput.dataset.editId) delete msgInput.dataset.editId;
       msgInput.value = "";
-      if(sendBtn) { sendBtn.classList.add("send-effect"); setTimeout(()=>sendBtn.classList.remove("send-effect"),500); }
+      if(sendBtn){ sendBtn.classList.add("send-effect"); setTimeout(()=>sendBtn.classList.remove("send-effect"),500); }
 
-      // Append bubble immediately
+      // Append bubble
       if(targetBody){
         const bubble = document.createElement("div");
         bubble.className = `bubble me pop`;
@@ -236,28 +232,23 @@
   // Event listeners
   if(sendBtn) sendBtn.addEventListener("click", ()=>sendMessage(input, chatBox));
   if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(input, chatBox); } });
+  if(popupSend && popupInput) popupSend.addEventListener("click", ()=>sendMessage(popupInput, popupBody));
+  if(popupInput) popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
 
   // Popup toggle
-  if (chatPopup) chatPopup.style.display = "none";
-  if (chatButton && chatPopup) chatButton.addEventListener("click", () => {
-    chatPopup.style.display = (chatPopup.style.display === "flex") ? "none" : "flex";
-    if(chatPopup.style.display === "flex") chatPopup.style.flexDirection = "column";
+  if(chatPopup) chatPopup.style.display="none";
+  if(chatButton && chatPopup) chatButton.addEventListener("click", ()=>{
+    chatPopup.style.display = (chatPopup.style.display==="flex")?"none":"flex";
+    if(chatPopup.style.display==="flex") chatPopup.style.flexDirection="column";
   });
-  if (chatClose && chatPopup) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
+  if(chatClose && chatPopup) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
 
-  // Popup send
-  if(popupSend && popupInput) popupSend.addEventListener("click", ()=>sendMessage(popupInput, popupBody));
-  if(popupInput) popupInput.addEventListener("keydown", e=>{
-    if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); }
-  });
-
-  // Socket incoming messages
+  // Socket messages
   socket.onmessage = function(e){
     const data = JSON.parse(e.data);
     if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
-    else if(data.type==="message" || data.type==="edit" || data.type==="delete"){
-      const bubbles = [chatBox, popupBody];
-      bubbles.forEach(c=>{
+    else if(["message","edit","delete"].includes(data.type)){
+      [chatBox,popupBody].forEach(c=>{
         if(!c) return;
         if(data.type==="message"){
           const bubble=document.createElement("div");
@@ -271,21 +262,18 @@
           scrollBottom(c);
         } else if(data.type==="edit"){
           const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
-          if(msg){
-            msg.dataset.text = data.message;
-            msg.querySelector("div:nth-child(2)").innerText = data.message;
-            const meta = msg.querySelector(".meta");
-            if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
+          if(msg){ msg.dataset.text=data.message; msg.querySelector("div:nth-child(2)").innerText=data.message;
+            const meta=msg.querySelector(".meta"); if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
           }
         } else if(data.type==="delete"){
           const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
-          if(msg) data.mode==="everyone" ? msg.remove() : msg.style.display="none";
+          if(msg) data.mode==="everyone"?msg.remove():msg.style.display="none";
         }
       });
     }
   };
 
-  // --- Context menu / long press ---
+  // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
     const rect=msgElem.getBoundingClientRect();
@@ -293,24 +281,15 @@
     const menuWidth=menu.offsetWidth||160;
     const screenHeight=window.innerHeight;
     const screenWidth=window.innerWidth;
-
     let x=rect.left+window.scrollX;
-    let y = (rect.bottom+menuHeight>screenHeight) ? rect.top+window.scrollY-menuHeight-5 : rect.bottom+window.scrollY+5;
+    let y = (rect.bottom+menuHeight>screenHeight)?rect.top+window.scrollY-menuHeight-5:rect.bottom+window.scrollY+5;
     if(x+menuWidth>screenWidth) x=rect.right+window.scrollX-menuWidth;
-
-    menu.style.left=x+"px";
-    menu.style.top=y+"px";
-    menu.style.display="block";
-    void menu.offsetWidth;
-    menu.classList.add("show");
-
+    menu.style.left=x+"px"; menu.style.top=y+"px"; menu.style.display="block";
+    void menu.offsetWidth; menu.classList.add("show");
     menu.querySelectorAll("li").forEach(item=>{ item.onclick=()=>handleAction(item.dataset.action,msgElem); });
   }
 
-  function hideMenu(){
-    if(menu) menu.classList.remove("show");
-    setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200);
-  }
+  function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
 
   function handleAction(action,msgElem){
     if(!socket || !msgElem) return;
@@ -325,6 +304,43 @@
     else if(action==="pin") alert("Pinned: "+text);
     hideMenu();
   }
+
+  // Right-click to open menu
+  [chatBox, popupBody].forEach(c=>{
+    if(!c) return;
+    c.addEventListener("contextmenu", e=>{ e.preventDefault(); const t=e.target.closest(".bubble"); if(t) showMenu(t); });
+  });
+
+  // Long-press for touch
+  function addLongPress(container){
+    if(!container) return;
+    container.style.touchAction="manipulation"; // disable default long-press
+
+    let timer=null, target=null, startX=0, startY=0, pointerId=null;
+    const LONG_MS=600, MOVE_TOL=10;
+    const cancel = ()=>{ if(timer){ clearTimeout(timer); timer=null; } target=null; pointerId=null; };
+
+    container.addEventListener("pointerdown", e=>{
+      const t=e.target.closest(".bubble");
+      if(!t) return;
+      target=t; pointerId=e.pointerId; startX=e.clientX; startY=e.clientY;
+      if(timer) clearTimeout(timer);
+      timer=setTimeout(()=>{ if(target) showMenu(target); }, LONG_MS);
+    }, {passive:true});
+
+    container.addEventListener("pointermove", e=>{
+      if(pointerId!==e.pointerId || !timer) return;
+      if(Math.abs(e.clientX-startX)>MOVE_TOL || Math.abs(e.clientY-startY)>MOVE_TOL) cancel();
+    }, {passive:true});
+
+    container.addEventListener("pointerup", cancel, {passive:true});
+    container.addEventListener("pointercancel", cancel, {passive:true});
+    container.addEventListener("mouseleave", cancel, {passive:true});
+    window.addEventListener("blur", cancel);
+  }
+
+  addLongPress(chatBox);
+  addLongPress(popupBody);
 
   // Hide menu when clicking outside
   document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
