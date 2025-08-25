@@ -216,18 +216,13 @@ const popupBody  = document.getElementById("chat-popup-body");
 if (chatPopup) chatPopup.style.display = "none";
 
 // Toggle open/close on button
-if (chatButton) {
+if (chatButton && chatPopup) {
   chatButton.addEventListener("click", () => {
-    if (chatPopup.style.display === "flex") {
-      chatPopup.style.display = "none"; // hide if open
-    } else {
-      chatPopup.style.display = "flex"; // show if hidden
-    }
+    chatPopup.style.display = (chatPopup.style.display === "flex") ? "none" : "flex";
   });
 }
 
-// Close button
-if (chatClose) {
+if (chatClose && chatPopup) {
   chatClose.addEventListener("click", () => {
     chatPopup.style.display = "none";
   });
