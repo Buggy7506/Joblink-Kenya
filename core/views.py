@@ -707,7 +707,10 @@ def build_resume(request):
 @login_required
 def edit_resume(request):
     """Edit an existing resume."""
-    resume = get_object_or_404(Resume, user=request.user)
+    try:
+        resume = Resume.objects.get(user=request.user)
+    except Resume.DoesNotExist:
+        return redirect('build_resume')  # redirect if resume not found
 
     if request.method == 'POST':
         form = ResumeForm(request.POST, request.FILES, instance=resume)
