@@ -278,34 +278,33 @@
     if(!menu || !msgElem) return;
 
     const rect = msgElem.getBoundingClientRect();
-    const menuHeight = menu.offsetHeight || 150;
-    const menuWidth = menu.offsetWidth || 160;
-
-    // Bubble's container scroll offset
     const container = msgElem.offsetParent || document.body;
-    const scrollTop = container.scrollTop || window.scrollY;
-    const scrollLeft = container.scrollLeft || window.scrollX;
+    const containerRect = container.getBoundingClientRect();
 
-    let x = rect.left + scrollLeft;
-    let y = rect.bottom + scrollTop;
+    const menuHeight = menu.offsetHeight || 150;
+    const menuWidth  = menu.offsetWidth  || 160;
 
-    // Adjust vertical position if it would overflow
-    if(y + menuHeight > window.innerHeight + scrollTop){
-        y = rect.top + scrollTop - menuHeight - 5;
+    // Position relative to container
+    let x = rect.left - containerRect.left + container.scrollLeft;
+    let y = rect.bottom - containerRect.top + container.scrollTop;
+
+    // Adjust vertical if overflow
+    if(y + menuHeight > container.scrollHeight){
+        y = rect.top - containerRect.top + container.scrollTop - menuHeight - 5;
     } else {
         y += 5; // small gap below bubble
     }
 
-    // Adjust horizontal position if it would overflow
-    if(x + menuWidth > window.innerWidth + scrollLeft){
-        x = rect.right + scrollLeft - menuWidth;
+    // Adjust horizontal if overflow
+    if(x + menuWidth > container.scrollWidth){
+        x = rect.right - containerRect.left + container.scrollLeft - menuWidth;
     }
 
     menu.style.left = `${x}px`;
     menu.style.top  = `${y}px`;
     menu.style.display = "block";
 
-    void menu.offsetWidth; // trigger reflow for animation
+    void menu.offsetWidth; // trigger animation
     menu.classList.add("show");
 
     menu.querySelectorAll("li").forEach(item => {
