@@ -314,19 +314,56 @@
 
   function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
 
-  function handleAction(action,msgElem){
+  function handleAction(action, msgElem){
     if(!socket || !msgElem) return;
-    const msgId=msgElem.dataset.id;
-    const text=msgElem.dataset.text;
-    if(action==="copy") navigator.clipboard.writeText(text);
-    else if(action==="reply") { input.value="Replying to: "+text+"\n"; input.focus(); }
-    else if(action==="edit") { input.value=text; input.dataset.editId=msgId; input.focus(); }
-    else if(action==="delete-me") { socket.send(JSON.stringify({action:"delete",id:msgId,mode:"me"})); msgElem.style.display="none"; }
-    else if(action==="delete-everyone") { socket.send(JSON.stringify({action:"delete",id:msgId,mode:"everyone"})); }
-    else if(action==="forward") alert("Forward not yet implemented");
-    else if(action==="pin") alert("Pinned: "+text);
+    const msgId = msgElem.dataset.id;
+    const text  = msgElem.dataset.text;
+
+    if(action === "copy"){
+        navigator.clipboard.writeText(text);
+    }
+    else if(action === "reply"){
+        input.value = "Replying to: " + text + "\n";
+        input.focus();
+    }
+    else if(action === "edit"){
+        input.value = text;
+        input.dataset.editId = msgId;
+        input.focus();
+    }
+    else if(action === "delete-me"){
+        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
+        msgElem.style.display = "none";
+    }
+    else if(action === "delete-everyone"){
+        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
+    }
+    else if(action === "forward"){
+        // --- Forward implementation ---
+        const targetAppId = prompt("Enter the target chat/app ID to forward this message:");
+        if(targetAppId){
+            socket.send(JSON.stringify({
+                action: "forward",
+                message: text,
+                target_app: targetAppId
+            }));
+            alert("Message forwarded!");
+        }
+    }
+    else if(action==="pin") {
+    if(!msgElem) return;
+    msgElem.classList.add("pinned"); // optional: add special styling
+    // Move message to top
+    [chatBox, popupBody].forEach(c=>{
+        if(c && c.contains(msgElem)) {
+            c.prepend(msgElem);
+        }
+    });
+    alert("Pinned: " + text);
+}
+
     hideMenu();
-  }
+}
 
   // Right-click to open menu
   [chatBox, popupBody].forEach(c=>{
