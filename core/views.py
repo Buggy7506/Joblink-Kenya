@@ -60,8 +60,10 @@ def edit_message(request, msg_id):
 def notifications(request):
     user = request.user
 
-    # Fetch standard notifications
-    notifications = list(Notification.objects.filter(user=user).order_by('-timestamp'))
+    # Fetch ONLY unread standard notifications
+    notifications = list(Notification.objects.filter(
+        user=user, is_read=False
+    ).order_by('-timestamp'))
 
     # Fetch unread chat messages
     unread_chats = ChatMessage.objects.filter(
@@ -84,7 +86,7 @@ def notifications(request):
                 "message": chat.message,
                 "timestamp": chat.timestamp,
                 "is_read": False,
-                "url": chat_url,  # Add the chat link here
+                "url": chat_url,
             })()
         )
 
@@ -92,7 +94,7 @@ def notifications(request):
     notifications.sort(key=lambda n: n.timestamp, reverse=True)
 
     # Count total unread notifications
-    total_unread = sum(1 for n in notifications if not n.is_read)
+    total_unread = len(notifications)
 
     # Show message if no notifications exist
     if not notifications:
@@ -106,7 +108,8 @@ def notifications(request):
     }
 
     return render(request, "notifications.html", context)
-    
+
+
 @login_required
 def mark_all_read(request):
     """
