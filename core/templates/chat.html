@@ -304,6 +304,77 @@
 
     else if(data.type==="message"){
       const bubble = document.createElement("div");
+<script>
+(function(){
+  const username = "{{ request.user.username|escapejs }}";
+  const chatBox = document.getElementById("chat-box");
+  const input = document.getElementById("msg-input");
+  const sendBtn = document.getElementById("send-btn");
+  const menu = document.getElementById("message-menu");
+
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
+  if(!appId) return;
+
+  const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
+
+  function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
+  scrollBottom(chatBox);
+
+  // Typing indicator
+  let typingIndicator = null;
+  function showTyping(){
+    if(!typingIndicator){
+      typingIndicator = document.createElement("div");
+      typingIndicator.className = "bubble them typing";
+      typingIndicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+      chatBox.appendChild(typingIndicator);
+      scrollBottom(chatBox);
+    }
+  }
+  function hideTyping(){
+    if(typingIndicator){ typingIndicator.remove(); typingIndicator = null; }
+  }
+
+  function sendMessage(msgInput=input){
+    const text = msgInput.value.trim();
+    if(!text || socket.readyState!==1) return;
+
+    sendBtn.classList.add("send-effect");
+    setTimeout(()=>sendBtn.classList.remove("send-effect"),500);
+
+    if(msgInput.dataset.editId){
+      socket.send(JSON.stringify({action:"edit",id:msgInput.dataset.editId,message:text}));
+      delete msgInput.dataset.editId;
+    } else {
+      socket.send(JSON.stringify({action:"message",message:text}));
+    }
+    msgInput.value = "";
+  }
+
+  sendBtn.addEventListener("click", ()=>sendMessage());
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
+
+  // Popup logic
+  const chatButton = document.getElementById("chat-popup-button");
+  const chatPopup = document.getElementById("chat-popup");
+  const chatClose = document.getElementById("close-chat");
+  const popupInput = document.getElementById("chat-popup-input");
+  const popupSend = document.getElementById("chat-popup-send");
+  const popupBody = document.getElementById("chat-popup-body");
+
+  chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
+  chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
+  popupSend.addEventListener("click", ()=>sendMessage(popupInput));
+  popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
+
+  socket.onmessage = function(e){
+    const data = JSON.parse(e.data);
+
+    if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
+
+    else if(data.type==="message"){
+      const bubble = document.createElement("div");
       bubble.className = `bubble ${data.sender===username?"me":"them"} pop`;
       bubble.dataset.id = data.id;
       bubble.dataset.text = data.message;
@@ -340,13 +411,13 @@
     }
   };
 
-// Long press detection (mouse & touch)
+  // Long press detection (mouse & touch)
   let pressTimer;
   let currentTarget;
 
   function startPressTimer(e, target) {
     clearTimeout(pressTimer);
-    pressTimer = setTimeout(() => showMenu(e, target), 600);
+    pressTimer = setTimeout(() => showMenu(target), 600);
   }
 
   function cancelPressTimer() {
@@ -372,11 +443,25 @@
 
   chatBox.addEventListener("touchend", cancelPressTimer);
   chatBox.addEventListener("touchcancel", cancelPressTimer);
-  function showMenu(e,msgElem){
-    e.preventDefault();
-    menu.style.left=e.pageX+"px";
-    menu.style.top=e.pageY+"px";
-    menu.style.display="block";
+
+  function showMenu(msgElem){
+    const rect = msgElem.getBoundingClientRect();
+    const menuHeight = menu.offsetHeight || 150;
+    const screenHeight = window.innerHeight;
+
+    let x = rect.left + window.scrollX;
+    let y;
+
+    // Position above if near bottom
+    if (rect.bottom + menuHeight > screenHeight) {
+      y = rect.top + window.scrollY - menuHeight - 5;
+    } else {
+      y = rect.bottom + window.scrollY + 5;
+    }
+
+    menu.style.left = x + "px";
+    menu.style.top = y + "px";
+    menu.style.display = "block";
 
     menu.querySelectorAll("li").forEach(item=>{
       item.onclick = ()=>handleAction(item.dataset.action,msgElem);
