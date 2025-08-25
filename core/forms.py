@@ -1,19 +1,52 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User  # For EditProfileForm and UserRegisterForm
-from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory
+from django.contrib.auth import password_validation
 from django.contrib.auth import get_user_model
 from django.forms.widgets import ClearableFileInput 
-from django.contrib.auth import password_validation
 
-class ChangeUsernamePasswordForm(forms.ModelForm):
-    old_password = forms.CharField(widget=forms.PasswordInput(), label="Current Password")
-    new_password1 = forms.CharField(widget=forms.PasswordInput(), label="New Password")
-    new_password2 = forms.CharField(widget=forms.PasswordInput(), label="Confirm New Password")
+from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory
+
+
+# 🔹 Utility Mixin for Bootstrap tooltips
+class TooltipFormMixin:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field.help_text:
+                field.widget.attrs.update({
+                    "data-bs-toggle": "tooltip",
+                    "title": field.help_text,
+                })
+                field.help_text = None  # Prevent default inline rendering
+
+
+# 🔹 Change Username & Password Form
+class ChangeUsernamePasswordForm(TooltipFormMixin, forms.ModelForm):
+    old_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter current password'}),
+        label="Current Password",
+        help_text="Enter your existing password for verification."
+    )
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password'}),
+        label="New Password",
+        help_text="Your new password should be strong and secure."
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'}),
+        label="Confirm New Password",
+        help_text="Re-enter your new password for confirmation."
+    )
 
     class Meta:
         model = CustomUser
         fields = ['username', 'old_password', 'new_password1', 'new_password2']
+        help_texts = {
+            'username': "Update your username.",
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
+        }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
@@ -29,45 +62,96 @@ class ChangeUsernamePasswordForm(forms.ModelForm):
         cleaned_data = super().clean()
         new1 = cleaned_data.get("new_password1")
         new2 = cleaned_data.get("new_password2")
-
         if new1 and new2 and new1 != new2:
             raise forms.ValidationError("The new passwords do not match.")
         password_validation.validate_password(new1, self.user)
         return cleaned_data
 
 
-class JobPlanSelectForm(forms.Form):
-    plan = forms.ModelChoiceField(queryset=JobPlan.objects.all(), empty_label="Select a Premium Plan")
+# 🔹 Job Plan Form
+class JobPlanSelectForm(TooltipFormMixin, forms.Form):
+    plan = forms.ModelChoiceField(
+        queryset=JobPlan.objects.all(),
+        empty_label="Select a Premium Plan",
+        help_text="Choose your subscription plan."
+    )
 
-# Extended User Registration Form with Role (for Custom User model)
-class RegisterForm(UserCreationForm):
+
+# 🔹 Registration Forms
+class RegisterForm(TooltipFormMixin, UserCreationForm):
     class Meta:
-        model = CustomUser  # Replace with your custom User model if different
-        fields = ['username', 'email', 'password1', 'password2', 'role' ]
+        model = CustomUser
+        fields = ['username', 'email', 'password1', 'password2', 'role']
+        help_texts = {
+            'username': "Choose a unique username.",
+            'email': "Enter a valid email address.",
+            'role': "Select your role (Employer or Job Seeker).",
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
+        }
 
-# Basic user registration form (alternative without role)
-class UserRegisterForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+
+class UserRegisterForm(TooltipFormMixin, forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter password'}),
+        help_text="Password should be strong."
+    )
     
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'password']
+        help_texts = {
+            'username': "Choose your username.",
+            'email': "Provide your email address.",
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
+        }
 
-# Edit Profile Form
 
+# 🔹 Profile Edit Form
 User = get_user_model()
 
-class EditProfileForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(), required=False)
-    confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
+class EditProfileForm(TooltipFormMixin, forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password'}),
+        required=False,
+        help_text="Leave blank if you don’t want to change."
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'}),
+        required=False,
+        help_text="Re-enter the new password."
+    )
 
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'location', 'profile_pic', 'skills']
+        help_texts = {
+            'username': "Update your username.",
+            'email': "Update your email address.",
+            'first_name': "Enter your first name.",
+            'last_name': "Enter your last name.",
+            'phone': "Provide your phone number.",
+            'location': "Specify your location.",
+            'skills': "List your skills separated by commas.",
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
+            'first_name': forms.TextInput(attrs={'placeholder': 'Enter first name'}),
+            'last_name': forms.TextInput(attrs={'placeholder': 'Enter last name'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Enter phone number'}),
+            'location': forms.TextInput(attrs={'placeholder': 'Enter location'}),
+            'skills': forms.Textarea(attrs={'placeholder': 'List your skills'}),
+        }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        super(EditProfileForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -84,21 +168,38 @@ class EditProfileForm(forms.ModelForm):
         if commit:
             user.save()
         return user
-        
-# Job Posting Form (excluding employer to auto-assign it in views)
-class JobForm(forms.ModelForm):
+
+
+# 🔹 Job Posting Form
+class JobForm(TooltipFormMixin, forms.ModelForm):
     custom_category = forms.CharField(
-        max_length=100, 
-        required=False, 
-        label="Custom Category", 
-        widget=forms.TextInput(attrs={'placeholder': 'Enter a custom category'}))
+        max_length=100,
+        required=False,
+        label="Custom Category",
+        widget=forms.TextInput(attrs={'placeholder': 'Enter a custom category'}),
+        help_text="You may create your own category if not listed."
+    )
 
     class Meta:
         model = Job
         fields = ['title', 'description', 'category', 'location', 'company', 'is_premium']
+        help_texts = {
+            'title': "Enter the job title.",
+            'description': "Provide job details and requirements.",
+            'category': "Select or create a job category.",
+            'location': "Enter job location.",
+            'company': "Enter your company name.",
+            'is_premium': "Mark if this job is premium.",
+        }
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Enter job title'}),
+            'description': forms.Textarea(attrs={'placeholder': 'Enter job description'}),
+            'location': forms.TextInput(attrs={'placeholder': 'Enter job location'}),
+            'company': forms.TextInput(attrs={'placeholder': 'Enter company name'}),
+        }
 
     def __init__(self, *args, **kwargs):
-        super(JobForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['category'].required = False
 
     def save(self, commit=True):
@@ -110,45 +211,97 @@ class JobForm(forms.ModelForm):
         if commit:
             job.save()
         return job
-        # OR: use fields = '__all__' and exclude = ['employer'] if more fields needed
 
-# CV Upload Form (for uploading PDF/Docx)
-class CVUploadForm(forms.ModelForm):
+
+# 🔹 CV Upload Form
+class CVUploadForm(TooltipFormMixin, forms.ModelForm):
     class Meta:
         model = CVUpload
         fields = ['cv']
+        help_texts = {
+            'cv': "Upload your CV (PDF or DOCX).",
+        }
+        widgets = {
+            'cv': ClearableFileInput(attrs={'class': 'form-control-file'}),
+        }
 
-# Resume Builder Form
-class ResumeForm(forms.ModelForm):
+
+# 🔹 Resume Form
+class ResumeForm(TooltipFormMixin, forms.ModelForm):
     class Meta:
         model = Resume
         exclude = ['user']
+        help_texts = {
+            'summary': "Write a short summary about yourself.",
+            'education': "List your educational background.",
+            'experience': "Provide your work experience.",
+            'skills': "Mention your key skills.",
+        }
         widgets = {
-            'summary': forms.Textarea(attrs={'rows': 2}),
-            'education': forms.Textarea(attrs={'rows': 2}),
-            'experience': forms.Textarea(attrs={'rows': 2}),
-            'skills': forms.Textarea(attrs={'rows': 2}),
+            'summary': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Brief summary'}),
+            'education': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Education background'}),
+            'experience': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Work experience'}),
+            'skills': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Your skills'}),
         }
 
-class CustomUserCreationForm(UserCreationForm):
+
+# 🔹 Custom User Creation Form
+class CustomUserCreationForm(TooltipFormMixin, UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ("username", "email", "first_name", "last_name", "password1", "password2", "phone", "location", 'role')      
+        help_texts = {
+            'username': "Choose a username.",
+            'email': "Provide your email address.",
+            'first_name': "Enter your first name.",
+            'last_name': "Enter your last name.",
+            'phone': "Enter your phone number.",
+            'location': "Enter your location.",
+            'role': "Select your role.",
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
+            'first_name': forms.TextInput(attrs={'placeholder': 'Enter first name'}),
+            'last_name': forms.TextInput(attrs={'placeholder': 'Enter last name'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Enter phone number'}),
+            'location': forms.TextInput(attrs={'placeholder': 'Enter location'}),
+        }
+
     def __init__(self, *args, **kwargs):
-        super(CustomUserCreationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['role'].choices = [choice for choice in CustomUser.ROLE_CHOICES if choice[0] != 'admin']
 
 
-class UserForm(forms.ModelForm):
+# 🔹 User Email Form
+class UserForm(TooltipFormMixin, forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['email']
+        help_texts = {
+            'email': "Update your email address.",
+        }
+        widgets = {
+            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
+        }
 
 
-class ProfileForm(forms.ModelForm):
+# 🔹 Profile Form
+class ProfileForm(TooltipFormMixin, forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['full_name', 'phone', 'location', 'profile_pic', 'skills']
+        help_texts = {
+            'full_name': "Enter your full name.",
+            'phone': "Provide your phone number.",
+            'location': "Enter your location.",
+            'profile_pic': "Upload a profile picture.",
+            'skills': "List your skills.",
+        }
         widgets = {
+            'full_name': forms.TextInput(attrs={'placeholder': 'Enter full name'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Enter phone number'}),
+            'location': forms.TextInput(attrs={'placeholder': 'Enter location'}),
             'profile_pic': ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'skills': forms.Textarea(attrs={'placeholder': 'Your skills'}),
         }
