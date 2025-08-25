@@ -14,7 +14,7 @@
           <button type="submit">Login</button>
       </form>
       <div class="links">
-        <a href="{% url 'password_reset' %}">Forgot Password?</a> | 
+        <a href="{% url 'password_reset' %}">Forgot Password?</a> |
         <a href="{% url 'signup' %}">Sign Up</a>
       </div>
   </div>
@@ -23,51 +23,55 @@
 
 {% block extra_css %}
 <style>
+/* Ensure no default body margin causes scroll */
+html, body { height: 100%; margin: 0; }
+
+/* Center and size to the actual visible viewport (mobile-safe) */
 .login-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* exact viewport height */
+    display: grid;
+    place-items: center;
+    min-height: 100svh; /* dynamic viewport height: avoids mobile 100vh bug */
+    padding: 12px;      /* small breathing room so shadows don’t trigger scroll */
     background: linear-gradient(to right, #0f172a, #1e293b);
-    overflow: hidden; /* prevents scrollbars */
 }
 
+/* Compact card that fits on small screens */
 .login-box {
     background: rgba(0, 255, 255, 0.1);
-    padding: 20px 25px;
+    padding: 16px 18px;
     border-radius: 12px;
-    width: 320px;
+    width: min(340px, 92vw);
     border: 1px solid #00ffff;
     backdrop-filter: blur(6px);
     box-sizing: border-box;
 }
 
 .login-box h2 {
-    margin-bottom: 15px;
+    margin: 8px 0 12px;
     text-align: center;
     color: #00eaff;
 }
 
+/* Keep Django form paragraphs tight */
+.login-box form p { margin: 0 0 10px; }
+
 .links {
     text-align: center;
-    margin-top: 12px;
+    margin-top: 8px;
+    font-size: 14px;
 }
 
 .links a {
     color: #00eaff;
     text-decoration: none;
-    font-size: 14px;
 }
-
-.links a:hover {
-    text-decoration: underline;
-}
+.links a:hover { text-decoration: underline; }
 
 input[type="text"],
 input[type="password"] {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
+    padding: 9px;
+    margin-bottom: 10px;
     border: 1px solid #00ffff;
     border-radius: 6px;
     background: rgba(255,255,255,0.05);
@@ -90,7 +94,7 @@ button {
     font-weight: bold;
     cursor: pointer;
     transition: transform .2s;
-    animation: pulseGlow 2s infinite alternate;
+    animation: pulseGlow 2s infinite alternate; /* single subtle glow */
 }
 
 button:hover {
@@ -99,12 +103,17 @@ button:hover {
 }
 
 @keyframes pulseGlow {
-    from {
-        box-shadow: 0 0 5px rgba(0,255,255,0.3);
-    }
-    to {
-        box-shadow: 0 0 15px rgba(0,255,255,0.8);
-    }
+    from { box-shadow: 0 0 5px rgba(0,255,255,0.3); }
+    to   { box-shadow: 0 0 15px rgba(0,255,255,0.8); }
+}
+
+/* Extra-tight mode for short screens (e.g., landscape phones) */
+@media (max-height: 640px) {
+  .login-box { padding: 12px 14px; }
+  .login-box h2 { margin: 6px 0 10px; }
+  input[type="text"], input[type="password"] { padding: 8px; margin-bottom: 8px; }
+  button { padding: 9px; }
+  .links { margin-top: 6px; font-size: 13px; }
 }
 </style>
 {% endblock %}
