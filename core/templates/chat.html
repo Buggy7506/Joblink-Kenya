@@ -204,7 +204,7 @@
   sendBtn.addEventListener("click", ()=>sendMessage());
   input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
 
-  // Popup
+  // Popup chat
   const chatButton=document.getElementById("chat-popup-button");
   const chatPopup=document.getElementById("chat-popup");
   const chatClose=document.getElementById("close-chat");
@@ -212,10 +212,10 @@
   const popupSend=document.getElementById("chat-popup-send");
   const popupBody=document.getElementById("chat-popup-body");
 
-  chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
-  chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
-  popupSend.addEventListener("click", ()=>sendMessage(popupInput));
-  popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
+  if(chatButton) chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
+  if(chatClose) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
+  if(popupSend) popupSend.addEventListener("click", ()=>sendMessage(popupInput));
+  if(popupInput) popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
 
   socket.onmessage = function(e){
     const data=JSON.parse(e.data);
@@ -256,7 +256,7 @@
     }
   };
 
-  // Long press for context menu
+  // Context menu support
   let pressTimer;
   function startPressTimer(target){ clearTimeout(pressTimer); pressTimer=setTimeout(()=>showMenu(target),600); }
   function cancelPressTimer(){ clearTimeout(pressTimer); }
@@ -267,19 +267,43 @@
   chatBox.addEventListener("touchstart", e=>{ const t=e.target.closest(".bubble"); if(t) startPressTimer(t); });
   chatBox.addEventListener("touchend", cancelPressTimer);
   chatBox.addEventListener("touchcancel", cancelPressTimer);
-  chatBox.addEventListener("contextmenu",e=>{e.preventDefault();const t=e.target.closest(".bubble");if(t)showMenu(t);});
-
+  chatBox.addEventListener("contextmenu",e=>{
+    e.preventDefault();
+    const t=e.target.closest(".bubble");
+    if(t) showMenu(t);
+  });
 
   function showMenu(msgElem){
     const rect=msgElem.getBoundingClientRect();
     const menuHeight=menu.offsetHeight||150;
+    const menuWidth=menu.offsetWidth||160;
     const screenHeight=window.innerHeight;
-    let x=rect.left+window.scrollX; let y;
-    if(rect.bottom+menuHeight>screenHeight){ y=rect.top+window.scrollY-menuHeight-5; }
-    else{ y=rect.bottom+window.scrollY+5; }
-    menu.style.left=x+"px"; menu.style.top=y+"px";
-    menu.classList.remove("show"); menu.style.display="block"; void menu.offsetWidth; menu.classList.add("show");
-    menu.querySelectorAll("li").forEach(item=>{ item.onclick=()=>handleAction(item.dataset.action,msgElem);
+    const screenWidth=window.innerWidth;
+
+    let x=rect.left+window.scrollX;
+    let y;
+
+    // Vertical positioning
+    if(rect.bottom+menuHeight>screenHeight){
+      y=rect.top+window.scrollY-menuHeight-5;
+    } else {
+      y=rect.bottom+window.scrollY+5;
+    }
+
+    // Horizontal positioning
+    if(x+menuWidth>screenWidth){
+      x=rect.right+window.scrollX-menuWidth;
+    }
+
+    menu.style.left=x+"px";
+    menu.style.top=y+"px";
+    menu.classList.remove("show");
+    menu.style.display="block";
+    void menu.offsetWidth;
+    menu.classList.add("show");
+
+    menu.querySelectorAll("li").forEach(item=>{
+      item.onclick=()=>handleAction(item.dataset.action,msgElem);
     });
   }
 
