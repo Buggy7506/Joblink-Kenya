@@ -211,8 +211,15 @@
   const popupInput=document.getElementById("chat-popup-input");
   const popupSend=document.getElementById("chat-popup-send");
   const popupBody=document.getElementById("chat-popup-body");
-
-  if(chatButton) chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
+  if(chatButton) {
+    chatButton.addEventListener("click", () => {
+      if (chatPopup.style.display === "block") {
+        chatPopup.style.display = "none";   // hide if open
+    } else {
+      chatPopup.style.display = "block";  // show if hidden
+    }
+  });
+}
   if(chatClose) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
   if(popupSend) popupSend.addEventListener("click", ()=>sendMessage(popupInput));
   if(popupInput) popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
