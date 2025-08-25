@@ -127,9 +127,17 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
         help_text="Re-enter the new password."
     )
 
+    upload_cv = forms.FileField(
+        required=False,
+        help_text="Upload your CV in PDF/DOC/DOCX format."
+    )
+
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'location', 'profile_pic', 'skills']
+        fields = [
+            'username', 'email', 'first_name', 'last_name',
+            'phone', 'location', 'profile_pic', 'skills'
+        ]
         help_texts = {
             'username': "Update your username.",
             'email': "Update your email address.",
@@ -153,6 +161,13 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
+        # Pre-fill with the latest CV (if exists)
+        from .models import CVUpload
+        if self.user:
+            latest_cv = CVUpload.objects.filter(applicant=self.user).order_by('-uploaded_on').first()
+            if latest_cv:
+                self.fields['upload_cv'].initial = latest_cv.cv
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
@@ -163,12 +178,23 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+
+        # handle password change
         if self.cleaned_data.get('password'):
             user.set_password(self.cleaned_data['password'])
+
         if commit:
             user.save()
-        return user
 
+            # Handle CV upload (replace old with new)
+            upload_cv = self.cleaned_data.get('upload_cv')
+            if upload_cv:
+                from .models import CVUpload
+                cv_obj, created = CVUpload.objects.get_or_create(applicant=user)
+                cv_obj.cv = upload_cv
+                cv_obj.save()
+
+        return user
 
 # 🔹 Job Posting Form
 class JobForm(TooltipFormMixin, forms.ModelForm):
