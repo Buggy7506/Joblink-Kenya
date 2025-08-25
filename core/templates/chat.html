@@ -4,82 +4,110 @@
 
 <style>
 /* --- Layout & Sidebar --- */
-.chat-wrap { display:flex; max-width:1200px; margin:30px auto; gap:20px; font-family: 'Poppins', sans-serif; }
-.sidebar { width:280px; background:linear-gradient(135deg, rgba(10,10,25,0.95), rgba(20,20,40,0.95)); border-radius:16px; overflow:hidden; box-shadow:0 0 15px rgba(0,255,200,0.3); }
-.sidebar h3 { padding:14px; border-bottom:1px solid rgba(0,255,200,0.2); color:#00ffc6; text-shadow:0 0 5px #00ffc6; }
-.applicant { padding:12px 14px; cursor:pointer; border-bottom:1px solid rgba(0,255,200,0.05); display:flex; justify-content:space-between; align-items:center; color:#fff; transition:all 0.2s ease-in-out; }
+.chat-wrap { 
+  display:flex; 
+  max-width:1200px; 
+  margin:30px auto; 
+  gap:20px; 
+  font-family: 'Poppins', sans-serif; 
+  position:relative;
+}
+.sidebar { 
+  flex: 0 0 280px; 
+  background:linear-gradient(135deg, rgba(10,10,25,0.95), rgba(20,20,40,0.95)); 
+  border-radius:16px; 
+  overflow:hidden; 
+  box-shadow:0 0 15px rgba(0,255,200,0.3); 
+  transition: transform 0.3s ease;
+}
+.sidebar h3 { 
+  padding:14px; 
+  border-bottom:1px solid rgba(0,255,200,0.2); 
+  color:#00ffc6; 
+  text-shadow:0 0 5px #00ffc6; 
+}
+.applicant { 
+  padding:12px 14px; 
+  cursor:pointer; 
+  border-bottom:1px solid rgba(0,255,200,0.05); 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  color:#fff; 
+  transition:all 0.2s ease-in-out; 
+}
 .applicant:hover { background:rgba(0,255,200,0.05); box-shadow:0 0 8px #00ffc6; }
 .applicant.selected { background:rgba(0,255,200,0.15); font-weight:bold; box-shadow:0 0 10px #00ffc6; }
 .badge { background:#00ffc6; color:#111; border-radius:50%; padding:2px 8px; font-size:12px; font-weight:700; }
 
 /* --- Chat Container --- */
-.chat-container { flex:1; display:flex; flex-direction:column; background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 20px rgba(0,255,200,0.25); overflow:hidden; }
-.chat-header { padding:14px 18px; border-bottom:1px solid rgba(0,255,200,0.2); color:#00ffc6; text-shadow:0 0 6px #00ffc6; font-weight:bold; }
-.chat-box { flex:1; overflow-y:auto; padding:14px; background: rgba(10,10,20,0.9); display:flex; flex-direction:column; gap:8px; }
-.bubble { max-width:70%; margin:4px 0; padding:12px 16px; border-radius:20px; word-wrap:break-word; position:relative; color:#fff; box-shadow:0 0 8px rgba(0,255,200,0.2); transition: all 0.2s ease-in-out; }
-.bubble:hover { box-shadow:0 0 12px #00ffc6; }
-.me { margin-left:auto; background:linear-gradient(135deg, rgba(0,255,200,0.2), rgba(0,255,150,0.2)); border:1px solid #00ffc6; text-align:right; }
-.them { margin-right:auto; background:rgba(255,255,255,0.05); border:1px solid rgba(0,255,200,0.15); }
-.meta { font-size:11px; opacity:.6; margin-top:4px; color:#00ffc6; text-shadow:0 0 4px #00ffc6; }
-.chat-input { display:flex; gap:10px; padding:12px; border-top:1px solid rgba(0,255,200,0.2); background:rgba(10,10,20,0.95); }
-.chat-input input { flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
-.chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; box-shadow:0 0 10px #00ffc6; transition:all 0.2s ease; }
-.chat-input button:hover { transform:scale(1.05); box-shadow:0 0 20px #00ffc6; }
-
-/* --- Pop-in animation for messages --- */
-@keyframes popIn { 0% { transform: scale(0.8); opacity:0; } 50% { transform: scale(1.05); opacity:1; } 100% { transform: scale(1); } }
-.bubble.pop { animation: popIn 0.3s ease forwards; }
-
-/* --- Typing indicator --- */
-.typing { display:flex; align-items:center; gap:4px; max-width:60px; padding:10px 14px; border-radius:20px; background:rgba(255,255,255,0.08); border:1px solid rgba(0,255,200,0.15); box-shadow:0 0 8px rgba(0,255,200,0.2); }
-.dot { width:6px; height:6px; background:#00ffc6; border-radius:50%; animation:blink 1.2s infinite; }
-.dot:nth-child(2){ animation-delay:0.2s; }
-.dot:nth-child(3){ animation-delay:0.4s; }
-@keyframes blink { 0%, 80%, 100% { opacity:0.2; transform:scale(1); } 40% { opacity:1; transform:scale(1.3); } }
-
-/* --- Send button glow --- */
-@keyframes sendGlow { 0% { box-shadow:0 0 10px #00ffc6; transform:scale(1); } 50% { box-shadow:0 0 18px #00ffc6,0 0 25px rgba(0,255,200,0.5); transform:scale(1.1); } 100% { box-shadow:0 0 10px #00ffc6; transform:scale(1); } }
-.send-effect { animation:sendGlow 0.5s ease-out; }
-
-
-/* --- Floating Chat Popup --- */
-#chat-popup-button { position:fixed; bottom:20px; right:20px; z-index:999; }
-#chat-popup-button button { padding:14px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:22px; box-shadow:0 0 12px #00ffc6,0 0 25px rgba(0,255,200,0.3); transition:all .2s; }
-#chat-popup-button button:hover { transform:scale(1.1); box-shadow:0 0 18px #00ffc6,0 0 35px rgba(0,255,200,0.5); }
-#chat-popup { display:none; position:fixed; bottom:90px; right:20px; width:100%; max-width:400px; max-height:calc(100vh - 140px); background:linear-gradient(135deg,rgba(15,15,30,0.95),rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.3); overflow:hidden; z-index:999; flex-direction:column; }
-#chat-popup-header { padding:12px; background:#00ffc6; color:#111; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
-#chat-popup-body { flex:1; overflow-y:auto; padding:12px; background:rgba(10,10,20,0.9); display:flex; flex-direction:column; gap:8px; }
-#chat-popup-form { display:flex; padding:8px; border-top:1px solid rgba(0,255,200,0.2); background:rgba(10,10,20,0.95); gap:8px; }
-#chat-popup-form input { flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
-#chat-popup-form button { padding:10px 14px; border:none; border-radius:8px; font-weight:700; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; box-shadow:0 0 10px #00ffc6; cursor:pointer; }
-/* --- Context Menu with animation --- */
-#message-menu { 
-  position:absolute; 
-  background:#111; 
+.chat-container { 
+  flex: 1 1 auto; 
+  min-width: 0; 
+  display:flex; 
+  flex-direction:column; 
+  background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); 
+  border-radius:16px; 
+  box-shadow:0 0 20px rgba(0,255,200,0.25); 
+  overflow:hidden; 
+}
+.chat-header { 
+  padding:14px 18px; 
+  border-bottom:1px solid rgba(0,255,200,0.2); 
   color:#00ffc6; 
-  border-radius:8px; 
-  border:1px solid rgba(0,255,200,0.4); 
-  box-shadow:0 2px 12px rgba(0,255,200,0.5); 
-  z-index:2000; 
-  display:none; 
-  opacity:0; 
-  transform:translateY(-5px) scale(0.95); 
-  transition:opacity 0.2s ease, transform 0.2s ease; 
+  text-shadow:0 0 6px #00ffc6; 
+  font-weight:bold; 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between;
 }
-#message-menu.show { 
-  display:block; 
-  opacity:1; 
-  transform:translateY(0) scale(1); 
+#sidebar-toggle {
+  display:none;
+  background:none;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  color:#00ffc6;
 }
-#message-menu ul { list-style:none; padding:6px; margin:0; }
-#message-menu li { padding:6px 12px; cursor:pointer; font-size:14px; transition:all 0.2s; }
-#message-menu li:hover { background:rgba(0,255,200,0.15); }
+
+/* --- Responsive Sidebar Drawer with Slide + Frosted Blur --- */
+#sidebar-overlay {
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index:999;
+  opacity:0;
+  transition: opacity 0.3s ease;
+}
+@media (max-width: 900px) {
+  .chat-wrap { flex-direction:column; }
+  .sidebar { 
+    position:fixed; 
+    top:0; left:0; 
+    height:100%; 
+    z-index:1000; 
+    transform:translateX(-100%); 
+    border-radius:0; 
+    width:260px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar.show { transform:translateX(0); }
+  #sidebar-toggle { display:block; }
+  #sidebar-overlay.show { 
+    display:block; 
+    opacity:1; 
+  }
+  .chat-container { border-radius:16px; }
+}
 </style>
 
 <div class="chat-wrap">
-  <!-- Sidebar if recruiter -->
   {% if job %}
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <h3>Applicants</h3>
       {% for app in applications %}
         <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
@@ -92,6 +120,7 @@
         <p style="padding:12px; opacity:.7;">No applicants yet</p>
       {% endfor %}
     </div>
+    <div id="sidebar-overlay"></div>
   {% endif %}
 
   <!-- Main chat -->
@@ -101,6 +130,9 @@
         <div><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
       {% else %}
         <div><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
+      {% endif %}
+      {% if job %}
+        <button id="sidebar-toggle">☰</button>
       {% endif %}
     </div>
 
@@ -157,6 +189,33 @@
 
 <script>
 (function(){
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("sidebar-toggle");
+  const overlay = document.getElementById("sidebar-overlay");
+
+  if(sidebar && toggleBtn && overlay){
+    // Toggle sidebar
+    toggleBtn.addEventListener("click", ()=> {
+      sidebar.classList.toggle("show");
+      overlay.classList.toggle("show");
+    });
+
+    // Close sidebar on overlay click
+    overlay.addEventListener("click", ()=> {
+      sidebar.classList.remove("show");
+      overlay.classList.remove("show");
+    });
+
+    // Auto close when resizing to desktop
+    window.addEventListener("resize", ()=>{
+      if(window.innerWidth > 900){
+        sidebar.classList.remove("show");
+        overlay.classList.remove("show");
+      }
+    });
+  }
+
+  // --- Your chat websocket, typing, context menu etc. can stay here ---
   const username = "{{ request.user.username|escapejs }}";
   const chatBox = document.getElementById("chat-box");
   const input = document.getElementById("msg-input");
@@ -408,4 +467,4 @@
 })();
 </script>
 
-{% endblock %} 
+{% endblock %}
