@@ -25,14 +25,13 @@
 .chat-input input { flex:1; padding:12px; border-radius:10px; border:none; outline:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
 .chat-input button { padding:12px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; box-shadow:0 0 10px #00ffc6; transition:all 0.2s ease; }
 .chat-input button:hover { transform:scale(1.05); box-shadow:0 0 20px #00ffc6; }
-@keyframes fadeIn { from {opacity:0; transform:translateY(4px);} to {opacity:1; transform:none;} }
 
-/* --- Pop-in animation --- */
-@keyframes popIn { 0% { transform: scale(0.8); opacity:0; box-shadow:0 0 0 #00ffc6; } 50% { transform: scale(1.05); opacity:1; box-shadow:0 0 12px #00ffc6; } 100% { transform: scale(1); box-shadow:0 0 8px #00ffc6; } }
+/* --- Pop-in animation for messages --- */
+@keyframes popIn { 0% { transform: scale(0.8); opacity:0; } 50% { transform: scale(1.05); opacity:1; } 100% { transform: scale(1); } }
 .bubble.pop { animation: popIn 0.3s ease forwards; }
 
 /* --- Typing indicator --- */
-.typing { display:flex; align-items:center; gap:4px; max-width:60px; padding:10px 14px; border-radius:20px; background:rgba(255,255,255,0.08); border:1px solid rgba(0,255,200,0.15); box-shadow:0 0 8px rgba(0,255,200,0.2); animation:fadeIn 0.3s ease-in; }
+.typing { display:flex; align-items:center; gap:4px; max-width:60px; padding:10px 14px; border-radius:20px; background:rgba(255,255,255,0.08); border:1px solid rgba(0,255,200,0.15); box-shadow:0 0 8px rgba(0,255,200,0.2); }
 .dot { width:6px; height:6px; background:#00ffc6; border-radius:50%; animation:blink 1.2s infinite; }
 .dot:nth-child(2){ animation-delay:0.2s; }
 .dot:nth-child(3){ animation-delay:0.4s; }
@@ -43,121 +42,37 @@
 .send-effect { animation:sendGlow 0.5s ease-out; }
 
 /* --- Floating Chat Popup --- */
-#chat-popup-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 999;
-}
+#chat-popup-button { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
+#chat-popup-button button { padding: 14px 16px; border-radius: 50%; background: #00ffc6; border: none; cursor: pointer; font-size: 22px; box-shadow: 0 0 12px #00ffc6, 0 0 25px rgba(0, 255, 200, 0.3); transition: all 0.2s; }
+#chat-popup-button button:hover { transform: scale(1.1); box-shadow: 0 0 18px #00ffc6, 0 0 35px rgba(0, 255, 200, 0.5); }
+#chat-popup { display:none; position:fixed; bottom:90px; right:20px; width:100%; max-width:400px; max-height:calc(100vh - 140px); background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.3); overflow:hidden; z-index:999; display:flex; flex-direction:column; }
 
-#chat-popup-button button {
-  padding: 14px 16px;
-  border-radius: 50%;
-  background: #00ffc6;
-  border: none;
-  cursor: pointer;
-  font-size: 22px;
-  box-shadow: 0 0 12px #00ffc6, 0 0 25px rgba(0, 255, 200, 0.3);
-  transition: all 0.2s;
+/* --- Context Menu with animation --- */
+#message-menu { 
+  position:absolute; 
+  background:#111; 
+  color:#00ffc6; 
+  border-radius:8px; 
+  border:1px solid rgba(0,255,200,0.4); 
+  box-shadow:0 2px 12px rgba(0,255,200,0.5); 
+  z-index:2000; 
+  display:none; 
+  opacity:0; 
+  transform:translateY(-5px) scale(0.95); 
+  transition:opacity 0.2s ease, transform 0.2s ease; 
 }
-
-#chat-popup-button button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 18px #00ffc6, 0 0 35px rgba(0, 255, 200, 0.5);
+#message-menu.show { 
+  display:block; 
+  opacity:1; 
+  transform:translateY(0) scale(1); 
 }
-
-#chat-popup {
-  display: none;
-  position: fixed;
-  bottom: 90px; /* space from button */
-  right: 20px;
-  width: 100%;
-  max-width: 400px;
-  max-height: calc(100vh - 140px); /* responsive height */
-  background: linear-gradient(135deg, rgba(15, 15, 30, 0.95), rgba(20, 20, 40, 0.95));
-  border-radius: 16px;
-  box-shadow: 0 0 22px rgba(0, 255, 200, 0.3);
-  overflow: hidden;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-}
-
-#chat-popup-header {
-  padding: 12px 16px;
-  background: #111;
-  color: #00ffc6;
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-shadow: 0 0 6px #00ffc6;
-  border-bottom: 1px solid rgba(0, 255, 200, 0.2);
-}
-
-#chat-popup-body {
-  padding: 12px;
-  overflow-y: auto;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: calc(100vh - 210px); /* accounts for header + form */
-  background: rgba(10, 10, 20, 0.95);
-}
-
-#chat-popup-form {
-  display: flex;
-  padding: 12px;
-  border-top: 1px solid rgba(0, 255, 200, 0.2);
-  background: rgba(10, 10, 20, 0.95);
-}
-
-#chat-popup-form input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  background: #111;
-  color: #fff;
-  box-shadow: 0 0 6px rgba(0, 255, 200, 0.3);
-}
-
-#chat-popup-form button {
-  padding: 10px 14px;
-  border: none;
-  border-radius: 10px;
-  background: #00ffc6;
-  color: #111;
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 0 10px #00ffc6;
-  transition: all 0.2s ease;
-  margin-left: 8px;
-}
-
-#chat-popup-form button:hover {
-  transform: scale(1.05);
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  #chat-popup {
-    width: 90%;
-    right: 5%;
-    left: 5%;
-  }
-}
-  
-/* --- Context Menu --- */
-#message-menu { position:absolute; background:#111; color:#00ffc6; border-radius:8px; border:1px solid rgba(0,255,200,0.4); box-shadow:0 2px 12px rgba(0,255,200,0.5); z-index:2000; display:none; }
 #message-menu ul { list-style:none; padding:6px; margin:0; }
 #message-menu li { padding:6px 12px; cursor:pointer; font-size:14px; transition:all 0.2s; }
 #message-menu li:hover { background:rgba(0,255,200,0.15); }
 </style>
 
 <div class="chat-wrap">
+  <!-- Sidebar if recruiter -->
   {% if job %}
     <div class="sidebar">
       <h3>Applicants</h3>
@@ -174,6 +89,7 @@
     </div>
   {% endif %}
 
+  <!-- Main chat -->
   <div class="chat-container">
     <div class="chat-header">
       {% if job %}
@@ -185,7 +101,8 @@
 
     <div id="chat-box" class="chat-box">
       {% for m in messages %}
-        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} pop" data-id="{{ m.id }}" data-text="{{ m.message }}">
+        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} pop" 
+             data-id="{{ m.id }}" data-text="{{ m.message }}">
           <div><strong>{{ m.sender.username }}</strong></div>
           <div>{{ m.message }}</div>
           <div class="meta">{{ m.timestamp }}{% if m.edited_at %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
@@ -261,9 +178,7 @@
       scrollBottom(chatBox);
     }
   }
-  function hideTyping(){
-    if(typingIndicator){ typingIndicator.remove(); typingIndicator = null; }
-  }
+  function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
   function sendMessage(msgInput=input){
     const text = msgInput.value.trim();
@@ -278,19 +193,19 @@
     } else {
       socket.send(JSON.stringify({action:"message",message:text}));
     }
-    msgInput.value = "";
+    msgInput.value="";
   }
 
   sendBtn.addEventListener("click", ()=>sendMessage());
   input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
 
-  // Popup logic
-  const chatButton = document.getElementById("chat-popup-button");
-  const chatPopup = document.getElementById("chat-popup");
-  const chatClose = document.getElementById("close-chat");
-  const popupInput = document.getElementById("chat-popup-input");
-  const popupSend = document.getElementById("chat-popup-send");
-  const popupBody = document.getElementById("chat-popup-body");
+  // Popup
+  const chatButton=document.getElementById("chat-popup-button");
+  const chatPopup=document.getElementById("chat-popup");
+  const chatClose=document.getElementById("close-chat");
+  const popupInput=document.getElementById("chat-popup-input");
+  const popupSend=document.getElementById("chat-popup-send");
+  const popupBody=document.getElementById("chat-popup-body");
 
   chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
   chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
@@ -298,193 +213,92 @@
   popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
 
   socket.onmessage = function(e){
-    const data = JSON.parse(e.data);
-
+    const data=JSON.parse(e.data);
     if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
-
     else if(data.type==="message"){
-      const bubble = document.createElement("div");
-<script>
-(function(){
-  const username = "{{ request.user.username|escapejs }}";
-  const chatBox = document.getElementById("chat-box");
-  const input = document.getElementById("msg-input");
-  const sendBtn = document.getElementById("send-btn");
-  const menu = document.getElementById("message-menu");
-
-  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
-  if(!appId) return;
-
-  const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
-
-  function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
-  scrollBottom(chatBox);
-
-  // Typing indicator
-  let typingIndicator = null;
-  function showTyping(){
-    if(!typingIndicator){
-      typingIndicator = document.createElement("div");
-      typingIndicator.className = "bubble them typing";
-      typingIndicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-      chatBox.appendChild(typingIndicator);
-      scrollBottom(chatBox);
-    }
-  }
-  function hideTyping(){
-    if(typingIndicator){ typingIndicator.remove(); typingIndicator = null; }
-  }
-
-  function sendMessage(msgInput=input){
-    const text = msgInput.value.trim();
-    if(!text || socket.readyState!==1) return;
-
-    sendBtn.classList.add("send-effect");
-    setTimeout(()=>sendBtn.classList.remove("send-effect"),500);
-
-    if(msgInput.dataset.editId){
-      socket.send(JSON.stringify({action:"edit",id:msgInput.dataset.editId,message:text}));
-      delete msgInput.dataset.editId;
-    } else {
-      socket.send(JSON.stringify({action:"message",message:text}));
-    }
-    msgInput.value = "";
-  }
-
-  sendBtn.addEventListener("click", ()=>sendMessage());
-  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
-
-  // Popup logic
-  const chatButton = document.getElementById("chat-popup-button");
-  const chatPopup = document.getElementById("chat-popup");
-  const chatClose = document.getElementById("close-chat");
-  const popupInput = document.getElementById("chat-popup-input");
-  const popupSend = document.getElementById("chat-popup-send");
-  const popupBody = document.getElementById("chat-popup-body");
-
-  chatButton.addEventListener("click", ()=>chatPopup.style.display="block");
-  chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
-  popupSend.addEventListener("click", ()=>sendMessage(popupInput));
-  popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
-
-  socket.onmessage = function(e){
-    const data = JSON.parse(e.data);
-
-    if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
-
-    else if(data.type==="message"){
-      const bubble = document.createElement("div");
-      bubble.className = `bubble ${data.sender===username?"me":"them"} pop`;
-      bubble.dataset.id = data.id;
-      bubble.dataset.text = data.message;
-      bubble.innerHTML = `<div><strong>${data.sender}</strong></div>
-                          <div>${data.message}</div>
-                          <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+      const bubble=document.createElement("div");
+      bubble.className=`bubble ${data.sender===username?"me":"them"} pop`;
+      bubble.dataset.id=data.id;
+      bubble.dataset.text=data.message;
+      bubble.innerHTML=`<div><strong>${data.sender}</strong></div>
+                        <div>${data.message}</div>
+                        <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
       chatBox.appendChild(bubble);
-      const popupBubble = bubble.cloneNode(true);
-      popupBody.appendChild(popupBubble);
-      scrollBottom(chatBox);
-      scrollBottom(popupBody);
+      popupBody.appendChild(bubble.cloneNode(true));
+      scrollBottom(chatBox); scrollBottom(popupBody);
     }
     else if(data.type==="edit"){
-      [chatBox,popupBody].forEach(container=>{
-        const msgElem = container.querySelector(`.bubble[data-id="${data.id}"]`);
-        if(msgElem){
-          msgElem.dataset.text=data.message;
-          msgElem.querySelector("div:nth-child(2)").innerText=data.message;
-          const meta=msgElem.querySelector(".meta");
+      [chatBox,popupBody].forEach(c=>{
+        const msg=c.querySelector(\`.bubble[data-id="\${data.id}"]\`);
+        if(msg){
+          msg.dataset.text=data.message;
+          msg.querySelector("div:nth-child(2)").innerText=data.message;
+          const meta=msg.querySelector(".meta");
           if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
         }
       });
     }
     else if(data.type==="delete"){
       if(data.mode==="everyone"){
-        [chatBox,popupBody].forEach(container=>{
-          const msgElem=container.querySelector(`.bubble[data-id="${data.id}"]`);
-          if(msgElem) msgElem.remove();
+        [chatBox,popupBody].forEach(c=>{
+          const msg=c.querySelector(\`.bubble[data-id="\${data.id}"]\`);
+          if(msg) msg.remove();
         });
       } else if(data.mode==="me"){
-        const msgElem = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
-        if(msgElem) msgElem.style.display="none";
+        const msg=chatBox.querySelector(\`.bubble[data-id="\${data.id}"]\`);
+        if(msg) msg.style.display="none";
       }
     }
   };
 
-  // Long press detection (mouse & touch)
+  // Long press for context menu
   let pressTimer;
-  let currentTarget;
+  function startPressTimer(target){ clearTimeout(pressTimer); pressTimer=setTimeout(()=>showMenu(target),600); }
+  function cancelPressTimer(){ clearTimeout(pressTimer); }
 
-  function startPressTimer(e, target) {
-    clearTimeout(pressTimer);
-    pressTimer = setTimeout(() => showMenu(target), 600);
-  }
-
-  function cancelPressTimer() {
-    clearTimeout(pressTimer);
-  }
-
-  chatBox.addEventListener("mousedown", e => {
-    const target = e.target.closest(".bubble");
-    if (!target) return;
-    currentTarget = target;
-    startPressTimer(e, target);
-  });
-
+  chatBox.addEventListener("mousedown", e=>{ const t=e.target.closest(".bubble"); if(t) startPressTimer(t); });
   chatBox.addEventListener("mouseup", cancelPressTimer);
   chatBox.addEventListener("mouseleave", cancelPressTimer);
-
-  chatBox.addEventListener("touchstart", e => {
-    const target = e.target.closest(".bubble");
-    if (!target) return;
-    currentTarget = target;
-    startPressTimer(e, target);
-  });
-
+  chatBox.addEventListener("touchstart", e=>{ const t=e.target.closest(".bubble"); if(t) startPressTimer(t); });
   chatBox.addEventListener("touchend", cancelPressTimer);
   chatBox.addEventListener("touchcancel", cancelPressTimer);
 
   function showMenu(msgElem){
-    const rect = msgElem.getBoundingClientRect();
-    const menuHeight = menu.offsetHeight || 150;
-    const screenHeight = window.innerHeight;
-
-    let x = rect.left + window.scrollX;
-    let y;
-
-    // Position above if near bottom
-    if (rect.bottom + menuHeight > screenHeight) {
-      y = rect.top + window.scrollY - menuHeight - 5;
-    } else {
-      y = rect.bottom + window.scrollY + 5;
-    }
-
-    menu.style.left = x + "px";
-    menu.style.top = y + "px";
-    menu.style.display = "block";
-
-    menu.querySelectorAll("li").forEach(item=>{
-      item.onclick = ()=>handleAction(item.dataset.action,msgElem);
+    const rect=msgElem.getBoundingClientRect();
+    const menuHeight=menu.offsetHeight||150;
+    const screenHeight=window.innerHeight;
+    let x=rect.left+window.scrollX; let y;
+    if(rect.bottom+menuHeight>screenHeight){ y=rect.top+window.scrollY-menuHeight-5; }
+    else{ y=rect.bottom+window.scrollY+5; }
+    menu.style.left=x+"px"; menu.style.top=y+"px";
+    menu.classList.remove("show"); menu.style.display="block"; void menu.offsetWidth; menu.classList.add("show");
+    menu.querySelectorAll("li").forEach(item=>{ item.onclick=()=>handleAction(item.dataset.action,msgElem);
     });
   }
 
+  function hideMenu(){
+    menu.classList.remove("show");
+    setTimeout(()=>{ if(!menu.classList.contains("show")) menu.style.display="none"; },200);
+  }
+
   function handleAction(action,msgElem){
-    const msgId = msgElem.dataset.id;
-    const text = msgElem.dataset.text;
+    const msgId=msgElem.dataset.id;
+    const text=msgElem.dataset.text;
 
     if(action==="copy"){ navigator.clipboard.writeText(text); }
-    else if(action==="reply"){ input.value = "Replying to: "+text+"\n"; }
+    else if(action==="reply"){ input.value="Replying to: "+text+"\n"; input.focus(); }
     else if(action==="edit"){ input.value=text; input.dataset.editId=msgId; input.focus(); }
     else if(action==="delete-me"){ socket.send(JSON.stringify({action:"delete",id:msgId,mode:"me"})); msgElem.style.display="none"; }
     else if(action==="delete-everyone"){ socket.send(JSON.stringify({action:"delete",id:msgId,mode:"everyone"})); }
     else if(action==="forward"){ alert("Forward not yet implemented"); }
     else if(action==="pin"){ alert("Pinned: "+text); }
 
-    menu.style.display="none";
+    hideMenu();
   }
 
-  document.addEventListener("click", ()=>menu.style.display="none");
+  // Hide menu when clicking outside
+  document.addEventListener("click", e=>{
+    if(!menu.contains(e.target)) hideMenu();
+  });
 })();
 </script>
-
-{% endblock %}
