@@ -74,6 +74,53 @@
 #message-menu ul { list-style:none; padding:6px; margin:0; }
 #message-menu li { padding:6px 12px; cursor:pointer; font-size:14px; transition:all 0.2s; }
 #message-menu li:hover { background:rgba(0,255,200,0.15); }
+/* ---------------- Pinned Message ---------------- */
+.pinned-container {
+  padding: 8px 10px;
+  background: #f5f7f9;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.pinned-container .bubble {
+  background: #fff !important;
+  border-left: 3px solid #25d366; /* WhatsApp green */
+  border-radius: 10px;
+  padding: 6px 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.pinned-container .pin-symbol {
+  margin-right: 6px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.pinned-container .meta {
+  font-size: 11px;
+  color: #666;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.pinned-container .unpin-btn {
+  cursor: pointer;
+  font-size: 14px;
+  color: #888;
+  transition: color 0.2s;
+}
+
+.pinned-container .unpin-btn:hover {
+  color: #e53935; /* red on hover */
+                  } 
 </style>
 
 <div class="chat-wrap">
@@ -103,7 +150,16 @@
         <div><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
       {% endif %}
     </div>
-
+    <!-- Pinned Message Bar -->
+<div id="pinned-message" class="pinned-container" style="display:none;">
+  <div class="bubble">
+    <span class="pin-symbol">📌</span>
+    <span class="text"></span>
+    <span class="meta"></span>
+    <span class="unpin-btn" onclick="unpinMessage()">✖</span>
+  </div>
+</div>
+    
     <div id="chat-box" class="chat-box">
       {% for m in messages %}
         <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} pop" 
@@ -273,6 +329,24 @@
     }
   };
 
+  // Show pinned message (replaces old one)
+function pinMessage(messageId, messageText, timestamp) {
+  const pinnedContainer = document.getElementById("pinned-message");
+  const textEl = pinnedContainer.querySelector(".text");
+  const metaEl = pinnedContainer.querySelector(".meta");
+
+  textEl.textContent = messageText;
+  metaEl.textContent = timestamp;
+
+  pinnedContainer.style.display = "block";
+}
+
+// Unpin message
+function unpinMessage() {
+  const pinnedContainer = document.getElementById("pinned-message");
+  pinnedContainer.style.display = "none";
+}
+
   // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
@@ -311,7 +385,7 @@
         item.onclick = () => handleAction(item.dataset.action, msgElem);
     });
 }
-
+  
   function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
 
   function handleAction(action, msgElem){
