@@ -267,6 +267,8 @@
   chatBox.addEventListener("touchstart", e=>{ const t=e.target.closest(".bubble"); if(t) startPressTimer(t); });
   chatBox.addEventListener("touchend", cancelPressTimer);
   chatBox.addEventListener("touchcancel", cancelPressTimer);
+  chatBox.addEventListener("contextmenu",e=>{e.preventDefault();const t=e.target.closest(".bubble");if(t)showMenu(t);});
+
 
   function showMenu(msgElem){
     const rect=msgElem.getBoundingClientRect();
