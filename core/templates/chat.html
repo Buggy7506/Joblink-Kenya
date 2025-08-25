@@ -276,18 +276,42 @@
   // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
-    const rect=msgElem.getBoundingClientRect();
-    const menuHeight=menu.offsetHeight||150;
-    const menuWidth=menu.offsetWidth||160;
-    const screenHeight=window.innerHeight;
-    const screenWidth=window.innerWidth;
-    let x=rect.left+window.scrollX;
-    let y = (rect.bottom+menuHeight>screenHeight)?rect.top+window.scrollY-menuHeight-5:rect.bottom+window.scrollY+5;
-    if(x+menuWidth>screenWidth) x=rect.right+window.scrollX-menuWidth;
-    menu.style.left=x+"px"; menu.style.top=y+"px"; menu.style.display="block";
-    void menu.offsetWidth; menu.classList.add("show");
-    menu.querySelectorAll("li").forEach(item=>{ item.onclick=()=>handleAction(item.dataset.action,msgElem); });
-  }
+
+    const rect = msgElem.getBoundingClientRect();
+    const menuHeight = menu.offsetHeight || 150;
+    const menuWidth = menu.offsetWidth || 160;
+
+    // Bubble's container scroll offset
+    const container = msgElem.offsetParent || document.body;
+    const scrollTop = container.scrollTop || window.scrollY;
+    const scrollLeft = container.scrollLeft || window.scrollX;
+
+    let x = rect.left + scrollLeft;
+    let y = rect.bottom + scrollTop;
+
+    // Adjust vertical position if it would overflow
+    if(y + menuHeight > window.innerHeight + scrollTop){
+        y = rect.top + scrollTop - menuHeight - 5;
+    } else {
+        y += 5; // small gap below bubble
+    }
+
+    // Adjust horizontal position if it would overflow
+    if(x + menuWidth > window.innerWidth + scrollLeft){
+        x = rect.right + scrollLeft - menuWidth;
+    }
+
+    menu.style.left = `${x}px`;
+    menu.style.top  = `${y}px`;
+    menu.style.display = "block";
+
+    void menu.offsetWidth; // trigger reflow for animation
+    menu.classList.add("show");
+
+    menu.querySelectorAll("li").forEach(item => {
+        item.onclick = () => handleAction(item.dataset.action, msgElem);
+    });
+}
 
   function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
 
