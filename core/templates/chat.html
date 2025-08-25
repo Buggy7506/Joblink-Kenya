@@ -41,12 +41,17 @@
 @keyframes sendGlow { 0% { box-shadow:0 0 10px #00ffc6; transform:scale(1); } 50% { box-shadow:0 0 18px #00ffc6,0 0 25px rgba(0,255,200,0.5); transform:scale(1.1); } 100% { box-shadow:0 0 10px #00ffc6; transform:scale(1); } }
 .send-effect { animation:sendGlow 0.5s ease-out; }
 
-/* --- Floating Chat Popup --- */
-#chat-popup-button { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
-#chat-popup-button button { padding: 14px 16px; border-radius: 50%; background: #00ffc6; border: none; cursor: pointer; font-size: 22px; box-shadow: 0 0 12px #00ffc6, 0 0 25px rgba(0, 255, 200, 0.3); transition: all 0.2s; }
-#chat-popup-button button:hover { transform: scale(1.1); box-shadow: 0 0 18px #00ffc6, 0 0 35px rgba(0, 255, 200, 0.5); }
-#chat-popup { display:none; position:fixed; bottom:90px; right:20px; width:100%; max-width:400px; max-height:calc(100vh - 140px); background:linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.3); overflow:hidden; z-index:999; display:flex; flex-direction:column; }
 
+/* --- Floating Chat Popup --- */
+#chat-popup-button { position:fixed; bottom:20px; right:20px; z-index:999; }
+#chat-popup-button button { padding:14px 16px; border-radius:50%; background:#00ffc6; border:none; cursor:pointer; font-size:22px; box-shadow:0 0 12px #00ffc6,0 0 25px rgba(0,255,200,0.3); transition:all .2s; }
+#chat-popup-button button:hover { transform:scale(1.1); box-shadow:0 0 18px #00ffc6,0 0 35px rgba(0,255,200,0.5); }
+#chat-popup { display:none; position:fixed; bottom:90px; right:20px; width:100%; max-width:400px; max-height:calc(100vh - 140px); background:linear-gradient(135deg,rgba(15,15,30,0.95),rgba(20,20,40,0.95)); border-radius:16px; box-shadow:0 0 22px rgba(0,255,200,0.3); overflow:hidden; z-index:999; display:flex; flex-direction:column; }
+#chat-popup-header { padding:12px; background:#00ffc6; color:#111; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
+#chat-popup-body { flex:1; overflow-y:auto; padding:12px; background:rgba(10,10,20,0.9); display:flex; flex-direction:column; gap:8px; }
+#chat-popup-form { display:flex; padding:8px; border-top:1px solid rgba(0,255,200,0.2); background:rgba(10,10,20,0.95); gap:8px; }
+#chat-popup-form input { flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#fff; box-shadow:0 0 6px rgba(0,255,200,0.3); }
+#chat-popup-form button { padding:10px 14px; border:none; border-radius:8px; font-weight:700; background:linear-gradient(135deg,#00ffc6,#00ff88); color:#111; box-shadow:0 0 10px #00ffc6; cursor:pointer; }
 /* --- Context Menu with animation --- */
 #message-menu { 
   position:absolute; 
