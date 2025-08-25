@@ -11,7 +11,7 @@
   max-width: 950px;
   box-shadow: 0 0 25px rgba(0, 255, 255, 0.25);
   animation: fadeIn 1s ease-in-out;
-  overflow-x: auto; /* prevents table overflow on mobile */
+  overflow-x: auto;
 }
 
 /* Heading */
@@ -27,7 +27,7 @@
 .table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 12px; /* spacing between rows */
+  border-spacing: 0 12px;
 }
 
 .table thead th {
@@ -88,6 +88,25 @@
   text-shadow: 0 0 6px #f5e342;
 }
 
+/* Chat Button */
+.chat-btn {
+  display: inline-block;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, #00f5ff, #00ff99);
+  color: #111;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: 0.3s;
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.25);
+}
+
+.chat-btn:hover {
+  background: linear-gradient(90deg, #00ff99, #00f5ff);
+  box-shadow: 0 0 15px rgba(0, 255, 200, 0.5);
+}
+
 /* Empty State */
 .empty-msg {
   text-align: center;
@@ -114,6 +133,7 @@
           <th>Employer</th>
           <th>Status</th>
           <th>Applied On</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -131,6 +151,9 @@
             {% endif %}
           </td>
           <td>{{ app.applied_on|date:"M d, Y H:i" }}</td>
+          <td>
+            <a href="{% url 'job_chat' app.id %}" class="chat-btn">💬 Chat with Employer</a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
