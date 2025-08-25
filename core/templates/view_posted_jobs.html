@@ -44,7 +44,6 @@
   margin: auto;
   padding: 20px;
   font-family: 'Poppins', sans-serif;
-  text-align: center; /* centers header + grid */
 }
 
 /* Glowing Header - reduced font size */
@@ -63,6 +62,7 @@
   flex-wrap: wrap;
   justify-content: center; /* centers job cards */
   gap: 30px;
+  margin: 0 auto;
 }
 
 /* Job Card */
@@ -77,6 +77,7 @@
   flex-direction: column;
   justify-content: space-between;
   width: 320px; /* fixed width for centered layout */
+  text-align: left; /* ensure text inside is left-aligned */
 }
 .job-card:hover {
   transform: translateY(-8px) scale(1.02);
