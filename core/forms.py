@@ -154,7 +154,7 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
             'last_name': forms.TextInput(attrs={'placeholder': 'Enter last name'}),
             'phone': forms.TextInput(attrs={'placeholder': 'Enter phone number'}),
             'location': forms.TextInput(attrs={'placeholder': 'Enter location'}),
-            'skills': forms.Textarea(attrs={'placeholder': 'List your skills'}),
+            'skills': forms.Textarea(attrs={'placeholder': 'List your skills separated by commas. '}),
         }
 
     def __init__(self, *args, **kwargs):
