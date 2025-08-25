@@ -203,34 +203,50 @@
 
   sendBtn.addEventListener("click", ()=>sendMessage());
   input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
+ 
+  // Popup chat
+const chatButton = document.getElementById("chat-popup-button");
+const chatPopup  = document.getElementById("chat-popup");
+const chatClose  = document.getElementById("close-chat");
+const popupInput = document.getElementById("chat-popup-input");
+const popupSend  = document.getElementById("chat-popup-send");
+const popupBody  = document.getElementById("chat-popup-body");
 
- // Popup chat
-const chatButton=document.getElementById("chat-popup-button");
-const chatPopup=document.getElementById("chat-popup");
-const chatClose=document.getElementById("close-chat");
-const popupInput=document.getElementById("chat-popup-input");
-const popupSend=document.getElementById("chat-popup-send");
-const popupBody=document.getElementById("chat-popup-body");
+// Start hidden
+if (chatPopup) chatPopup.style.display = "none";
 
-// start hidden
-if(chatPopup) chatPopup.style.display = "none";
-
-if(chatButton) {
+// Toggle open/close on button
+if (chatButton) {
   chatButton.addEventListener("click", () => {
     if (chatPopup.style.display === "block") {
-      chatPopup.style.display = "none";   // hide if open
+      chatPopup.style.display = "none"; // hide if open
     } else {
-      chatPopup.style.display = "block";  // show if hidden
+      chatPopup.style.display = "block"; // show if hidden
     }
   });
 }
 
-if(chatClose) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
-if(popupSend) popupSend.addEventListener("click", ()=>sendMessage(popupInput));
-if(popupInput) popupInput.addEventListener("keydown", e=>{
-  if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); }
-});
+// Close button
+if (chatClose) {
+  chatClose.addEventListener("click", () => {
+    chatPopup.style.display = "none";
+  });
+}
 
+// Send message button
+if (popupSend && popupInput) {
+  popupSend.addEventListener("click", () => sendMessage(popupInput));
+}
+
+// Press Enter to send
+if (popupInput && popupSend) {
+  popupInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      popupSend.click();
+    }
+  });
+}
   socket.onmessage = function(e){
     const data=JSON.parse(e.data);
     if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
