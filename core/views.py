@@ -731,17 +731,8 @@ def edit_resume(request):
 
 @login_required
 def view_resume(request):
-    """Display the logged-in user's resume or show a friendly message if none exists."""
-    try:
-        resume = Resume.objects.get(user=request.user)
-    except Resume.DoesNotExist:
-        resume = None  # User hasn't created a resume yet
-
-    context = {
-        'resume': resume
-    }
-
-    return render(request, 'view_resume.html', context)
+    resume = Resume.objects.filter(user=request.user).first()
+    return render(request, 'view_resume.html', {'resume': resume})
 
 
 @login_required
