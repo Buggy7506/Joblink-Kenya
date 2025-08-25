@@ -13,13 +13,10 @@
   color: #fff;
   font-family: 'Poppins', sans-serif;
   animation: fadeIn 0.8s ease-in-out;
+  text-align: center;
 }
 
 /* Header */
-.resume-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
 .resume-header h1 {
   font-size: 2.5rem;
   background: linear-gradient(90deg, #00ffc3, #00bfff);
@@ -39,6 +36,7 @@
   background: rgba(255, 255, 255, 0.03);
   border-radius: 10px;
   transition: all 0.3s ease;
+  text-align: left;
 }
 .resume-section:hover {
   box-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
@@ -74,6 +72,13 @@
   transform: scale(1.05);
 }
 
+/* Message for no resume */
+.no-resume {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin: 50px 0;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -82,34 +87,43 @@
 </style>
 
 <div class="resume-container">
-  <div class="resume-header">
-    <h1>{{ resume.full_name }}</h1>
-    <p>{{ resume.email }} | {{ resume.phone }}</p>
-  </div>
+  {% if resume %}
+    <div class="resume-header">
+      <h1>{{ resume.full_name }}</h1>
+      <p>{{ resume.email }} | {{ resume.phone }}</p>
+    </div>
 
-  <div class="resume-section">
-    <h3>Summary</h3>
-    <p>{{ resume.summary }}</p>
-  </div>
+    <div class="resume-section">
+      <h3>Summary</h3>
+      <p>{{ resume.summary }}</p>
+    </div>
 
-  <div class="resume-section">
-    <h3>Skills</h3>
-    <p>{{ resume.skills }}</p>
-  </div>
+    <div class="resume-section">
+      <h3>Skills</h3>
+      <p>{{ resume.skills }}</p>
+    </div>
 
-  <div class="resume-section">
-    <h3>Experience</h3>
-    <p>{{ resume.experience }}</p>
-  </div>
+    <div class="resume-section">
+      <h3>Experience</h3>
+      <p>{{ resume.experience }}</p>
+    </div>
 
-  <div class="resume-section">
-    <h3>Education</h3>
-    <p>{{ resume.education }}</p>
-  </div>
+    <div class="resume-section">
+      <h3>Education</h3>
+      <p>{{ resume.education }}</p>
+    </div>
 
-  <div class="btn-container">
-    <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
-    <a href="{% url 'edit_resume' %}" class="glow-btn">✏ Edit Resume</a>
-  </div>
+    <div class="btn-container">
+      <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
+      <a href="{% url 'edit_resume' %}" class="glow-btn">✏ Edit Resume</a>
+    </div>
+  {% else %}
+    <div class="no-resume">
+      🚫 You have not created a resume yet.
+    </div>
+    <div class="btn-container">
+      <a href="{% url 'edit_resume' %}" class="glow-btn">➕ Create Resume</a>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
