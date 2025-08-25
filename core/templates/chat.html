@@ -155,7 +155,7 @@
   </ul>
 </div>
 
- <script>
+<script>
 (function(){
   const username = "{{ request.user.username|escapejs }}";
   const chatBox = document.getElementById("chat-box");
@@ -163,19 +163,28 @@
   const sendBtn = document.getElementById("send-btn");
   const menu = document.getElementById("message-menu");
 
+  // Popup chat elements
+  const chatButton = document.getElementById("chat-popup-button");
+  const chatPopup  = document.getElementById("chat-popup");
+  const chatClose  = document.getElementById("close-chat");
+  const popupInput = document.getElementById("chat-popup-input");
+  const popupSend  = document.getElementById("chat-popup-send");
+  const popupBody  = document.getElementById("chat-popup-body");
+
+  // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
   if(!appId) return;
 
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
 
-  function scrollBottom(el){ el.scrollTop = el.scrollHeight; }
+  function scrollBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
   scrollBottom(chatBox);
 
   // Typing indicator
   let typingIndicator = null;
   function showTyping(){
-    if(!typingIndicator){
+    if(!typingIndicator && chatBox){
       typingIndicator = document.createElement("div");
       typingIndicator.className = "bubble them typing";
       typingIndicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
@@ -185,31 +194,35 @@
   }
   function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
-  function sendMessage(msgInput=input){
+  // Send message function
+  function sendMessage(msgInput=input, targetBody=chatBox){
+    if(!msgInput) return;
     const text = msgInput.value.trim();
     if(!text) return;
 
     function reallySend(){
-      if(msgInput.dataset.editId){
-        socket.send(JSON.stringify({action:"edit",id:msgInput.dataset.editId,message:text}));
-        delete msgInput.dataset.editId;
-      } else {
-        socket.send(JSON.stringify({action:"message",message:text}));
-      }
-      msgInput.value="";
-      sendBtn.classList.add("send-effect");
-      setTimeout(()=>sendBtn.classList.remove("send-effect"),500);
+      if(socket.readyState !== 1) return;
 
-      // Also append bubble immediately in popup if sender is current user
-      if(msgInput === popupInput){
-        const bubble=document.createElement("div");
-        bubble.className="bubble me pop";
-        bubble.dataset.text=text;
-        bubble.innerHTML=`<div><strong>${username}</strong></div>
-                          <div>${text}</div>
-                          <div class="meta">just now</div>`;
-        popupBody.appendChild(bubble);
-        scrollBottom(popupBody);
+      const payload = msgInput.dataset.editId
+        ? {action:"edit", id: msgInput.dataset.editId, message: text}
+        : {action:"message", message: text};
+
+      socket.send(JSON.stringify(payload));
+
+      if(msgInput.dataset.editId) delete msgInput.dataset.editId;
+      msgInput.value = "";
+      if(sendBtn) { sendBtn.classList.add("send-effect"); setTimeout(()=>sendBtn.classList.remove("send-effect"),500); }
+
+      // Append bubble immediately
+      if(targetBody){
+        const bubble = document.createElement("div");
+        bubble.className = `bubble me pop`;
+        bubble.dataset.text = text;
+        bubble.innerHTML = `<div><strong>${username}</strong></div>
+                            <div>${text}</div>
+                            <div class="meta">just now</div>`;
+        targetBody.appendChild(bubble);
+        scrollBottom(targetBody);
       }
     }
 
@@ -220,108 +233,61 @@
     }
   }
 
-  sendBtn.addEventListener("click", ()=>sendMessage());
-  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(); } });
- 
-  // Popup chat
-  const chatButton = document.getElementById("chat-popup-button");
-  const chatPopup  = document.getElementById("chat-popup");
-  const chatClose  = document.getElementById("close-chat");
-  const popupInput = document.getElementById("chat-popup-input");
-  const popupSend  = document.getElementById("chat-popup-send");
-  const popupBody  = document.getElementById("chat-popup-body");
+  // Event listeners
+  if(sendBtn) sendBtn.addEventListener("click", ()=>sendMessage(input, chatBox));
+  if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(input, chatBox); } });
 
-  // Start hidden
+  // Popup toggle
   if (chatPopup) chatPopup.style.display = "none";
+  if (chatButton && chatPopup) chatButton.addEventListener("click", () => {
+    chatPopup.style.display = (chatPopup.style.display === "flex") ? "none" : "flex";
+    if(chatPopup.style.display === "flex") chatPopup.style.flexDirection = "column";
+  });
+  if (chatClose && chatPopup) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
 
-  // Toggle open/close on button
-  if (chatButton && chatPopup) {
-    chatButton.addEventListener("click", () => {
-      chatPopup.style.display = (chatPopup.style.display === "flex") ? "none" : "flex";
-      if(chatPopup.style.display === "flex"){
-        chatPopup.style.flexDirection = "column"; // ensure flex works
-      }
-    });
-  }
+  // Popup send
+  if(popupSend && popupInput) popupSend.addEventListener("click", ()=>sendMessage(popupInput, popupBody));
+  if(popupInput) popupInput.addEventListener("keydown", e=>{
+    if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); }
+  });
 
-  if (chatClose && chatPopup) {
-    chatClose.addEventListener("click", () => {
-      chatPopup.style.display = "none";
-    });
-  }
-
-  // Send message button
-  if (popupSend && popupInput) {
-    popupSend.addEventListener("click", () => sendMessage(popupInput));
-  }
-
-  // Press Enter to send
-  if (popupInput && popupSend) {
-    popupInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        popupSend.click();
-      }
-    });
-  }
-
+  // Socket incoming messages
   socket.onmessage = function(e){
-    const data=JSON.parse(e.data);
+    const data = JSON.parse(e.data);
     if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
-    else if(data.type==="message"){
-      const bubble=document.createElement("div");
-      bubble.className=`bubble ${data.sender===username?"me":"them"} pop`;
-      bubble.dataset.id=data.id;
-      bubble.dataset.text=data.message;
-      bubble.innerHTML=`<div><strong>${data.sender}</strong></div>
-                        <div>${data.message}</div>
-                        <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
-      chatBox.appendChild(bubble);
-      popupBody.appendChild(bubble.cloneNode(true));
-      scrollBottom(chatBox); scrollBottom(popupBody);
-    }
-    else if(data.type==="edit"){
-      [chatBox,popupBody].forEach(c=>{
-        const msg=c.querySelector(\`.bubble[data-id="\${data.id}"]\`);
-        if(msg){
-          msg.dataset.text=data.message;
-          msg.querySelector("div:nth-child(2)").innerText=data.message;
-          const meta=msg.querySelector(".meta");
-          if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
+    else if(data.type==="message" || data.type==="edit" || data.type==="delete"){
+      const bubbles = [chatBox, popupBody];
+      bubbles.forEach(c=>{
+        if(!c) return;
+        if(data.type==="message"){
+          const bubble=document.createElement("div");
+          bubble.className=`bubble ${data.sender===username?"me":"them"} pop`;
+          bubble.dataset.id=data.id;
+          bubble.dataset.text=data.message;
+          bubble.innerHTML=`<div><strong>${data.sender}</strong></div>
+                            <div>${data.message}</div>
+                            <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+          c.appendChild(bubble);
+          scrollBottom(c);
+        } else if(data.type==="edit"){
+          const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
+          if(msg){
+            msg.dataset.text = data.message;
+            msg.querySelector("div:nth-child(2)").innerText = data.message;
+            const meta = msg.querySelector(".meta");
+            if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
+          }
+        } else if(data.type==="delete"){
+          const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
+          if(msg) data.mode==="everyone" ? msg.remove() : msg.style.display="none";
         }
       });
     }
-    else if(data.type==="delete"){
-      if(data.mode==="everyone"){
-        [chatBox,popupBody].forEach(c=>{
-          const msg=c.querySelector(\`.bubble[data-id="\${data.id}"]\`);
-          if(msg) msg.remove();
-        });
-      } else if(data.mode==="me"){
-        const msg=chatBox.querySelector(\`.bubble[data-id="\${data.id}"]\`);
-        if(msg) msg.style.display="none";
-      }
-    }
   };
 
-  // Context menu support
-  let pressTimer;
-  function startPressTimer(target){ clearTimeout(pressTimer); pressTimer=setTimeout(()=>showMenu(target),600); }
-  function cancelPressTimer(){ clearTimeout(pressTimer); }
-
-  chatBox.addEventListener("mousedown", e=>{ const t=e.target.closest(".bubble"); if(t) startPressTimer(t); });
-  chatBox.addEventListener("mouseup", cancelPressTimer);
-  chatBox.addEventListener("mouseleave", cancelPressTimer);
-  chatBox.addEventListener("touchstart", e=>{ const t=e.target.closest(".bubble"); if(t) startPressTimer(t); });
-  chatBox.addEventListener("touchend", cancelPressTimer);
-  chatBox.addEventListener("touchcancel", cancelPressTimer);
-  chatBox.addEventListener("contextmenu",e=>{
-    e.preventDefault();
-    const t=e.target.closest(".bubble");
-    if(t) showMenu(t);
-  });
-
+  // --- Context menu / long press ---
   function showMenu(msgElem){
+    if(!menu || !msgElem) return;
     const rect=msgElem.getBoundingClientRect();
     const menuHeight=menu.offsetHeight||150;
     const menuWidth=menu.offsetWidth||160;
@@ -329,56 +295,40 @@
     const screenWidth=window.innerWidth;
 
     let x=rect.left+window.scrollX;
-    let y;
-
-    // Vertical positioning
-    if(rect.bottom+menuHeight>screenHeight){
-      y=rect.top+window.scrollY-menuHeight-5;
-    } else {
-      y=rect.bottom+window.scrollY+5;
-    }
-
-    // Horizontal positioning
-    if(x+menuWidth>screenWidth){
-      x=rect.right+window.scrollX-menuWidth;
-    }
+    let y = (rect.bottom+menuHeight>screenHeight) ? rect.top+window.scrollY-menuHeight-5 : rect.bottom+window.scrollY+5;
+    if(x+menuWidth>screenWidth) x=rect.right+window.scrollX-menuWidth;
 
     menu.style.left=x+"px";
     menu.style.top=y+"px";
-    menu.classList.remove("show");
     menu.style.display="block";
     void menu.offsetWidth;
     menu.classList.add("show");
 
-    menu.querySelectorAll("li").forEach(item=>{
-      item.onclick=()=>handleAction(item.dataset.action,msgElem);
-    });
+    menu.querySelectorAll("li").forEach(item=>{ item.onclick=()=>handleAction(item.dataset.action,msgElem); });
   }
 
   function hideMenu(){
-    menu.classList.remove("show");
-    setTimeout(()=>{ if(!menu.classList.contains("show")) menu.style.display="none"; },200);
+    if(menu) menu.classList.remove("show");
+    setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200);
   }
 
   function handleAction(action,msgElem){
+    if(!socket || !msgElem) return;
     const msgId=msgElem.dataset.id;
     const text=msgElem.dataset.text;
-
-    if(action==="copy"){ navigator.clipboard.writeText(text); }
-    else if(action==="reply"){ input.value="Replying to: "+text+"\n"; input.focus(); }
-    else if(action==="edit"){ input.value=text; input.dataset.editId=msgId; input.focus(); }
-    else if(action==="delete-me"){ socket.send(JSON.stringify({action:"delete",id:msgId,mode:"me"})); msgElem.style.display="none"; }
-    else if(action==="delete-everyone"){ socket.send(JSON.stringify({action:"delete",id:msgId,mode:"everyone"})); }
-    else if(action==="forward"){ alert("Forward not yet implemented"); }
-    else if(action==="pin"){ alert("Pinned: "+text); }
-
+    if(action==="copy") navigator.clipboard.writeText(text);
+    else if(action==="reply") { input.value="Replying to: "+text+"\n"; input.focus(); }
+    else if(action==="edit") { input.value=text; input.dataset.editId=msgId; input.focus(); }
+    else if(action==="delete-me") { socket.send(JSON.stringify({action:"delete",id:msgId,mode:"me"})); msgElem.style.display="none"; }
+    else if(action==="delete-everyone") { socket.send(JSON.stringify({action:"delete",id:msgId,mode:"everyone"})); }
+    else if(action==="forward") alert("Forward not yet implemented");
+    else if(action==="pin") alert("Pinned: "+text);
     hideMenu();
   }
 
   // Hide menu when clicking outside
-  document.addEventListener("click", e=>{
-    if(!menu.contains(e.target)) hideMenu();
-  });
+  document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
+
 })();
 </script>
 
