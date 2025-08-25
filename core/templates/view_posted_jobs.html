@@ -44,22 +44,24 @@
   margin: auto;
   padding: 20px;
   font-family: 'Poppins', sans-serif;
+  text-align: center; /* centers header + grid */
 }
 
-/* Glowing Header */
+/* Glowing Header - reduced font size */
 .glow-header {
-  font-size: 3rem;
+  font-size: 2.2rem;  /* reduced from 3rem */
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
   color: #00ffc6;
   text-shadow: 0 0 10px #00ffc6, 0 0 20px #00ffc6;
   animation: fadeIn 1s ease-in-out;
 }
 
-/* Jobs Grid */
+/* Jobs Grid - centered cards */
 .jobs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* centers job cards */
   gap: 30px;
 }
 
@@ -74,6 +76,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: 320px; /* fixed width for centered layout */
 }
 .job-card:hover {
   transform: translateY(-8px) scale(1.02);
@@ -82,7 +85,7 @@
 
 /* Job Title */
 .job-card h3 {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   margin-bottom: 12px;
   color: #00ffc6;
   text-shadow: 0 0 10px #00ffc6, 0 0 20px #00ffc6;
