@@ -9,7 +9,8 @@ urlpatterns = [
     path("notifications/", views.notifications, name="notifications"),
     path("applied-jobs/", views.view_applications, name="applied_jobs"),
     path("chat/application/<int:application_id>/", views.chat_view, name="job_chat"),   # applicant or employer per application
-    path("chat/job/<int:job_id>/", views.chat_view, name="employer_chat"), 
+    path("chat/job/<int:job_id>/", views.chat_view, name="employer_chat"),
+    path("chat/", views.chat_view, name="employer_chat"),   # General chat with all applicants
     # Confirm delete page
     path('delete-job/<int:job_id>/', views.confirm_delete, name='confirm_delete'),
     path("jobs/<int:job_id>/", views.job_detail, name="job_detail"),
