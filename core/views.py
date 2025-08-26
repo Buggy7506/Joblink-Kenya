@@ -983,7 +983,7 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} sent you a new message about '{app.job.title}'."
                 )
 
-        messages = app.messages.all().order_by("created_at")
+        messages = app.messages.all().order_by("timestamp")
         selected_app = app
 
         # Mark employer messages as read when applicant views
@@ -1037,7 +1037,7 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} (employer) sent you a new message about '{selected_app.job.title}'."
                 )
 
-        messages = selected_app.messages.all().order_by("created_at") if selected_app else []
+        messages = selected_app.messages.all().order_by("timestamp") if selected_app else []
 
         # Mark applicant messages as read when employer views
         if selected_app:
@@ -1075,7 +1075,7 @@ def chat_view(request, application_id=None, job_id=None):
                     "id": msg.id,
                     "sender_id": msg.sender_id,
                     "text": msg.message,
-                    "created": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "created": msg.timestamp.strftime("%Y-%m-%d %H:%M"),
                 }
                 for msg in messages
             ],
@@ -1084,7 +1084,6 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Render always with chat.html
     return render(request, "chat.html", context)
-    
 
 @login_required
 def view_applications(request):
