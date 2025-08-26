@@ -88,26 +88,23 @@
   text-shadow: 0 0 6px #f5e342;
 }
 
-/* Chat Button */
+/* Chat Button (blue style like Posted Jobs) */
 .chat-btn {
   display: inline-block;
-  padding: 8px 14px;
-  background: linear-gradient(90deg, #00f5ff, #00ff99);
-  color: #111; /* Dark text for visibility */
-  font-size: 0.9rem;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: #007bff;
+  color: #fff;
   font-weight: bold;
-  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
+  transition: all 0.3s ease;
   text-decoration: none;
-  transition: 0.3s;
-  box-shadow: 0 0 10px rgba(0, 255, 200, 0.25);
-  text-shadow: none; /* Removed glow */
 }
-
 .chat-btn:hover {
-  background: linear-gradient(90deg, #00ff99, #00f5ff);
-  box-shadow: 0 0 15px rgba(0, 255, 200, 0.5);
-  color: #111; /* Keep dark on hover */
-  text-shadow: none;
+  background: #0066cc;
+  box-shadow: 0 0 25px #007bff, 0 0 50px #007bff;
+  transform: translateY(-2px);
 }
 
 /* Empty State */
