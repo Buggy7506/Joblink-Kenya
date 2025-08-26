@@ -28,6 +28,11 @@
           <a href="{% url 'edit_job' job.id %}" class="btn btn-save">✏️ Edit</a>
           <a href="{% url 'confirm_delete' job.id %}" class="btn btn-cancel">❌ Delete</a>
         </div>
+
+        <!-- Chat Button - full width -->
+        <div class="chat-action">
+          <a href="{% url 'employer_chat' job.id %}" class="btn btn-chat">💬 Chat with Applicants</a>
+        </div>
       </div>
     {% empty %}
       <p class="text-center text-white">No jobs posted yet.</p>
@@ -46,9 +51,9 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* Glowing Header - reduced font size */
+/* Glowing Header */
 .glow-header {
-  font-size: 2.2rem;  /* reduced from 3rem */
+  font-size: 2.2rem;
   text-align: center;
   margin-bottom: 40px;
   color: #00ffc6;
@@ -56,11 +61,11 @@
   animation: fadeIn 1s ease-in-out;
 }
 
-/* Jobs Grid - centered cards */
+/* Jobs Grid */
 .jobs-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* centers job cards */
+  justify-content: center;
   gap: 30px;
   margin: 0 auto;
 }
@@ -76,8 +81,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 320px; /* fixed width for centered layout */
-  text-align: left; /* ensure text inside is left-aligned */
+  width: 320px;
+  text-align: left;
 }
 .job-card:hover {
   transform: translateY(-8px) scale(1.02);
@@ -141,11 +146,34 @@
   transform: translateY(-2px);
 }
 
-/* Job Actions - align left & right */
+/* Job Actions */
 .job-actions {
   display: flex;
   justify-content: space-between;
   margin-top: auto;
+}
+
+/* Chat Button - full width */
+.chat-action {
+  margin-top: 15px;
+  width: 100%;
+}
+.btn-chat {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 14px 0;
+  border-radius: 15px;
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
+  transition: all 0.3s ease;
+}
+.btn-chat:hover {
+  background: #0066cc;
+  box-shadow: 0 0 25px #007bff, 0 0 50px #007bff;
+  transform: translateY(-2px);
 }
 
 /* Messages Popup */
@@ -175,6 +203,7 @@
 .message.error {
   background: linear-gradient(90deg, #ff3380, #ff0066);
 }
+
 @keyframes slideDown {
   from { transform: translateY(-50px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
