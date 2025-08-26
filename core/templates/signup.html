@@ -4,11 +4,11 @@
 
 {% block extra_css %}
 <style> 
-  /* Target help texts below password fields */
+/* Target help texts below password fields */
 .signup-form .helptext,
 .signup-form .helptext ul,
 .signup-form .helptext li {
-  color: #222 !important;   /* darker text for readability */
+  color: #222 !important;
   font-size: 14px;
   margin-top: 5px;
   list-style-type: disc;
@@ -26,8 +26,9 @@
 .signup-form input,
 .signup-form select,
 .signup-form a {
-  color: #333 !important;   /* or white if your background is dark */
+  color: #333 !important;
 }
+
 /* 🔥 Glow animation */
 @keyframes glow {
   0% {
@@ -69,20 +70,24 @@
   color: #ff5722;
 }
 
-.signup-form h3 {
+/* 📌 Already have an account? */
+.signup-form .login-text {
   text-align: center;
-  margin-top: 40px;
-  font-size: 18px;
+  margin-top: 30px;
+  font-size: 16px;
   color: #333;
 }
 
-.signup-form h3 a {
+.signup-form .login-text a {
   color: #ff5722;
-  text-decoration: none;
   font-weight: bold;
+  text-decoration: none;
+  margin-left: 5px;
+  transition: color 0.3s ease;
 }
 
-.signup-form h3 a:hover {
+.signup-form .login-text a:hover {
+  color: #e64a19;
   text-decoration: underline;
 }
 
@@ -157,7 +162,10 @@
           {{ form.as_p }}
           <button type="submit">Sign Up</button>
       </form>
-      <h3><a href="{% url 'login' %}">Already have an account?</a></h3>
+      <!-- 🔑 Clean styled "Already have an account? Login" -->
+      <div class="login-text">
+        Already have an account? <a href="{% url 'login' %}">Login</a>
+      </div>
   </div>
 </div>
 {% endblock %}
