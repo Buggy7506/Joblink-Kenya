@@ -93,18 +93,21 @@
   display: inline-block;
   padding: 8px 14px;
   background: linear-gradient(90deg, #00f5ff, #00ff99);
-  color: #fff;
+  color: #111; /* Dark text for visibility */
   font-size: 0.9rem;
   font-weight: bold;
   border-radius: 8px;
   text-decoration: none;
   transition: 0.3s;
   box-shadow: 0 0 10px rgba(0, 255, 200, 0.25);
+  text-shadow: none; /* Removed glow */
 }
 
 .chat-btn:hover {
   background: linear-gradient(90deg, #00ff99, #00f5ff);
   box-shadow: 0 0 15px rgba(0, 255, 200, 0.5);
+  color: #111; /* Keep dark on hover */
+  text-shadow: none;
 }
 
 /* Empty State */
