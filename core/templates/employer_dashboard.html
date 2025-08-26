@@ -157,6 +157,9 @@
     <a href="{% url 'view_posted_jobs' %}" class="btn-glow">📄 My Jobs</a>
     <a href="{% url 'view_applicants' %}" class="btn-glow">👥 Applicants</a>
     <a href="{% url 'notifications' %}" class="btn-glow">🔔 Notifications</a>
+    {% if latest_job %}
+      <a href="{% url 'employer_chat' latest_job.id %}" class="btn-glow">💬 Chat with Applicants</a>
+    {% endif %}
   </div>
 
   <!-- Summary Cards -->
