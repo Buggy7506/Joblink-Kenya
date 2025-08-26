@@ -1,149 +1,135 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Build Your Resume</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #00ffff;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+{% extends "base.html" %}
 
-    .container {
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 20px;
-      box-shadow: 0 0 25px #00ffff;
-      padding: 40px;
-      width: 90%;
-      max-width: 600px;
-      backdrop-filter: blur(10px);
-      border: 1px solid #00ffff;
-    }
+{% block title %}Build Your Resume{% endblock %}
 
-    h1 {
-      text-align: center;
-      font-size: 2.2em;
-      color: #00ffff;
-      text-shadow: 0 0 10px #00ffff;
-      margin-bottom: 30px;
-    }
+{% block content %}
+<style>
+  .resume-container {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 20px;
+    box-shadow: 0 0 25px #00ffff;
+    padding: 40px;
+    width: 90%;
+    max-width: 600px;
+    backdrop-filter: blur(10px);
+    border: 1px solid #00ffff;
+    margin: 40px auto;
+    animation: fadeIn 0.8s ease-in-out;
+  }
 
-    form label {
-      display: block;
-      margin-bottom: 5px;
-      color: #00ffff;
-      font-weight: bold;
-      text-shadow: 0 0 5px #00ffff;
-    }
+  .resume-container h1 {
+    text-align: center;
+    font-size: 2.2em;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+    margin-bottom: 30px;
+  }
 
-    form input[type="text"],
-    form input[type="email"],
-    form input[type="file"],
-    form textarea,
-    form select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: none;
-      border-radius: 8px;
-      background-color: #1e1e1e;
-      color: #00ffff;
-      box-shadow: 0 0 10px #00ffff;
-      outline: none;
-    }
+  .resume-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: #00ffff;
+    font-weight: bold;
+    text-shadow: 0 0 5px #00ffff;
+  }
 
-    form input[type="submit"],
-    .btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #00ffff;
-      color: #000;
-      font-size: 1.1em;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 0 15px #00ffff;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
+  .resume-container input[type="text"],
+  .resume-container input[type="email"],
+  .resume-container input[type="file"],
+  .resume-container textarea,
+  .resume-container select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #1e1e1e;
+    color: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+    outline: none;
+  }
 
-    form input[type="submit"]:hover,
-    .btn:hover {
-      background-color: #00dddd;
-      transform: scale(1.03);
-      box-shadow: 0 0 25px #00ffff, 0 0 10px #00ffff inset;
-    }
+  .resume-container input[type="submit"],
+  .resume-container .btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #00ffff;
+    color: #000;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 15px #00ffff;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
 
-    .glow-border {
-      border: 1px solid #00ffff;
-      box-shadow: 0 0 10px #00ffff inset;
-    }
+  .resume-container input[type="submit"]:hover,
+  .resume-container .btn:hover {
+    background-color: #00dddd;
+    transform: scale(1.03);
+    box-shadow: 0 0 25px #00ffff, 0 0 10px #00ffff inset;
+  }
 
-    /* Messages Styling */
-    .messages {
-      margin-bottom: 20px;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: bold;
-      text-align: center;
-      animation: fadeOut 1.5s ease forwards;
-      animation-delay: 1.5s;
-    }
+  /* Messages */
+  .resume-messages {
+    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    animation: fadeOut 1.5s ease forwards;
+    animation-delay: 1.5s;
+  }
 
-    .messages.success {
-      background-color: rgba(0, 255, 255, 0.1);
-      border: 1px solid #00ffff;
-      color: #00ffff;
-      box-shadow: 0 0 15px #00ffff;
-    }
+  .resume-messages.success {
+    background-color: rgba(0, 255, 255, 0.1);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    box-shadow: 0 0 15px #00ffff;
+  }
 
-    .messages.error {
-      background-color: rgba(255, 0, 0, 0.1);
-      border: 1px solid #ff4d4d;
-      color: #ff4d4d;
-      box-shadow: 0 0 15px #ff4d4d;
-    }
+  .resume-messages.error {
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+    box-shadow: 0 0 15px #ff4d4d;
+  }
 
-    @keyframes fadeOut {
-      to { opacity: 0; transform: translateY(-10px); }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>💼 Build Your Resume</h1>
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-10px); }
+  }
 
-    <!-- Django messages -->
-    {% if messages %}
-      {% for message in messages %}
-        <div class="messages {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <input type="submit" value="Submit" class="btn">
-    </form>
-  </div>
+<div class="resume-container" data-aos="zoom-in">
+  <h1>💼 Build Your Resume</h1>
 
-  <!-- Auto-remove messages from DOM -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      setTimeout(function() {
-        document.querySelectorAll('.messages').forEach(function(msg) {
-          msg.remove();
-        });
-      }, 3000); // remove after 3 seconds
-    });
-  </script>
-</body>
-</html>
+  <!-- Django messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="resume-messages {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit" class="btn">
+  </form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+      document.querySelectorAll('.resume-messages').forEach(function(msg) {
+        msg.remove();
+      });
+    }, 3000);
+  });
+</script>
+{% endblock %}
