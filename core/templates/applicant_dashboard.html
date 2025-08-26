@@ -88,15 +88,6 @@
 <div class="dashboard-container">
   <h1 class="dashboard-title">🎓 Welcome to Your Dashboard</h1>
   <div class="card-grid">
-    
-    <!-- Upload CV -->
-    <a href="{% url 'upload_cv' %}">
-      <div class="card">
-        <img src="{% static 'img/upload_cv.jpg' %}" alt="Upload CV">
-        <h2>Upload CV</h2>
-        <p>Stand out to employers by uploading your latest CV.</p>
-      </div>
-    </a>
 
     <!-- Browse Jobs -->
     <a href="{% url 'job_list' %}">
@@ -113,6 +104,24 @@
         <img src="{% static 'img/suggest.jpg' %}" alt="Job Suggestions">
         <h2>Job Suggestions</h2>
         <p>AI-powered job suggestions tailored to you.</p>
+      </div>
+    </a>
+
+    <!-- Applied Jobs -->
+    <a href="{% url 'applied_jobs' %}">
+      <div class="card">
+        <img src="{% static 'img/resume.jpg' %}" alt="Applied Jobs">
+        <h2>Applied Jobs</h2>
+        <p>Track jobs you have applied for in one place.</p>
+      </div>
+    </a>
+
+    <!-- Job Alerts -->
+    <a href="{% url 'job_alerts' %}">
+      <div class="card">
+        <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
+        <h2>Job Alerts</h2>
+        <p>Stay updated on jobs that match your profile.</p>
       </div>
     </a>
 
@@ -140,24 +149,6 @@
         <img src="{% static 'img/upload_cv.jpg' %}" alt="Career Resources">
         <h2>Career Resources</h2>
         <p>Guides, templates, and training materials to support your journey.</p>
-      </div>
-    </a>
-
-    <!-- Applied Jobs -->
-    <a href="{% url 'applied_jobs' %}">
-      <div class="card">
-        <img src="{% static 'img/resume.jpg' %}" alt="Applied Jobs">
-        <h2>Applied Jobs</h2>
-        <p>Track jobs you have applied for in one place.</p>
-      </div>
-    </a>
-
-    <!-- Job Alerts -->
-    <a href="{% url 'job_alerts' %}">
-      <div class="card">
-        <img src="{% static 'img/alert.jpg' %}" alt="Job Alerts">
-        <h2>Job Alerts</h2>
-        <p>Stay updated on jobs that match your profile.</p>
       </div>
     </a>
 
