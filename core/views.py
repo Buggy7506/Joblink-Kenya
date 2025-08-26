@@ -56,24 +56,58 @@ def edit_message(request, msg_id):
         msg.save()
     return JsonResponse({"status": "ok", "new_text": msg.message})
 
+import re
+from collections import namedtuple
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Q
+
+NotificationItem = namedtuple("NotificationItem", ["title", "message", "timestamp", "is_read", "url"])
+
+
 @login_required
 def notifications(request):
     user = request.user
 
-    # Fetch ONLY unread standard notifications
-    notifications = list(Notification.objects.filter(
-        user=user, is_read=False
-    ).order_by('-timestamp'))
+    notifications = []
 
-    # Fetch unread chat messages
+    # ---------------------------
+    # Unread standard notifications
+    # ---------------------------
+    base_notifications = Notification.objects.filter(
+        user=user, is_read=False
+    ).order_by("-timestamp")
+
+    for n in base_notifications:
+        url = None
+
+        # Detect job application notifications with job_id embedded in message
+        match = re.search(r"job_id=(\d+)", n.message)
+        if match:
+            job_id = match.group(1)
+            url = reverse("view_applicants") + f"?job_id={job_id}"
+
+        notifications.append(
+            NotificationItem(
+                title=n.title,
+                message=n.message.split("(job_id=")[0],  # strip hidden job_id part
+                timestamp=n.timestamp,
+                is_read=n.is_read,
+                url=url,
+            )
+        )
+
+    # ---------------------------
+    # Unread chat messages
+    # ---------------------------
     unread_chats = ChatMessage.objects.filter(
         is_read=False
     ).filter(
         Q(application__applicant=user) & ~Q(sender=user) |
         Q(application__job__employer=user) & ~Q(sender=user)
-    ).order_by('-timestamp')
+    ).order_by("-timestamp")
 
-    # Convert unread chat messages into notification-like objects with URL
     for chat in unread_chats:
         if chat.application.applicant == user:
             chat_url = reverse("job_chat", args=[chat.application.id])
@@ -81,22 +115,22 @@ def notifications(request):
             chat_url = reverse("employer_chat", args=[chat.application.job.id]) + f"?app_id={chat.application.id}"
 
         notifications.append(
-            type("ChatNotification", (), {
-                "title": f"New message from {chat.sender.username}",
-                "message": chat.message,
-                "timestamp": chat.timestamp,
-                "is_read": False,
-                "url": chat_url,
-            })()
+            NotificationItem(
+                title=f"New message from {chat.sender.username}",
+                message=chat.message,
+                timestamp=chat.timestamp,
+                is_read=False,
+                url=chat_url,
+            )
         )
 
-    # Sort notifications by timestamp descending
+    # ---------------------------
+    # Sort by newest first
+    # ---------------------------
     notifications.sort(key=lambda n: n.timestamp, reverse=True)
 
-    # Count total unread notifications
     total_unread = len(notifications)
 
-    # Show message if no notifications exist
     if not notifications:
         messages.info(request, "🔔 You don’t have any notifications yet.")
 
@@ -106,7 +140,6 @@ def notifications(request):
         "role": getattr(user, "role", None),
         "title": "My Notifications",
     }
-
     return render(request, "notifications.html", context)
 
 
@@ -325,13 +358,29 @@ def view_posted_jobs(request):
 
 @login_required
 def view_applicants(request):
-    jobs = Job.objects.filter(employer=request.user)
-    applicants = Application.objects.filter(job__in=jobs).select_related('job', 'applicant')
-    applicants_count = applicants.count()
-    return render(request, 'view_applicants.html', {
-        'applicants': applicants,
-        'applicants_count': applicants_count
+    job_id = request.GET.get("job_id")  # Check if employer is filtering for a specific job
+
+    if job_id:
+        # Show only applicants for the specific job
+        applicants = Application.objects.filter(
+            job__id=job_id, job__employer=request.user
+        ).select_related("job", "applicant")
+
+        applicants_count = applicants.count()
+        jobs = Job.objects.filter(id=job_id, employer=request.user)  # just that job
+    else:
+        # Show applicants for ALL jobs posted by this employer
+        jobs = Job.objects.filter(employer=request.user)
+        applicants = Application.objects.filter(job__in=jobs).select_related("job", "applicant")
+        applicants_count = applicants.count()
+
+    return render(request, "view_applicants.html", {
+        "jobs": jobs,
+        "applicants": applicants,
+        "applicants_count": applicants_count,
+        "job_id": job_id,  # useful in template
     })
+
 
 @login_required
 def employer_control_panel_view(request):
@@ -460,7 +509,7 @@ def edit_job(request, job_id):
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
 
-#Apply Job
+#Apply Job                
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -478,11 +527,11 @@ def apply_job(request, job_id):
                 job=job
             )
             if created:
-                # ✅ Notify employer
+                # ✅ Notify employer with hidden job_id
                 Notification.objects.create(
                     user=job.employer,
                     title="New Job Application",
-                    message=f"{request.user.username} has applied for your job '{job.title}'."
+                    message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
                 )
                 messages.success(request, "✅ You have successfully applied to the job!")
                 applied_status = 'yes'
@@ -529,14 +578,31 @@ def apply_job(request, job_id):
 
     # GET request for premium job → Show application page
     return render(request, 'apply_job.html', {'job': job})
-
-
+    
 @login_required
 def apply_job_success(request, job_id, applied=True):
     job = get_object_or_404(Job, pk=job_id)
-    return render(request, 'apply_job_success.html', {
-        'job': job,
-        'success': applied
+
+    if applied == "yes":
+        # Ensure the application is created
+        application, created = Application.objects.get_or_create(
+            applicant=request.user,
+            job=job
+        )
+        if created:
+            # 🔔 Notify employer
+            Notification.objects.create(
+                user=job.employer,
+                title="New Job Application",
+                message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
+            )
+            messages.success(request, "✅ You have successfully applied to the job!")
+        else:
+            messages.info(request, "ℹ️ You already applied for this job.")
+
+    return render(request, "apply_job_success.html", {
+        "job": job,
+        "success": applied
     })
 
 #CV Upload
