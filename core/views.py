@@ -942,6 +942,7 @@ def chat_view(request, application_id=None, job_id=None):
     Unified chat view for both applicants and employers.
     - Applicants access via application_id
     - Employers access via job_id (with optional ?app_id= query param)
+    - General chat landing if neither is provided
     """
     user = request.user
     context = {
@@ -992,7 +993,7 @@ def chat_view(request, application_id=None, job_id=None):
                 is_read=False
             ).update(is_read=True)
 
-        # Attach unread count (messages from employer → applicant)
+        # Attach unread count
         app.unread_count = app.messages.filter(
             sender_id=app.job.employer_id, is_read=False
         ).count()
@@ -1004,12 +1005,11 @@ def chat_view(request, application_id=None, job_id=None):
         })
 
     # -----------------------------
-    # Case 2: Employer chat
+    # Case 2: Employer chat (per job)
     # -----------------------------
     elif job_id:
         job = get_object_or_404(Job, id=job_id, employer=user)
 
-        # Precompute unread counts (only applicant → employer messages)
         applications = job.applications.select_related("applicant").annotate(
             unread_count=Count(
                 "messages",
@@ -1058,8 +1058,18 @@ def chat_view(request, application_id=None, job_id=None):
             "messages": messages,
         })
 
+    # -----------------------------
+    # Case 3: General landing
+    # -----------------------------
     else:
-        return redirect("dashboard")
+        if hasattr(user, "is_employer") and user.is_employer:
+            jobs = Job.objects.filter(employer=user).prefetch_related("applications__applicant")
+            context.update({"jobs": jobs})
+        else:
+            applications = Application.objects.filter(applicant=user).select_related("job__employer")
+            context.update({"applications": applications})
+
+        return render(request, "chat.html", context)
 
     # -----------------------------
     # AJAX response
@@ -1080,8 +1090,8 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Render normal template
     return render(request, "chat.html", context)
-    
 
+                
 @login_required
 def view_applications(request):
     """
