@@ -1060,10 +1060,79 @@ def chat_view(request, application_id=None, job_id=None):
     else:
         if getattr(user, "is_employer", False):
             jobs = Job.objects.filter(employer=user).prefetch_related("applications__applicant")
-            context.update({"jobs": jobs})
+
+            job = None
+            applications = []
+            selected_app = None
+            messages = []
+
+            # Pick job from query (?job_id=...)
+            job_id_param = request.GET.get("job_id")
+            if job_id_param:
+                try:
+                    job = jobs.filter(id=int(job_id_param)).first()
+                except ValueError:
+                    job = None
+
+            # Default: first job if none chosen
+            if not job and jobs.exists():
+                job = jobs.first()
+
+            if job:
+                applications = job.applications.select_related("applicant").annotate(
+                    unread_count=Count(
+                        "messages",
+                        filter=Q(messages__is_read=False) & Q(messages__sender_id=F("applicant_id")),
+                    )
+                )
+
+                # Pick applicant (?app_id=...)
+                selected_app_id = request.GET.get("app_id")
+                if selected_app_id:
+                    try:
+                        selected_app = applications.filter(id=int(selected_app_id)).first()
+                    except ValueError:
+                        selected_app = None
+
+                if not selected_app and applications.exists():
+                    selected_app = applications.first()
+
+                if selected_app:
+                    messages = selected_app.messages.all().order_by("timestamp")
+
+            context.update({
+                "jobs": jobs,
+                "job": job,
+                "applications": applications,
+                "selected_app": selected_app,
+                "messages": messages,
+            })
+
         else:
+            # Applicant view: show all their applications
             applications = Application.objects.filter(applicant=user).select_related("job__employer")
-            context.update({"applications": applications})
+            selected_app = None
+            messages = []
+
+            # Pick one if requested (?app_id=...)
+            selected_app_id = request.GET.get("app_id")
+            if selected_app_id:
+                try:
+                    selected_app = applications.filter(id=int(selected_app_id)).first()
+                except ValueError:
+                    selected_app = None
+
+            if not selected_app and applications.exists():
+                selected_app = applications.first()
+
+            if selected_app:
+                messages = selected_app.messages.all().order_by("timestamp")
+
+            context.update({
+                "applications": applications,
+                "selected_app": selected_app,
+                "messages": messages,
+            })
 
     # -----------------------------
     # AJAX response
@@ -1084,7 +1153,8 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Render always with chat.html
     return render(request, "chat.html", context)
-
+        
+                
 @login_required
 def view_applications(request):
     """
