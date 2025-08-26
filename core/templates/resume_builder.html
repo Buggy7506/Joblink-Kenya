@@ -4,16 +4,25 @@
 
 {% block content %}
 <style>
+  /* Wrapper to center form on screen */
+  .resume-wrapper {
+    min-height: 100vh; /* Full height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Prevent edge overlap on small screens */
+    box-sizing: border-box;
+  }
+
   .resume-container {
     background: rgba(0, 0, 0, 0.4);
     border-radius: 20px;
     box-shadow: 0 0 25px #00ffff;
     padding: 40px;
-    width: 90%;
+    width: 100%;
     max-width: 600px;
     backdrop-filter: blur(10px);
     border: 1px solid #00ffff;
-    margin: 40px auto;
     animation: fadeIn 0.8s ease-in-out;
   }
 
@@ -106,21 +115,23 @@
   }
 </style>
 
-<div class="resume-container" data-aos="zoom-in">
-  <h1>💼 Build Your Resume</h1>
+<div class="resume-wrapper">
+  <div class="resume-container" data-aos="zoom-in">
+    <h1>💼 Build Your Resume</h1>
 
-  <!-- Django messages -->
-  {% if messages %}
-    {% for message in messages %}
-      <div class="resume-messages {{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
+    <!-- Django messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="resume-messages {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit" class="btn">
-  </form>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Submit" class="btn">
+    </form>
+  </div>
 </div>
 
 <script>
