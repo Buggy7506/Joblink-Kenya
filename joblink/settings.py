@@ -189,7 +189,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'linux7506@gmail.com'
-EMAIL_HOST_PASSWORD = 'eldc oxrf sqco cfsj'
+EMAIL_HOST_PASSWORD = 'dulm iqxh ynik ubgz'
 DEFAULT_FROM_EMAIL = 'JobLink Kenya <linux7506@gmail.com>'
 
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
