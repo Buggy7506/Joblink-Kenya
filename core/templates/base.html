@@ -187,14 +187,6 @@ input, select, textarea, button {
   <!-- Mobile Navigation -->
   <div id="mobileMenu" class="mobile-menu">
 
-    <!-- MOBILE LOGO -->
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png"
-             alt="JobLink Logo"
-             style="height:35px; width:auto; border-radius:6px;">
-        <span style="font-size:1.4rem; font-weight:bold;" class="glow">JobLink <span style="color:#22d3ee;">Kenya</span></span>
-    </div>
-
     <a href="{% url 'home' %}"
        class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}
        {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
