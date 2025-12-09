@@ -4,33 +4,35 @@
 {% block title %}Login - JobLink Kenya{% endblock %}
 
 {% block content %}
-<main class="container">
+<div id="login-page">
+
+<main class="login-container">
 
   <!-- LEFT MOCKUP -->
-  <section class="hero">
-    <div class="phone-stack">
-      <div class="card back-card"></div>
+  <section class="login-hero">
+    <div class="login-phone-stack">
+      <div class="login-card login-back-card"></div>
 
-      <div class="card phone-card">
-        <div class="phone-screen">
+      <div class="login-card login-phone-card">
+        <div class="login-phone-screen">
           <img src="{% static 'images/login-bg.jpg' %}" alt="">
-          <div class="floating-heart">❤</div>
-          <div class="floating-bubble">🔥 💜</div>
+          <div class="login-floating-heart">❤</div>
+          <div class="login-floating-bubble">🔥 💜</div>
         </div>
       </div>
 
-      <div class="card left-card"></div>
+      <div class="login-card login-left-card"></div>
     </div>
   </section>
 
   <!-- RIGHT LOGIN -->
-  <aside class="auth">
-    <div class="auth-card">
+  <aside class="login-auth">
+    <div class="login-auth-card">
 
-      <h1 class="logo">JobLink</h1>
+      <h1 class="login-logo">JobLink</h1>
 
       {% if messages %}
-        <ul class="messages">
+        <ul class="login-messages">
           {% for message in messages %}
             <li class="{{ message.tags }}">{{ message }}</li>
           {% endfor %}
@@ -40,39 +42,41 @@
       <!-- LOGIN FORM -->
       <form class="login-form" method="POST">
         {% csrf_token %}
-        <input name="identifier" class="input" placeholder="Phone number, username or email" required>
+        <input name="identifier" class="login-input" placeholder="Phone number, username or email" required>
 
-        <div class="password-row">
-          <input type="password" name="password" id="password" class="input" placeholder="Password">
-          <button type="button" id="toggleShow" class="show-btn">Show</button>
+        <div class="login-password-row">
+          <input type="password" name="password" id="password" class="login-input" placeholder="Password">
+          <button type="button" id="toggleShow" class="login-show-btn">Show</button>
         </div>
 
-        <button class="primary-btn" type="submit">Log in</button>
+        <button class="login-primary-btn" type="submit">Log in</button>
       </form>
 
-      <div class="divider"><span>OR</span></div>
+      <div class="login-divider"><span>OR</span></div>
 
       <!-- FACEBOOK BUTTON -->
-      <button class="facebook-btn">
+      <button class="login-facebook-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.33 2 2 6.48 2 12.07 2 17.06 5.65 21.14 10.5 22v-7.11H8.2V12.1h2.3V9.82c0-2.28 1.36-3.54 3.44-3.54.99 0 2.03.18 2.03.18v2.23h-1.14c-1.12 0-1.47.7-1.47 1.42V12.1h2.5l-.4 2.88h-2.1V22C18.35 21.14 22 17.06 22 12.07z" fill="#385185"/>
         </svg>
         Log in with Facebook
       </button>
 
-      <p class="forgot"><a href="{% url 'password_reset' %}">Forgot Password?</a></p>
+      <p class="login-forgot"><a href="{% url 'password_reset' %}">Forgot Password?</a></p>
     </div>
 
-    <div class="signup-card">
+    <div class="login-signup-card">
       <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
     </div>
 
-    <footer class="small-footer">
+    <footer class="login-small-footer">
       <p>English (UK) • © 2025 JobLink Kenya</p>
     </footer>
   </aside>
 
 </main>
+
+</div>
 
 <!-- PASSWORD SHOW/HIDE SCRIPT -->
 <script>
@@ -89,33 +93,18 @@
     }
   });
 </script>
-
 {% endblock %}
 
 
 {% block extra_css %}
 <style>
 
-:root{
-  --bg: #fafafa;
-  --card-bg: #ffffff;
-  --muted: #8e8e8e;
-  --accent: #3897f0;
-  --input-border: #ddd;
-  --max-width: 1050px;
-}
+/* WRAP ALL LOGIN CSS TO AVOID CONFLICT */
+#login-page * { box-sizing: border-box; }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:var(--bg);
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-}
-
-/* main layout */
-.container{
-  max-width:var(--max-width);
+/* MAIN WRAPPER */
+#login-page .login-container{
+  max-width:1050px;
   margin:60px auto;
   display:flex;
   gap:60px;
@@ -124,94 +113,103 @@ body{
 }
 
 /* LEFT MOCKUP */
-.hero{flex:1; display:flex; align-items:center; justify-content:center}
-.phone-stack{position:relative; width:420px; height:420px}
+#login-page .login-hero{
+  flex:1;
+  display:flex;
+  justify-content:center;
+}
 
-/* cards */
-.card{
+#login-page .login-phone-stack{
+  position:relative;
+  width:420px;
+  height:420px;
+}
+
+#login-page .login-card{
   position:absolute;
   border-radius:28px;
   box-shadow:0 18px 30px rgba(0,0,0,0.12);
 }
 
-.back-card{
+#login-page .login-back-card{
   width:300px; height:420px;
   left:calc(50% - 120px); top:40px;
   transform:rotate(-14deg);
   background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
 }
-.left-card{
+#login-page .login-left-card{
   width:340px; height:420px;
   right:calc(50% - 120px); top:30px;
   transform:rotate(10deg);
   background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
 }
-
-.phone-card{
+#login-page .login-phone-card{
   width:300px; height:520px;
-  border-radius:36px; overflow:hidden;
-  display:flex; justify-content:center; align-items:center;
+  border-radius:36px;
+  overflow:hidden;
   background:#111;
   z-index:10;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-.phone-screen{
+#login-page .login-phone-screen{
   width:92%; height:88%;
-  margin:auto;
   background:white;
   border-radius:24px;
   overflow:hidden;
   position:relative;
 }
-.phone-screen img{
+#login-page .login-phone-screen img{
   width:100%; height:100%; object-fit:cover;
 }
-.floating-heart{
+#login-page .login-floating-heart{
   position:absolute; left:10%; top:20%;
   background:linear-gradient(45deg,#ff3b6a,#ff8a5c);
-  color:white; padding:8px 10px;
-  border-radius:14px; font-size:14px;
+  padding:8px 10px; border-radius:14px; color:white;
 }
-.floating-bubble{
+#login-page .login-floating-bubble{
   position:absolute; right:6%; bottom:16%;
   background:white; padding:6px 10px;
-  border-radius:20px; font-size:13px;
+  border-radius:20px;
 }
 
-/* RIGHT SIDE */
-.auth{
+/* RIGHT AUTH PANEL */
+#login-page .login-auth{
   width:360px;
   display:flex;
   flex-direction:column;
   align-items:center;
 }
 
-.auth-card{
+#login-page .login-auth-card{
   width:100%;
-  background:var(--card-bg);
+  background:white;
   padding:28px;
-  border:1px solid var(--input-border);
+  border:1px solid #ddd;
   border-radius:6px;
-  text-align:center;
 }
 
-.logo{
+#login-page .login-logo{
   font-family:Pacifico, cursive;
   font-size:42px;
   margin:4px 0 18px;
+  color:#111;
 }
 
-.input{
+#login-page .login-input{
   width:100%; padding:10px 12px;
   border-radius:4px;
-  border:1px solid var(--input-border);
+  border:1px solid #ddd;
   font-size:14px;
 }
 
-.password-row{
+#login-page .login-password-row{
   display:flex; gap:8px;
 }
-.show-btn{
+
+#login-page .login-show-btn{
   padding:8px 10px;
   border:1px solid #bdbdbd;
   background:white;
@@ -220,9 +218,9 @@ body{
   font-weight:600;
 }
 
-.primary-btn{
+#login-page .login-primary-btn{
   margin-top:6px;
-  background:var(--accent);
+  background:#3897f0;
   color:white;
   padding:9px;
   border:none;
@@ -231,15 +229,16 @@ body{
   cursor:pointer;
 }
 
-.divider{
+#login-page .login-divider{
   display:flex; align-items:center;
   gap:16px; margin:16px 0;
 }
-.divider::before, .divider::after{
+#login-page .login-divider::before,
+#login-page .login-divider::after{
   content:""; height:1px; background:#eee; flex:1;
 }
 
-.facebook-btn{
+#login-page .login-facebook-btn{
   border:none;
   background:none;
   color:#385185;
@@ -249,29 +248,28 @@ body{
   cursor:pointer;
 }
 
-.signup-card{
+#login-page .login-signup-card{
   margin-top:12px;
-  width:100%;
   padding:16px;
+  width:100%;
   background:white;
   border:1px solid #ddd;
-  border-radius:6px;
   text-align:center;
 }
 
-.small-footer{
+#login-page .login-small-footer{
   margin-top:14px;
-  color:#8e8e8e;
+  color:#444;
   font-size:12px;
 }
 
 @media (max-width:980px){
-  .container{flex-direction:column; margin:20px auto; gap:30px}
-  .hero{order:2}
-  .auth{order:1}
-  .back-card,.left-card{display:none}
-  .phone-card{width:260px; height:440px}
+  #login-page .login-container{flex-direction:column; gap:30px}
+  #login-page .login-hero{order:2}
+  #login-page .login-auth{order:1}
+  #login-page .login-back-card,
+  #login-page .login-left-card{display:none}
+  #login-page .login-phone-card{width:260px; height:440px}
 }
-
 </style>
 {% endblock %}
