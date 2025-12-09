@@ -34,6 +34,7 @@ class CustomUser(AbstractUser):
     location = models.CharField(max_length=255, blank=True)
     profile_pic = CloudinaryField('image', blank=True, null=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(unique=True)
     def __str__(self):
         return self.username
         
