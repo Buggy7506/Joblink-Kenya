@@ -16,7 +16,13 @@
 }
 
 /* Base body */
-body { background: var(--bg) !important; color: #111 !important; margin:0; padding:0; font-family: Arial,sans-serif; }
+body { 
+  background: var(--bg) !important; 
+  color: #111 !important; 
+  margin:0; 
+  padding:0; 
+  font-family: Arial,sans-serif; 
+}
 
 /* Container layout */
 #login-page * { box-sizing: border-box; }
@@ -24,98 +30,104 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
   max-width: var(--max-width);
   margin: 60px auto;
   display:flex;
-  gap:4vw;
+  gap:60px;
   align-items:flex-start;
-  padding:0 4vw;
+  padding:0 24px;
   flex-wrap: nowrap;
 }
 
-/* HERO left side mockup */
-#login-page .hero{flex:0 0 auto; display:flex; justify-content:center; min-width:180px; max-width:40vw;}
+/* HERO - left side mockup */
+#login-page .hero{flex:1; display:flex; align-items:center; justify-content:center;}
 #login-page .phone-stack{
   position:relative;
-  width:clamp(160px, 25vw, 240px);
-  height:clamp(200px, 30vw, 320px);
-  margin:auto;
+  width:420px;
+  height:420px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
+
+/* Decorative cards */
 #login-page .card{
   position:absolute;
   border-radius:28px;
-  box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+  box-shadow: 0 18px 30px rgba(0,0,0,0.12);
+  transform-origin:center;
 }
 #login-page .back-card{
-  width:60%;
-  height:100%;
-  left:22%;
-  top:6%;
-  transform:rotate(-10deg) scale(.95);
+  width:300px; 
+  height:420px; 
+  left:calc(50% - 120px); 
+  top:40px;
+  transform: rotate(-14deg) scale(.95);
   background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
   z-index:1;
 }
 #login-page .left-card{
-  width:65%;
-  height:100%;
-  right:22%;
-  top:4%;
-  transform:rotate(8deg) scale(.97);
+  width:340px; 
+  height:420px; 
+  right:calc(50% - 120px); 
+  top:30px;
+  transform: rotate(10deg) scale(.98);
   background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
   z-index:2;
 }
+
 #login-page .phone-card{
-  width:80%;
-  height:100%;
-  border-radius:10%;
+  width:300px; 
+  height:520px; 
+  border-radius:36px; 
   overflow:hidden;
-  display:flex;
-  align-items:center;
+  display:flex; 
+  align-items:center; 
   justify-content:center;
-  background:#111;
-  box-shadow:0 18px 35px rgba(0,0,0,0.25);
-  z-index:3;
-}
-#login-page .phone-screen{
-  width:90%;
-  height:90%;
-  background:#fff;
-  border-radius:15%;
-  overflow:hidden;
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-#login-page .phone-screen img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+  background: #111;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+  transform: rotate(0deg);
+  z-index:10;
 }
 
-/* Floating elements */
+#login-page .phone-screen{
+  width:92%; 
+  height:88%; 
+  margin:auto;
+  background:#fff; 
+  border-radius:24px; 
+  overflow:hidden;
+  position:relative; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
+}
+#login-page .phone-screen img{width:100%; height:100%; object-fit:cover;}
+
 #login-page .floating-heart{
-  position:absolute;
-  left:10%;
-  top:10%;
+  position:absolute; 
+  left:10%; 
+  top:20%;
   background:linear-gradient(45deg,#ff3b6a,#ff8a5c);
-  color:white;
+  color:white; 
   font-weight:700;
-  padding:clamp(4px,1vw,8px) clamp(6px,1.5vw,12px);
-  border-radius:50%;
-  font-size:clamp(10px,1.2vw,14px);
+  padding:8px 10px; 
+  border-radius:14px;
+  box-shadow:0 8px 18px rgba(0,0,0,0.12);
+  font-size:14px;
 }
 #login-page .floating-bubble{
-  position:absolute;
-  right:8%;
-  bottom:8%;
-  background:white;
-  padding:clamp(3px,1vw,6px) clamp(5px,1.5vw,10px);
-  border-radius:50%;
-  font-size:clamp(10px,1.2vw,14px);
+  position:absolute; 
+  right:6%; 
+  bottom:16%;
+  background:white; 
+  padding:6px 10px; 
+  border-radius:20px;
+  box-shadow:0 8px 18px rgba(0,0,0,0.12);
+  font-size:13px;
 }
 
 /* RIGHT AUTH BOX */
 #login-page .auth{
   flex:0 0 auto;
-  width:clamp(280px, 30vw, 360px);
+  width:360px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -124,7 +136,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 #login-page .auth-card{
   width:100%;
   background:var(--card-bg);
-  padding:clamp(16px,2vw,28px);
+  padding:28px;
   border:1px solid var(--input-border);
   border-radius:6px;
   text-align:center;
@@ -132,10 +144,11 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 }
 #login-page .logo{
   font-family:Pacifico,cursive;
-  font-size:clamp(28px,5vw,36px);
-  margin:4px 0 16px;
+  font-size:44px;
+  margin:4px 0 18px;
   color:#262626;
 }
+
 #login-page .login-form{display:flex; flex-direction:column; gap:10px;}
 #login-page .input{
   width:100%;
@@ -212,7 +225,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
   100% { transform:translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Mobile adjustments: hide phone mockup */
+/* Mobile adjustments: hide phone mockup, full-width form */
 @media (max-width:768px){
   #login-page .container{
     flex-direction:column;
@@ -224,8 +237,12 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
   }
   #login-page .auth{
     order:1;
-    width:90%;
-    max-width:360px;
+    width:100%;
+    max-width:100%;
+  }
+  #login-page .auth-card{
+    width:100%;
+    padding:20px;
   }
 }
 </style>
@@ -240,7 +257,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
         <div class="card back-card"></div>
         <div class="card phone-card">
           <div class="phone-screen">
-            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/cup-on-a-table.jpg" alt="Cup on a table" class="cloudinary-img">
+            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/cup-on-a-table.jpg" alt="Cup on a table">
             <div class="floating-heart">❤</div>
             <div class="floating-bubble">🔥 💜</div>
           </div>
@@ -296,8 +313,13 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 const toggleBtn = document.getElementById('toggleShow');
 const passwordInput = document.getElementById('password');
 toggleBtn.addEventListener('click', () => {
-  if(passwordInput.type==='password'){passwordInput.type='text'; toggleBtn.textContent='Hide';}
-  else{passwordInput.type='password'; toggleBtn.textContent='Show';}
+  if(passwordInput.type==='password'){
+    passwordInput.type='text'; 
+    toggleBtn.textContent='Hide';
+  } else {
+    passwordInput.type='password'; 
+    toggleBtn.textContent='Show';
+  }
 });
 
 // Fade + spinner effect on login
@@ -305,10 +327,8 @@ const loginForm = document.getElementById('loginForm');
 const spinner = document.getElementById('spinner');
 
 loginForm.addEventListener('submit', (e) => {
-  // fade out form
   loginForm.style.transition = "opacity 0.3s ease";
   loginForm.style.opacity = 0.5;
-  // show spinner
   spinner.style.display = 'block';
 });
 </script>
