@@ -95,11 +95,30 @@
 </script>
 {% endblock %}
 
-
 {% block extra_css %}
 <style>
 
-/* WRAP ALL LOGIN CSS TO AVOID CONFLICT */
+/* OVERRIDE BASE TEMPLATE BACKGROUND */
+body {
+  background: #fafafa !important;
+  color: #000 !important;
+}
+
+/* Remove base layout padding */
+.main.container {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Ensure full height page */
+#login-page {
+  padding-top: 50px;
+  padding-bottom: 50px;
+  min-height: calc(100vh - 100px);
+}
+
+/* Wrap all login CSS to avoid conflict */
 #login-page * { box-sizing: border-box; }
 
 /* MAIN WRAPPER */
@@ -259,7 +278,7 @@
 
 #login-page .login-small-footer{
   margin-top:14px;
-  color:#444;
+  color:#444 !important;
   font-size:12px;
 }
 
