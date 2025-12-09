@@ -33,6 +33,19 @@ a { text-decoration: none; color: inherit; }
 .glow { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #0ff; }
 .glow-border { border: 2px solid transparent; border-image: linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice: 1; }
 .hover-glow:hover { color: #0ff; text-shadow: 0 0 6px #00f0ff; }
+.glow-btn {
+    background: linear-gradient(45deg, #06b6d4, #0ea5e9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-shadow: 0 0 3px #0ff;
+    box-shadow: 0 0 10px #0ff;
+    transition: all 0.3s ease-in-out;
+}
+.glow-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #00ffff;
+}
 
 /* Header */
 header {
@@ -105,19 +118,19 @@ nav a { margin: 0 1rem; font-weight: bold; }
 
         <!-- Desktop Navigation -->
         <nav class="desktop-nav">
-            <a href="{% url 'home' %}" class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}">Home</a>
+            <a href="{% url 'home' %}" class="hover-glow">Home</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
+                <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
                 {% if request.user.profile.is_employer %}
-                    <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-nav{% endif %}">Profile</a>
+                    <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
                 {% else %}
-                    <a href="{% url 'profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-nav{% endif %}">Profile</a>
+                    <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
                 {% endif %}
-                <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-nav{% endif %}">Change Password</a>
+                <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
                 <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
             {% else %}
-                <a href="{% url 'login' %}" class="hover-glow {% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">Login</a>
-                <a href="{% url 'signup' %}" class="hover-glow {% if request.resolver_match.url_name == 'signup' %}active-nav{% endif %}">Sign Up</a>
+                <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
+                <a href="{% url 'signup' %}" class="hover-glow" style="color:#4ade80;">Sign Up</a>
             {% endif %}
         </nav>
 
@@ -128,20 +141,20 @@ nav a { margin: 0 1rem; font-weight: bold; }
     </div>
 
     <!-- Mobile Navigation -->
-    <div id="mobileMenu" class="mobile-menu">
-        <a href="{% url 'home' %}" class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}">Home</a>
+    <div id="mobileMenu" class="mobile-menu" style="display:none;">
+        <a href="{% url 'home' %}" class="hover-glow">Home</a>
         {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             {% if request.user.profile.is_employer %}
-                <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-nav{% endif %}">Profile</a>
+                <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
             {% else %}
-                <a href="{% url 'profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-nav{% endif %}">Profile</a>
+                <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
             {% endif %}
-            <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-nav{% endif %}">Change Password</a>
+            <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
             <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
         {% else %}
-            <a href="{% url 'login' %}" class="hover-glow {% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">Login</a>
-            <a href="{% url 'signup' %}" class="hover-glow {% if request.resolver_match.url_name == 'signup' %}active-nav{% endif %}">Sign Up</a>
+            <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
+            <a href="{% url 'signup' %}" class="hover-glow" style="color:#4ade80;">Sign Up</a>
         {% endif %}
     </div>
 </header>
