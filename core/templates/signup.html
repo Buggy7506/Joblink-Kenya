@@ -5,20 +5,19 @@
 
 {% block extra_css %}
 <style>
-/* Override base dark background for this page only */
+/* Page-specific overrides */
 body {
     background: #fafafa !important;
     color: #000 !important;
+    font-family: Inter, sans-serif;
 }
 
-/* Signup page layout */
 .signup-layout{
     min-height:100vh;
     display:flex;
     align-items:center;
     justify-content:center;
     padding:40px 20px;
-    font-family:Inter, sans-serif;
 }
 
 .signup-card-wrap{
@@ -42,7 +41,7 @@ body {
 .brand-ref{
     display:block;
     width:180px;
-    margin: 4px auto 12px;
+    margin:4px auto 12px;
 }
 
 .title{
@@ -65,6 +64,7 @@ body {
     display:flex;
     justify-content:center;
     gap:10px;
+    align-items:center;
 }
 
 .divider{
@@ -79,7 +79,10 @@ body {
     height:1px;
     background:#efefef;
 }
-.divider span{ font-size:12px; color:#8e8e8e; }
+.divider span{
+    font-size:12px;
+    color:#8e8e8e;
+}
 
 .django-form-wrap p {
     margin: 8px 0;
@@ -166,7 +169,7 @@ body {
 .msg {
     padding:8px; 
     border-radius:4px; 
-    font-size:13px;
+    font-size:13px; 
 }
 .msg.error{
     background:#ffecec;
@@ -186,16 +189,19 @@ body {
 
         <div class="signup-card">
 
-            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404718/samples/ecommerce/leather-bag-gray.jpg" alt="logo" class="brand-ref">
+            <!-- JobLink Logo -->
+            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/cup-on-a-table.jpg" 
+                 alt="JobLink logo" class="brand-ref">
 
             <h1 class="title">Sign up and connect to job opportunities.</h1>
 
-        <button class="fb-btn" onclick="window.location.href='https://www.facebook.com/v19.0/dialog/oauth?client_id=#&redirect_uri=#&response_type=code&scope=email,public_profile';">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.33 2 2 6.48 2 12.07 2 17.06 5.65 21.14 10.5 22v-7.11H8.2V12.1h2.3V9.82c0-2.28 1.36-3.54 3.44-3.54.99 0 2.03.18 2.03.18v2.23h-1.14c-1.12 0-1.47.7-1.47 1.42V12.1h2.5l-.4 2.88h-2.1V22C18.35 21.14 22 17.06 22 12.07z" fill="#385185"/>
-          </svg>
-          Log in with Facebook
-        </button>
+            <!-- Facebook login -->
+            <button class="fb-btn" onclick="window.location.href='https://www.facebook.com/v19.0/dialog/oauth?client_id=#&redirect_uri=#&response_type=code&scope=email,public_profile';">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.33 2 2 6.48 2 12.07 2 17.06 5.65 21.14 10.5 22v-7.11H8.2V12.1h2.3V9.82c0-2.28 1.36-3.54 3.44-3.54.99 0 2.03.18 2.03.18v2.23h-1.14c-1.12 0-1.47.7-1.47 1.42V12.1h2.5l-.4 2.88h-2.1V22C18.35 21.14 22 17.06 22 12.07z" fill="#fff"/>
+                </svg>
+                Log in with Facebook
+            </button>
 
             <div class="divider"><span>OR</span></div>
 
@@ -232,6 +238,12 @@ body {
         <div class="have-account">
             Have an account? <a href="{% url 'login' %}">Log In</a>
         </div>
+
+        <footer class="footer">
+            <small>English (UK)</small>
+            <p>© {{ now.year }} JobLink Kenya</p>
+        </footer>
+
     </section>
 </main>
 {% endblock %}
