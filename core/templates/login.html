@@ -241,6 +241,27 @@ body {
 }
 #login-page .signup-card a{color:#0095f6; text-decoration:none; font-weight:600;}
 
+/* Flash messages styling */
+#login-page .messages {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+#login-page .messages li {
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #fff;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#login-page .messages li.error { background: #f44336; }
+#login-page .messages li.success { background: #4caf50; }
+#login-page .messages li.info { background: #2196f3; }
+#login-page .messages li.warning { background: #ff9800; }
+
 /* Mobile adjustments: hide phone mockup, full-width form */
 @media (max-width:768px){
   #login-page .container{
@@ -348,6 +369,16 @@ const loginBtn = document.getElementById('loginBtn');
 
 loginForm.addEventListener('submit', () => {
   loginBtn.classList.add('loading');
+});
+
+// Auto-hide messages after 3 seconds
+const messages = document.querySelectorAll('#login-page .messages li');
+messages.forEach(msg => {
+  setTimeout(() => {
+    msg.style.opacity = '0';
+    msg.style.transform = 'translateY(-10px)';
+    setTimeout(() => msg.remove(), 500); // remove from DOM after fade
+  }, 3000);
 });
 </script>
 {% endblock %}
