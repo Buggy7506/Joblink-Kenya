@@ -1,294 +1,146 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Login - JobLink Kenya{% endblock %}
-
-{% block content %}
-<div id="login-page">
-
-<main class="login-container">
-
-  <!-- LEFT MOCKUP -->
-  <section class="login-hero">
-    <div class="login-phone-stack">
-      <div class="login-card login-back-card"></div>
-
-      <div class="login-card login-phone-card">
-        <div class="login-phone-screen">
-          <img src="{% static 'images/login-bg.jpg' %}" alt="">
-          <div class="login-floating-heart">❤</div>
-          <div class="login-floating-bubble">🔥 💜</div>
-        </div>
-      </div>
-
-      <div class="login-card login-left-card"></div>
-    </div>
-  </section>
-
-  <!-- RIGHT LOGIN -->
-  <aside class="login-auth">
-    <div class="login-auth-card">
-
-      <h1 class="login-logo">JobLink</h1>
-
-      {% if messages %}
-        <ul class="login-messages">
-          {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-
-      <!-- LOGIN FORM -->
-      <form class="login-form" method="POST">
-        {% csrf_token %}
-        <input name="identifier" class="login-input" placeholder="Phone number, username or email" required>
-
-        <div class="login-password-row">
-          <input type="password" name="password" id="password" class="login-input" placeholder="Password">
-          <button type="button" id="toggleShow" class="login-show-btn">Show</button>
-        </div>
-
-        <button class="login-primary-btn" type="submit">Log in</button>
-      </form>
-
-      <div class="login-divider"><span>OR</span></div>
-
-      <!-- FACEBOOK BUTTON -->
-      <button class="login-facebook-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.33 2 2 6.48 2 12.07 2 17.06 5.65 21.14 10.5 22v-7.11H8.2V12.1h2.3V9.82c0-2.28 1.36-3.54 3.44-3.54.99 0 2.03.18 2.03.18v2.23h-1.14c-1.12 0-1.47.7-1.47 1.42V12.1h2.5l-.4 2.88h-2.1V22C18.35 21.14 22 17.06 22 12.07z" fill="#385185"/>
-        </svg>
-        Log in with Facebook
-      </button>
-
-      <p class="login-forgot"><a href="{% url 'password_reset' %}">Forgot Password?</a></p>
-    </div>
-
-    <div class="login-signup-card">
-      <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
-    </div>
-
-    <footer class="login-small-footer">
-      <p>English (UK) • © 2025 JobLink Kenya</p>
-    </footer>
-  </aside>
-
-</main>
-
-</div>
-
-<!-- PASSWORD SHOW/HIDE SCRIPT -->
-<script>
-  const toggleBtn = document.getElementById('toggleShow');
-  const passwordInput = document.getElementById('password');
-
-  toggleBtn.addEventListener('click', () => {
-    if (passwordInput.type === 'password') {
-      passwordInput.type = 'text';
-      toggleBtn.textContent = 'Hide';
-    } else {
-      passwordInput.type = 'password';
-      toggleBtn.textContent = 'Show';
-    }
-  });
-</script>
-{% endblock %}
+{% block title %}Login • JobLink Kenya{% endblock %}
 
 {% block extra_css %}
 <style>
-
-/* OVERRIDE BASE TEMPLATE BACKGROUND */
-body {
-  background: #fafafa !important;
-  color: #000 !important;
+:root{
+  --bg: #fafafa;
+  --card-bg: #fff;
+  --muted: #8e8e8e;
+  --accent: #3897f0;
+  --input-border: #ddd;
+  --rounded: 8px;
+  --max-width: 1050px;
 }
 
-/* Remove base layout padding */
-.main.container {
-  max-width: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
+/* Override base dark layout */
+body { background: var(--bg) !important; color: #111 !important; }
 
-/* Ensure full height page */
-#login-page {
-  padding-top: 50px;
-  padding-bottom: 50px;
-  min-height: calc(100vh - 100px);
-}
-
-/* Wrap all login CSS to avoid conflict */
+/* Container layout */
 #login-page * { box-sizing: border-box; }
-
-/* MAIN WRAPPER */
-#login-page .login-container{
-  max-width:1050px;
-  margin:60px auto;
+#login-page .container{
+  max-width: var(--max-width);
+  margin: 60px auto;
   display:flex;
   gap:60px;
   align-items:flex-start;
   padding:0 24px;
 }
 
-/* LEFT MOCKUP */
-#login-page .login-hero{
-  flex:1;
-  display:flex;
-  justify-content:center;
-}
+/* HERO left side mockup */
+#login-page .hero{flex:1; display:flex; justify-content:center}
+#login-page .phone-stack{position:relative; width:420px; height:420px}
 
-#login-page .login-phone-stack{
-  position:relative;
-  width:420px;
-  height:420px;
+#login-page .card{
+  position:absolute; border-radius:28px;
+  box-shadow: 0 18px 30px rgba(0,0,0,0.12);
 }
+#login-page .back-card{width:300px; height:420px; left:calc(50% - 120px); top:40px; transform:rotate(-14deg) scale(.95); background: linear-gradient(180deg,#f5a3b1,#f7d6a3);}
+#login-page .left-card{width:340px; height:420px; right:calc(50% - 120px); top:30px; transform:rotate(10deg) scale(.98); background: linear-gradient(180deg,#a6d4f7,#d6b1ff);}
+#login-page .phone-card{width:300px; height:520px; border-radius:36px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#111; box-shadow:0 30px 60px rgba(0,0,0,0.25); z-index:10;}
+#login-page .phone-screen{width:92%; height:88%; background:#fff; border-radius:24px; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;}
+#login-page .phone-screen img{width:100%; height:100%; object-fit:cover;}
+#login-page .floating-heart{position:absolute; left:10%; top:20%; background:linear-gradient(45deg,#ff3b6a,#ff8a5c); color:white; font-weight:700; padding:8px 10px; border-radius:14px; box-shadow:0 8px 18px rgba(0,0,0,0.12); font-size:14px;}
+#login-page .floating-bubble{position:absolute; right:6%; bottom:16%; background:white; padding:6px 10px; border-radius:20px; box-shadow:0 8px 18px rgba(0,0,0,0.12); font-size:13px;}
 
-#login-page .login-card{
-  position:absolute;
-  border-radius:28px;
-  box-shadow:0 18px 30px rgba(0,0,0,0.12);
-}
+/* RIGHT AUTH BOX */
+#login-page .auth{width:360px; display:flex; flex-direction:column; align-items:center;}
+#login-page .auth-card{width:100%; background:var(--card-bg); padding:28px; border:1px solid var(--input-border); border-radius:6px; text-align:center;}
+#login-page .logo{font-family:Pacifico,cursive; font-size:44px; margin:4px 0 18px; color:#262626;}
+#login-page .login-form{display:flex; flex-direction:column; gap:10px;}
+#login-page .input{width:100%; padding:10px 12px; border-radius:4px; border:1px solid var(--input-border); font-size:14px;}
+#login-page .input:focus{box-shadow:0 0 0 3px rgba(56,151,240,0.12); border-color:#bcdffb;}
+#login-page .password-row{display:flex; gap:8px; align-items:center;}
+#login-page .password-row .input{flex:1;}
+#login-page .show-btn{padding:8px 10px; border-radius:4px; border:1px solid #bdbdbd; background:white; cursor:pointer; font-weight:600; font-size:13px;}
+#login-page .primary-btn{margin-top:6px; background: linear-gradient(180deg,#4d69ff,#3c51f6); border:none; color:white; padding:9px; border-radius:6px; font-weight:600; font-size:15px; cursor:pointer; box-shadow:0 6px 14px rgba(60,81,246,0.24);}
+#login-page .divider{display:flex; align-items:center; gap:16px; margin:16px 0;}
+#login-page .divider::before,#login-page .divider::after{content:""; height:1px; background:#eee; flex:1;}
+#login-page .divider span{color:var(--muted); font-size:13px;}
+#login-page .facebook-btn{display:flex; align-items:center; gap:10px; justify-content:center; padding:8px; border:none; background:transparent; color:#385185; font-weight:700; cursor:pointer;}
+#login-page .forgot{color:var(--muted); font-size:13px; margin-top:10px;}
+#login-page .signup-card{margin-top:12px; width:100%; text-align:center; padding:16px; background:var(--card-bg); border:1px solid var(--input-border); border-radius:6px;}
+#login-page .signup-card a{color:#0095f6; text-decoration:none; font-weight:600;}
+#login-page .small-footer{margin-top:14px; color:var(--muted); font-size:12px; text-align:center;}
 
-#login-page .login-back-card{
-  width:300px; height:420px;
-  left:calc(50% - 120px); top:40px;
-  transform:rotate(-14deg);
-  background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
-}
-#login-page .login-left-card{
-  width:340px; height:420px;
-  right:calc(50% - 120px); top:30px;
-  transform:rotate(10deg);
-  background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
-}
-#login-page .login-phone-card{
-  width:300px; height:520px;
-  border-radius:36px;
-  overflow:hidden;
-  background:#111;
-  z-index:10;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-#login-page .login-phone-screen{
-  width:92%; height:88%;
-  background:white;
-  border-radius:24px;
-  overflow:hidden;
-  position:relative;
-}
-#login-page .login-phone-screen img{
-  width:100%; height:100%; object-fit:cover;
-}
-#login-page .login-floating-heart{
-  position:absolute; left:10%; top:20%;
-  background:linear-gradient(45deg,#ff3b6a,#ff8a5c);
-  padding:8px 10px; border-radius:14px; color:white;
-}
-#login-page .login-floating-bubble{
-  position:absolute; right:6%; bottom:16%;
-  background:white; padding:6px 10px;
-  border-radius:20px;
-}
-
-/* RIGHT AUTH PANEL */
-#login-page .login-auth{
-  width:360px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-#login-page .login-auth-card{
-  width:100%;
-  background:white;
-  padding:28px;
-  border:1px solid #ddd;
-  border-radius:6px;
-}
-
-#login-page .login-logo{
-  font-family:Pacifico, cursive;
-  font-size:42px;
-  margin:4px 0 18px;
-  color:#111;
-}
-
-#login-page .login-input{
-  width:100%; padding:10px 12px;
-  border-radius:4px;
-  border:1px solid #ddd;
-  font-size:14px;
-}
-
-#login-page .login-password-row{
-  display:flex; gap:8px;
-}
-
-#login-page .login-show-btn{
-  padding:8px 10px;
-  border:1px solid #bdbdbd;
-  background:white;
-  cursor:pointer;
-  border-radius:4px;
-  font-weight:600;
-}
-
-#login-page .login-primary-btn{
-  margin-top:6px;
-  background:#3897f0;
-  color:white;
-  padding:9px;
-  border:none;
-  border-radius:6px;
-  font-weight:600;
-  cursor:pointer;
-}
-
-#login-page .login-divider{
-  display:flex; align-items:center;
-  gap:16px; margin:16px 0;
-}
-#login-page .login-divider::before,
-#login-page .login-divider::after{
-  content:""; height:1px; background:#eee; flex:1;
-}
-
-#login-page .login-facebook-btn{
-  border:none;
-  background:none;
-  color:#385185;
-  font-weight:700;
-  display:flex; gap:8px;
-  justify-content:center;
-  cursor:pointer;
-}
-
-#login-page .login-signup-card{
-  margin-top:12px;
-  padding:16px;
-  width:100%;
-  background:white;
-  border:1px solid #ddd;
-  text-align:center;
-}
-
-#login-page .login-small-footer{
-  margin-top:14px;
-  color:#444 !important;
-  font-size:12px;
-}
-
+/* Responsive */
 @media (max-width:980px){
-  #login-page .login-container{flex-direction:column; gap:30px}
-  #login-page .login-hero{order:2}
-  #login-page .login-auth{order:1}
-  #login-page .login-back-card,
-  #login-page .login-left-card{display:none}
-  #login-page .login-phone-card{width:260px; height:440px}
+  #login-page .container{flex-direction:column; align-items:center; gap:30px; margin:30px auto;}
+  #login-page .hero{order:2;}
+  #login-page .auth{order:1;}
+  #login-page .phone-card{width:260px; height:440px;}
+  #login-page .back-card, #login-page .left-card{display:none;}
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div id="login-page">
+  <main class="container">
+    <!-- LEFT MOCKUP -->
+    <section class="hero">
+      <div class="phone-stack">
+        <div class="card back-card"></div>
+        <div class="card phone-card">
+          <div class="phone-screen">
+            <img src="{% static 'images/login-bg.jpg' %}" alt="">
+            <div class="floating-heart">❤</div>
+            <div class="floating-bubble">🔥 💜</div>
+          </div>
+        </div>
+        <div class="card left-card"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT LOGIN -->
+    <aside class="auth">
+      <div class="auth-card">
+        <h1 class="logo">JobLink</h1>
+
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}
+              <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <form class="login-form" method="POST" action="{% url 'login' %}">
+          {% csrf_token %}
+          <input name="identifier" class="input" placeholder="Phone number, username or email" required>
+          <div class="password-row">
+            <input type="password" name="password" id="password" class="input" placeholder="Password">
+            <button type="button" id="toggleShow" class="show-btn">Show</button>
+          </div>
+          <button class="primary-btn" type="submit">Log in</button>
+        </form>
+
+        <div class="divider"><span>OR</span></div>
+
+        <button class="facebook-btn">Log in with Facebook</button>
+
+        <p class="forgot"><a href="{% url 'password_reset' %}">Forgotten your password?</a></p>
+      </div>
+
+      <div class="signup-card">
+        <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+      </div>
+
+      <footer class="small-footer">
+        <p>English (UK) • © 2025 JobLink Kenya</p>
+      </footer>
+    </aside>
+  </main>
+</div>
+
+<script>
+const toggleBtn = document.getElementById('toggleShow');
+const passwordInput = document.getElementById('password');
+toggleBtn.addEventListener('click', () => {
+  if(passwordInput.type==='password'){passwordInput.type='text'; toggleBtn.textContent='Hide';}
+  else{passwordInput.type='password'; toggleBtn.textContent='Show';}
+});
+</script>
 {% endblock %}
