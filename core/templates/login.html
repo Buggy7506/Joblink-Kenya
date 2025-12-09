@@ -281,7 +281,7 @@ body {
 
         <form class="login-form" id="loginForm" method="POST" action="{% url 'login' %}">
           {% csrf_token %}
-          <input name="identifier" class="input" placeholder="Phone number, username or email" required>
+          <input name="identifier" class="input" placeholder="Phone, username or email" required>
           <div class="password-row">
             <input type="password" name="password" id="password" class="input" placeholder="Password">
             <button type="button" id="toggleShow" class="show-btn">Show</button>
