@@ -1,110 +1,277 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Login - JobLink Kenya{% endblock %}
 
 {% block content %}
-<div class="login-page">
-  <div class="login-box">
-      <h2>Login</h2>
-      <form method="post">
-          {% csrf_token %}
-          <input type="text" name="identifier" placeholder="Username / Email / Phone"><br>
-          <input type="password" name="password" placeholder="Password"><br>
-          {{ form.as_p }}
-          <button type="submit">Login</button>
-      </form>
-      <div class="links">
-        <a href="{% url 'password_reset' %}">Forgot Password?</a> |
-        <a href="{% url 'signup' %}">Sign Up</a>
+<main class="container">
+
+  <!-- LEFT MOCKUP -->
+  <section class="hero">
+    <div class="phone-stack">
+      <div class="card back-card"></div>
+
+      <div class="card phone-card">
+        <div class="phone-screen">
+          <img src="{% static 'images/login-bg.jpg' %}" alt="">
+          <div class="floating-heart">❤</div>
+          <div class="floating-bubble">🔥 💜</div>
+        </div>
       </div>
-  </div>
-</div>
+
+      <div class="card left-card"></div>
+    </div>
+  </section>
+
+  <!-- RIGHT LOGIN -->
+  <aside class="auth">
+    <div class="auth-card">
+
+      <h1 class="logo">JobLink</h1>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <!-- LOGIN FORM -->
+      <form class="login-form" method="POST">
+        {% csrf_token %}
+        <input name="identifier" class="input" placeholder="Phone number, username or email" required>
+
+        <div class="password-row">
+          <input type="password" name="password" id="password" class="input" placeholder="Password">
+          <button type="button" id="toggleShow" class="show-btn">Show</button>
+        </div>
+
+        <button class="primary-btn" type="submit">Log in</button>
+      </form>
+
+      <div class="divider"><span>OR</span></div>
+
+      <!-- FACEBOOK BUTTON -->
+      <button class="facebook-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.33 2 2 6.48 2 12.07 2 17.06 5.65 21.14 10.5 22v-7.11H8.2V12.1h2.3V9.82c0-2.28 1.36-3.54 3.44-3.54.99 0 2.03.18 2.03.18v2.23h-1.14c-1.12 0-1.47.7-1.47 1.42V12.1h2.5l-.4 2.88h-2.1V22C18.35 21.14 22 17.06 22 12.07z" fill="#385185"/>
+        </svg>
+        Log in with Facebook
+      </button>
+
+      <p class="forgot"><a href="{% url 'password_reset' %}">Forgot Password?</a></p>
+    </div>
+
+    <div class="signup-card">
+      <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+    </div>
+
+    <footer class="small-footer">
+      <p>English (UK) • © 2025 JobLink Kenya</p>
+    </footer>
+  </aside>
+
+</main>
+
+<!-- PASSWORD SHOW/HIDE SCRIPT -->
+<script>
+  const toggleBtn = document.getElementById('toggleShow');
+  const passwordInput = document.getElementById('password');
+
+  toggleBtn.addEventListener('click', () => {
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      toggleBtn.textContent = 'Hide';
+    } else {
+      passwordInput.type = 'password';
+      toggleBtn.textContent = 'Show';
+    }
+  });
+</script>
+
 {% endblock %}
+
 
 {% block extra_css %}
 <style>
-html, body {
-    margin: 0;
-    padding: 0;
+
+:root{
+  --bg: #fafafa;
+  --card-bg: #ffffff;
+  --muted: #8e8e8e;
+  --accent: #3897f0;
+  --input-border: #ddd;
+  --max-width: 1050px;
 }
 
-.login-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to right, #0f172a, #1e293b);
-    padding: 20px; /* ensures spacing if viewport is tight */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
 }
 
-.login-box {
-    background: rgba(0, 255, 255, 0.1);
-    padding: 20px 25px;
-    border-radius: 12px;
-    width: 320px;
-    border: 1px solid #00ffff;
-    backdrop-filter: blur(6px);
-    box-sizing: border-box;
+/* main layout */
+.container{
+  max-width:var(--max-width);
+  margin:60px auto;
+  display:flex;
+  gap:60px;
+  align-items:flex-start;
+  padding:0 24px;
 }
 
-.login-box h2 {
-    margin-bottom: 15px;
-    text-align: center;
-    color: #00eaff;
+/* LEFT MOCKUP */
+.hero{flex:1; display:flex; align-items:center; justify-content:center}
+.phone-stack{position:relative; width:420px; height:420px}
+
+/* cards */
+.card{
+  position:absolute;
+  border-radius:28px;
+  box-shadow:0 18px 30px rgba(0,0,0,0.12);
 }
 
-.links {
-    text-align: center;
-    margin-top: 12px;
+.back-card{
+  width:300px; height:420px;
+  left:calc(50% - 120px); top:40px;
+  transform:rotate(-14deg);
+  background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
+}
+.left-card{
+  width:340px; height:420px;
+  right:calc(50% - 120px); top:30px;
+  transform:rotate(10deg);
+  background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
 }
 
-.links a {
-    color: #00eaff;
-    text-decoration: none;
-    font-size: 14px;
+.phone-card{
+  width:300px; height:520px;
+  border-radius:36px; overflow:hidden;
+  display:flex; justify-content:center; align-items:center;
+  background:#111;
+  z-index:10;
 }
 
-.links a:hover {
-    text-decoration: underline;
+.phone-screen{
+  width:92%; height:88%;
+  margin:auto;
+  background:white;
+  border-radius:24px;
+  overflow:hidden;
+  position:relative;
+}
+.phone-screen img{
+  width:100%; height:100%; object-fit:cover;
+}
+.floating-heart{
+  position:absolute; left:10%; top:20%;
+  background:linear-gradient(45deg,#ff3b6a,#ff8a5c);
+  color:white; padding:8px 10px;
+  border-radius:14px; font-size:14px;
+}
+.floating-bubble{
+  position:absolute; right:6%; bottom:16%;
+  background:white; padding:6px 10px;
+  border-radius:20px; font-size:13px;
 }
 
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
-    border: 1px solid #00ffff;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.05);
-    color: #e0f7fa;
-    font-size: 14px;
+/* RIGHT SIDE */
+.auth{
+  width:360px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-input:focus {
-    outline: none;
-    border-color: #00ffff;
+.auth-card{
+  width:100%;
+  background:var(--card-bg);
+  padding:28px;
+  border:1px solid var(--input-border);
+  border-radius:6px;
+  text-align:center;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #00eaff;
-    color: #000;
-    border: none;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform .2s;
-    animation: pulseGlow 2s infinite alternate;
+.logo{
+  font-family:Pacifico, cursive;
+  font-size:42px;
+  margin:4px 0 18px;
 }
 
-button:hover {
-    background-color: #00ffff;
-    transform: scale(1.05);
+.input{
+  width:100%; padding:10px 12px;
+  border-radius:4px;
+  border:1px solid var(--input-border);
+  font-size:14px;
 }
 
-@keyframes pulseGlow {
-    from { box-shadow: 0 0 5px rgba(0,255,255,0.3); }
-    to   { box-shadow: 0 0 15px rgba(0,255,255,0.8); }
+.password-row{
+  display:flex; gap:8px;
 }
+.show-btn{
+  padding:8px 10px;
+  border:1px solid #bdbdbd;
+  background:white;
+  cursor:pointer;
+  border-radius:4px;
+  font-weight:600;
+}
+
+.primary-btn{
+  margin-top:6px;
+  background:var(--accent);
+  color:white;
+  padding:9px;
+  border:none;
+  border-radius:6px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.divider{
+  display:flex; align-items:center;
+  gap:16px; margin:16px 0;
+}
+.divider::before, .divider::after{
+  content:""; height:1px; background:#eee; flex:1;
+}
+
+.facebook-btn{
+  border:none;
+  background:none;
+  color:#385185;
+  font-weight:700;
+  display:flex; gap:8px;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.signup-card{
+  margin-top:12px;
+  width:100%;
+  padding:16px;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:6px;
+  text-align:center;
+}
+
+.small-footer{
+  margin-top:14px;
+  color:#8e8e8e;
+  font-size:12px;
+}
+
+@media (max-width:980px){
+  .container{flex-direction:column; margin:20px auto; gap:30px}
+  .hero{order:2}
+  .auth{order:1}
+  .back-card,.left-card{display:none}
+  .phone-card{width:260px; height:440px}
+}
+
 </style>
 {% endblock %}
