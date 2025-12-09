@@ -67,13 +67,16 @@ nav a { margin:0 1rem; font-weight:bold; }
 
 /* Mobile menu */
 .mobile-menu {
-  display:none;
-  flex-direction:column;
-  gap:0.5rem;
-  padding:1rem;
-  border-radius:0.5rem;
-  background-color:rgba(15,23,42,0.9);
-  backdrop-filter:blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  border-radius: 0.5rem;
+  background-color: rgba(15,23,42,0.9);
+  backdrop-filter: blur(10px);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
 }
 .mobile-toggle { display: none; }
 
@@ -269,10 +272,20 @@ input, select, textarea, button {
 <script>
 AOS.init();
 
-// Mobile menu toggle
+// Mobile menu toggle with smooth slide
+const menu = document.getElementById('mobileMenu');
 document.getElementById('menuToggle').addEventListener('click', () => {
-    const menu = document.getElementById('mobileMenu');
-    menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'flex' : 'none';
+    if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
+        menu.style.maxHeight = '0';
+        menu.style.padding = '0 1rem';
+        setTimeout(() => menu.style.display = 'none', 400);
+    } else {
+        menu.style.display = 'flex';
+        setTimeout(() => {
+            menu.style.maxHeight = '500px'; // adjust if needed
+            menu.style.padding = '1rem';
+        }, 10);
+    }
 });
 </script>
 
