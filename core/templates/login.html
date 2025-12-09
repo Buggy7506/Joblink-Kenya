@@ -241,28 +241,32 @@ body {
 }
 #login-page .signup-card a{color:#0095f6; text-decoration:none; font-weight:600;}
 
-/* Flash messages styling */
+/* --- FLASH MESSAGES --- */
 #login-page .messages {
   list-style: none;
   padding: 0;
   margin: 0 0 12px 0;
+  width: 100%;
+  z-index: 100;
 }
 #login-page .messages li {
   padding: 10px 14px;
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #fff;
+  font-weight:600;
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.5s ease, transform 0.5s ease;
+  color: #000; /* Black text for better readability */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
-#login-page .messages li.error { background: #f44336; }
-#login-page .messages li.success { background: #4caf50; }
-#login-page .messages li.info { background: #2196f3; }
-#login-page .messages li.warning { background: #ff9800; }
+#login-page .messages li.error { background-color: #f44336; }
+#login-page .messages li.success { background-color: #4caf50; }
+#login-page .messages li.info { background-color: #2196f3; }
+#login-page .messages li.warning { background-color: #ff9800; }
 
-/* Mobile adjustments: hide phone mockup, full-width form */
+/* Mobile adjustments */
 @media (max-width:768px){
   #login-page .container{
     flex-direction:column;
@@ -270,7 +274,7 @@ body {
     padding:0 2vw;
   }
   #login-page .hero{
-    display:none; /* hide phone mockup */
+    display:none; 
   }
   #login-page .auth{
     order:1;
@@ -324,7 +328,6 @@ body {
             <button type="button" id="toggleShow" class="show-btn">Show</button>
           </div>
 
-          <!-- Login button with spinner -->
           <button class="primary-btn" type="submit" id="loginBtn">
             <span class="btn-text">Log in</span>
             <div class="spinner"></div>
@@ -363,7 +366,6 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
-// Smooth spinner slide for login
 const loginForm = document.getElementById('loginForm');
 const loginBtn = document.getElementById('loginBtn');
 
@@ -371,13 +373,12 @@ loginForm.addEventListener('submit', () => {
   loginBtn.classList.add('loading');
 });
 
-// Auto-hide messages after 3 seconds
 const messages = document.querySelectorAll('#login-page .messages li');
 messages.forEach(msg => {
   setTimeout(() => {
     msg.style.opacity = '0';
     msg.style.transform = 'translateY(-10px)';
-    setTimeout(() => msg.remove(), 500); // remove from DOM after fade
+    setTimeout(() => msg.remove(), 500);
   }, 3000);
 });
 </script>
