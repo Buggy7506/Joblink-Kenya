@@ -34,12 +34,10 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 #login-page .hero{flex:0 0 auto; display:flex; justify-content:center; min-width:180px; max-width:40vw;}
 #login-page .phone-stack{
   position:relative;
-  width:clamp(160px, 25vw, 240px);  /* slightly slimmer */
+  width:clamp(160px, 25vw, 240px);
   height:clamp(200px, 30vw, 320px);
   margin:auto;
 }
-
-/* Cards */
 #login-page .card{
   position:absolute;
   border-radius:28px;
@@ -48,8 +46,8 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 #login-page .back-card{
   width:60%;
   height:100%;
-  left:22%;  
-  top:6%;    
+  left:22%;
+  top:6%;
   transform:rotate(-10deg) scale(.95);
   background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
   z-index:1;
@@ -57,7 +55,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 #login-page .left-card{
   width:65%;
   height:100%;
-  right:22%;  
+  right:22%;
   top:4%;
   transform:rotate(8deg) scale(.97);
   background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
@@ -130,6 +128,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
   border:1px solid var(--input-border);
   border-radius:6px;
   text-align:center;
+  position:relative;
 }
 #login-page .logo{
   font-family:Pacifico,cursive;
@@ -171,6 +170,8 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
   font-size:15px;
   cursor:pointer;
   box-shadow:0 6px 14px rgba(60,81,246,0.24);
+  position:relative;
+  overflow:hidden;
 }
 #login-page .divider{display:flex; align-items:center; gap:16px; margin:16px 0;}
 #login-page .divider::before,#login-page .divider::after{content:""; height:1px; background:#eee; flex:1;}
@@ -190,7 +191,28 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 }
 #login-page .signup-card a{color:#0095f6; text-decoration:none; font-weight:600;}
 
-/* Mobile adjustments */
+/* Loading spinner */
+#login-page .spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3c51f6;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  display:none;
+  z-index:1000;
+}
+
+@keyframes spin {
+  0% { transform:translate(-50%, -50%) rotate(0deg); }
+  100% { transform:translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Mobile adjustments: hide phone mockup */
 @media (max-width:768px){
   #login-page .container{
     flex-direction:column;
@@ -198,22 +220,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
     padding:0 2vw;
   }
   #login-page .hero{
-    order:0;
-    min-width:160px;
-    max-width:80vw;
-    margin-bottom:20px;
-  }
-  #login-page .phone-stack{
-    width:70%;
-    height:auto;
-  }
-  #login-page .back-card, #login-page .left-card{
-    left:auto;
-    right:auto;
-    width:40%;
-    height:auto;
-    top:5%;
-    transform:none;
+    display:none; /* hide phone mockup */
   }
   #login-page .auth{
     order:1;
@@ -255,7 +262,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
           </ul>
         {% endif %}
 
-        <form class="login-form" method="POST" action="{% url 'login' %}">
+        <form class="login-form" id="loginForm" method="POST" action="{% url 'login' %}">
           {% csrf_token %}
           <input name="identifier" class="input" placeholder="Phone number, username or email" required>
           <div class="password-row">
@@ -263,6 +270,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
             <button type="button" id="toggleShow" class="show-btn">Show</button>
           </div>
           <button class="primary-btn" type="submit">Log in</button>
+          <div class="spinner" id="spinner"></div>
         </form>
 
         <div class="divider"><span>OR</span></div>
@@ -290,6 +298,18 @@ const passwordInput = document.getElementById('password');
 toggleBtn.addEventListener('click', () => {
   if(passwordInput.type==='password'){passwordInput.type='text'; toggleBtn.textContent='Hide';}
   else{passwordInput.type='password'; toggleBtn.textContent='Show';}
+});
+
+// Fade + spinner effect on login
+const loginForm = document.getElementById('loginForm');
+const spinner = document.getElementById('spinner');
+
+loginForm.addEventListener('submit', (e) => {
+  // fade out form
+  loginForm.style.transition = "opacity 0.3s ease";
+  loginForm.style.opacity = 0.5;
+  // show spinner
+  spinner.style.display = 'block';
 });
 </script>
 {% endblock %}
