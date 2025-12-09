@@ -17,6 +17,7 @@
 {% block extra_css %}{% endblock %}
 
 <style>
+/* Base styling */
 body {
     margin: 0; padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,6 +31,7 @@ body {
 a { text-decoration: none; color: inherit; }
 .container { width: 90%; max-width: 1200px; margin: 0 auto; }
 
+/* Glow effects */
 .glow { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #0ff; }
 .glow-border { border: 2px solid transparent; border-image: linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice: 1; }
 .hover-glow:hover { color: #0ff; text-shadow: 0 0 6px #00f0ff; }
@@ -53,11 +55,10 @@ header {
     top: 0;
     z-index: 50;
     padding: 1rem;
-    background-color: rgba(30, 41, 59, 0.8);
+    background-color: rgba(30, 41, 59, 0.85);
     backdrop-filter: blur(6px);
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
-
 nav a { margin: 0 1rem; font-weight: bold; }
 
 /* Main content */
@@ -78,15 +79,13 @@ nav a { margin: 0 1rem; font-weight: bold; }
     gap: 0.5rem;
     padding: 1rem;
     border-radius: 0.5rem;
-    background-color: rgba(15,23,42,0.9);
+    background-color: rgba(15,23,42,0.95);
     backdrop-filter: blur(10px);
 }
-
 .mobile-toggle { display: none; }
 @media(max-width: 768px){
     .desktop-nav { display: none; }
     .mobile-toggle { display: block; }
-    .mobile-menu { display: flex; flex-direction: column; }
 }
 
 /* Fade animation for messages */
@@ -96,7 +95,6 @@ nav a { margin: 0 1rem; font-weight: bold; }
 }
 .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
 </style>
-
 </head>
 <body>
 
@@ -141,7 +139,7 @@ nav a { margin: 0 1rem; font-weight: bold; }
     </div>
 
     <!-- Mobile Navigation -->
-    <div id="mobileMenu" class="mobile-menu" style="display:none;">
+    <div id="mobileMenu" class="mobile-menu">
         <a href="{% url 'home' %}" class="hover-glow">Home</a>
         {% if user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
@@ -174,11 +172,8 @@ AOS.init();
 const toggleBtn = document.getElementById('menuToggle');
 const mobileMenu = document.getElementById('mobileMenu');
 toggleBtn.addEventListener('click', () => {
-    if(mobileMenu.style.display === '' || mobileMenu.style.display === 'none'){
-        mobileMenu.style.display = 'flex';
-    } else {
-        mobileMenu.style.display = 'none';
-    }
+    mobileMenu.classList.toggle('open');
+    mobileMenu.style.display = mobileMenu.classList.contains('open') ? 'flex' : 'none';
 });
 </script>
 
