@@ -6,7 +6,6 @@
 <meta charset="UTF-8">
 <title>JobLink Kenya - {% block title %}{% endblock %}</title>
 
-<!-- Prevent zooming on all devices -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <!-- External libraries -->
@@ -27,22 +26,58 @@ body {
   display:flex;
   flex-direction:column;
   min-height:100vh;
+  scroll-behavior: smooth;
 }
 
-a { text-decoration:none; color:inherit; }
+/* Container */
 .container { width:90%; max-width:1200px; margin:0 auto; }
 
+/* Glow effects */
 .glow { text-shadow:0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #0ff; }
 .glow-border { border:2px solid transparent; border-image:linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice:1; }
-.nav-bg { background-color:rgba(30,41,59,0.8); backdrop-filter:blur(6px); }
-.hover-glow:hover { color:#0ff; text-shadow:0 0 6px #00f0ff; }
-header { position:sticky; top:0; z-index:50; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,0.3); }
+
+/* Header */
+header {
+  position:fixed; top:0; left:0; right:0;
+  z-index:50; padding:1rem;
+  box-shadow:0 0 15px rgba(0,255,255,0.4);
+  background-color:rgba(30,41,59,0.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid #0ff;
+  transition: all 0.3s ease-in-out;
+}
 nav a { margin:0 1rem; font-weight:bold; }
-.main { flex-grow:1; padding:2rem 0; }
-.footer { background:linear-gradient(to right,#0f172a,#1e293b); padding:1rem 0; text-align:center; color:#ccc; }
+.hover-glow:hover { color:#0ff; text-shadow:0 0 10px #00ffff,0 0 20px #0ff; }
+.active-nav { color:#00ffff !important; text-shadow:0 0 12px #00ffff,0 0 24px #0ff; font-weight:bold; }
+
+/* Main content */
+.main {
+  flex-grow:1;
+  padding:6rem 0 5rem; /* top for header, bottom for footer */
+  overflow:auto;
+}
+
+/* Footer */
+.footer {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(30,41,59,0.85);
+  backdrop-filter:blur(10px);
+  padding:1rem 0;
+  text-align:center;
+  color:#ccc;
+  box-shadow:0 -2px 15px rgba(0,255,255,0.3);
+  border-top:1px solid #0ff;
+  transition: all 0.3s ease-in-out;
+}
 
 /* Mobile menu */
-.mobile-menu { display:none; flex-direction:column; gap:0.5rem; padding:1rem; border-radius:0.5rem; background-color:rgba(15,23,42,0.9); backdrop-filter:blur(10px); }
+.mobile-menu {
+  display:none; flex-direction:column; gap:0.5rem;
+  padding:1rem; border-radius:0.5rem;
+  background-color:rgba(15,23,42,0.9);
+  backdrop-filter:blur(10px);
+  position:absolute; top:100%; right:1rem; z-index:60;
+}
 .mobile-toggle { display: none; }
 
 /* Responsive */
@@ -55,16 +90,14 @@ nav a { margin:0 1rem; font-weight:bold; }
 @keyframes fade-in { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
 .animate-fade-in { animation:fade-in 0.5s ease-out forwards; }
 
-/* Prevent zoom on input focus (iOS/Android fix) */
+/* Prevent zoom on input focus */
 input, select, textarea, button { font-size:16px !important; }
 
-/* Active nav styling */
-.active-nav { color:#00ffff !important; text-shadow:0 0 6px #00f0ff; font-weight:bold; }
 </style>
 </head>
 <body>
 
-<header class="nav-bg">
+<header>
   <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
     <h1 class="glow" style="font-size:2rem; font-weight:bold;">
       <a href="{% url 'home' %}">JobLink <span style="color:#22d3ee;">Kenya</span></a>
@@ -73,23 +106,22 @@ input, select, textarea, button { font-size:16px !important; }
     <!-- Desktop Navigation -->
     <nav class="desktop-nav">
       <a href="{% url 'home' %}" class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}">Home</a>
-
       {% if user.is_authenticated %}
-          {% if user.is_superuser or user.role == 'admin' %}
-            <a href="{% url 'admin_dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-nav{% endif %}">Dashboard</a>
-            <a href="{% url 'admin_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-nav{% endif %}">Profile</a>
-          {% elif user.role == 'employer' %}
-            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
-            <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-nav{% endif %}">Profile</a>
-          {% else %}
-            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
-            <a href="{% url 'profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-nav{% endif %}">Profile</a>
-          {% endif %}
-          <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-nav{% endif %}">Change Password</a>
-          <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+        {% if user.is_superuser or user.role == 'admin' %}
+          <a href="{% url 'admin_dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-nav{% endif %}">Dashboard</a>
+          <a href="{% url 'admin_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-nav{% endif %}">Profile</a>
+        {% elif user.role == 'employer' %}
+          <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
+          <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-nav{% endif %}">Profile</a>
+        {% else %}
+          <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
+          <a href="{% url 'profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-nav{% endif %}">Profile</a>
+        {% endif %}
+        <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-nav{% endif %}">Change Password</a>
+        <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
       {% else %}
-          <a href="{% url 'login' %}" class="hover-glow {% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">Login</a>
-          <a href="{% url 'signup' %}" class="hover-glow {% if request.resolver_match.url_name == 'signup' %}active-nav{% endif %}">Sign Up</a>
+        <a href="{% url 'login' %}" class="hover-glow {% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">Login</a>
+        <a href="{% url 'signup' %}" class="hover-glow {% if request.resolver_match.url_name == 'signup' %}active-nav{% endif %}">Sign Up</a>
       {% endif %}
     </nav>
 
@@ -102,23 +134,22 @@ input, select, textarea, button { font-size:16px !important; }
   <!-- Mobile Navigation -->
   <div id="mobileMenu" class="mobile-menu">
     <a href="{% url 'home' %}" class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}">Home</a>
-
     {% if user.is_authenticated %}
-        {% if user.is_superuser or user.role == 'admin' %}
-            <a href="{% url 'admin_dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-nav{% endif %}">Dashboard</a>
-            <a href="{% url 'admin_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-nav{% endif %}">Profile</a>
-        {% elif user.role == 'employer' %}
-            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
-            <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-nav{% endif %}">Profile</a>
-        {% else %}
-            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
-            <a href="{% url 'profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-nav{% endif %}">Profile</a>
-        {% endif %}
-        <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-nav{% endif %}">Change Password</a>
-        <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+      {% if user.is_superuser or user.role == 'admin' %}
+        <a href="{% url 'admin_dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-nav{% endif %}">Dashboard</a>
+        <a href="{% url 'admin_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-nav{% endif %}">Profile</a>
+      {% elif user.role == 'employer' %}
+        <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
+        <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-nav{% endif %}">Profile</a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-nav{% endif %}">Dashboard</a>
+        <a href="{% url 'profile' %}" class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-nav{% endif %}">Profile</a>
+      {% endif %}
+      <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-nav{% endif %}">Change Password</a>
+      <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
-        <a href="{% url 'login' %}" class="hover-glow {% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">Login</a>
-        <a href="{% url 'signup' %}" class="hover-glow {% if request.resolver_match.url_name == 'signup' %}active-nav{% endif %}">Sign Up</a>
+      <a href="{% url 'login' %}" class="hover-glow {% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">Login</a>
+      <a href="{% url 'signup' %}" class="hover-glow {% if request.resolver_match.url_name == 'signup' %}active-nav{% endif %}">Sign Up</a>
     {% endif %}
   </div>
 </header>
