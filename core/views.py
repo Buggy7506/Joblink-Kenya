@@ -211,7 +211,7 @@ def signup_view(request):
          if form.is_valid():
              user = form.save()
              login(request, user)
-             return redirect('login')
+             return redirect('dashboard')
      else:
          form = CustomUserCreationForm() 
      return render(request, 'signup.html', {'form': form})
