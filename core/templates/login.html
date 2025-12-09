@@ -27,11 +27,12 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
   gap:4vw;
   align-items:flex-start;
   padding:0 4vw;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Keep hero and auth side by side */
+  overflow-x:auto; /* allow horizontal scroll on small screens */
 }
 
 /* HERO left side mockup */
-#login-page .hero{flex:1; display:flex; justify-content:center; min-width:280px;}
+#login-page .hero{flex:0 0 auto; display:flex; justify-content:center; min-width:220px; max-width:40vw;}
 #login-page .phone-stack{
   position:relative;
   width:clamp(220px, 35vw, 320px);
@@ -114,6 +115,7 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 
 /* RIGHT AUTH BOX */
 #login-page .auth{
+  flex:0 0 auto;
   width:clamp(280px, 30vw, 360px);
   display:flex;
   flex-direction:column;
@@ -187,15 +189,15 @@ body { background: var(--bg) !important; color: #111 !important; margin:0; paddi
 }
 #login-page .signup-card a{color:#0095f6; text-decoration:none; font-weight:600;}
 
-/* Mobile responsive adjustments */
+/* Mobile adjustments: keep hero on left */
 @media (max-width:768px){
   #login-page .container{
-    flex-direction:column;
-    gap:16px;
-    margin:16px auto;
+    flex-direction:row;
+    gap:4vw;
+    padding:0 2vw;
   }
-  #login-page .hero{order:2; width:100%;}
-  #login-page .auth{order:1; width:100%;}
+  #login-page .hero{order:0; min-width:220px; max-width:40vw;}
+  #login-page .auth{order:1; min-width:280px; max-width:50vw;}
   #login-page .back-card, #login-page .left-card{display:none;}
 }
 </style>
