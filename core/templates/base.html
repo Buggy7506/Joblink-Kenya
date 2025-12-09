@@ -5,175 +5,126 @@
 <head>
 <meta charset="UTF-8">
 <title>JobLink Kenya - {% block title %}{% endblock %}</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- AOS animation -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
-<!-- Font Awesome -->
 <script src="https://kit.fontawesome.com/a2c5a4f60f.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 
 {% block extra_css %}{% endblock %}
 
 <style>
-/* Base styling */
-body {
-    margin: 0; padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to right, #0f172a, #1e293b);
-    color: #e0f7fa;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-a { text-decoration: none; color: inherit; }
-.container { width: 90%; max-width: 1200px; margin: 0 auto; }
-
-/* Glow effects */
-.glow { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #0ff; }
-.glow-border { border: 2px solid transparent; border-image: linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice: 1; }
-.hover-glow:hover { color: #0ff; text-shadow: 0 0 6px #00f0ff; }
-.glow-btn {
-    background: linear-gradient(45deg, #06b6d4, #0ea5e9);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    text-shadow: 0 0 3px #0ff;
-    box-shadow: 0 0 10px #0ff;
-    transition: all 0.3s ease-in-out;
-}
-.glow-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px #00ffff;
-}
-
-/* Header */
-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    padding: 1rem;
-    background-color: rgba(30, 41, 59, 0.85);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-nav a { margin: 0 1rem; font-weight: bold; }
+body { margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right,#0f172a,#1e293b); color:#e0f7fa; display:flex; flex-direction:column; min-height:100vh; }
+a { text-decoration:none; color:inherit; }
+.container { width:90%; max-width:1200px; margin:0 auto; }
+.glow { text-shadow:0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #0ff; }
+.glow-border { border:2px solid transparent; border-image:linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice:1; }
+.nav-bg { background-color:rgba(30,41,59,0.8); backdrop-filter:blur(6px); }
+.hover-glow:hover { color:#0ff; text-shadow:0 0 6px #00f0ff; }
+header { position:sticky; top:0; z-index:50; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; justify-content:space-between; align-items:center; }
+nav a { margin:0 1rem; font-weight:bold; }
 
 /* Main content */
-.main { flex-grow: 1; padding: 6rem 0 5rem; }
+.main { flex-grow:1; padding:2rem 0; }
 
 /* Footer */
-.footer {
-    background: linear-gradient(to right, #0f172a, #1e293b);
-    padding: 1rem 0;
-    text-align: center;
-    color: #ccc;
-}
+.footer { background:linear-gradient(to right,#0f172a,#1e293b); padding:1rem 0; text-align:center; color:#ccc; }
 
 /* Mobile menu */
-.mobile-menu {
-    display: none;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background-color: rgba(15,23,42,0.95);
-    backdrop-filter: blur(10px);
-}
+.mobile-menu { display:none; flex-direction:column; gap:0.5rem; padding:1rem; border-radius:0.5rem; background-color:rgba(15,23,42,0.9); backdrop-filter:blur(10px); }
 .mobile-toggle { display: none; }
-@media(max-width: 768px){
-    .desktop-nav { display: none; }
-    .mobile-toggle { display: block; }
-}
 
-/* Fade animation for messages */
-@keyframes fade-in {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+/* Responsive */
+@media(max-width:768px){ .desktop-nav { display: none; } .mobile-toggle { display: block; } }
+
+/* Animations */
+@keyframes fade-in { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+.animate-fade-in { animation:fade-in 0.5s ease-out forwards; }
+
+/* Prevent zoom on input focus (iOS/Android fix) */
+input, select, textarea, button { font-size:16px !important; }
+
+.active-nav { color:#00ffff; text-shadow:0 0 6px #00f0ff; font-weight:bold; }
 </style>
 </head>
 <body>
 
-{% if messages %}
-<div class="fixed top-5 right-5 z-50 space-y-2">
-  {% for message in messages %}
-    <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
-      {{ message }}
+<header class="nav-bg">
+  <div class="container">
+    <h1 class="glow" style="font-size:2rem; font-weight:bold;">
+      <a href="{% url 'home' %}">JobLink <span style="color:#22d3ee;">Kenya</span></a>
+    </h1>
+
+    {% comment %} Desktop Navigation {% endcomment %}
+    <nav class="desktop-nav">
+      <a href="{% url 'home' %}" class="hover-glow {% if request.path == '/' %}active-nav{% endif %}">Home</a>
+
+      {% if user.is_authenticated %}
+          {% if user.is_superuser or user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="hover-glow {% if request.path == '/admin_dashboard/' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'admin_profile' %}" class="hover-glow {% if request.path == '/admin_profile/' %}active-nav{% endif %}">Profile</a>
+          {% elif user.role == 'employer' %}
+            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.path == '/dashboard/' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.path == '/employer_profile/' %}active-nav{% endif %}">Profile</a>
+          {% else %}
+            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.path == '/dashboard/' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'profile' %}" class="hover-glow {% if request.path == '/profile/' %}active-nav{% endif %}">Profile</a>
+          {% endif %}
+          <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.path == '/change_username_password/' %}active-nav{% endif %}">Change Password</a>
+          <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+      {% else %}
+          <a href="{% url 'login' %}" class="hover-glow {% if request.path == '/login/' %}active-nav{% endif %}">Login</a>
+          <a href="{% url 'signup' %}" class="hover-glow {% if request.path == '/signup/' %}active-nav{% endif %}">Sign Up</a>
+      {% endif %}
+    </nav>
+
+    <!-- Mobile toggle button -->
+    <div class="mobile-toggle">
+      <button id="menuToggle" style="font-size:1.5rem; color:white;"><i class="fas fa-bars"></i></button>
     </div>
-  {% endfor %}
-</div>
-{% endif %}
+  </div>
 
-<header>
-    <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-        <h1 class="glow" style="font-size:2rem; font-weight:bold;">
-            <a href="{% url 'home' %}">JobLink <span style="color:#22d3ee;">Kenya</span></a>
-        </h1>
+  <!-- Mobile Navigation -->
+  <div id="mobileMenu" class="mobile-menu">
+    <a href="{% url 'home' %}" class="hover-glow {% if request.path == '/' %}active-nav{% endif %}">Home</a>
 
-        <!-- Desktop Navigation -->
-        <nav class="desktop-nav">
-            <a href="{% url 'home' %}" class="hover-glow">Home</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
-                {% if request.user.profile.is_employer %}
-                    <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-                {% else %}
-                    <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-                {% endif %}
-                <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
-                <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
-            {% else %}
-                <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
-                <a href="{% url 'signup' %}" class="hover-glow" style="color:#4ade80;">Sign Up</a>
-            {% endif %}
-        </nav>
-
-        <!-- Mobile toggle button -->
-        <div class="mobile-toggle">
-            <button id="menuToggle" style="font-size:1.5rem; color:white;"><i class="fas fa-bars"></i></button>
-        </div>
-    </div>
-
-    <!-- Mobile Navigation -->
-    <div id="mobileMenu" class="mobile-menu">
-        <a href="{% url 'home' %}" class="hover-glow">Home</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
-            {% if request.user.profile.is_employer %}
-                <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
-            {% else %}
-                <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
-            {% endif %}
-            <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
-            <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+    {% if user.is_authenticated %}
+        {% if user.is_superuser or user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="hover-glow {% if request.path == '/admin_dashboard/' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'admin_profile' %}" class="hover-glow {% if request.path == '/admin_profile/' %}active-nav{% endif %}">Profile</a>
+        {% elif user.role == 'employer' %}
+            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.path == '/dashboard/' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'employer_profile' %}" class="hover-glow {% if request.path == '/employer_profile/' %}active-nav{% endif %}">Profile</a>
         {% else %}
-            <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
-            <a href="{% url 'signup' %}" class="hover-glow" style="color:#4ade80;">Sign Up</a>
+            <a href="{% url 'dashboard' %}" class="hover-glow {% if request.path == '/dashboard/' %}active-nav{% endif %}">Dashboard</a>
+            <a href="{% url 'profile' %}" class="hover-glow {% if request.path == '/profile/' %}active-nav{% endif %}">Profile</a>
         {% endif %}
-    </div>
+        <a href="{% url 'change_username_password' %}" class="hover-glow {% if request.path == '/change_username_password/' %}active-nav{% endif %}">Change Password</a>
+        <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="hover-glow {% if request.path == '/login/' %}active-nav{% endif %}">Login</a>
+        <a href="{% url 'signup' %}" class="hover-glow {% if request.path == '/signup/' %}active-nav{% endif %}">Sign Up</a>
+    {% endif %}
+  </div>
 </header>
 
 <main class="main container" data-aos="fade-up">
-    {% block content %}{% endblock %}
+  {% block content %}{% endblock %}
 </main>
 
 <footer class="footer glow-border">
-    <p>&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
+  <p>English(UK) •&copy; {{ now.year }} <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
 </footer>
 
 <script>
 AOS.init();
 
 // Mobile menu toggle
-const toggleBtn = document.getElementById('menuToggle');
-const mobileMenu = document.getElementById('mobileMenu');
-toggleBtn.addEventListener('click', () => {
-    mobileMenu.classList.toggle('open');
-    mobileMenu.style.display = mobileMenu.classList.contains('open') ? 'flex' : 'none';
+document.getElementById('menuToggle').addEventListener('click', () => {
+    const menu = document.getElementById('mobileMenu');
+    menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'flex' : 'none';
 });
 </script>
 
