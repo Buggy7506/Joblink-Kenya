@@ -1,171 +1,250 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}JobLink Kenya - Sign Up{% endblock %}
+{% block title %}Sign Up • JobLink Kenya{% endblock %}
 
 {% block extra_css %}
-<style> 
-/* Target help texts below password fields */
-.signup-form .helptext,
-.signup-form .helptext ul,
-.signup-form .helptext li {
-  color: #222 !important;
-  font-size: 14px;
-  margin-top: 5px;
-  list-style-type: disc;
+<style>
+:root{
+    --bg: #fafafa;
+    --card-bg: #fff;
+    --muted: #8e8e8e;
+    --accent: #0095f6;
+    --input-border: #dbdbdb;
+    --primary: #4d69ff;
 }
 
-/* If Django uses <ul> without class */
-.signup-form ul,
-.signup-form li {
-  color: #222 !important;
-}
-  
-.signup-form label,
-.signup-form p,
-.signup-form span,
-.signup-form input,
-.signup-form select,
-.signup-form a {
-  color: #333 !important;
+*{ box-sizing:border-box; }
+html, body { height: 100%; }
+
+.signup-layout{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+    padding:40px 20px;
+    font-family:Inter, sans-serif;
 }
 
-/* 🔥 Glow animation */
-@keyframes glow {
-  0% {
-    box-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800, 0 0 30px #ff9800;
-  }
-  50% {
-    box-shadow: 0 0 20px #ff5722, 0 0 30px #ff5722, 0 0 40px #ff5722;
-  }
-  100% {
-    box-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800, 0 0 30px #ff9800;
-  }
+.signup-card-wrap{
+    width:360px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
 }
 
-/* 🔆 Page background */
-.signup-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(to right, #fceabb, #f8b500);
-  font-family: 'Helvetica Neue', sans-serif;
+.signup-card{
+    width:100%;
+    background:var(--card-bg);
+    border:1px solid var(--input-border);
+    border-radius:6px;
+    padding:22px;
+    text-align:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 📝 Form container */
-.signup-form {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 40px;
-  border-radius: 18px;
-  width: 400px;
-  position: relative;
-  animation: glow 2s infinite alternate;
+.brand-ref{
+    display:block;
+    width:180px;
+    margin: 4px auto 12px;
 }
 
-/* ✨ Headings */
-.signup-form h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 30px;
-  color: #ff5722;
+.title{
+    font-weight:600;
+    font-size:15px;
+    color:#262626;
+    margin:0 0 12px 0;
 }
 
-/* 📌 Already have an account? */
-.signup-form .login-text {
-  text-align: center;
-  margin-top: 30px;
-  font-size: 16px;
-  color: #333;
+.fb-btn{
+    background:#1877f2;
+    color:#fff;
+    width:100%;
+    padding:8px;
+    border:none;
+    border-radius:6px;
+    font-weight:700;
+    cursor:pointer;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
 }
 
-.signup-form .login-text a {
-  color: #ff5722;
-  font-weight: bold;
-  text-decoration: none;
-  margin-left: 5px;
-  transition: color 0.3s ease;
+.divider{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:12px 0;
+}
+.divider::before, .divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:#efefef;
+}
+.divider span{ font-size:12px; color:var(--muted); }
+
+/* Django form field styling */
+.django-form-wrap p {
+    margin: 8px 0;
+    text-align: left;
 }
 
-.signup-form .login-text a:hover {
-  color: #e64a19;
-  text-decoration: underline;
+.django-form-wrap label {
+    font-size: 13px;
+    color: #444;
+    font-weight: 500;
 }
 
-/* 📌 Inputs */
-.signup-form input,
-.signup-form select {
-  width: 100%;
-  padding: 12px 14px;
-  margin-top: 12px;
-  border: 1px solid #ffc107;
-  border-radius: 12px;
-  background: #fff8e1;
-  transition: all 0.3s ease;
+.django-form-wrap input {
+    width: 100%;
+    padding: 9px 10px;
+    margin-top: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--input-border);
+    background: #fafafa;
+    font-size: 14px;
 }
 
-.signup-form input:focus,
-.signup-form select:focus {
-  outline: none;
-  border-color: #ff5722;
-  box-shadow: 0 0 6px rgba(255, 87, 34, 0.5);
-  background: #fff3cd;
+.django-form-wrap input:focus {
+    outline: none;
+    border-color: #b2dffc;
+    box-shadow: 0 0 0 3px rgba(0,149,246,0.1);
 }
 
-/* ℹ️ Help text */
-.signup-form .helptext {
-  display: block;
-  margin-top: 5px;
-  font-size: 0.85em;
-  color: #ff8800;
+.django-form-wrap ul.errorlist {
+    background: #ffecec;
+    color: #7a1b1b;
+    padding: 8px;
+    border-radius: 4px;
+    list-style: none;
+    margin: 4px 0;
+    font-size: 13px;
 }
 
-/* ⚠️ Error messages */
-.signup-form .errorlist {
-  margin: 8px 0;
-  padding: 0;
-  list-style: none;
-  color: #d32f2f;
-  font-size: 0.9em;
-  font-weight: bold;
+.legal, .terms{
+    font-size:11px;
+    color:var(--muted);
+    margin:10px 0;
+    line-height:1.3;
+}
+.legal a, .terms a{
+    color:#00376b;
+    text-decoration:underline;
 }
 
-/* 🚀 Button */
-.signup-form button {
-  background: linear-gradient(45deg, #ff9800, #ff5722);
-  color: white;
-  padding: 14px;
-  width: 100%;
-  border: none;
-  border-radius: 12px;
-  margin-top: 25px;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.signup-btn{
+    width:100%;
+    padding:8px 10px;
+    border-radius:6px;
+    background: linear-gradient(180deg,#4d69ff,#3c51f6);
+    color:white;
+    border:none;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:6px;
+    box-shadow:0 6px 14px rgba(60,81,246,0.18);
 }
 
-.signup-form button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(255, 87, 34, 0.6),
-              0 6px 10px rgba(0, 0, 0, 0.2);
+.have-account{
+    width:100%;
+    border:1px solid var(--input-border);
+    background:#fff;
+    padding:12px;
+    text-align:center;
+    border-radius:6px;
+}
+.have-account a{
+    color:var(--accent);
+    font-weight:600;
+    text-decoration:none;
+}
+
+.footer{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+}
+
+.msgs { margin-bottom:8px; }
+.msg {
+    padding:8px; 
+    border-radius:4px; 
+    font-size:13px;
+}
+.msg.error{
+    background:#ffecec;
+    color:#7a1b1b;
+}
+
+@media (max-width:420px){
+    .signup-card-wrap{ width:92%; }
+    .brand-ref{ width:140px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="signup-page">
-  <div class="signup-form">
-      <h2>Create Account</h2>
-      <form method="post">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <button type="submit">Sign Up</button>
-      </form>
-      <!-- 🔑 Clean styled "Already have an account? Login" -->
-      <div class="login-text">
-        Already have an account? <a href="{% url 'login' %}">Login</a>
-      </div>
-  </div>
-</div>
+<main class="signup-layout">
+    <section class="signup-card-wrap">
+
+        <div class="signup-card">
+
+            <img src="{% static 'img/joblink-logo.png' %}" alt="logo" class="brand-ref">
+
+            <h1 class="title">Sign up and connect to job opportunities.</h1>
+
+            <button class="fb-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M22 12.07C22 6.48 17.52 2 11.93..." />
+                </svg>
+                Log in with Facebook
+            </button>
+
+            <div class="divider"><span>OR</span></div>
+
+            <form method="post" action="{% url 'signup' %}">
+                {% csrf_token %}
+
+                {% if messages %}
+                <div class="msgs">
+                    {% for m in messages %}
+                        <div class="msg {{ m.tags }}">{{ m }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="django-form-wrap">
+                    {{ form.as_p }}
+                </div>
+
+                <p class="legal">
+                    People using JobLink may upload your contact info. <a href="#">Learn more</a>.
+                </p>
+
+                <p class="terms">
+                    By signing up, you agree to our 
+                    <a href="#">Terms</a>, 
+                    <a href="#">Privacy Policy</a>, 
+                    and <a href="#">Cookies Policy</a>.
+                </p>
+
+                <button type="submit" class="signup-btn">Sign Up</button>
+            </form>
+        </div>
+
+        <div class="have-account">
+            Have an account? <a href="{% url 'login' %}">Log In</a>
+        </div>
+
+        <footer class="footer">
+            <small>English (UK)</small>
+            <p>© {{ now.year }} JobLink Kenya</p>
+        </footer>
+
+    </section>
+</main>
 {% endblock %}
