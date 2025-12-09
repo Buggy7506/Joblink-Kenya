@@ -38,6 +38,11 @@ nav a { margin:0 1rem; font-weight:bold; }
 .main { flex-grow:1; padding:2rem 0; }
 .footer { background:linear-gradient(to right,#0f172a,#1e293b); padding:1rem 0; text-align:center; color:#ccc; }
 
+/* Guest links always white */
+.guest-link {
+  color: #ffffff !important;
+}
+
 /* Mobile menu */
 .mobile-menu { display:none; flex-direction:column; gap:0.5rem; padding:1rem; border-radius:0.5rem; background-color:rgba(15,23,42,0.9); backdrop-filter:blur(10px); }
 .mobile-toggle { display: none; }
@@ -68,7 +73,8 @@ input, select, textarea, button {
 
     <!-- Desktop Navigation -->
     <nav class="desktop-nav">
-      <a href="{% url 'home' %}" class="hover-glow">Home</a>
+      <a href="{% url 'home' %}" class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}">Home</a>
+
       {% if user.is_authenticated %}
           {% if user.is_superuser or user.role == 'admin' %}
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
@@ -83,8 +89,8 @@ input, select, textarea, button {
           <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
           <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
       {% else %}
-          <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
-          <a href="{% url 'signup' %}" class="hover-glow">Sign Up</a>
+          <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
+          <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
       {% endif %}
     </nav>
 
@@ -96,7 +102,8 @@ input, select, textarea, button {
 
   <!-- Mobile Navigation -->
   <div id="mobileMenu" class="mobile-menu">
-    <a href="{% url 'home' %}" class="hover-glow">Home</a>
+    <a href="{% url 'home' %}" class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}">Home</a>
+
     {% if user.is_authenticated %}
         {% if user.is_superuser or user.role == 'admin' %}
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
@@ -111,8 +118,8 @@ input, select, textarea, button {
         <a href="{% url 'change_username_password' %}" class="hover-glow">Change Password</a>
         <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
-        <a href="{% url 'login' %}" class="hover-glow" style="color:#4ade80;">Login</a>
-        <a href="{% url 'signup' %}" class="hover-glow">Sign Up</a>
+        <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
+        <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
     {% endif %}
   </div>
 </header>
