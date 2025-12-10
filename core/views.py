@@ -449,6 +449,14 @@ def post_job(request):
         if form.is_valid():
             job = form.save(commit=False)
             job.employer = request.user
+
+            # --- Auto-set premium based on salary ---
+            if job.salary and job.salary > 30000:
+                job.is_premium = True
+            else:
+                job.is_premium = False
+            # ---------------------------------------
+
             job.save()
 
             # ---- send email notifications to matching alerts ----
@@ -490,6 +498,7 @@ def post_job(request):
         form = JobForm()
     return render(request, 'post_job.html', {'form': form})
 
+
 @login_required
 def edit_job(request, job_id):
     job = get_object_or_404(Job, id=job_id, employer=request.user)  # only employer can edit
@@ -499,6 +508,14 @@ def edit_job(request, job_id):
         if form.is_valid():
             job = form.save(commit=False)
             job.employer = request.user  # just to be safe
+
+            # --- Auto-set premium based on salary ---
+            if job.salary and job.salary > 30000:
+                job.is_premium = True
+            else:
+                job.is_premium = False
+            # ---------------------------------------
+
             job.save()
 
             messages.success(request, "Job updated successfully.")
