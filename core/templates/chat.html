@@ -338,6 +338,10 @@
 
 <script>
 (function(){
+
+  /* ---------------------------------------------------------
+     CORE CHAT SETUP
+  ----------------------------------------------------------*/
   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("sidebar-toggle");
   const overlay = document.getElementById("sidebar-overlay");
@@ -362,10 +366,10 @@
   }
 
   const username = "{{ request.user.username|escapejs }}";
-  const chatBox = document.getElementById("chat-box");
-  const input = document.getElementById("msg-input");
-  const sendBtn = document.getElementById("send-btn");
-  const menu = document.getElementById("message-menu");
+  const chatBox  = document.getElementById("chat-box");
+  const input    = document.getElementById("msg-input");
+  const sendBtn  = document.getElementById("send-btn");
+  const menu     = document.getElementById("message-menu");
 
   const chatButton = document.getElementById("chat-popup-button");
   const chatPopup  = document.getElementById("chat-popup");
@@ -379,10 +383,19 @@
   if(!appId) return;
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
 
+
+  /* ---------------------------------------------------------
+     SCROLL UTIL
+  ----------------------------------------------------------*/
   function scrollBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
   scrollBottom(chatBox);
 
+
+  /* ---------------------------------------------------------
+     TYPING INDICATOR
+  ----------------------------------------------------------*/
   let typingIndicator = null;
+
   function showTyping(){
     if(!typingIndicator && chatBox){
       typingIndicator = document.createElement("div");
@@ -392,8 +405,18 @@
       scrollBottom(chatBox);
     }
   }
-  function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
+  function hideTyping(){
+    if(typingIndicator){
+      typingIndicator.remove();
+      typingIndicator = null;
+    }
+  }
+
+
+  /* ---------------------------------------------------------
+     SEND MESSAGE (supports edit)
+  ----------------------------------------------------------*/
   function sendMessage(msgInput=input, targetBody=chatBox){
     if(!msgInput) return;
     const text = msgInput.value.trim();
@@ -401,11 +424,13 @@
 
     function reallySend(){
       if(socket.readyState !== 1) return;
+
       const payload = msgInput.dataset.editId
         ? {action:"edit", id: msgInput.dataset.editId, message: text}
         : {action:"message", message: text};
 
       socket.send(JSON.stringify(payload));
+
       if(msgInput.dataset.editId) delete msgInput.dataset.editId;
       msgInput.value = "";
 
@@ -433,26 +458,53 @@
     }
   }
 
-  if(sendBtn) sendBtn.addEventListener("click", ()=>sendMessage(input, chatBox));
-  if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(input, chatBox); } });
-  if(popupSend && popupInput) popupSend.addEventListener("click", ()=>sendMessage(popupInput, popupBody));
-  if(popupInput) popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
-
-  if(chatPopup) chatPopup.style.display="none";
-  if(chatButton && chatPopup) chatButton.addEventListener("click", ()=>{
-    chatPopup.style.display = (chatPopup.style.display==="flex")?"none":"flex";
-    if(chatPopup.style.display==="flex") chatPopup.style.flexDirection="column";
+  if(sendBtn) sendBtn.addEventListener("click", ()=> sendMessage(input, chatBox));
+  if(input) input.addEventListener("keydown", e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      sendMessage(input, chatBox);
+    }
   });
-  if(chatClose && chatPopup) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
+  if(popupSend && popupInput) popupSend.addEventListener("click", ()=> sendMessage(popupInput, popupBody));
+  if(popupInput) popupInput.addEventListener("keydown", e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      popupSend.click();
+    }
+  });
 
+
+  /* ---------------------------------------------------------
+     POPUP CHAT
+  ----------------------------------------------------------*/
+  if(chatPopup) chatPopup.style.display="none";
+
+  if(chatButton && chatPopup){
+    chatButton.addEventListener("click", ()=>{
+      chatPopup.style.display = (chatPopup.style.display==="flex")?"none":"flex";
+      if(chatPopup.style.display==="flex") chatPopup.style.flexDirection="column";
+    });
+  }
+
+  if(chatClose && chatPopup){
+    chatClose.addEventListener("click", ()=> chatPopup.style.display="none");
+  }
+
+
+  /* ---------------------------------------------------------
+     WEBSOCKET MESSAGE HANDLING
+  ----------------------------------------------------------*/
   socket.onmessage = function(e){
     const data = JSON.parse(e.data);
 
     if(data.type==="typing"){
       showTyping();
       setTimeout(hideTyping,1500);
+      return;
     }
-    else if(["message","edit","delete"].includes(data.type)){
+
+    /* core */
+    if(["message","edit","delete"].includes(data.type)){
       [chatBox,popupBody].forEach(c=>{
         if(!c) return;
 
@@ -467,6 +519,7 @@
           c.appendChild(bubble);
           scrollBottom(c);
         }
+
         else if(data.type==="edit"){
           const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
           if(msg){
@@ -476,14 +529,53 @@
             if(meta && !meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
           }
         }
+
         else if(data.type==="delete"){
           const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
           if(msg) data.mode==="everyone"?msg.remove():msg.style.display="none";
         }
       });
     }
+
+    /* reactions */
+    if(data.type==="reaction"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){
+        let r = msg.querySelector(".reaction");
+        if(!r){
+          r = document.createElement("div");
+          r.className = "reaction";
+          msg.appendChild(r);
+        }
+        r.innerText = data.reaction;
+      }
+    }
+
+    /* read receipt */
+    if(data.type==="read"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){
+        let meta = msg.querySelector(".meta");
+        meta.innerHTML = "✔✔ read";
+      }
+    }
+
+    /* reply thread */
+    if(data.reply_to){
+      const child = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(child){
+        const preview = document.createElement("div");
+        preview.className = "reply-thread";
+        preview.innerText = data.reply_text.slice(0,50)+"...";
+        child.prepend(preview);
+      }
+    }
   };
 
+
+  /* ---------------------------------------------------------
+     MESSAGE MENU + LONG PRESS
+  ----------------------------------------------------------*/
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
 
@@ -491,7 +583,6 @@
     const container = msgElem.offsetParent || document.body;
     const containerRect = container.getBoundingClientRect();
 
-    // Prevent NaN before render
     const menuHeight = menu.offsetHeight > 20 ? menu.offsetHeight : 180;
     const menuWidth  = menu.offsetWidth  > 20 ? menu.offsetWidth  : 180;
 
@@ -499,13 +590,14 @@
     let y = rect.bottom - containerRect.top + container.scrollTop;
 
     if(y + menuHeight > container.scrollHeight){
-        y = rect.top - containerRect.top + container.scrollTop - menuHeight - 5;
-    } else {
-        y += 5;
+      y = rect.top - containerRect.top + container.scrollTop - menuHeight - 5;
+    } 
+    else {
+      y += 5;
     }
 
     if(x + menuWidth > container.scrollWidth){
-        x = rect.right - containerRect.left + container.scrollLeft - menuWidth;
+      x = rect.right - containerRect.left + container.scrollLeft - menuWidth;
     }
 
     menu.style.left = `${x}px`;
@@ -515,59 +607,67 @@
     void menu.offsetWidth;
     menu.classList.add("show");
 
-    menu.querySelectorAll("li").forEach(item => {
-        item.onclick = () => handleAction(item.dataset.action, msgElem);
+    menu.querySelectorAll("li").forEach(item=>{
+      item.onclick = ()=> handleAction(item.dataset.action, msgElem);
     });
-}
+  }
 
   function hideMenu(){
     if(!menu) return;
     menu.classList.remove("show");
+
     setTimeout(()=>{
-      if(!menu.classList.contains("show")) menu.style.display="none";
+      if(!menu.classList.contains("show")){
+        menu.style.display="none";
+      }
     },200);
   }
 
   function handleAction(action, msgElem){
     if(!socket || !msgElem) return;
+
     const msgId = msgElem.dataset.id;
     const text  = msgElem.dataset.text;
 
-    if(action === "copy"){
+    if(action==="copy"){
       navigator.clipboard.writeText(text);
     }
-    else if(action === "reply"){
+
+    else if(action==="reply"){
       input.value = "Replying to: " + text + "\n";
       input.focus();
     }
-    else if(action === "edit"){
+
+    else if(action==="edit"){
       input.value = text;
       input.dataset.editId = msgId;
       input.focus();
     }
-    else if(action === "delete-me"){
+
+    else if(action==="delete-me"){
       socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
       msgElem.style.display = "none";
     }
-    else if(action === "delete-everyone"){
+
+    else if(action==="delete-everyone"){
       socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
     }
-    else if(action === "forward"){
+
+    else if(action==="forward"){
       const targetAppId = prompt("Enter target chat/app ID:");
       if(targetAppId){
         socket.send(JSON.stringify({
-            action:"forward",
-            message:text,
-            target_app:targetAppId
+          action:"forward",
+          message:text,
+          target_app:targetAppId
         }));
       }
     }
-    else if(action==="pin") {
+
+    else if(action==="pin"){
       msgElem.classList.add("pinned");
       [chatBox, popupBody].forEach(c=>{
-          if(c && c.contains(msgElem)){
-              c.prepend(msgElem);
-          }
+        if(c && c.contains(msgElem)) c.prepend(msgElem);
       });
     }
 
@@ -585,6 +685,7 @@
 
   function addLongPress(container){
     if(!container) return;
+
     container.style.touchAction="manipulation";
 
     let timer=null, target=null, startX=0, startY=0, pointerId=null;
@@ -604,18 +705,18 @@
       pointerId = e.pointerId;
       target = t;
 
-      if(timer) clearTimeout(timer);
-      timer=setTimeout(()=>{ if(target) showMenu(target); }, LONG_MS);
-    }, {passive:true});
+      timer = setTimeout(()=>{ if(target) showMenu(target); }, LONG_MS);
+
+    },{passive:true});
 
     container.addEventListener("pointermove", e=>{
       if(pointerId!==e.pointerId || !timer) return;
       if(Math.abs(e.clientX-startX)>MOVE_TOL || Math.abs(e.clientY-startY)>MOVE_TOL) cancel();
-    }, {passive:true});
+    },{passive:true});
 
-    container.addEventListener("pointerup", cancel, {passive:true});
-    container.addEventListener("pointercancel", cancel, {passive:true});
-    container.addEventListener("mouseleave", cancel, {passive:true});
+    container.addEventListener("pointerup", cancel,{passive:true});
+    container.addEventListener("pointercancel", cancel,{passive:true});
+    container.addEventListener("mouseleave", cancel,{passive:true});
     window.addEventListener("blur", cancel);
   }
 
@@ -626,13 +727,13 @@
     if(menu && !menu.contains(e.target)) hideMenu();
   });
 
-})();
-  /* ---------------------------------------------------------
-   EXTRA CHAT FEATURES — added without altering existing code
-----------------------------------------------------------*/
 
-// 1) Message Reactions ❤️😂👍🔥😭
-document.addEventListener("dblclick", function(e){
+  /* ---------------------------------------------------------
+     ✨ EXTRA CHAT FEATURES (ALL FIXED & MERGED)
+  ----------------------------------------------------------*/
+
+  /* DOUBLE TAP REACTIONS */
+  document.addEventListener("dblclick", e=>{
     const msg = e.target.closest(".bubble");
     if(!msg) return;
 
@@ -640,169 +741,124 @@ document.addEventListener("dblclick", function(e){
     if(!reaction) return;
 
     socket.send(JSON.stringify({
-        action: "react",
-        id: msg.dataset.id,
-        reaction: reaction
+      action: "react",
+      id: msg.dataset.id,
+      reaction: reaction
     }));
-
-    // Display reaction
-    let r = msg.querySelector(".reaction");
-    if(!r){
-        r = document.createElement("div");
-        r.className = "reaction";
-        msg.appendChild(r);
-    }
-    r.innerText = reaction;
-});
+  });
 
 
-// 2) Read receipts (double ticks + blue when read)
-socket.addEventListener("message", function(ev){
-    const data = JSON.parse(ev.data);
-
-    if(data.type === "read"){
-        const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
-        if(msg){
-            let meta = msg.querySelector(".meta");
-            meta.innerHTML = "✔✔ read";
-        }
-    }
-});
-
-
-// 3) Auto-scroll on new messages unless user is scrolling up
-let autoScroll = true;
-chatBox.addEventListener("scroll", ()=>{
-    const nearBottom = chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50;
+  /* AUTO SCROLL */
+  let autoScroll = true;
+  chatBox.addEventListener("scroll", ()=>{
+    const nearBottom = 
+      chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50;
     autoScroll = nearBottom;
-});
-
-function autoScrollIfAllowed(){
-    if(autoScroll) scrollBottom(chatBox);
-}
+  });
 
 
-// 4) Reply threading (show parent bubble preview)
-function displayReplyThread(childBubble, parentText){
-    const preview = document.createElement("div");
-    preview.className = "reply-thread";
-    preview.innerText = parentText.slice(0, 50) + "...";
-    childBubble.prepend(preview);
-}
-
-socket.addEventListener("message", function(ev){
-    const data = JSON.parse(ev.data);
-
-    if(data.reply_to){
-        const child = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
-        if(child){
-            displayReplyThread(child, data.reply_text);
-        }
-    }
-});
-
-
-// 5) Typing animation in popup chat too
-if(popupInput){
-    let popupTypingTimer = null;
+  /* POPUP TYPING */
+  if(popupInput){
+    let popupTypingTimer=null;
     popupInput.addEventListener("input", ()=>{
-        socket.send(JSON.stringify({type:"typing"}));
-        clearTimeout(popupTypingTimer);
-        popupTypingTimer = setTimeout(()=>{}, 1200);
+      socket.send(JSON.stringify({type:"typing"}));
+      clearTimeout(popupTypingTimer);
+      popupTypingTimer=setTimeout(()=>{},1200);
     });
-}
+  }
 
 
-// 6) Online/Offline presence
-window.addEventListener("online", ()=>{
-    socket.send(JSON.stringify({action:"presence", status:"online"}));
-});
-window.addEventListener("offline", ()=>{
-    socket.send(JSON.stringify({action:"presence", status:"offline"}));
-});
+  /* PRESENCE */
+  window.addEventListener("online", ()=>{
+    socket.send(JSON.stringify({action:"presence",status:"online"}));
+  });
+  window.addEventListener("offline", ()=>{
+    socket.send(JSON.stringify({action:"presence",status:"offline"}));
+  });
 
 
-// 7) Chat search bar (live filtering)
-const searchBar = document.getElementById("chat-search");
-if(searchBar){
+  /* SEARCH */
+  const searchBar = document.getElementById("chat-search");
+  if(searchBar){
     searchBar.addEventListener("input", ()=>{
-        const term = searchBar.value.toLowerCase();
-        chatBox.querySelectorAll(".bubble").forEach(b=>{
-            const txt = b.dataset.text.toLowerCase();
-            b.style.display = txt.includes(term) ? "block" : "none";
-        });
+      const term = searchBar.value.toLowerCase();
+      chatBox.querySelectorAll(".bubble").forEach(b=>{
+        const txt = b.dataset.text?.toLowerCase();
+        b.style.display = txt?.includes(term) ? "block" : "none";
+      });
     });
-}
+  }
 
 
-// 8) Voice note recording 🎤 (simple version)
-let recorder, audioChunks = [];
+  /* VOICE NOTES */
+  let recorder, audioChunks=[];
 
-async function startVoice(){
+  async function startVoice(){
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     recorder = new MediaRecorder(stream);
     recorder.start();
 
-    recorder.ondataavailable = e=> audioChunks.push(e.data);
+    recorder.ondataavailable=e => audioChunks.push(e.data);
 
-    recorder.onstop = ()=>{
-        let blob = new Blob(audioChunks, {type:"audio/ogg; codecs=opus"});
-        audioChunks = [];
+    recorder.onstop=()=>{
+      let blob=new Blob(audioChunks,{type:"audio/ogg; codecs=opus"});
+      audioChunks=[];
 
-        blob.arrayBuffer().then(buf=>{
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      blob.arrayBuffer().then(buf=>{
+        const base64=btoa(String.fromCharCode(...new Uint8Array(buf)));
 
-            socket.send(JSON.stringify({
-                action:"voice",
-                data: base64
-            }));
-        });
+        socket.send(JSON.stringify({
+          action:"voice",
+          data: base64
+        }));
+      });
     };
-}
+  }
 
-// Add button listener if present
-const voiceBtn = document.getElementById("voice-btn");
-if(voiceBtn){
+  const voiceBtn=document.getElementById("voice-btn");
+  if(voiceBtn){
     voiceBtn.addEventListener("mousedown", startVoice);
-    voiceBtn.addEventListener("mouseup", ()=>recorder.stop());
-}
+    voiceBtn.addEventListener("mouseup", ()=> recorder.stop());
+  }
 
 
-// 9) Image/File sharing 📁
-const fileInput = document.getElementById("file-input");
-const fileBtn = document.getElementById("file-btn");
+  /* FILE UPLOAD */
+  const fileInput=document.getElementById("file-input");
+  const fileBtn=document.getElementById("file-btn");
 
-if(fileBtn && fileInput){
+  if(fileBtn && fileInput){
     fileBtn.addEventListener("click", ()=> fileInput.click());
 
     fileInput.addEventListener("change", ()=>{
-        const file = fileInput.files[0];
-        if(!file) return;
+      const file=fileInput.files[0];
+      if(!file) return;
 
-        const reader = new FileReader();
-        reader.onload = ()=>{
-            socket.send(JSON.stringify({
-                action:"file",
-                filename: file.name,
-                data: reader.result
-            }));
-        };
-        reader.readAsDataURL(file);
+      const reader=new FileReader();
+      reader.onload=()=>{
+        socket.send(JSON.stringify({
+          action:"file",
+          filename:file.name,
+          data:reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
     });
-}
+  }
 
 
-// 10) Pinned messages bar UI
-const pinnedBar = document.getElementById("pinned-bar");
-document.addEventListener("click", e=>{
+  /* PINNED BAR */
+  const pinnedBar=document.getElementById("pinned-bar");
+  document.addEventListener("click", e=>{
     if(e.target.classList.contains("pinned")){
-        if(pinnedBar){
-            pinnedBar.innerText = e.target.dataset.text;
-            pinnedBar.style.display = "block";
-        }
+      if(pinnedBar){
+        pinnedBar.innerText = e.target.dataset.text;
+        pinnedBar.style.display="block";
+      }
     }
-});
+  });
 
+
+})();  
 </script>
 
 
