@@ -88,7 +88,7 @@ def google_callback(request):
     # user, created = User.objects.get_or_create(email=email, defaults={'first_name': first_name, 'last_name': last_name})
     # login(request, user)
 
-    return redirect('home')  # redirect to your desired page
+    return redirect('dashboard')  # redirect to your desired page
 
 # -----------------------------
 # HELPER FUNCTIONS
