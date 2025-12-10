@@ -525,7 +525,7 @@ def edit_job(request, job_id):
 
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
-# Apply Job
+# Apply Job View
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -538,7 +538,6 @@ def apply_job(request, job_id):
     # ---------- FREE JOB FLOW ----------
     if not job.is_premium:
         if request.method == "POST":
-            # Create application only if it doesn't exist
             application, created = Application.objects.get_or_create(
                 applicant=request.user,
                 job=job
@@ -552,12 +551,11 @@ def apply_job(request, job_id):
                     message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
                 )
                 applied_status = 'yes'
-                messages.success(request, "✅ You have successfully applied to {job.title}!")
+                messages.success(request, f"✅ You have successfully applied to {job.title}!")
             else:
                 applied_status = 'already'
-                messages.info(request, "ℹ️ You already applied for {job.title}.")
+                messages.info(request, f"ℹ️ You already applied for {job.title}.")
 
-            # Redirect to status page with clear applied status
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
         # GET request → Show application page
@@ -573,9 +571,7 @@ def apply_job(request, job_id):
                 line_items=[{
                     'price_data': {
                         'currency': 'kes',
-                        'product_data': {
-                            'name': f"Application Fee - {job.title}",
-                        },
+                        'product_data': {'name': f"Application Fee - {job.title}"},
                         'unit_amount': amount,
                     },
                     'quantity': 1,
@@ -591,7 +587,7 @@ def apply_job(request, job_id):
             return redirect(checkout_session.url)
 
         except stripe.error.StripeError as e:
-            return render(request, 'apply_job.html', {'job': job, 'error': str(e.user_message)})
+            return render(request, 'apply_job.html', {'job': job, 'error': getattr(e, 'user_message', str(e))})
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
