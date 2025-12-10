@@ -25,6 +25,70 @@ import requests
 from django.core.files.temp import NamedTemporaryFile
 from django.http import JsonResponse
 from .models import Notification
+from django.shortcuts import redirect, render
+from django.conf import settings
+import requests
+import urllib.parse
+
+# Google OAuth settings
+GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'
+GOOGLE_CLIENT_SECRET = 'YOUR_GOOGLE_CLIENT_SECRET'
+GOOGLE_REDIRECT_URI = 'http://localhost:8000/google/callback/'
+GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
+GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
+GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
+
+def google_login(request):
+    # Step 1: Redirect user to Google's OAuth 2.0 server
+    params = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'redirect_uri': GOOGLE_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'access_type': 'offline',
+        'prompt': 'consent'
+    }
+    url = f"{GOOGLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
+    return redirect(url)
+
+
+def google_callback(request):
+    # Step 2: Google redirects back with a code
+    code = request.GET.get('code')
+    if not code:
+        return redirect('signup')  # or show error
+
+    # Step 3: Exchange code for access token
+    data = {
+        'code': code,
+        'client_id': GOOGLE_CLIENT_ID,
+        'client_secret': GOOGLE_CLIENT_SECRET,
+        'redirect_uri': GOOGLE_REDIRECT_URI,
+        'grant_type': 'authorization_code',
+    }
+    r = requests.post(GOOGLE_TOKEN_ENDPOINT, data=data)
+    token_data = r.json()
+    access_token = token_data.get('access_token')
+
+    if not access_token:
+        return redirect('signup')  # or show error
+
+    # Step 4: Retrieve user info
+    headers = {'Authorization': f'Bearer {access_token}'}
+    r = requests.get(GOOGLE_USERINFO_ENDPOINT, headers=headers)
+    user_info = r.json()
+
+    # Example: You can now get user's email, name, and picture
+    email = user_info.get('email')
+    first_name = user_info.get('given_name')
+    last_name = user_info.get('family_name')
+
+    # TODO: Authenticate or create user in your Django app
+    # from django.contrib.auth.models import User
+    # user, created = User.objects.get_or_create(email=email, defaults={'first_name': first_name, 'last_name': last_name})
+    # login(request, user)
+
+    return redirect('home')  # redirect to your desired page
 
 # -----------------------------
 # HELPER FUNCTIONS
