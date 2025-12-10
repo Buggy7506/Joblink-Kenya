@@ -232,6 +232,59 @@
   opacity:0;
   transition: opacity 0.3s ease;
 }
+  /* ---------- Emoji Picker ---------- */
+.emoji-picker {
+  display: none;
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.emoji-picker.show { display: flex; flex-wrap: wrap; gap: 5px; }
+.emoji-picker span { cursor: pointer; font-size: 20px; }
+
+/* ---------- GIF Picker ---------- */
+.gif-picker {
+  display: none;
+  position: absolute;
+  background: #fff;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  max-width: 300px;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.gif-picker.show { display: flex; }
+.gif-picker img { cursor: pointer; width: 60px; height: 60px; object-fit: cover; border-radius: 5px; }
+
+/* ---------- Message Reactions ---------- */
+.bubble { position: relative; margin: 5px; padding: 5px 10px; border-radius: 10px; max-width: 70%; }
+.bubble.me { background: #dcf8c6; align-self: flex-end; }
+.bubble.them { background: #fff; align-self: flex-start; }
+.reaction-hover { position: absolute; top: -25px; left: 0; background: #fff; border-radius: 20px; padding: 2px 5px; display: flex; gap: 5px; font-size: 16px; box-shadow: 0 0 5px rgba(0,0,0,0.2); cursor: pointer; }
+.reaction { margin-top: 3px; font-size: 16px; }
+/* ---------- Buttons ---------- */
+.btn { cursor: pointer; padding: 5px 8px; margin: 2px; border: none; border-radius: 5px; background: #eee; transition: 0.2s; }
+.btn:hover { background: #ddd; }
+
+/* ---------- Message Menu ---------- */
+.message-menu { position: absolute; display: none; list-style: none; padding: 5px 0; margin: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; z-index: 1000; }
+.message-menu li { padding: 5px 10px; cursor: pointer; }
+.message-menu li:hover { background: #eee; }
+
+/* ---------- Dark Mode ---------- */
+.dark-mode { background: #121212; color: #f1f1f1; }
+.dark-mode .chat-box, .dark-mode #chat-popup { background: #1e1e1e; border-color: #333; }
+.dark-mode .bubble.me { background: #056162; color: #fff; }
+.dark-mode .bubble.them { background: #2a2a2a; color: #fff; }
+.dark-mode .emoji-picker, .dark-mode .gif-picker, .dark-mode .message-menu { background: #333; color: #fff; border-color: #555; }
+💡 Notes:
+  
 @media (max-width: 900px) {
   .chat-wrap { flex-direction:column; }
   .sidebar { 
@@ -284,7 +337,28 @@
         <button id="sidebar-toggle">☰</button>
       {% endif %}
     </div>
+<!-- Emoji Picker -->
+<div id="emoji-picker" class="emoji-picker">
+  <span>😀</span><span>😂</span><span>😍</span><span>😎</span><span>😭</span>
+  <span>👍</span><span>❤️</span><span>🔥</span><span>😡</span><span>😴</span>
+</div>
+<button id="emoji-btn" class="btn">😊</button>
 
+<!-- GIF/Sticker Picker -->
+<div id="gif-picker" class="gif-picker">
+  <img src="/static/gifs/gif1.gif" alt="GIF 1">
+  <img src="/static/gifs/gif2.gif" alt="GIF 2">
+  <img src="/static/gifs/gif3.gif" alt="GIF 3">
+</div>
+<button id="gif-btn" class="btn">GIF</button>
+
+<!-- File Upload -->
+<input type="file" id="file-input" multiple style="display:none;">
+<button id="file-btn" class="btn">📎</button>
+
+<!-- Dark Mode Toggle -->
+<button id="dark-mode-btn" class="btn">🌙</button>
+    
     <div id="chat-box" class="chat-box">
       {% for m in messages %}
         <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} pop" 
@@ -856,8 +930,170 @@
       }
     }
   });
+    /* ---------------------------------------------------------
+     WEBSOCKET HANDLING
+  ----------------------------------------------------------*/
+  socket.onmessage = function(e){
+    const data = JSON.parse(e.data);
+    if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); return; }
 
+    if(["message","edit","delete"].includes(data.type)){
+      [chatBox,popupBody].forEach(c=>{
+        if(!c) return;
+        if(data.type==="message"){
+          const bubble=document.createElement("div");
+          bubble.className=`bubble ${data.sender===username?"me":"them"} pop`;
+          bubble.dataset.id=data.id;
+          bubble.dataset.text=data.message;
+          bubble.innerHTML=`<div><strong>${data.sender}</strong></div>
+                            <div>${data.message}</div>
+                            <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+          c.appendChild(bubble);
+          scrollBottom(c);
+        }
+        else if(data.type==="edit"){
+          const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
+          if(msg){ msg.dataset.text=data.message; msg.querySelector("div:nth-child(2)").innerText=data.message;
+            const meta=msg.querySelector(".meta"); if(meta && !meta.innerText.includes("(edited)")) meta.innerText+=" (edited)"; }
+        }
+        else if(data.type==="delete"){
+          const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
+          if(msg) data.mode==="everyone"?msg.remove():msg.style.display="none";
+        }
+      });
+    }
 
+    /* reactions */
+    if(data.type==="reaction"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){
+        let r = msg.querySelector(".reaction");
+        if(!r){ r = document.createElement("div"); r.className = "reaction"; msg.appendChild(r); }
+        r.innerText = data.reaction;
+      }
+    }
+
+    /* read receipt */
+    if(data.type==="read"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){ let meta = msg.querySelector(".meta"); meta.innerHTML = "✔✔ read"; }
+    }
+  };
+
+  /* ---------------------------------------------------------
+     EMOJI PICKER
+  ----------------------------------------------------------*/
+  const emojiBtn = document.getElementById("emoji-btn");
+  const emojiPicker = document.getElementById("emoji-picker");
+  if(emojiBtn && emojiPicker){
+    emojiBtn.addEventListener("click", ()=> emojiPicker.classList.toggle("show"));
+    emojiPicker.querySelectorAll("span").forEach(e=>{
+      e.addEventListener("click", ()=>{
+        input.value += e.innerText;
+        input.focus();
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     GIF/STICKER PICKER (BASIC)
+  ----------------------------------------------------------*/
+  const gifBtn = document.getElementById("gif-btn");
+  const gifPicker = document.getElementById("gif-picker");
+  if(gifBtn && gifPicker){
+    gifBtn.addEventListener("click", ()=> gifPicker.classList.toggle("show"));
+    gifPicker.querySelectorAll("img").forEach(g=>{
+      g.addEventListener("click", ()=>{
+        const bubble = document.createElement("div");
+        bubble.className = "bubble me pop";
+        bubble.innerHTML = `<div><strong>${username}</strong></div>
+                            <div><img src="${g.src}" style="max-width:200px;"></div>
+                            <div class="meta">just now</div>`;
+        chatBox.appendChild(bubble);
+        scrollBottom(chatBox);
+        gifPicker.classList.remove("show");
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     FILE UPLOAD & IMAGE/VIDEO PREVIEW
+  ----------------------------------------------------------*/
+  const fileInput=document.getElementById("file-input");
+  const fileBtn=document.getElementById("file-btn");
+  if(fileBtn && fileInput){
+    fileBtn.addEventListener("click", ()=> fileInput.click());
+    fileInput.addEventListener("change", ()=>{
+      for(let file of fileInput.files){
+        const reader=new FileReader();
+        reader.onload=()=>{
+          const bubble=document.createElement("div");
+          bubble.className="bubble me pop";
+          if(file.type.startsWith("image/") || file.type.startsWith("video/")){
+            bubble.innerHTML=`<div><strong>${username}</strong></div>
+                              <div><${file.type.startsWith("image/")?"img":"video"} src="${reader.result}" ${file.type.startsWith("video/")?"controls":""} style="max-width:200px;"></div>
+                              <div class="meta">just now</div>`;
+          } else {
+            bubble.innerHTML=`<div><strong>${username}</strong></div>
+                              <div>${file.name}</div>
+                              <div class="meta">just now</div>`;
+          }
+          chatBox.appendChild(bubble);
+          scrollBottom(chatBox);
+          socket.send(JSON.stringify({action:"file", filename:file.name, data:reader.result}));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------
+     MESSAGE REACTIONS (HOVER + CLICK)
+  ----------------------------------------------------------*/
+  chatBox.addEventListener("mouseover", e=>{
+    const msg = e.target.closest(".bubble");
+    if(!msg) return;
+    if(!msg.querySelector(".reaction-hover")){
+      const hoverDiv = document.createElement("div");
+      hoverDiv.className = "reaction-hover";
+      hoverDiv.innerHTML = "❤️😂👍🔥😭";
+      msg.appendChild(hoverDiv);
+      hoverDiv.querySelectorAll("span").forEach(em=>{
+        em.addEventListener("click", ()=>{
+          const reactionDiv = msg.querySelector(".reaction") || (()=>{
+            const r = document.createElement("div"); r.className="reaction"; msg.appendChild(r); return r;
+          })();
+          reactionDiv.innerText = em.innerText;
+          socket.send(JSON.stringify({action:"react", id: msg.dataset.id, reaction: em.innerText}));
+        });
+      });
+    }
+  });
+
+  chatBox.addEventListener("mouseout", e=>{
+    const hover = e.target.closest(".bubble")?.querySelector(".reaction-hover");
+    if(hover) hover.remove();
+  });
+
+  /* ---------------------------------------------------------
+     NOTIFICATION SOUNDS
+  ----------------------------------------------------------*/
+  const notificationSound = new Audio("/static/sounds/notification.mp3");
+  socket.addEventListener("message", e=>{
+    const data = JSON.parse(e.data);
+    if(data.type==="message" && data.sender!==username) notificationSound.play();
+  });
+
+  /* ---------------------------------------------------------
+     DARK MODE TOGGLE
+  ----------------------------------------------------------*/
+  const darkBtn = document.getElementById("dark-mode-btn");
+  if(darkBtn){
+    darkBtn.addEventListener("click", ()=>{
+      document.body.classList.toggle("dark-mode");
+    });
+  }
+  
 })();  
 </script>
 
