@@ -1,5 +1,3 @@
-# models.py
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
@@ -7,9 +5,9 @@ from django.utils import timezone
 from cloudinary.models import CloudinaryField
 
 
-# --------------------
+# ======================================================
 # CUSTOM USER
-# --------------------
+# ======================================================
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('applicant', 'Applicant'),
@@ -30,9 +28,9 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-# --------------------
+# ======================================================
 # PROFILE
-# --------------------
+# ======================================================
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
@@ -48,9 +46,9 @@ class Profile(models.Model):
         return self.full_name
 
 
-# --------------------
+# ======================================================
 # JOB CATEGORY
-# --------------------
+# ======================================================
 class JobCategory(models.Model):
     name = models.CharField(max_length=100)
 
@@ -58,9 +56,9 @@ class JobCategory(models.Model):
         return self.name
 
 
-# --------------------
-# JOB POSTINGS
-# --------------------
+# ======================================================
+# JOB POST
+# ======================================================
 class Job(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -86,9 +84,9 @@ class Job(models.Model):
         return self.title
 
 
-# --------------------
+# ======================================================
 # APPLICATIONS
-# --------------------
+# ======================================================
 class Application(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_ACCEPTED = 'accepted'
@@ -119,15 +117,11 @@ class Application(models.Model):
         return f"{self.applicant.username} → {self.job.title}"
 
 
-# --------------------
+# ======================================================
 # CHAT MESSAGES
-# --------------------
+# ======================================================
 class ChatMessage(models.Model):
-    application = models.ForeignKey(
-        Application,
-        on_delete=models.CASCADE,
-        related_name="messages"
-    )
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -151,11 +145,7 @@ class ChatMessage(models.Model):
 
 
 class PinnedMessage(models.Model):
-    message = models.ForeignKey(
-        ChatMessage,
-        on_delete=models.CASCADE,
-        related_name="pinned_entries"
-    )
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name="pinned_entries")
     pinned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     pinned_at = models.DateTimeField(auto_now_add=True)
 
@@ -166,9 +156,9 @@ class PinnedMessage(models.Model):
         return f"Pinned by {self.pinned_by.username}"
 
 
-# --------------------
+# ======================================================
 # CV UPLOADS
-# --------------------
+# ======================================================
 class CVUpload(models.Model):
     applicant = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -182,9 +172,9 @@ class CVUpload(models.Model):
         return f"{self.applicant.username} CV"
 
 
-# --------------------
-# RESUMES
-# --------------------
+# ======================================================
+# RESUME
+# ======================================================
 class Resume(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
@@ -201,9 +191,9 @@ class Resume(models.Model):
         return f"{self.user.username}'s Resume"
 
 
-# --------------------
+# ======================================================
 # SKILL RESOURCES
-# --------------------
+# ======================================================
 class SkillResource(models.Model):
     title = models.CharField(max_length=255)
     link = models.URLField()
@@ -214,9 +204,9 @@ class SkillResource(models.Model):
         return self.title
 
 
-# --------------------
+# ======================================================
 # NOTIFICATIONS
-# --------------------
+# ======================================================
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
@@ -228,9 +218,9 @@ class Notification(models.Model):
         return f"{self.title} → {self.user.username}"
 
 
-# --------------------
+# ======================================================
 # JOB ALERTS
-# --------------------
+# ======================================================
 class JobAlert(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     job_title = models.CharField(max_length=100)
@@ -240,9 +230,9 @@ class JobAlert(models.Model):
         return f"{self.user.username} alert for {self.job_title}"
 
 
-# --------------------
-# JOB PLANS & PAYMENTS
-# --------------------
+# ======================================================
+# JOB PLANS
+# ======================================================
 class JobPlan(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=8, decimal_places=2)
@@ -254,6 +244,9 @@ class JobPlan(models.Model):
         return f"{self.name} – Ksh {self.price}"
 
 
+# ======================================================
+# JOB PAYMENTS
+# ======================================================
 class JobPayment(models.Model):
     employer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
