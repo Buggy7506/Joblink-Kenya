@@ -535,10 +535,10 @@ def apply_job(request, job_id):
                     message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
                 )
                 applied_status = 'yes'
-                messages.success(request, "✅ You have successfully applied to the job!")
+                messages.success(request, "✅ You have successfully applied to {job.title}!")
             else:
                 applied_status = 'already'
-                messages.info(request, "ℹ️ You already applied for this job.")
+                messages.info(request, "ℹ️ You already applied for {job.title}.")
 
             # Redirect to status page with clear applied status
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
