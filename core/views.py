@@ -580,17 +580,23 @@ def apply_job(request, job_id):
     return render(request, 'apply_job.html', {'job': job})
     
 @login_required
-def apply_job_success(request, job_id, applied=True):
+def apply_job_success(request, job_id, applied):
+    """
+    Display the job application status page.
+    `applied` is 'yes' if the user just applied, 'already' if they applied before.
+    """
     job = get_object_or_404(Job, pk=job_id)
 
-    if applied == "yes":
-        # Ensure the application is created
+    # Determine success boolean
+    success = True if applied == "yes" else False
+
+    # Create application and notify employer only if it's a new application
+    if success:
         application, created = Application.objects.get_or_create(
             applicant=request.user,
             job=job
         )
         if created:
-            # 🔔 Notify employer
             Notification.objects.create(
                 user=job.employer,
                 title="New Job Application",
@@ -598,13 +604,17 @@ def apply_job_success(request, job_id, applied=True):
             )
             messages.success(request, "✅ You have successfully applied to the job!")
         else:
+            # If somehow already exists, mark success as False
+            success = False
             messages.info(request, "ℹ️ You already applied for this job.")
+    else:
+        messages.info(request, "ℹ️ You already applied for this job.")
 
     return render(request, "apply_job_success.html", {
         "job": job,
-        "success": applied
+        "success": success
     })
-
+    
 #CV Upload
 
 @login_required
