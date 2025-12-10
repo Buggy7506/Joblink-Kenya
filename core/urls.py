@@ -3,6 +3,8 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    path('google/login/', views.google_login, name='google_login'),
+    path('google/callback/', views.google_callback, name='google_callback'),
     path("chat/message/<int:msg_id>/delete/", views.delete_message, name="delete_message"),
     path("chat/message/<int:msg_id>/edit/", views.edit_message, name="edit_message"),
     path("notifications/mark-all-read/", views.mark_all_read, name="mark_all_read"),
