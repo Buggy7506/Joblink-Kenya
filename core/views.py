@@ -508,8 +508,7 @@ def edit_job(request, job_id):
 
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
-
-#Apply Job                
+# Apply Job
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -522,23 +521,26 @@ def apply_job(request, job_id):
     # ---------- FREE JOB FLOW ----------
     if not job.is_premium:
         if request.method == "POST":
+            # Create application only if it doesn't exist
             application, created = Application.objects.get_or_create(
                 applicant=request.user,
                 job=job
             )
+
             if created:
-                # ✅ Notify employer with hidden job_id
+                # Notify employer
                 Notification.objects.create(
                     user=job.employer,
                     title="New Job Application",
                     message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
                 )
-                messages.success(request, "✅ You have successfully applied to the job!")
                 applied_status = 'yes'
+                messages.success(request, "✅ You have successfully applied to the job!")
             else:
                 applied_status = 'already'
                 messages.info(request, "ℹ️ You already applied for this job.")
 
+            # Redirect to status page with clear applied status
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
         # GET request → Show application page
@@ -578,42 +580,30 @@ def apply_job(request, job_id):
 
     # GET request for premium job → Show application page
     return render(request, 'apply_job.html', {'job': job})
-    
+
 @login_required
 def apply_job_success(request, job_id, applied):
     """
     Display the job application status page.
-    `applied` is 'yes' if the user just applied, 'already' if they applied before.
+    'applied' is 'yes' if the user just applied, 'already' if they applied before.
     """
     job = get_object_or_404(Job, pk=job_id)
 
-    # Determine success boolean
-    success = True if applied == "yes" else False
+    # Determine success boolean based on applied flag
+    success = applied == "yes"
 
-    # Create application and notify employer only if it's a new application
+    # Optional: Add messages if you want them to appear elsewhere
     if success:
-        application, created = Application.objects.get_or_create(
-            applicant=request.user,
-            job=job
-        )
-        if created:
-            Notification.objects.create(
-                user=job.employer,
-                title="New Job Application",
-                message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
-            )
-            messages.success(request, "✅ You have successfully applied to the job!")
-        else:
-            # If somehow already exists, mark success as False
-            success = False
-            messages.info(request, "ℹ️ You already applied for this job.")
+        messages.success(request, f"✅ You have successfully applied to {job.title}!")
     else:
-        messages.info(request, "ℹ️ You already applied for this job.")
+        messages.info(request, f"ℹ️ You already applied for {job.title}.")
 
+    # Render the status page
     return render(request, "apply_job_success.html", {
         "job": job,
         "success": success
     })
+
     
 #CV Upload
 
