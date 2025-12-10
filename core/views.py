@@ -31,8 +31,8 @@ import requests
 import urllib.parse
 
 # Google OAuth settings
-GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'
-GOOGLE_CLIENT_SECRET = 'YOUR_GOOGLE_CLIENT_SECRET'
+GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = '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'
 GOOGLE_REDIRECT_URI = 'http://localhost:8000/google/callback/'
 GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
