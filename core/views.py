@@ -51,7 +51,6 @@ def google_login(request):
     url = f"{GOOGLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
-
 def google_callback(request):
     # Step 2: Google redirects back with a code
     code = request.GET.get('code')
@@ -78,18 +77,25 @@ def google_callback(request):
     r = requests.get(GOOGLE_USERINFO_ENDPOINT, headers=headers)
     user_info = r.json()
 
-    # Example: You can now get user's email, name, and picture
     email = user_info.get('email')
-    first_name = user_info.get('given_name')
-    last_name = user_info.get('family_name')
+    first_name = user_info.get('given_name', '')
+    last_name = user_info.get('family_name', '')
 
-    # TODO: Authenticate or create user in your Django app
-    # from django.contrib.auth.models import User
-    # user, created = User.objects.get_or_create(email=email, defaults={'first_name': first_name, 'last_name': last_name})
-    # login(request, user)
+    if not email:
+        return redirect('signup')  # cannot proceed without email
 
-    return redirect('dashboard')  # redirect to your desired page
+    # Step 5: Authenticate or create user
+    user, created = User.objects.get_or_create(
+        username=email,
+        defaults={'first_name': first_name, 'last_name': last_name, 'email': email}
+    )
 
+    # Step 6: Log the user in
+    login(request, user)
+
+    # Step 7: Redirect to dashboard/home
+    return redirect('dashboard')  # change to your home page URL name
+    
 # -----------------------------
 # HELPER FUNCTIONS
 # -----------------------------
