@@ -208,20 +208,21 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
 
     class Meta:
         model = Job
-        fields = ['title', 'description', 'category', 'location', 'company', 'is_premium']
+        fields = ['title', 'description', 'category', 'location', 'company', 'salary']  # remove is_premium from form
         help_texts = {
             'title': "Enter the job title.",
             'description': "Provide job details and requirements.",
             'category': "Select or create a job category.",
             'location': "Enter job location.",
             'company': "Enter your company name.",
-            'is_premium': "Mark if this job is premium.",
+            'salary': "Enter the salary for this job in KES.",
         }
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Enter job title'}),
             'description': forms.Textarea(attrs={'placeholder': 'Enter job description'}),
             'location': forms.TextInput(attrs={'placeholder': 'Enter job location'}),
             'company': forms.TextInput(attrs={'placeholder': 'Enter company name'}),
+            'salary': forms.NumberInput(attrs={'placeholder': 'Enter salary in KES'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -230,10 +231,19 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
 
     def save(self, commit=True):
         job = super().save(commit=False)
+
+        # --- Auto-set premium based on salary ---
+        if job.salary and job.salary > 30000:
+            job.is_premium = True
+        else:
+            job.is_premium = False
+        # ---------------------------------------
+
         custom_category = self.cleaned_data.get('custom_category')
         if custom_category:
             category, _ = JobCategory.objects.get_or_create(name=custom_category)
             job.category = category
+
         if commit:
             job.save()
         return job
