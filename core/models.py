@@ -70,19 +70,34 @@ class Job(models.Model):
         related_name="jobs_posted"
     )
     posted_on = models.DateTimeField(auto_now_add=True)
+    company = models.CharField(max_length=200, blank=True)
+    
+    # --- New fields ---
+    salary = models.PositiveIntegerField(default=0, help_text="Enter salary in KES")
     is_premium = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     premium_expiry = models.DateTimeField(null=True, blank=True)
-    company = models.CharField(max_length=200, blank=True)
+
+    def save(self, *args, **kwargs):
+        """
+        Auto-set premium if salary > 30,000 KES.
+        """
+        if self.salary > 30000:
+            self.is_premium = True
+        else:
+            self.is_premium = False
+        super().save(*args, **kwargs)
 
     def check_premium_status(self):
+        """
+        Check if premium has expired and deactivate premium if needed.
+        """
         if self.is_premium and self.premium_expiry and self.premium_expiry < timezone.now():
             self.is_premium = False
             self.save()
 
     def __str__(self):
         return self.title
-
 
 # ======================================================
 # APPLICATIONS
