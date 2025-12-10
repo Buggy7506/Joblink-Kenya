@@ -1,39 +1,38 @@
 import json
-from typing import Optional, List, Dict
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
-from django.db.models import Count
-from .models import Application, ChatMessage, PinnedMessage, MessageReaction
+from .models import Application, ChatMessage, PinnedMessage
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
-    """WebSocket consumer for real-time chat with reactions, pins, and read receipts."""
-
     async def connect(self):
-        self.application_id: int = self.scope["url_route"]["kwargs"]["application_id"]
-        self.group_name: str = f"chat_{self.application_id}"
-        self.user = self.scope.get("user", AnonymousUser())
+        """When a user connects, join the chat group if authorized."""
+        self.application_id = self.scope["url_route"]["kwargs"]["application_id"]
+        self.group_name = f"chat_{self.application_id}"
 
-        if await self.user_can_join(self.application_id, self.user.id):
+        user = self.scope.get("user", AnonymousUser())
+        if await self.user_can_join(self.application_id, user.id):
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()
         else:
             await self.close()
 
-    async def disconnect(self, code: int):
+    async def disconnect(self, code):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
-    async def receive(self, text_data: Optional[str] = None, bytes_data=None):
+    async def receive(self, text_data=None, bytes_data=None):
+        """Route incoming actions to handlers."""
         if not text_data:
             return
-
         payload = json.loads(text_data)
+        user = self.scope["user"]
+
         action = payload.get("action")
         if not action:
             return
 
-        handlers: Dict[str, callable] = {
+        handlers = {
             "message": self.handle_message,
             "typing": self.handle_typing,
             "read": self.handle_read,
@@ -41,100 +40,92 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "delete": self.handle_delete,
             "reply": self.handle_reply,
             "pin": self.handle_pin,
-            "get_pins": self.handle_get_pins,
-            "react": self.handle_react,
+            "get_pins": self.handle_get_pins,  # 🔥 new
         }
 
-        handler = handlers.get(action)
-        if handler:
-            await handler(payload)
+        if action in handlers:
+            await handlers[action](user, payload)
 
     # ==========================
     # Action Handlers
     # ==========================
-    async def handle_message(self, payload):
+    async def handle_message(self, user, payload):
         text = payload.get("message", "").strip()
         if not text:
             return
-        chat_msg = await self.save_message(self.application_id, self.user.id, text)
-        await self.broadcast("chat.message", chat_msg)
+        chat_msg = await self.save_message(self.application_id, user.id, text)
+        await self.channel_layer.group_send(self.group_name, {"type": "chat.message", **chat_msg})
 
-    async def handle_typing(self, payload):
-        await self.broadcast(
-            "chat.typing",
-            {"sender": self.user.username, "typing": bool(payload.get("typing"))},
-            exclude_self=True,
+    async def handle_typing(self, user, payload):
+        await self.channel_layer.group_send(
+            self.group_name,
+            {"type": "chat.typing", "sender": user.username, "typing": bool(payload.get("typing"))},
         )
 
-    async def handle_read(self, payload):
-        read_ids: List[int] = payload.get("messages", [])
+    async def handle_read(self, user, payload):
+        read_ids = payload.get("messages", [])
         if isinstance(read_ids, list):
-            await self.mark_messages_read(self.user.id, read_ids)
-            await self.broadcast(
-                "chat.read", {"sender": self.user.username, "messages": read_ids}
+            await self.mark_messages_read(read_ids)
+            await self.channel_layer.group_send(
+                self.group_name, {"type": "chat.read", "sender": user.username, "messages": read_ids}
             )
 
-    async def handle_edit(self, payload):
-        msg_id = payload.get("id")
-        new_text = payload.get("message", "").strip()
-        if msg_id and new_text and await self.edit_message(msg_id, self.user.id, new_text):
-            await self.broadcast("chat.edit", {"id": msg_id, "message": new_text, "sender": self.user.username})
+    async def handle_edit(self, user, payload):
+        msg_id, new_text = payload.get("id"), payload.get("message", "").strip()
+        if msg_id and new_text and await self.edit_message(msg_id, user.id, new_text):
+            await self.channel_layer.group_send(
+                self.group_name, {"type": "chat.edit", "id": msg_id, "message": new_text, "sender": user.username}
+            )
 
-    async def handle_delete(self, payload):
+    async def handle_delete(self, user, payload):
         msg_id = payload.get("id")
-        if msg_id and await self.delete_message(msg_id, self.user.id):
-            await self.broadcast("chat.delete", {"id": msg_id, "sender": self.user.username})
+        if msg_id and await self.delete_message(msg_id, user.id):
+            await self.channel_layer.group_send(
+                self.group_name, {"type": "chat.delete", "id": msg_id, "sender": user.username}
+            )
 
-    async def handle_reply(self, payload):
-        reply_to = payload.get("reply_to")
+    async def handle_reply(self, user, payload):
+        """Send a reply message referencing another message."""
+        reply_to = payload.get("reply_to")  # original message ID
         text = payload.get("message", "").strip()
         if not reply_to or not text:
             return
-        chat_msg = await self.save_message(self.application_id, self.user.id, text, reply_to)
-        chat_msg["reply_to"] = reply_to
-        await self.broadcast("chat.reply", chat_msg)
 
-    async def handle_pin(self, payload):
+        chat_msg = await self.save_message(self.application_id, user.id, text, reply_to)
+        chat_msg["reply_to"] = reply_to
+
+        await self.channel_layer.group_send(self.group_name, {"type": "chat.reply", **chat_msg})
+
+    async def handle_pin(self, user, payload):
+        """Pin or unpin a message (tracked in PinnedMessage)."""
         msg_id = payload.get("id")
         pin_state = bool(payload.get("pin", True))
-        if msg_id and await self.toggle_pin(msg_id, self.user.id, pin_state):
-            await self.broadcast("chat.pin", {"id": msg_id, "pinned": pin_state, "sender": self.user.username})
-
-    async def handle_get_pins(self, payload):
-        pins = await self.get_pinned_messages(self.application_id)
-        await self.send_json({"type": "chat.pins", "pins": pins})
-
-    async def handle_react(self, payload):
-        msg_id = payload.get("id")
-        reaction = payload.get("reaction")
-        if not msg_id or not reaction:
-            return
-        updated_reactions = await self.toggle_reaction(msg_id, self.user.id, reaction)
-        await self.broadcast("chat.react", {"id": msg_id, "reactions": updated_reactions})
-
-    # ==========================
-    # Broadcast Helper
-    # ==========================
-    async def broadcast(self, event_type: str, data: dict, exclude_self: bool = False):
-        """Broadcast an event to the group, optionally excluding sender."""
-        message = {"type": event_type, **data}
-        if exclude_self:
+        if msg_id and await self.toggle_pin(msg_id, user.id, pin_state):
             await self.channel_layer.group_send(
-                self.group_name,
-                {"type": "send_to_others", "message": message, "exclude": self.channel_name},
+                self.group_name, {"type": "chat.pin", "id": msg_id, "pinned": pin_state, "sender": user.username}
             )
-        else:
-            await self.channel_layer.group_send(self.group_name, message)
 
-    async def send_to_others(self, event):
-        if event.get("exclude") != self.channel_name:
-            await self.send_json(event["message"])
+    async def handle_get_pins(self, user, payload):
+        """Send all pinned messages to requesting user only."""
+        pins = await self.get_pinned_messages(self.application_id)
+        await self.send(text_data=json.dumps({"type": "chat.pins", "pins": pins}))
+
+    # ==========================
+    # Event Handlers
+    # ==========================
+    async def chat_message(self, event): await self.send(text_data=json.dumps(event))
+    async def chat_typing(self, event): await self.send(text_data=json.dumps(event))
+    async def chat_read(self, event): await self.send(text_data=json.dumps(event))
+    async def chat_edit(self, event): await self.send(text_data=json.dumps(event))
+    async def chat_delete(self, event): await self.send(text_data=json.dumps(event))
+    async def chat_reply(self, event): await self.send(text_data=json.dumps(event))
+    async def chat_pin(self, event): await self.send(text_data=json.dumps(event))
 
     # ==========================
     # Database Helpers
     # ==========================
     @database_sync_to_async
-    def user_can_join(self, application_id: int, user_id: int) -> bool:
+    def user_can_join(self, application_id, user_id):
         try:
             app = Application.objects.select_related("job", "applicant", "job__employer").get(id=application_id)
         except Application.DoesNotExist:
@@ -142,28 +133,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return user_id in (app.applicant_id, app.job.employer_id)
 
     @database_sync_to_async
-    def save_message(self, application_id: int, sender_id: int, message: str, reply_to: Optional[int] = None) -> dict:
+    def save_message(self, application_id, sender_id, message, reply_to=None):
         app = Application.objects.get(id=application_id)
         obj = ChatMessage.objects.create(application=app, sender_id=sender_id, message=message, reply_to_id=reply_to)
-        return self.serialize_message(obj)
+        return {
+            "id": obj.id,
+            "sender": obj.sender.username,
+            "message": obj.message,
+            "timestamp": obj.timestamp.isoformat(),
+        }
 
     @database_sync_to_async
-    def mark_messages_read(self, user_id: int, message_ids: List[int]):
+    def mark_messages_read(self, message_ids):
         ChatMessage.objects.filter(id__in=message_ids).update(is_read=True)
 
     @database_sync_to_async
-    def edit_message(self, message_id: int, user_id: int, new_text: str) -> bool:
+    def edit_message(self, message_id, user_id, new_text):
         try:
             msg = ChatMessage.objects.get(id=message_id, sender_id=user_id)
             msg.message = new_text
-            msg.is_edited = True
-            msg.save(update_fields=["message", "is_edited"])
+            msg.save(update_fields=["message"])
             return True
         except ChatMessage.DoesNotExist:
             return False
 
     @database_sync_to_async
-    def delete_message(self, message_id: int, user_id: int) -> bool:
+    def delete_message(self, message_id, user_id):
         try:
             msg = ChatMessage.objects.get(id=message_id, sender_id=user_id)
             msg.delete()
@@ -172,43 +167,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
-    def toggle_pin(self, message_id: int, user_id: int, pin_state: bool) -> bool:
+    def toggle_pin(self, message_id, user_id, pin_state):
+        """Update ChatMessage + PinnedMessage history."""
         try:
             msg = ChatMessage.objects.get(id=message_id)
             msg.is_pinned = pin_state
             msg.save(update_fields=["is_pinned"])
+
             if pin_state:
                 PinnedMessage.objects.get_or_create(message=msg, pinned_by_id=user_id)
             else:
                 PinnedMessage.objects.filter(message=msg, pinned_by_id=user_id).delete()
+
             return True
         except ChatMessage.DoesNotExist:
             return False
 
     @database_sync_to_async
-    def get_pinned_messages(self, application_id: int) -> List[dict]:
-        qs = PinnedMessage.objects.filter(message__application_id=application_id, message__is_pinned=True).select_related("message", "pinned_by")
-        return [self.serialize_message(p.message, p.pinned_by.username) for p in qs]
+    def get_pinned_messages(self, application_id):
+        """Return all pinned messages for a chat session."""
+        qs = PinnedMessage.objects.filter(
+            message__application_id=application_id,
+            message__is_pinned=True
+        ).select_related("message", "pinned_by")
 
-    @database_sync_to_async
-    def toggle_reaction(self, message_id: int, user_id: int, reaction: str) -> dict:
-        msg = ChatMessage.objects.get(id=message_id)
-        reaction_obj, created = MessageReaction.objects.get_or_create(message=msg, user_id=user_id, reaction=reaction)
-        if not created:
-            reaction_obj.delete()
-        reactions = MessageReaction.objects.filter(message=msg).values("reaction").annotate(count=Count("id"))
-        return {r["reaction"]: r["count"] for r in reactions}
-
-    # ==========================
-    # Serializer
-    # ==========================
-    def serialize_message(self, msg: ChatMessage, pinned_by: Optional[str] = None) -> dict:
-        return {
-            "id": msg.id,
-            "sender": msg.sender.username,
-            "message": msg.message,
-            "timestamp": msg.timestamp.isoformat(),
-            "reply_to": msg.reply_to_id,
-            "is_pinned": msg.is_pinned,
-            "pinned_by": pinned_by,
-        }
+        return [
+            {
+                "id": p.message.id,
+                "message": p.message.message,
+                "sender": p.message.sender.username,
+                "pinned_by": p.pinned_by.username,
+                "timestamp": p.message.timestamp.isoformat(),
+            }
+            for p in qs
+        ]
