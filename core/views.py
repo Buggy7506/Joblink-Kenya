@@ -592,18 +592,11 @@ def apply_job_success(request, job_id, applied):
     # Determine success boolean based on applied flag
     success = applied == "yes"
 
-    # Optional: Add messages if you want them to appear elsewhere
-    if success:
-        messages.success(request, f"✅ You have successfully applied to {job.title}!")
-    else:
-        messages.info(request, f"ℹ️ You already applied for {job.title}.")
-
-    # Render the status page
+    # Render the status page without adding messages again
     return render(request, "apply_job_success.html", {
         "job": job,
         "success": success
     })
-
     
 #CV Upload
 
