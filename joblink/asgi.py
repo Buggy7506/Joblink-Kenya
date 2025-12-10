@@ -2,33 +2,34 @@
 ASGI config for joblink project.
 
 It exposes the ASGI callable as a module-level variable named `application`.
-
-For more information, see
-https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
 import os
-import django
 from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
-import core.routing  # Import WebSocket routes
 
 # -----------------------------
-# Django setup
+# Set Django settings module
 # -----------------------------
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'joblink.settings')
-django.setup()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joblink.settings")
 
+# -----------------------------
 # Reference to Django ASGI app for HTTP requests
+# -----------------------------
 django_asgi_app = get_asgi_application()
 
 # -----------------------------
-# Main ASGI application
+# Channels imports (after settings are configured)
+# -----------------------------
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+import core.routing  # WebSocket routes
+
+# -----------------------------
+# ASGI application with HTTP & WebSocket support
 # -----------------------------
 application = ProtocolTypeRouter({
-    "http": django_asgi_app,  # Handles standard HTTP requests
-    "websocket": AuthMiddlewareStack(  # Handles WebSocket connections with authentication
-        URLRouter(core.routing.websocket_urlpatterns)
+    "http": django_asgi_app,  # Handle standard HTTP requests
+    "websocket": AuthMiddlewareStack(
+        URLRouter(core.routing.websocket_urlpatterns)  # Handle WebSocket connections
     ),
 })
