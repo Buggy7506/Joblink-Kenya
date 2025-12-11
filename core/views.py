@@ -1235,23 +1235,40 @@ def chat_view(request, application_id=None, job_id=None):
 def view_applications(request):
     """
     Show the jobs the logged-in applicant has applied to
-    with the current status (pending, accepted, rejected).
+    with the current status (pending, accepted, rejected),
+    and automatically delete applications that have been soft-deleted
+    for more than 7 days along with related messages and notifications.
     """
     if request.user.role != "applicant":
         messages.error(request, "❌ Only applicants can access this page.")
         return redirect("dashboard")
 
+    # Auto-delete expired soft-deleted applications
+    deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
+    for app in deleted_apps:
+        if app.is_expired():
+            # Delete related chats
+            ChatMessage.objects.filter(application=app).delete()
+            # Delete related notifications containing applicant username
+            Notification.objects.filter(
+                user=app.job.employer,
+                message__icontains=f"{app.applicant.username}"
+            ).delete()
+            # Delete the application itself
+            app.delete()
+
+    # Fetch active (not deleted) applications
     applications = (
-        Application.objects.filter(applicant=request.user)
+        Application.objects.filter(applicant=request.user, is_deleted=False)
         .select_related("job", "job__employer")
-        .order_by("-applied_on")  # ✅ Show newest first
+        .order_by("-applied_on")
     )
 
     return render(request, "view_applications.html", {
         "applications": applications,
         "applications_count": applications.count(),
+        "deleted_apps": deleted_apps,  # for recycle bin if needed
     })
-
 # ======================================================
 # DELETE APPLICATION (Soft delete)
 # ======================================================
