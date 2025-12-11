@@ -129,9 +129,6 @@
 <!-- SweetAlert CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- CSRF token for JS -->
-<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
-
 <div class="applications-container" data-aos="zoom-in">
   <h2 class="glow-heading">💼 My Job Applications</h2>
 
@@ -176,7 +173,7 @@
 
 <script>
 function deleteApplication(appId) {
-  const csrfToken = document.getElementById("csrf_token").value;
+  const csrfToken = '{{ csrf_token }}';
 
   Swal.fire({
     title: "Delete Application?",
@@ -204,7 +201,7 @@ function deleteApplication(appId) {
           setTimeout(() => row.remove(), 400);
           Swal.fire("Deleted!", "Application moved to Recycle Bin.", "success");
         } else {
-          Swal.fire("Error!", "Could not delete application.", "error");
+          Swal.fire("Error!", data.message || "Could not delete application.", "error");
         }
       })
       .catch(() => {
