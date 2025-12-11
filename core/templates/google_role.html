@@ -18,7 +18,7 @@ h2 {
     font-size: 32px;
     font-weight: 700;
     color: #333;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     position: relative;
 }
 
@@ -30,6 +30,13 @@ h2::after {
     display: block;
     margin: 12px auto 0;
     border-radius: 2px;
+}
+
+.user-info {
+    text-align: center;
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
 }
 
 /* Form container */
@@ -134,17 +141,27 @@ button:hover {
     }
     h2 {
         font-size: 26px;
-        margin-bottom: 28px;
+        margin-bottom: 18px;
     }
     label span i {
         font-size: 22px;
+    }
+    .user-info {
+        font-size: 16px;
     }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<h2>Choose your role</h2>
+<h2>Choose Your Role</h2>
+
+<!-- Show Google user info -->
+<div class="user-info">
+    {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
+    {{ request.session.google_user.email }}
+</div>
+
 <form method="post">
   {% csrf_token %}
   
