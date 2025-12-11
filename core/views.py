@@ -57,16 +57,16 @@ def set_google_password(request):
 
         if not password or not confirm_password:
             messages.error(request, "Please enter both password fields.")
-            return redirect('set_google_password')
+            return render(request, 'set_google_password.html', {"user": user})
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return redirect('set_google_password')
+            return render(request, 'set_google_password.html', {"user": user})
 
         # Optional: enforce basic password strength
         if len(password) < 6:
             messages.error(request, "Password must be at least 6 characters long.")
-            return redirect('set_google_password')
+            return render(request, 'set_google_password.html', {"user": user})
 
         user.password = make_password(password)
         user.save()
@@ -78,6 +78,7 @@ def set_google_password(request):
         return redirect('dashboard')
 
     return render(request, 'set_google_password.html', {"user": user})
+
 
 
 # Google OAuth settings
