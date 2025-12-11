@@ -13,6 +13,7 @@
     margin: 0;
     padding: 20px;
     box-sizing: border-box;
+    flex-direction: column;
 }
 
 .role-selection-wrapper h2 {
@@ -157,11 +158,11 @@
 
 {% block content %}
 <div class="role-selection-wrapper">
-    <h2>Choose Your Role</h2>
+    <h2>Welcome!</h2>
 
     <!-- Show Google user info -->
     <div class="user-info">
-        {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
+        Hello, {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
         {{ request.session.google_user.email }}
     </div>
 
