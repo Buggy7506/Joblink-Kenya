@@ -194,12 +194,13 @@ def google_choose_role(request):
             return redirect('google_choose_role')
 
         first_name = user_data['first_name']
-        last_name = user_data['last_name']
 
-        # Generate unique username
-        base_username = f"{first_name.lower()}.{last_name.lower()}" if last_name else first_name.lower()
+        # Use first name as base username
+        base_username = ''.join(e for e in first_name.lower() if e.isalnum())  # remove spaces/special chars
         username = base_username
         counter = 1
+
+        # Ensure username is unique
         while User.objects.filter(username=username).exists():
             username = f"{base_username}{counter}"
             counter += 1
@@ -210,7 +211,7 @@ def google_choose_role(request):
             defaults={
                 'username': username,
                 'first_name': first_name,
-                'last_name': last_name,
+                'last_name': user_data.get('last_name', ''),
                 'role': role
             }
         )
@@ -232,6 +233,7 @@ def google_choose_role(request):
     return render(request, 'google_role.html', {
         "google_user": user_data
     })
+
 
 
     
