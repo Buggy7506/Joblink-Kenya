@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+<style>
+.recycle-container {
+  background: rgba(15,15,30,0.95);
+  padding: 30px;
+  max-width: 900px;
+  margin: 40px auto;
+  border-radius: 18px;
+  box-shadow: 0 0 30px rgba(0,255,255,0.25);
+}
+.recycle-title {
+  font-size: 2rem;
+  text-align: center;
+  color: #00f5ff;
+  text-shadow: 0 0 10px #00f5ff;
+}
+.recycle-card {
+  background: rgba(25,25,50,0.85);
+  padding: 20px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.15);
+  transition: transform .25s, box-shadow .25s;
+}
+.recycle-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(0,255,255,0.35);
+}
+.restore-btn, .delete-forever-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+  margin-right: 10px;
+  display: inline-block;
+}
+.restore-btn {
+  background: #00ff99;
+  box-shadow: 0 0 20px #00ff99;
+}
+.delete-forever-btn {
+  background: #ff3b3b;
+  box-shadow: 0 0 20px #ff3b3b;
+}
+</style>
+
+<div class="recycle-container" data-aos="zoom-in">
+  <h2 class="recycle-title">🗑️ Recycle Bin</h2>
+
+  {% if deleted_apps %}
+    {% for app in deleted_apps %}
+      <div class="recycle-card" id="card-{{ app.id }}">
+        <h3>{{ app.job.title }}</h3>
+        <p>Deleted on: {{ app.deleted_on|date:"M d, Y H:i" }}</p>
+
+        <a href="{% url 'undo_delete_application' app.id %}" class="restore-btn">
+          ♻️ Restore
+        </a>
+
+        <a href="javascript:void(0);" class="delete-forever-btn" onclick="confirmDestroy('{{ app.id }}')">
+          🔥 Delete Forever
+        </a>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#bbb; text-align:center;">Recycle bin is empty.</p>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDestroy(appId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will permanently delete the application!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff3b3b',
+        cancelButtonColor: '#00f5ff',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Redirect to delete URL (update your URL pattern accordingly)
+            window.location.href = `/applications/delete-forever/${appId}/`;
+        }
+    });
+}
+</script>
+
+{% endblock %}
