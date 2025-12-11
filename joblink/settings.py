@@ -201,6 +201,7 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawU
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://joblink-kenya-ytzq.onrender.com'
+    'https://joblink-kenya-6vrl.onrender.com',
 ]
 
 # Channels layers
