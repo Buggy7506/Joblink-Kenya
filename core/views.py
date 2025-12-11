@@ -41,24 +41,26 @@ GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
 
 
 def google_login(request):
+    """Step 1: Redirect user to Google's OAuth 2.0 server"""
     params = {
         'client_id': GOOGLE_CLIENT_ID,
         'redirect_uri': GOOGLE_REDIRECT_URI,
         'response_type': 'code',
         'scope': 'openid email profile',
         'access_type': 'offline',
-        'prompt': 'consent'
+        'prompt': 'consent',
     }
     url = f"{GOOGLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
 
 def google_callback(request):
+    """Step 2: Handle Google callback and save user info in session for role selection"""
     code = request.GET.get('code')
     if not code:
-        return redirect('signup')  # or show error
+        return redirect('signup')  # or show error message
 
-    # Exchange code for access token
+    # Step 3: Exchange code for access token
     data = {
         'code': code,
         'client_id': GOOGLE_CLIENT_ID,
@@ -66,50 +68,52 @@ def google_callback(request):
         'redirect_uri': GOOGLE_REDIRECT_URI,
         'grant_type': 'authorization_code',
     }
-    r = requests.post(GOOGLE_TOKEN_ENDPOINT, data=data)
-    token_data = r.json()
+    token_response = requests.post(GOOGLE_TOKEN_ENDPOINT, data=data)
+    token_data = token_response.json()
     access_token = token_data.get('access_token')
-    if not access_token:
-        return redirect('signup')
 
-    # Get user info
+    if not access_token:
+        return redirect('signup')  # cannot proceed without access token
+
+    # Step 4: Get user info from Google
     headers = {'Authorization': f'Bearer {access_token}'}
-    r = requests.get(GOOGLE_USERINFO_ENDPOINT, headers=headers)
-    user_info = r.json()
+    user_response = requests.get(GOOGLE_USERINFO_ENDPOINT, headers=headers)
+    user_info = user_response.json()
 
     email = user_info.get('email')
     first_name = user_info.get('given_name', '')
     last_name = user_info.get('family_name', '')
 
+    # Fallback: parse names from email if missing
     if not first_name or not last_name:
-        # fallback: parse from email
         local_part = email.split('@')[0]  # john.doe@gmail.com -> john.doe
         parts = local_part.split('.')
         first_name = first_name or parts[0].capitalize()
         last_name = last_name or (parts[1].capitalize() if len(parts) > 1 else '')
 
-    # Save info in session to ask for role
+    # Save Google user info in session for role selection
     request.session['google_user'] = {
         'email': email,
         'first_name': first_name,
-        'last_name': last_name
+        'last_name': last_name,
     }
 
-    return redirect('google_choose_role')  # new view to choose role
+    return redirect('google_choose_role')
 
 
 def google_choose_role(request):
+    """Step 5: Let user select role and create/login the user"""
+    user_data = request.session.get('google_user')
+    if not user_data:
+        return redirect('signup')
+
     if request.method == 'POST':
         role = request.POST.get('role')
-        user_data = request.session.get('google_user')
-        if not user_data:
-            return redirect('signup')
-
         email = user_data['email']
         first_name = user_data['first_name']
         last_name = user_data['last_name']
 
-        # generate username from first and last names
+        # Generate unique username from first and last names
         base_username = f"{first_name.lower()}.{last_name.lower()}" if last_name else first_name.lower()
         username = base_username
         counter = 1
@@ -117,6 +121,7 @@ def google_choose_role(request):
             username = f"{base_username}{counter}"
             counter += 1
 
+        # Create user if it doesn't exist
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
@@ -126,16 +131,18 @@ def google_choose_role(request):
             }
         )
 
-        # Here you can save role if you extended the User model
+        # TODO: Save role if you have extended the User model
         # user.role = role
         # user.save()
 
+        # Log the user in
         login(request, user)
         request.session.pop('google_user', None)
-        return redirect('dashboard')  # change as needed
+        return redirect('dashboard')  # redirect to home/dashboard
 
-    return render(request, 'google_role.html')  # template to choose role
-
+    # GET request: render role selection template
+    return render(request, 'google_role.html')
+    
     
 # -----------------------------
 # HELPER FUNCTIONS
