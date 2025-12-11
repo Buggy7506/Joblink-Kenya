@@ -137,8 +137,11 @@ class Application(models.Model):
     # --------------------------
     # Soft delete / Recycle bin
     # --------------------------
-    is_deleted = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)  # Applicant-side soft delete
     deleted_on = models.DateTimeField(null=True, blank=True)
+
+    # Hide application from employer when applicant deletes it
+    is_deleted_for_employer = models.BooleanField(default=False)
 
     def is_expired(self):
         """Auto-expire 7 days after soft delete."""
