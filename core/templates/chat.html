@@ -252,25 +252,58 @@
   }
   .chat-container { border-radius:16px; }
 }
+
+  /* Deleted applicants styling */
+.sidebar .applicant.deleted {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-bottom:1px solid rgba(255,0,0,0.05);
+    color:#fff;
+    background:none !important;
+    box-shadow:none !important;
+    transition: none;
+}
+
+.sidebar .applicant.deleted:hover {
+    background:none !important;
+    box-shadow:none !important;
+}
+
+.sidebar .applicant.deleted .badge {
+    background:#ff4c4c;
+    color:#111;
+}
+
 </style>
 
 <div class="chat-wrap">
   {% if job %}
-    <div class="sidebar" id="sidebar">
-      <h3>Applicants</h3>
-      {% for app in applications %}
-        <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
+  <div class="sidebar" id="sidebar">
+    <h3>Applicants</h3>
+    {% for app in applications %}
+      <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
+        {{ app.applicant.username }}
+        {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
+      </a>
+    {% empty %}
+      <p style="padding:12px; opacity:.7;">No applicants yet</p>
+    {% endfor %}
+
+    {% if deleted_applications %}
+      <h3 style="margin-top:20px; color:#ff4c4c;">Deleted Applicants</h3>
+      {% for app in deleted_applications %}
+        <a href="javascript:void(0);" class="applicant deleted">
           {{ app.applicant.username }}
-          {% if app.unread_count %}
-            <span class="badge">{{ app.unread_count }}</span>
-          {% endif %}
+          {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
         </a>
       {% empty %}
-        <p style="padding:12px; opacity:.7;">No applicants yet</p>
+        <p style="padding:12px; opacity:.7;">No deleted applicants</p>
       {% endfor %}
-    </div>
-    <div id="sidebar-overlay"></div>
-  {% endif %}
+    {% endif %}
+  </div>
+  <div id="sidebar-overlay"></div>
+{% endif %}
+
 
   <!-- Main chat -->
   <div class="chat-container">
@@ -612,6 +645,21 @@
 
   // Hide menu when clicking outside
   document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
+
+  // Disable clicks and hover effects for deleted applicants
+document.addEventListener("DOMContentLoaded", function(){
+    const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
+
+    deletedApps.forEach(app => {
+        app.addEventListener('click', e => {
+            e.preventDefault();
+            alert("This application has been deleted and cannot be accessed.");
+        });
+
+        app.addEventListener('mouseenter', () => app.style.backgroundColor="rgba(255,0,0,0.05)");
+        app.addEventListener('mouseleave', () => app.style.backgroundColor="transparent");
+    });
+});
 
 })();
 </script>
