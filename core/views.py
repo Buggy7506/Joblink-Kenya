@@ -479,9 +479,11 @@ def view_applicants(request):
     job_id = request.GET.get("job_id")  # Check if employer is filtering for a specific job
 
     if job_id:
-        # Show only applicants for the specific job
+        # Show only applicants for the specific job, excluding soft-deleted for employer
         applicants = Application.objects.filter(
-            job__id=job_id, job__employer=request.user
+            job__id=job_id,
+            job__employer=request.user,
+            is_deleted_for_employer=False  # hide soft-deleted applications
         ).select_related("job", "applicant")
 
         applicants_count = applicants.count()
@@ -489,7 +491,10 @@ def view_applicants(request):
     else:
         # Show applicants for ALL jobs posted by this employer
         jobs = Job.objects.filter(employer=request.user)
-        applicants = Application.objects.filter(job__in=jobs).select_related("job", "applicant")
+        applicants = Application.objects.filter(
+            job__in=jobs,
+            is_deleted_for_employer=False  # hide soft-deleted applications
+        ).select_related("job", "applicant")
         applicants_count = applicants.count()
 
     return render(request, "view_applicants.html", {
@@ -498,6 +503,7 @@ def view_applicants(request):
         "applicants_count": applicants_count,
         "job_id": job_id,  # useful in template
     })
+
 
 
 @login_required
@@ -788,15 +794,20 @@ def job_detail(request, job_id):
     # Default: no application
     application = None  
 
-    # If user is an applicant, check if they already applied
+    # If user is an applicant, check if they already applied and not soft-deleted
     if request.user.role == "applicant":
-        application = Application.objects.filter(job=job, applicant=request.user).first()
+        application = Application.objects.filter(
+            job=job,
+            applicant=request.user,
+            is_deleted=False  # ignore soft-deleted applications
+        ).first()
 
     context = {
         "job": job,
         "application": application,
     }
     return render(request, "job_detail.html", context)
+
 
 
 #Learning Resources
@@ -1067,6 +1078,7 @@ def chat_view(request, application_id=None, job_id=None):
     - Applicants access via application_id
     - Employers access via job_id (with optional ?app_id= query param)
     - General landing if neither is provided
+    Soft-deleted applications are hidden from the respective users.
     """
     user = request.user
     context = {
@@ -1078,7 +1090,7 @@ def chat_view(request, application_id=None, job_id=None):
         "jobs": [],
     }
 
-    messages = []
+    messages_list = []
     selected_app = None
 
     # -----------------------------
@@ -1087,7 +1099,8 @@ def chat_view(request, application_id=None, job_id=None):
     if application_id:
         app = get_object_or_404(
             Application.objects.select_related("job", "applicant", "job__employer"),
-            id=application_id
+            id=application_id,
+            is_deleted=False  # applicant should not see deleted apps
         )
 
         # Security check
@@ -1107,7 +1120,7 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} sent you a new message about '{app.job.title}'."
                 )
 
-        messages = app.messages.all().order_by("timestamp")
+        messages_list = app.messages.all().order_by("timestamp")
         selected_app = app
 
         # Mark employer messages as read when applicant views
@@ -1120,7 +1133,7 @@ def chat_view(request, application_id=None, job_id=None):
 
         context.update({
             "application": app,
-            "messages": messages,
+            "messages": messages_list,
             "selected_app": selected_app,
         })
 
@@ -1130,7 +1143,8 @@ def chat_view(request, application_id=None, job_id=None):
     elif job_id:
         job = get_object_or_404(Job, id=job_id, employer=user)
 
-        applications = job.applications.select_related("applicant").annotate(
+        # Exclude applications hidden by applicant
+        applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant").annotate(
             unread_count=Count(
                 "messages",
                 filter=Q(messages__is_read=False) & Q(messages__sender_id=F("applicant_id")),
@@ -1161,7 +1175,7 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} (employer) sent you a new message about '{selected_app.job.title}'."
                 )
 
-        messages = selected_app.messages.all().order_by("timestamp") if selected_app else []
+        messages_list = selected_app.messages.all().order_by("timestamp") if selected_app else []
 
         # Mark applicant messages as read when employer views
         if selected_app:
@@ -1175,7 +1189,7 @@ def chat_view(request, application_id=None, job_id=None):
             "job": job,
             "applications": applications,
             "selected_app": selected_app,
-            "messages": messages,
+            "messages": messages_list,
         })
 
     # -----------------------------
@@ -1183,12 +1197,14 @@ def chat_view(request, application_id=None, job_id=None):
     # -----------------------------
     else:
         if getattr(user, "is_employer", False):
-            jobs = Job.objects.filter(employer=user).prefetch_related("applications__applicant")
+            jobs = Job.objects.filter(employer=user).prefetch_related(
+                "applications__applicant"
+            )
 
             job = None
             applications = []
             selected_app = None
-            messages = []
+            messages_list = []
 
             # Pick job from query (?job_id=...)
             job_id_param = request.GET.get("job_id")
@@ -1203,7 +1219,7 @@ def chat_view(request, application_id=None, job_id=None):
                 job = jobs.first()
 
             if job:
-                applications = job.applications.select_related("applicant").annotate(
+                applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant").annotate(
                     unread_count=Count(
                         "messages",
                         filter=Q(messages__is_read=False) & Q(messages__sender_id=F("applicant_id")),
@@ -1222,21 +1238,24 @@ def chat_view(request, application_id=None, job_id=None):
                     selected_app = applications.first()
 
                 if selected_app:
-                    messages = selected_app.messages.all().order_by("timestamp")
+                    messages_list = selected_app.messages.all().order_by("timestamp")
 
             context.update({
                 "jobs": jobs,
                 "job": job,
                 "applications": applications,
                 "selected_app": selected_app,
-                "messages": messages,
+                "messages": messages_list,
             })
 
         else:
-            # Applicant view: show all their applications
-            applications = Application.objects.filter(applicant=user).select_related("job__employer")
+            # Applicant view: show all their applications except deleted
+            applications = Application.objects.filter(
+                applicant=user,
+                is_deleted=False
+            ).select_related("job__employer")
             selected_app = None
-            messages = []
+            messages_list = []
 
             # Pick one if requested (?app_id=...)
             selected_app_id = request.GET.get("app_id")
@@ -1250,12 +1269,12 @@ def chat_view(request, application_id=None, job_id=None):
                 selected_app = applications.first()
 
             if selected_app:
-                messages = selected_app.messages.all().order_by("timestamp")
+                messages_list = selected_app.messages.all().order_by("timestamp")
 
             context.update({
                 "applications": applications,
                 "selected_app": selected_app,
-                "messages": messages,
+                "messages": messages_list,
             })
 
     # -----------------------------
@@ -1270,13 +1289,14 @@ def chat_view(request, application_id=None, job_id=None):
                     "text": msg.message,
                     "created": msg.timestamp.strftime("%Y-%m-%d %H:%M"),
                 }
-                for msg in messages
+                for msg in messages_list
             ],
             "selected_app_id": selected_app.id if selected_app else None
         })
 
     # Render always with chat.html
     return render(request, "chat.html", context)
+
         
                 
 # ======================================================
@@ -1322,6 +1342,12 @@ def view_applications(request):
 # ======================================================
 # DELETE APPLICATION (Soft delete)
 # ======================================================
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from .models import Application, Notification, ChatMessage
+
 @login_required
 def delete_application(request, app_id):
     """
@@ -1331,19 +1357,26 @@ def delete_application(request, app_id):
     if request.method == "POST":
         app = get_object_or_404(Application, id=app_id, applicant=request.user)
 
+        # -------------------------------
         # Soft delete for applicant
+        # -------------------------------
         app.is_deleted = True
         app.deleted_on = timezone.now()
         
+        # -------------------------------
         # Hide from employer
-        app.is_deleted_for_employer = True  # new field in Application model
+        # -------------------------------
+        app.is_deleted_for_employer = True
         app.save()
 
-        # Delete related employer notifications and chat messages
+        # -------------------------------
+        # Remove related notifications and chat messages
+        # -------------------------------
         Notification.objects.filter(
             user=app.job.employer,
             message__icontains=f"{app.applicant.username}"
         ).delete()
+
         ChatMessage.objects.filter(application=app).delete()
 
         return JsonResponse({
@@ -1351,21 +1384,33 @@ def delete_application(request, app_id):
             "message": "Application moved to Recycle Bin and hidden from employer."
         })
 
-    return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
+    return JsonResponse({
+        "success": False,
+        "message": "Invalid request."
+    }, status=400)
 
 
 # ======================================================
 # UNDO DELETE APPLICATION
 # ======================================================
+
 @login_required
 def undo_delete_application(request, app_id):
+    """
+    Restore a soft-deleted application for the applicant
+    and make it visible again to the employer.
+    """
     app = get_object_or_404(Application, id=app_id, applicant=request.user)
 
+    # Restore for applicant
     app.is_deleted = False
     app.deleted_on = None
+
+    # Restore visibility for employer
+    app.is_deleted_for_employer = False
     app.save()
 
-    messages.success(request, "Application restored successfully!")
+    messages.success(request, "Application restored successfully and is now visible to the employer!")
     return redirect("recycle_bin")
 
 
