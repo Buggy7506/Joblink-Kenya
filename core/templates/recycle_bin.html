@@ -75,6 +75,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDestroy(appId) {
+  const url = "{% url 'destroy_application' 0 %}".replace("0", appId); // dynamically replace 0 with appId
     Swal.fire({
         title: 'Are you sure?',
         text: "This will permanently delete the application!",
@@ -87,7 +88,7 @@ function confirmDestroy(appId) {
     }).then((result) => {
         if (result.isConfirmed) {
             // Redirect to delete URL (update your URL pattern accordingly)
-            window.location.href = `/applications/delete-forever/${appId}/`;
+            window.location.href = url`;
         }
     });
 }
