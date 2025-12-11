@@ -101,19 +101,27 @@ def google_callback(request):
     return redirect('google_choose_role')
 
 
+@login_required
 def google_choose_role(request):
-    """Step 5: Let user select role and create/login the user"""
+    """
+    Step 5: Let user select role and create/login the user after Google OAuth
+    """
     user_data = request.session.get('google_user')
     if not user_data:
+        messages.error(request, "Google login required first.")
         return redirect('signup')
 
     if request.method == 'POST':
         role = request.POST.get('role')
+        if role not in ['applicant', 'employer']:
+            messages.error(request, "Please select a valid role.")
+            return redirect('google_choose_role')
+
         email = user_data['email']
         first_name = user_data['first_name']
         last_name = user_data['last_name']
 
-        # Generate unique username from first and last names
+        # Generate unique username
         base_username = f"{first_name.lower()}.{last_name.lower()}" if last_name else first_name.lower()
         username = base_username
         counter = 1
@@ -121,7 +129,7 @@ def google_choose_role(request):
             username = f"{base_username}{counter}"
             counter += 1
 
-        # Create user if it doesn't exist
+        # Create or get user
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
@@ -131,17 +139,22 @@ def google_choose_role(request):
             }
         )
 
-        # TODO: Save role if you have extended the User model
-        # user.role = role
-        # user.save()
+        # Save the selected role
+        user.role = role
+        user.save()
 
         # Log the user in
         login(request, user)
         request.session.pop('google_user', None)
-        return redirect('dashboard')  # redirect to home/dashboard
+
+        # Redirect based on role
+        return redirect('dashboard')  # dashboard view handles applicant vs employer
 
     # GET request: render role selection template
-    return render(request, 'google_role.html')
+    return render(request, 'google_role.html', {
+        "google_user": user_data
+    })
+
     
     
 # -----------------------------
