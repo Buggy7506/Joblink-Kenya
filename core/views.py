@@ -380,7 +380,7 @@ def logout_view(request):
 def logout_success(request):
     return render(request, 'logout_success.html')
 
-#Dashboard
+# Dashboard
 @login_required
 def dashboard(request):
     user = request.user
@@ -403,10 +403,14 @@ def dashboard(request):
         applications = Application.objects.filter(applicant=user)
         premium_jobs = applications.filter(job__is_premium=True).count()
 
+        # Count deleted applications for Recycle Bin badge
+        deleted_apps_count = applications.filter(is_deleted=True).count()
+
         return render(request, "applicant_dashboard.html", {
             "applications": applications,
             "premium_jobs": premium_jobs,
-            "notifications_count": total_notifications,  # pass total notifications
+            "notifications_count": total_notifications,  # total notifications
+            "deleted_apps_count": deleted_apps_count,    # Recycle Bin badge
         })
 
     # Employer dashboard
@@ -419,7 +423,7 @@ def dashboard(request):
             "posted_jobs_count": posted_jobs_count,
             "active_jobs": active_jobs,
             "applicants_count": applicants_count,
-            "notifications_count": total_notifications,  # pass total notifications
+            "notifications_count": total_notifications,  # total notifications
         })
 
     # Fallback → unknown role
