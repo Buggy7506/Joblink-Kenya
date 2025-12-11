@@ -298,27 +298,151 @@ body {
                 </div>
                 {% endif %}
 
-                <div class="django-form-wrap">
-                           {{ form.as_p }}
-                                                
-                            <!-- PASSWORD STRENGTH STAYS EXACTLY UNDER PASSWORD1 -->
-                            <div class="password-strength">
-                                <div class="strength-bar"></div>
-                            </div>
-                        
-                            <ul class="password-rules">
-                                <li id="len">At least 8 characters</li>
-                                <li id="upper">Contains an uppercase letter (A–Z)</li>
-                                <li id="num">Contains a number (0–9)</li>
-                                <li id="special">Contains a special character (!@#$...)</li>
+               <div class="django-form-wrap">
+                
+                    <!-- Username -->
+                    <p>
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.username.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
                             </ul>
-                        
-                            <div id="capsWarning" class="caps-warning" style="display:none;">
-                                Caps Lock is ON
-                            </div>
-                                            
-                        
-                            <div id="matchStatus" class="match-status"></div>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Email -->
+                    <p>
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.email.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- First Name -->
+                    <p>
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.first_name.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Last Name -->
+                    <p>
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.last_name.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Phone -->
+                    <p>
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.phone.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Location -->
+                    <p>
+                        {{ form.location.label_tag }}
+                        {{ form.location }}
+                        {% if form.location.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.location.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Role -->
+                    <p>
+                        {{ form.role.label_tag }}
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.role.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Password 1 -->
+                    <p>
+                        {{ form.password1.label_tag }}
+                        <div class="password-wrapper">
+                            {{ form.password1 }}
+                        </div>
+                
+                        <!-- PASSWORD STRENGTH STAYS EXACTLY UNDER PASSWORD1 -->
+                        <div class="password-strength">
+                            <div class="strength-bar"></div>
+                        </div>
+                
+                        <ul class="password-rules">
+                            <li id="len">At least 8 characters</li>
+                            <li id="upper">Contains an uppercase letter (A–Z)</li>
+                            <li id="num">Contains a number (0–9)</li>
+                            <li id="special">Contains a special character (!@#$...)</li>
+                        </ul>
+                
+                        <div id="capsWarning" class="caps-warning" style="display:none;">
+                            Caps Lock is ON
+                        </div>
+                
+                        {% if form.password1.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.password1.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                    <!-- Password 2 -->
+                    <p>
+                        {{ form.password2.label_tag }}
+                        <div class="password-wrapper">
+                            {{ form.password2 }}
+                        </div>
+                
+                        <div id="matchStatus" class="match-status"></div>
+                
+                        {% if form.password2.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.password2.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </p>
+                
+                </div>
+
                         
                 <p class="legal">
                     People using JobLink may upload your contact info. <a href="#">Learn more</a>.
