@@ -129,6 +129,9 @@
 <!-- SweetAlert CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- CSRF token for JS -->
+<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
 <div class="applications-container" data-aos="zoom-in">
   <h2 class="glow-heading">💼 My Job Applications</h2>
 
@@ -147,77 +150,65 @@
         {% for app in applications %}
         <tr id="row-{{ app.id }}">
           <td><a href="{% url 'job_detail' app.job.id %}">{{ app.job.title }}</a></td>
-
           <td>{{ app.job.employer.username }}</td>
-
           <td>
             {% if app.status == "accepted" %}
               <span class="text-success">✅ Accepted</span>
-
             {% elif app.status == "rejected" %}
               <span class="text-danger">❌ Rejected</span>
-
             {% else %}
               <span class="text-warning">⏳ Pending</span>
             {% endif %}
           </td>
-
           <td>{{ app.applied_on|date:"M d, Y H:i" }}</td>
-
           <td style="display:flex; gap:8px;">
             <a href="{% url 'job_chat' app.id %}" class="chat-btn">💬 Chat</a>
-
-            <button class="delete-btn"
-                    onclick="deleteApplication({{ app.id }})">
-              🗑 Delete
-            </button>
+            <button class="delete-btn" onclick="deleteApplication({{ app.id }})">🗑 Delete</button>
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-
   {% else %}
     <p class="empty-msg">🚀 You haven’t applied for any jobs yet.</p>
   {% endif %}
 </div>
 
-
 <script>
 function deleteApplication(appId) {
+  const csrfToken = document.getElementById("csrf_token").value;
+
   Swal.fire({
     title: "Delete Application?",
-    text: "This action cannot be undone. It will also delete the application from the employer.",
+    text: "This will move the application to the Recycle Bin. You can restore it within 7 days.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#ff3b5c",
     cancelButtonColor: "#555",
-    confirmButtonText: "Yes, delete it!",
+    confirmButtonText: "Yes, delete it!"
   }).then((result) => {
-
     if (result.isConfirmed) {
-
-      fetch(`/delete-application/${appId}/`, {
+      fetch(`/applications/delete/${appId}/`, {
         method: "POST",
         headers: {
-          "X-CSRFToken": "{{ csrf_token }}",
+          "X-CSRFToken": csrfToken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const row = document.getElementById(`row-${appId}`);
+          row.style.opacity = "0";
+          setTimeout(() => row.remove(), 400);
+          Swal.fire("Deleted!", "Application moved to Recycle Bin.", "success");
+        } else {
+          Swal.fire("Error!", "Could not delete application.", "error");
         }
       })
-      .then(response => {
-        if (response.ok) {
-
-          // Fade out then remove
-          let row = document.getElementById(`row-${appId}`);
-          row.style.opacity = "0";
-
-          setTimeout(() => row.remove(), 400);
-
-          Swal.fire(
-            "Deleted!",
-            "Your application has been removed.",
-            "success"
-          );
-        }
+      .catch(() => {
+        Swal.fire("Error!", "Network or server error.", "error");
       });
     }
   });
