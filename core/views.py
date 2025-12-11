@@ -1180,7 +1180,7 @@ def chat_view(request, application_id=None, job_id=None):
     - Applicants access via application_id
     - Employers access via job_id (with optional ?app_id= query param)
     - General landing if neither is provided
-    Soft-deleted applications are hidden from respective users.
+    Soft-deleted applications are hidden from the respective users.
     """
     user = request.user
     context = {
@@ -1192,11 +1192,11 @@ def chat_view(request, application_id=None, job_id=None):
         "jobs": [],
     }
 
-    selected_app = None
     messages_list = []
+    selected_app = None
 
     # -----------------------------
-    # CASE 1: Applicant view
+    # Case 1: Applicant chat
     # -----------------------------
     if application_id:
         app = get_object_or_404(
@@ -1213,9 +1213,10 @@ def chat_view(request, application_id=None, job_id=None):
 
         # Handle new message
         if request.method == "POST":
-            text = request.POST.get("message")
-            if text.strip():
-                ChatMessage.objects.create(application=app, sender=user, message=text.strip())
+            text = request.POST.get("message", "").strip()
+            if text:
+                ChatMessage.objects.create(application=app, sender=user, message=text)
+
                 recipient = app.job.employer if user == app.applicant else app.applicant
                 Notification.objects.create(
                     user=recipient,
@@ -1223,10 +1224,9 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} sent you a new message about '{app.job.title}'."
                 )
 
-        # Fetch all messages
         messages_list = app.messages.select_related("sender").all().order_by("timestamp")
 
-        # Mark employer messages as read
+        # Mark employer messages as read when applicant views
         if user == app.applicant:
             ChatMessage.objects.filter(
                 application=app,
@@ -1241,39 +1241,46 @@ def chat_view(request, application_id=None, job_id=None):
         })
 
     # -----------------------------
-    # CASE 2: Employer view
+    # Case 2: Employer chat (per job)
     # -----------------------------
     elif job_id:
         job = get_object_or_404(Job, id=job_id, employer=user)
 
-        # Get all non-deleted applications
-        applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant")
+        applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant").annotate(
+            unread_count=Count(
+                "messages",
+                filter=Q(messages__is_read=False) & Q(messages__sender_id=F("applicant_id")),
+            )
+        )
 
         # Pick selected application
         selected_app_id = request.GET.get("app_id")
         if selected_app_id:
             try:
-                selected_app = applications.get(id=int(selected_app_id))
-            except (ValueError, Application.DoesNotExist):
-                selected_app = applications.first()
-        else:
-            selected_app = applications.first()
+                selected_app_id = int(selected_app_id)
+                selected_app = applications.filter(id=selected_app_id).first()
+            except ValueError:
+                selected_app = None
+
+        if not selected_app:
+            selected_app = applications.first() if applications else None
 
         # Handle new message
         if request.method == "POST" and selected_app:
-            text = request.POST.get("message")
-            if text.strip():
-                ChatMessage.objects.create(application=selected_app, sender=user, message=text.strip())
+            text = request.POST.get("message", "").strip()
+            if text:
+                ChatMessage.objects.create(application=selected_app, sender=user, message=text)
+
                 Notification.objects.create(
                     user=selected_app.applicant,
                     title="New Chat Message",
                     message=f"{user.username} (employer) sent you a new message about '{selected_app.job.title}'."
                 )
 
-        # Fetch messages for selected application
+        messages_list = selected_app.messages.select_related("sender").all().order_by("timestamp") if selected_app else []
+
+        # Mark applicant messages as read when employer views
         if selected_app:
-            messages_list = selected_app.messages.select_related("sender").all().order_by("timestamp")
-            # Mark applicant messages as read
             ChatMessage.objects.filter(
                 application=selected_app,
                 sender_id=selected_app.applicant_id,
@@ -1288,31 +1295,69 @@ def chat_view(request, application_id=None, job_id=None):
         })
 
     # -----------------------------
-    # CASE 3: General landing
+    # Case 3: General landing
     # -----------------------------
     else:
         if getattr(user, "is_employer", False):
             jobs = Job.objects.filter(employer=user).prefetch_related("applications__applicant")
             context["jobs"] = jobs
 
-            if jobs.exists():
+            job = None
+            applications = []
+            selected_app = None
+
+            job_id_param = request.GET.get("job_id")
+            if job_id_param:
+                try:
+                    job = jobs.filter(id=int(job_id_param)).first()
+                except ValueError:
+                    job = None
+
+            if not job and jobs.exists():
                 job = jobs.first()
-                applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant")
-                selected_app = applications.first() if applications.exists() else None
+
+            if job:
+                applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant").annotate(
+                    unread_count=Count(
+                        "messages",
+                        filter=Q(messages__is_read=False) & Q(messages__sender_id=F("applicant_id")),
+                    )
+                )
+
+                selected_app_id = request.GET.get("app_id")
+                if selected_app_id:
+                    try:
+                        selected_app = applications.filter(id=int(selected_app_id)).first()
+                    except ValueError:
+                        selected_app = None
+
+                if not selected_app and applications.exists():
+                    selected_app = applications.first()
 
                 if selected_app:
                     messages_list = selected_app.messages.select_related("sender").all().order_by("timestamp")
 
-                context.update({
-                    "job": job,
-                    "applications": applications,
-                    "selected_app": selected_app,
-                    "messages": messages_list,
-                })
+            context.update({
+                "job": job,
+                "applications": applications,
+                "selected_app": selected_app,
+                "messages": messages_list,
+            })
+
         else:
-            # Applicant view: show all their applications
+            # Applicant view
             applications = Application.objects.filter(applicant=user, is_deleted=False).select_related("job__employer")
-            selected_app = applications.first() if applications.exists() else None
+            selected_app = None
+
+            selected_app_id = request.GET.get("app_id")
+            if selected_app_id:
+                try:
+                    selected_app = applications.filter(id=int(selected_app_id)).first()
+                except ValueError:
+                    selected_app = None
+
+            if not selected_app and applications.exists():
+                selected_app = applications.first()
 
             if selected_app:
                 messages_list = selected_app.messages.select_related("sender").all().order_by("timestamp")
@@ -1324,7 +1369,7 @@ def chat_view(request, application_id=None, job_id=None):
             })
 
     # -----------------------------
-    # AJAX response for live chat
+    # AJAX response
     # -----------------------------
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
@@ -1341,10 +1386,9 @@ def chat_view(request, application_id=None, job_id=None):
             "selected_app_id": selected_app.id if selected_app else None
         })
 
-    # -----------------------------
     # Render chat page
-    # -----------------------------
     return render(request, "chat.html", context)
+
 
 
         
