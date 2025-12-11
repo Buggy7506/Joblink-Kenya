@@ -278,31 +278,44 @@
 
 <div class="chat-wrap">
   {% if job %}
-  <div class="sidebar" id="sidebar">
-    <h3>Applicants</h3>
-    {% for app in applications %}
-      <a href="?app_id={{ app.id }}" class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}">
-        {{ app.applicant.username }}
-        {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
-      </a>
-    {% empty %}
-      <p style="padding:12px; opacity:.7;">No applicants yet</p>
-    {% endfor %}
+    <div class="sidebar" id="sidebar">
+      <!-- Active Applicants -->
+      <h3>Applicants</h3>
+      <div id="active-applicants">
+        {% for app in applications %}
+          <a href="?app_id={{ app.id }}" 
+             class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}" 
+             data-app-id="{{ app.id }}">
+            {{ app.applicant.username }}
+            {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
+          </a>
+        {% empty %}
+          <p style="padding:12px; opacity:.7;">No applicants yet</p>
+        {% endfor %}
+      </div>
 
-    {% if deleted_applications %}
-      <h3 style="margin-top:20px; color:#ff4c4c;">Deleted Applicants</h3>
-      {% for app in deleted_applications %}
-        <a href="javascript:void(0);" class="applicant deleted">
-          {{ app.applicant.username }}
-          {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
-        </a>
-      {% empty %}
-        <p style="padding:12px; opacity:.7;">No deleted applicants</p>
-      {% endfor %}
-    {% endif %}
-  </div>
-  <div id="sidebar-overlay"></div>
-{% endif %}
+      <!-- Deleted Applicants -->
+      {% if deleted_applications %}
+        <h3 style="margin-top:20px; color:#ff4c4c;">Deleted Applicants</h3>
+        <div id="deleted-applicants">
+          {% for app in deleted_applications %}
+            <a href="javascript:void(0);" 
+               class="applicant deleted" 
+               data-app-id="{{ app.id }}">
+              {{ app.applicant.username }}
+              {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
+            </a>
+          {% empty %}
+            <p style="padding:12px; opacity:.7;">No deleted applicants</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div id="sidebar-overlay"></div>
+  {% endif %}
+</div>
+
 
 
   <!-- Main chat -->
@@ -553,6 +566,38 @@
     });
 }
 
+    // ---- ADD THIS FUNCTION BELOW ----
+  // Function to move applicant to deleted section dynamically
+  function moveToDeleted(appId) {
+    const appLink = document.querySelector(`.sidebar .applicant[data-app-id="${appId}"]`);
+    if(!appLink) return;
+
+    // Remove selection & add deleted class
+    appLink.classList.remove("selected");
+    appLink.classList.add("deleted");
+
+    // Move to deleted section
+    const deletedContainer = document.getElementById("deleted-applicants");
+    if(deletedContainer) deletedContainer.appendChild(appLink);
+
+    // Disable click and add hover effect
+    appLink.addEventListener('click', e => {
+        e.preventDefault();
+        alert("This application has been deleted and cannot be accessed.");
+    });
+
+    appLink.addEventListener('mouseenter', () => appLink.style.backgroundColor="rgba(255,0,0,0.05)");
+    appLink.addEventListener('mouseleave', () => appLink.style.backgroundColor="transparent");
+  }
+
+  // Example: listen for WebSocket delete events for applications
+  socket.addEventListener('message', function(e){
+    const data = JSON.parse(e.data);
+    if(data.type === "delete_applicant" && data.app_id){
+        moveToDeleted(data.app_id);
+    }
+  });
+  
   function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
 
   function handleAction(action, msgElem){
