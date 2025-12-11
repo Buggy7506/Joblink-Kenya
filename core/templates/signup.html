@@ -299,28 +299,8 @@ body {
                 {% endif %}
 
                 <div class="django-form-wrap">
-                    <!-- Render all fields EXCEPT password1 + password2 -->
-                        {% for field in form %}
-                            {% if field.name != 'password1' and field.name != 'password2' %}
-                                <p>
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <ul class="errorlist">
-                                            {% for error in field.errors %}
-                                                <li>{{ error }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                </p>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <!-- NOW RENDER PASSWORD1 MANUALLY -->
-                        <p>
-                            {{ form.password1.label_tag }}
-                            {{ form.password1 }}
-                        
+                           {{ form.as_p }}
+                                                
                             <!-- PASSWORD STRENGTH STAYS EXACTLY UNDER PASSWORD1 -->
                             <div class="password-strength">
                                 <div class="strength-bar"></div>
@@ -336,17 +316,10 @@ body {
                             <div id="capsWarning" class="caps-warning" style="display:none;">
                                 Caps Lock is ON
                             </div>
-                        </p>
-                        
-                        <!-- PASSWORD2 -->
-                        <p>
-                            {{ form.password2.label_tag }}
-                            {{ form.password2 }}
+                                            
                         
                             <div id="matchStatus" class="match-status"></div>
-                        </p>
-
-
+                        
                 <p class="legal">
                     People using JobLink may upload your contact info. <a href="#">Learn more</a>.
                 </p>
