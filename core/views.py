@@ -509,14 +509,20 @@ def dashboard(request):
     elif getattr(user, "role", None) == "employer":
         posted_jobs_count = Job.objects.filter(employer=user).count()
         active_jobs = Job.objects.filter(employer=user, is_active=True).count()
-        applicants_count = Application.objects.filter(job__employer=user).count()
-
+        
+        # Only count applications that are not soft-deleted by applicants
+        applicants_count = Application.objects.filter(
+            job__employer=user,
+            is_deleted=False
+        ).count()
+    
         return render(request, "employer_dashboard.html", {
             "posted_jobs_count": posted_jobs_count,
             "active_jobs": active_jobs,
             "applicants_count": applicants_count,
             "notifications_count": total_notifications,  # total notifications
         })
+
 
     # Fallback → unknown role
     return redirect("login")
