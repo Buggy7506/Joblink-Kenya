@@ -31,7 +31,12 @@ SECRET_KEY = 'django-insecure-42z8(o&(y1uu&rx*x9s8nzn(_qhfkrh)9ks(d4(5^hm9i*yn=y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "joblink-kenya-6vrl.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
 
 # Application definition
 
@@ -199,8 +204,10 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawU
 
 
 CSRF_TRUSTED_ORIGINS = [
-     f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}",
+    "https://joblink-kenya-6vrl.onrender.com",
+    "https://*.onrender.com",
 ]
+
 
 # Channels layers
 if os.getenv("REDIS_URL"):
