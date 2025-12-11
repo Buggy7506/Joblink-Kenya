@@ -55,10 +55,14 @@ def google_login(request):
 
 
 def google_callback(request):
-    """Handle Google callback and either log in existing user or redirect new user to choose role."""
+    """
+    Handle Google OAuth callback.
+    - Existing users: log in directly.
+    - New users: store info in session and redirect to choose role.
+    """
     code = request.GET.get('code')
     if not code:
-        return redirect('signup')  # or show error message
+        return redirect('signup')  # cannot proceed without code
 
     # Exchange code for access token
     data = {
@@ -91,14 +95,17 @@ def google_callback(request):
         first_name = first_name or parts[0].capitalize()
         last_name = last_name or (parts[1].capitalize() if len(parts) > 1 else '')
 
+    if not email:
+        return redirect('signup')  # cannot proceed without email
+
     # Check if user already exists
     try:
         user = User.objects.get(email=email)
         # Existing user: log in directly
         login(request, user)
-        return redirect('dashboard')  # change to your home/dashboard URL
+        return redirect('dashboard')
     except User.DoesNotExist:
-        # New user: save info in session for role selection
+        # New user: save info in session and redirect to role selection
         request.session['google_user'] = {
             'email': email,
             'first_name': first_name,
@@ -107,15 +114,28 @@ def google_callback(request):
         return redirect('google_choose_role')
 
 
-@login_required
 def google_choose_role(request):
     """
-    Step 5: Let user select role and create/login the user after Google OAuth
+    Let user select role after Google OAuth and log them in.
+    Only first-time users see this page.
     """
     user_data = request.session.get('google_user')
     if not user_data:
         messages.error(request, "Google login required first.")
         return redirect('signup')
+
+    email = user_data['email']
+
+    # Check if user already exists and has a role
+    try:
+        existing_user = User.objects.get(email=email)
+        if existing_user.role:
+            # User already has role, log them in directly
+            login(request, existing_user)
+            request.session.pop('google_user', None)
+            return redirect('dashboard')
+    except User.DoesNotExist:
+        existing_user = None
 
     if request.method == 'POST':
         role = request.POST.get('role')
@@ -123,7 +143,6 @@ def google_choose_role(request):
             messages.error(request, "Please select a valid role.")
             return redirect('google_choose_role')
 
-        email = user_data['email']
         first_name = user_data['first_name']
         last_name = user_data['last_name']
 
@@ -135,26 +154,28 @@ def google_choose_role(request):
             username = f"{base_username}{counter}"
             counter += 1
 
-        # Create or get user
+        # Create or update user
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
                 'username': username,
                 'first_name': first_name,
                 'last_name': last_name,
+                'role': role
             }
         )
 
-        # Save the selected role
-        user.role = role
-        user.save()
+        if not created:
+            # If user exists but role not set, update it
+            if not user.role:
+                user.role = role
+                user.save()
 
-        # Log the user in
+        # Log in user
         login(request, user)
         request.session.pop('google_user', None)
 
-        # Redirect based on role
-        return redirect('dashboard')  # dashboard view handles applicant vs employer
+        return redirect('dashboard')
 
     # GET request: render role selection template
     return render(request, 'google_role.html', {
