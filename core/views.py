@@ -1530,18 +1530,24 @@ def destroy_application(request, app_id):
 # ======================================================
 @login_required
 def recycle_bin(request):
+    """
+    Show all soft-deleted applications for the logged-in applicant.
+    Auto-delete expired applications (7+ days) permanently.
+    """
+    # Fetch soft-deleted applications
     deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
 
-    # Auto-delete expired (7+ days)
+    # Auto-delete expired applications
     for app in deleted_apps:
-        if app.is_expired():
+        if app.is_expired():  # You should have this method in your Application model
             ChatMessage.objects.filter(application=app).delete()
             Notification.objects.filter(user=app.job.employer).delete()
             app.delete()
 
+    # Re-fetch remaining deleted apps after auto-delete
     deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
 
+    # Pass the same variable name the template expects
     return render(request, "recycle_bin.html", {
-        "deleted_applications": deleted_apps
+        "deleted_apps": deleted_apps
     })
-    
