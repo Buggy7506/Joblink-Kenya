@@ -43,7 +43,7 @@
   background: #00ff99;
   box-shadow: 0 0 20px #00ff99;
 }
-.delete-forever-btn {
+.delete-permanently-btn {
   background: #ff3b3b;
   box-shadow: 0 0 20px #ff3b3b;
 }
@@ -62,7 +62,7 @@
           ♻️ Restore
         </a>
 
-        <a href="javascript:void(0);" class="delete-forever-btn" onclick="confirmDestroy('{{ app.id }}')">
+        <a href="javascript:void(0);" class="delete-permanently-btn" onclick="confirmDestroy('{{ app.id }}')">
           🔥 Delete Permanently
         </a>
       </div>
@@ -75,7 +75,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDestroy(appId) {
-  const url = "{% url 'destroy_application' 0 %}".replace("0", appId); // dynamically replace 0 with appId
     Swal.fire({
         title: 'Are you sure?',
         text: "This will permanently delete the application!",
@@ -88,7 +87,7 @@ function confirmDestroy(appId) {
     }).then((result) => {
         if (result.isConfirmed) {
             // Redirect to delete URL (update your URL pattern accordingly)
-            window.location.href = url`;
+            window.location.href = `/applications/destroy/${appId}/`;
         }
     });
 }
