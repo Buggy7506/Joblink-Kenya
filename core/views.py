@@ -1325,13 +1325,18 @@ def view_applications(request):
 @login_required
 def delete_application(request, app_id):
     """
-    Soft delete an application (for SweetAlert AJAX)
+    Soft delete an application for the applicant and hide it from the employer.
+    Works with SweetAlert AJAX.
     """
     if request.method == "POST":
         app = get_object_or_404(Application, id=app_id, applicant=request.user)
 
+        # Soft delete for applicant
         app.is_deleted = True
         app.deleted_on = timezone.now()
+        
+        # Hide from employer
+        app.is_deleted_for_employer = True  # new field in Application model
         app.save()
 
         # Delete related employer notifications and chat messages
@@ -1341,7 +1346,10 @@ def delete_application(request, app_id):
         ).delete()
         ChatMessage.objects.filter(application=app).delete()
 
-        return JsonResponse({"success": True, "message": "Application moved to Recycle Bin."})
+        return JsonResponse({
+            "success": True,
+            "message": "Application moved to Recycle Bin and hidden from employer."
+        })
 
     return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
 
