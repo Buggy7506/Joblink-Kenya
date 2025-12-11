@@ -253,6 +253,23 @@ body {
     margin-top: 6px;
     font-weight: 600;
 }
+.password-wrapper {
+    position: relative;
+    }
+
+.toggle-eye {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+.toggle-eye:hover {
+    color: #111;
+}
 </style>
 {% endblock %}
 
@@ -357,6 +374,7 @@ body {
                     {{ form.password1.label_tag }}
                     <div class="password-wrapper">
                         {{ form.password1 }}
+                        <span class="toggle-eye" onclick="togglePassword('id_password1', this)">👁️</span>
                     </div>
             
                     <!-- PASSWORD STRENGTH STAYS EXACTLY UNDER PASSWORD1 -->
@@ -389,6 +407,7 @@ body {
                     {{ form.password2.label_tag }}
                     <div class="password-wrapper">
                         {{ form.password2 }}
+                      <span class="toggle-eye" onclick="togglePassword('id_password1', this)">👁️</span>
                     </div>
             
                     <div id="matchStatus" class="match-status"></div>
@@ -501,6 +520,17 @@ function evaluateStrength(password) {
     bar.style.background = colors[score];
 }
 
+function togglePassword(fieldId, iconElement) {
+    const field = document.getElementById(fieldId);
+    if (field.type === "password") {
+        field.type = "text";
+        iconElement.textContent = "🙈"; // hide password
+    } else {
+        field.type = "password";
+        iconElement.textContent = "👁️"; // show password
+    }
+}
+
 pass1.addEventListener("keyup", (event) => {
     evaluateStrength(pass1.value);
     capsWarning.style.display = event.getModifierState("CapsLock") ? "block" : "none";
@@ -544,6 +574,7 @@ document.querySelectorAll('.msgs .msg').forEach(msg => {
         setTimeout(() => msg.remove(), 500);
     }, 3000);
 });
+    
 </script>
 
 {% endblock %}
