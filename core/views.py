@@ -84,7 +84,7 @@ def set_google_password(request):
 # Google OAuth settings
 GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = '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'
-GOOGLE_REDIRECT_URI = 'https://joblink-kenya-ytzq.onrender.com/google/callback/'
+GOOGLE_REDIRECT_URI = 'https://joblink-kenya-6vrl.onrender.com/google/callback/'
 GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
