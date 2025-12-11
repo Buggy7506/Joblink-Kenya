@@ -299,27 +299,53 @@ body {
                 {% endif %}
 
                 <div class="django-form-wrap">
-                    {{ form.as_p }}
+                    <!-- Render all fields EXCEPT password1 + password2 -->
+                        {% for field in form %}
+                            {% if field.name != 'password1' and field.name != 'password2' %}
+                                <p>
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <ul class="errorlist">
+                                            {% for error in field.errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- NOW RENDER PASSWORD1 MANUALLY -->
+                        <p>
+                            {{ form.password1.label_tag }}
+                            {{ form.password1 }}
+                        
+                            <!-- PASSWORD STRENGTH STAYS EXACTLY UNDER PASSWORD1 -->
+                            <div class="password-strength">
+                                <div class="strength-bar"></div>
+                            </div>
+                        
+                            <ul class="password-rules">
+                                <li id="len">At least 8 characters</li>
+                                <li id="upper">Contains an uppercase letter (A–Z)</li>
+                                <li id="num">Contains a number (0–9)</li>
+                                <li id="special">Contains a special character (!@#$...)</li>
+                            </ul>
+                        
+                            <div id="capsWarning" class="caps-warning" style="display:none;">
+                                Caps Lock is ON
+                            </div>
+                        </p>
+                        
+                        <!-- PASSWORD2 -->
+                        <p>
+                            {{ form.password2.label_tag }}
+                            {{ form.password2 }}
+                        
+                            <div id="matchStatus" class="match-status"></div>
+                        </p>
 
-                    <!-- PASSWORD 1 EXTRA UI -->
-                    <div class="password-strength">
-                        <div class="strength-bar"></div>
-                    </div>
-
-                    <ul class="password-rules">
-                        <li id="len">At least 8 characters</li>
-                        <li id="upper">Contains an uppercase letter (A–Z)</li>
-                        <li id="num">Contains a number (0–9)</li>
-                        <li id="special">Contains a special character (!@#$...)</li>
-                    </ul>
-
-                    <div id="capsWarning" class="caps-warning" style="display:none;">
-                        Caps Lock is ON
-                    </div>
-
-                    <!-- PASSWORD MATCH -->
-                    <div id="matchStatus" class="match-status"></div>
-                </div>
 
                 <p class="legal">
                     People using JobLink may upload your contact info. <a href="#">Learn more</a>.
