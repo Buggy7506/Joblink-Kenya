@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-
+ 
 urlpatterns = [
     path("applications/undo/<int:app_id>/", views.undo_delete_application, name="undo_delete_application"),
     path("applications/destroy/<int:app_id>/", views.destroy_application, name="destroy_application"),
