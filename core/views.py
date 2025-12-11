@@ -55,12 +55,12 @@ def google_login(request):
 
 
 def google_callback(request):
-    """Step 2: Handle Google callback and save user info in session for role selection"""
+    """Handle Google callback and either log in existing user or redirect new user to choose role."""
     code = request.GET.get('code')
     if not code:
         return redirect('signup')  # or show error message
 
-    # Step 3: Exchange code for access token
+    # Exchange code for access token
     data = {
         'code': code,
         'client_id': GOOGLE_CLIENT_ID,
@@ -75,7 +75,7 @@ def google_callback(request):
     if not access_token:
         return redirect('signup')  # cannot proceed without access token
 
-    # Step 4: Get user info from Google
+    # Get user info from Google
     headers = {'Authorization': f'Bearer {access_token}'}
     user_response = requests.get(GOOGLE_USERINFO_ENDPOINT, headers=headers)
     user_info = user_response.json()
@@ -91,14 +91,20 @@ def google_callback(request):
         first_name = first_name or parts[0].capitalize()
         last_name = last_name or (parts[1].capitalize() if len(parts) > 1 else '')
 
-    # Save Google user info in session for role selection
-    request.session['google_user'] = {
-        'email': email,
-        'first_name': first_name,
-        'last_name': last_name,
-    }
-
-    return redirect('google_choose_role')
+    # Check if user already exists
+    try:
+        user = User.objects.get(email=email)
+        # Existing user: log in directly
+        login(request, user)
+        return redirect('dashboard')  # change to your home/dashboard URL
+    except User.DoesNotExist:
+        # New user: save info in session for role selection
+        request.session['google_user'] = {
+            'email': email,
+            'first_name': first_name,
+            'last_name': last_name,
+        }
+        return redirect('google_choose_role')
 
 
 @login_required
