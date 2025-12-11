@@ -113,23 +113,44 @@ class Application(models.Model):
         (STATUS_REJECTED, 'Rejected'),
     ]
 
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
+    job = models.ForeignKey(
+        "Job",
+        on_delete=models.CASCADE,
+        related_name="applications"
+    )
+
     applicant = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'applicant'},
         related_name="applications"
     )
+
     applied_on = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+
+    # Payment
     is_paid = models.BooleanField(default=False)
     mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
+
+    # --------------------------
+    # Soft delete / Recycle bin
+    # --------------------------
+    is_deleted = models.BooleanField(default=False)
+    deleted_on = models.DateTimeField(null=True, blank=True)
+
+    def is_expired(self):
+        """Auto-expire 7 days after soft delete."""
+        if self.deleted_on:
+            return timezone.now() > self.deleted_on + timedelta(days=7)
+        return False
 
     class Meta:
         unique_together = ("job", "applicant")
 
     def __str__(self):
         return f"{self.applicant.username} → {self.job.title}"
+
 
 
 # ======================================================
