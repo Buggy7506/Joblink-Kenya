@@ -29,6 +29,8 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 import requests
 import urllib.parse
+from datetime import timedelta
+
 
 # Google OAuth settings
 GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
