@@ -2,8 +2,8 @@
 
 {% block extra_css %}
 <style>
-/* Base styles */
-body {
+/* Role Selection Page Wrapper */
+.role-selection-wrapper {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
     display: flex;
@@ -11,9 +11,11 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-h2 {
+.role-selection-wrapper h2 {
     text-align: center;
     font-size: 32px;
     font-weight: 700;
@@ -22,7 +24,7 @@ h2 {
     position: relative;
 }
 
-h2::after {
+.role-selection-wrapper h2::after {
     content: '';
     width: 60px;
     height: 4px;
@@ -32,7 +34,7 @@ h2::after {
     border-radius: 2px;
 }
 
-.user-info {
+.role-selection-wrapper .user-info {
     text-align: center;
     font-size: 18px;
     color: #555;
@@ -40,7 +42,7 @@ h2::after {
 }
 
 /* Form container */
-form {
+.role-selection-wrapper form {
     background: #fff;
     padding: 50px 35px;
     border-radius: 20px;
@@ -51,13 +53,13 @@ form {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-form:hover {
+.role-selection-wrapper form:hover {
     transform: translateY(-5px);
     box-shadow: 0 35px 70px rgba(0,0,0,0.15);
 }
 
 /* Role cards */
-label {
+.role-selection-wrapper label {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -75,7 +77,7 @@ label {
     box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
 
-label:hover {
+.role-selection-wrapper label:hover {
     background: linear-gradient(90deg, #4d69ff, #3c51f6);
     color: #fff;
     border-color: #3c51f6;
@@ -83,12 +85,12 @@ label:hover {
 }
 
 /* Hide radio input */
-input[type="radio"] {
+.role-selection-wrapper input[type="radio"] {
     display: none;
 }
 
 /* Checked state */
-input[type="radio"]:checked + span {
+.role-selection-wrapper input[type="radio"]:checked + span {
     background: linear-gradient(90deg, #4d69ff, #3c51f6);
     color: #fff;
     border-radius: 18px;
@@ -97,7 +99,7 @@ input[type="radio"]:checked + span {
 }
 
 /* Span inside label */
-label span {
+.role-selection-wrapper label span {
     display: flex;
     align-items: center;
     gap: 15px;
@@ -105,17 +107,17 @@ label span {
 }
 
 /* Icon styling */
-label span i {
+.role-selection-wrapper label span i {
     font-size: 26px;
     transition: transform 0.3s ease;
 }
 
-input[type="radio"]:checked + span i {
+.role-selection-wrapper input[type="radio"]:checked + span i {
     transform: scale(1.2) rotate(10deg);
 }
 
 /* Continue button */
-button {
+.role-selection-wrapper button {
     width: 100%;
     background: linear-gradient(180deg,#4d69ff,#3c51f6);
     border: none;
@@ -129,24 +131,24 @@ button {
     box-shadow: 0 10px 25px rgba(60, 81, 246, 0.25);
 }
 
-button:hover {
+.role-selection-wrapper button:hover {
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(60, 81, 246, 0.3);
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-    form {
+    .role-selection-wrapper form {
         padding: 35px 20px;
     }
-    h2 {
+    .role-selection-wrapper h2 {
         font-size: 26px;
         margin-bottom: 18px;
     }
-    label span i {
+    .role-selection-wrapper label span i {
         font-size: 22px;
     }
-    .user-info {
+    .role-selection-wrapper .user-info {
         font-size: 16px;
     }
 }
@@ -154,34 +156,36 @@ button:hover {
 {% endblock %}
 
 {% block content %}
-<h2>Choose Your Role</h2>
+<div class="role-selection-wrapper">
+    <h2>Choose Your Role</h2>
 
-<!-- Show Google user info -->
-<div class="user-info">
-    {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
-    {{ request.session.google_user.email }}
+    <!-- Show Google user info -->
+    <div class="user-info">
+        {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
+        {{ request.session.google_user.email }}
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <label>
+        <input type="radio" name="role" value="applicant" required>
+        <span>
+          <i class="fas fa-user-graduate"></i> Applicant
+        </span>
+      </label>
+
+      <label>
+        <input type="radio" name="role" value="employer" required>
+        <span>
+          <i class="fas fa-briefcase"></i> Employer
+        </span>
+      </label>
+
+      <button type="submit">Continue</button>
+    </form>
+
+    <!-- FontAwesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </div>
-
-<form method="post">
-  {% csrf_token %}
-  
-  <label>
-    <input type="radio" name="role" value="applicant" required>
-    <span>
-      <i class="fas fa-user-graduate"></i> Applicant
-    </span>
-  </label>
-  
-  <label>
-    <input type="radio" name="role" value="employer" required>
-    <span>
-      <i class="fas fa-briefcase"></i> Employer
-    </span>
-  </label>
-  
-  <button type="submit">Continue</button>
-</form>
-
-<!-- FontAwesome for icons -->
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 {% endblock %}
