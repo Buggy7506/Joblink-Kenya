@@ -116,6 +116,23 @@
       </div>
     </a>
 
+    <!-- Recycle Bin -->
+    <a href="{% url 'recycle_bin' %}">
+      <div class="card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293060/recycle_bin_vhxjwh.png" alt="Recycle Bin">
+        {% with deleted_apps_count|default:0 as deleted_count %}
+          {% if deleted_count > 0 %}
+            <h2>Recycle Bin 
+              <span class="badge">{{ deleted_count }} 🗑️</span>
+            </h2>
+          {% else %}
+            <h2>Recycle Bin</h2>
+          {% endif %}
+        {% endwith %}
+        <p>View and restore your deleted applications.</p>
+      </div>
+    </a>
+
     <!-- Job Alerts -->
     <a href="{% url 'job_alerts' %}">
       <div class="card">
@@ -128,7 +145,7 @@
     <!-- Resume Builder -->
     <a href="{% url 'build_resume' %}">
       <div class="card">
-        <img src=https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293036/resume_wdunf1.png alt="Resume Builder">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293036/resume_wdunf1.png" alt="Resume Builder">
         <h2>Resume Builder</h2>
         <p>Create a professional resume in minutes.</p>
       </div>
@@ -152,7 +169,7 @@
       </div>
     </a>
 
-    <!-- Notifications (combined badges) -->
+    <!-- Notifications -->
     <a href="{% url 'notifications' %}">
       <div class="card">
         <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293033/Black_Wallpaper_008_outtg3.png" alt="Notifications">
@@ -169,6 +186,8 @@
         {% endwith %}
         <p>Stay updated with job alerts and recruiter messages.</p>
       </div>
+    </a>
+
   </div>
 </div>
 {% endblock %}
