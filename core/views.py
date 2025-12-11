@@ -163,7 +163,6 @@ def google_callback(request):
         return redirect('google_choose_role')
 
 
-@login_required
 def google_choose_role(request):
     """
     Let user select role after Google OAuth and set password if first-time user.
@@ -234,7 +233,6 @@ def google_choose_role(request):
     })
 
 
-    
     
 # -----------------------------
 # HELPER FUNCTIONS
