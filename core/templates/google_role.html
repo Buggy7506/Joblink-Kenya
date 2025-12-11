@@ -35,6 +35,15 @@
     border-radius: 2px;
 }
 
+.role-selection-wrapper .profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid #4d69ff;
+}
+
 .role-selection-wrapper .user-info {
     text-align: center;
     font-size: 18px;
@@ -159,6 +168,11 @@
 {% block content %}
 <div class="role-selection-wrapper">
     <h2>Welcome!</h2>
+
+    <!-- Google profile picture -->
+    {% if profile_picture %}
+        <img src="{{ profile_picture }}" alt="Profile Picture" class="profile-pic">
+    {% endif %}
 
     <!-- Show Google user info -->
     <div class="user-info">
