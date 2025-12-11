@@ -42,7 +42,7 @@
   background: rgba(20, 20, 40, 0.9);
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0, 255, 200, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, opacity 0.4s;
 }
 
 .table tbody tr:hover {
@@ -70,25 +70,11 @@
 }
 
 /* Status Labels */
-.text-success {
-  color: #00ff99;
-  font-weight: bold;
-  text-shadow: 0 0 6px #00ff99;
-}
+.text-success { color: #00ff99; font-weight: bold; text-shadow: 0 0 6px #00ff99; }
+.text-danger { color: #ff4f6d; font-weight: bold; text-shadow: 0 0 6px #ff4f6d; }
+.text-warning { color: #f5e342; font-weight: bold; text-shadow: 0 0 6px #f5e342; }
 
-.text-danger {
-  color: #ff4f6d;
-  font-weight: bold;
-  text-shadow: 0 0 6px #ff4f6d;
-}
-
-.text-warning {
-  color: #f5e342;
-  font-weight: bold;
-  text-shadow: 0 0 6px #f5e342;
-}
-
-/* Chat Button (blue style like Posted Jobs) */
+/* Chat Button */
 .chat-btn {
   display: inline-block;
   padding: 10px 18px;
@@ -107,6 +93,24 @@
   transform: translateY(-2px);
 }
 
+/* Delete Button */
+.delete-btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: #ff3b5c;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 0 15px #ff3b5c, 0 0 30px #ff3b5c;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+.delete-btn:hover {
+  background: #e60039;
+  box-shadow: 0 0 25px #ff3b5c, 0 0 50px #ff3b5c;
+  transform: translateY(-2px);
+}
+
 /* Empty State */
 .empty-msg {
   text-align: center;
@@ -122,6 +126,9 @@
 }
 </style>
 
+<!-- SweetAlert CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="applications-container" data-aos="zoom-in">
   <h2 class="glow-heading">💼 My Job Applications</h2>
 
@@ -133,34 +140,88 @@
           <th>Employer</th>
           <th>Status</th>
           <th>Applied On</th>
-          <th>Action</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for app in applications %}
-        <tr>
+        <tr id="row-{{ app.id }}">
           <td><a href="{% url 'job_detail' app.job.id %}">{{ app.job.title }}</a></td>
+
           <td>{{ app.job.employer.username }}</td>
+
           <td>
             {% if app.status == "accepted" %}
               <span class="text-success">✅ Accepted</span>
+
             {% elif app.status == "rejected" %}
               <span class="text-danger">❌ Rejected</span>
+
             {% else %}
               <span class="text-warning">⏳ Pending</span>
             {% endif %}
           </td>
+
           <td>{{ app.applied_on|date:"M d, Y H:i" }}</td>
-          <td>
-            <a href="{% url 'job_chat' app.id %}" class="chat-btn">💬 Chat with Employer</a>
+
+          <td style="display:flex; gap:8px;">
+            <a href="{% url 'job_chat' app.id %}" class="chat-btn">💬 Chat</a>
+
+            <button class="delete-btn"
+                    onclick="deleteApplication({{ app.id }})">
+              🗑 Delete
+            </button>
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
   {% else %}
     <p class="empty-msg">🚀 You haven’t applied for any jobs yet.</p>
   {% endif %}
 </div>
+
+
+<script>
+function deleteApplication(appId) {
+  Swal.fire({
+    title: "Delete Application?",
+    text: "This action cannot be undone. It will also delete the application from the employer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#ff3b5c",
+    cancelButtonColor: "#555",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+
+    if (result.isConfirmed) {
+
+      fetch(`/delete-application/${appId}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+
+          // Fade out then remove
+          let row = document.getElementById(`row-${appId}`);
+          row.style.opacity = "0";
+
+          setTimeout(() => row.remove(), 400);
+
+          Swal.fire(
+            "Deleted!",
+            "Your application has been removed.",
+            "success"
+          );
+        }
+      });
+    }
+  });
+}
+</script>
 
 {% endblock %}
