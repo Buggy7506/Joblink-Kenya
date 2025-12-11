@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from . import views
  
 urlpatterns = [
+    path('choose-role/', views.google_choose_role, name='google_choose_role'),
     path("applications/undo/<int:app_id>/", views.undo_delete_application, name="undo_delete_application"),
     path("applications/destroy/<int:app_id>/", views.destroy_application, name="destroy_application"),
     path("recycle-bin/", views.recycle_bin, name="recycle_bin"),
