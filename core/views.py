@@ -3,7 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages 
 from django.contrib.auth.decorators import login_required, user_passes_test 
 from django.contrib.auth.models import User 
-from django.http import HttpResponse 
+from django.http import HttpResponse  
 from django.template.loader import get_template, render_to_string 
 from django.core.mail import EmailMultiAlternatives 
 from django.utils import timezone 
