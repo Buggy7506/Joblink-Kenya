@@ -1231,13 +1231,16 @@ def chat_view(request, application_id=None, job_id=None):
     return render(request, "chat.html", context)
         
                 
+# ======================================================
+# VIEW APPLICANT'S JOB APPLICATIONS
+# ======================================================
+
+
 @login_required
 def view_applications(request):
     """
-    Show the jobs the logged-in applicant has applied to
-    with the current status (pending, accepted, rejected),
-    and automatically delete applications that have been soft-deleted
-    for more than 7 days along with related messages and notifications.
+    Show jobs the logged-in applicant has applied to
+    with current status, and auto-delete expired soft-deleted applications.
     """
     if request.user.role != "applicant":
         messages.error(request, "❌ Only applicants can access this page.")
@@ -1247,14 +1250,11 @@ def view_applications(request):
     deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
     for app in deleted_apps:
         if app.is_expired():
-            # Delete related chats
             ChatMessage.objects.filter(application=app).delete()
-            # Delete related notifications containing applicant username
             Notification.objects.filter(
                 user=app.job.employer,
                 message__icontains=f"{app.applicant.username}"
             ).delete()
-            # Delete the application itself
             app.delete()
 
     # Fetch active (not deleted) applications
@@ -1267,32 +1267,35 @@ def view_applications(request):
     return render(request, "view_applications.html", {
         "applications": applications,
         "applications_count": applications.count(),
-        "deleted_apps": deleted_apps,  # for recycle bin if needed
+        "deleted_apps": deleted_apps,
     })
+
+
 # ======================================================
 # DELETE APPLICATION (Soft delete)
 # ======================================================
 @login_required
 def delete_application(request, app_id):
-    app = get_object_or_404(Application, id=app_id, applicant=request.user)
+    """
+    Soft delete an application (for SweetAlert AJAX)
+    """
+    if request.method == "POST":
+        app = get_object_or_404(Application, id=app_id, applicant=request.user)
 
-    # Soft delete
-    app.is_deleted = True
-    app.deleted_on = timezone.now()
-    app.save()
+        app.is_deleted = True
+        app.deleted_on = timezone.now()
+        app.save()
 
-    # Delete related employer notifications
-    Notification.objects.filter(
-        user=app.job.employer,
-        message__icontains=f"{app.applicant.username}"
-    ).delete()
+        # Delete related employer notifications and chat messages
+        Notification.objects.filter(
+            user=app.job.employer,
+            message__icontains=f"{app.applicant.username}"
+        ).delete()
+        ChatMessage.objects.filter(application=app).delete()
 
-    # Delete chat messages between applicant & employer
-    ChatMessage.objects.filter(application=app).delete()
+        return JsonResponse({"success": True, "message": "Application moved to Recycle Bin."})
 
-    messages.success(request, "Application moved to Recycle Bin (restore within 7 days).")
-    return redirect("my_applications")
-
+    return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
 
 
 # ======================================================
@@ -1307,8 +1310,7 @@ def undo_delete_application(request, app_id):
     app.save()
 
     messages.success(request, "Application restored successfully!")
-    return redirect("my_applications")
-
+    return redirect("recycle_bin")
 
 
 # ======================================================
@@ -1318,7 +1320,6 @@ def undo_delete_application(request, app_id):
 def destroy_application(request, app_id):
     app = get_object_or_404(Application, id=app_id, applicant=request.user)
 
-    # Delete permanently
     ChatMessage.objects.filter(application=app).delete()
     Notification.objects.filter(user=app.job.employer).delete()
     app.delete()
@@ -1327,24 +1328,23 @@ def destroy_application(request, app_id):
     return redirect("recycle_bin")
 
 
-
 # ======================================================
-# AUTO-DELETE EXPIRED (run inside view)
+# RECYCLE BIN VIEW
 # ======================================================
 @login_required
 def recycle_bin(request):
     deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
 
-    # Auto-delete expired (delete after 7 days)
+    # Auto-delete expired (7+ days)
     for app in deleted_apps:
         if app.is_expired():
             ChatMessage.objects.filter(application=app).delete()
             Notification.objects.filter(user=app.job.employer).delete()
             app.delete()
 
+    deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
+
     return render(request, "recycle_bin.html", {
-        "deleted_applications": Application.objects.filter(
-            applicant=request.user, is_deleted=True
-        )
+        "deleted_applications": deleted_apps
     })
     
