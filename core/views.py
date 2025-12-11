@@ -30,6 +30,55 @@ from django.conf import settings
 import requests
 import urllib.parse
 from datetime import timedelta
+from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ObjectDoesNotExist
+
+
+def set_google_password(request):
+    """
+    Allows new Google OAuth users to set a password after choosing their role.
+    Ensures they can login via the normal form next time.
+    """
+    user_id = request.session.get('set_password_user_id')
+    if not user_id:
+        messages.error(request, "Session expired. Please sign up again.")
+        return redirect('signup')
+
+    try:
+        user = User.objects.get(id=user_id)
+    except ObjectDoesNotExist:
+        messages.error(request, "User not found. Please sign up again.")
+        request.session.pop('set_password_user_id', None)
+        return redirect('signup')
+
+    if request.method == 'POST':
+        password = request.POST.get('password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        if not password or not confirm_password:
+            messages.error(request, "Please enter both password fields.")
+            return redirect('set_google_password')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect('set_google_password')
+
+        # Optional: enforce basic password strength
+        if len(password) < 6:
+            messages.error(request, "Password must be at least 6 characters long.")
+            return redirect('set_google_password')
+
+        user.password = make_password(password)
+        user.save()
+
+        # Automatically log in the user
+        login(request, user)
+        request.session.pop('set_password_user_id', None)
+        messages.success(request, "Password set successfully! You are now logged in.")
+        return redirect('dashboard')
+
+    return render(request, 'set_google_password.html', {"user": user})
+
 
 # Google OAuth settings
 GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
@@ -114,9 +163,10 @@ def google_callback(request):
         return redirect('google_choose_role')
 
 
+@login_required
 def google_choose_role(request):
     """
-    Let user select role after Google OAuth and log them in.
+    Let user select role after Google OAuth and set password if first-time user.
     Only first-time users see this page.
     """
     user_data = request.session.get('google_user')
@@ -129,8 +179,8 @@ def google_choose_role(request):
     # Check if user already exists and has a role
     try:
         existing_user = User.objects.get(email=email)
-        if existing_user.role:
-            # User already has role, log them in directly
+        if existing_user.role and existing_user.has_usable_password():
+            # User already has role and password, log them in directly
             login(request, existing_user)
             request.session.pop('google_user', None)
             return redirect('dashboard')
@@ -171,16 +221,18 @@ def google_choose_role(request):
                 user.role = role
                 user.save()
 
-        # Log in user
-        login(request, user)
+        # Store user ID in session for setting password
+        request.session['set_password_user_id'] = user.id
         request.session.pop('google_user', None)
 
-        return redirect('dashboard')
+        # Redirect to set password page
+        return redirect('set_google_password')
 
     # GET request: render role selection template
     return render(request, 'google_role.html', {
         "google_user": user_data
     })
+
 
     
     
