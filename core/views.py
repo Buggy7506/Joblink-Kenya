@@ -163,11 +163,13 @@ def google_callback(request):
         }
         return redirect('google_choose_role')
 
+from .models import CustomUser  # Make sure to use your CustomUser
 
 def google_choose_role(request):
     """
     Let user select role after Google OAuth and set password if first-time user.
     Only first-time users see this page.
+    Also saves profile picture from Google to Cloudinary.
     """
     user_data = request.session.get('google_user')
     if not user_data:
@@ -175,16 +177,16 @@ def google_choose_role(request):
         return redirect('signup')
 
     email = user_data['email']
+    profile_picture_url = user_data.get('picture')  # Google profile pic
 
     # Check if user already exists and has a role
     try:
-        existing_user = User.objects.get(email=email)
+        existing_user = CustomUser.objects.get(email=email)
         if existing_user.role and existing_user.has_usable_password():
-            # User already has role and password, log them in directly
             login(request, existing_user)
             request.session.pop('google_user', None)
             return redirect('dashboard')
-    except User.DoesNotExist:
+    except CustomUser.DoesNotExist:
         existing_user = None
 
     if request.method == 'POST':
@@ -195,18 +197,16 @@ def google_choose_role(request):
 
         first_name = user_data['first_name']
 
-        # Use first name as base username
-        base_username = ''.join(e for e in first_name.lower() if e.isalnum())  # remove spaces/special chars
+        # Generate unique username
+        base_username = ''.join(e for e in first_name.lower() if e.isalnum())
         username = base_username
         counter = 1
-
-        # Ensure username is unique
-        while User.objects.filter(username=username).exists():
+        while CustomUser.objects.filter(username=username).exists():
             username = f"{base_username}{counter}"
             counter += 1
 
         # Create or update user
-        user, created = User.objects.get_or_create(
+        user, created = CustomUser.objects.get_or_create(
             email=email,
             defaults={
                 'username': username,
@@ -216,23 +216,41 @@ def google_choose_role(request):
             }
         )
 
-        if not created:
-            # If user exists but role not set, update it
-            if not user.role:
-                user.role = role
-                user.save()
+        updated = False
+
+        if not user.role:
+            user.role = role
+            updated = True
+
+        # Upload profile picture from Google to Cloudinary if not already set
+        if profile_picture_url and not user.profile_pic:
+            try:
+                response = requests.get(profile_picture_url)
+                if response.status_code == 200:
+                    user.profile_pic.save(
+                        f"{username}_google.jpg",
+                        ContentFile(response.content),
+                        save=False
+                    )
+                    updated = True
+            except Exception as e:
+                print("Failed to fetch Google profile picture:", e)
+
+        if updated:
+            user.save()
 
         # Store user ID in session for setting password
         request.session['set_password_user_id'] = user.id
         request.session.pop('google_user', None)
 
-        # Redirect to set password page
         return redirect('set_google_password')
 
     # GET request: render role selection template
     return render(request, 'google_role.html', {
-        "google_user": user_data
+        "google_user": user_data,
+        "profile_picture": profile_picture_url
     })
+
 
 
 
