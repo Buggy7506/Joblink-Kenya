@@ -103,6 +103,66 @@ def verify_device(request):
 
     return render(request, "verify_device.html")
 
+def choose_verification_method(request):
+    """
+    Let the user choose how to receive the device verification code (email or phone)
+    before verifying a new device.
+    """
+    # Prevent access if no pending login verification
+    pending_user_id = request.session.get("pending_user_id")
+    if not pending_user_id:
+        messages.error(request, "Please login first.")
+        return redirect("login")
+
+    try:
+        user = CustomUser.objects.get(id=pending_user_id)
+    except CustomUser.DoesNotExist:
+        messages.error(request, "User not found. Please login again.")
+        request.session.flush()
+        return redirect("login")
+
+    if request.method == "POST":
+        method = request.POST.get("method")
+        if method not in ["email", "phone"]:
+            messages.error(request, "Please select a valid verification method.")
+            return redirect("choose_verification_method")
+
+        # Generate verification code
+        code = generate_code()
+        DeviceVerification.objects.create(
+            user=user,
+            code=code,
+            device_name=request.session.get("pending_name"),
+            user_agent=request.session.get("pending_ua"),
+            ip_address=request.session.get("pending_ip")
+        )
+
+        # Send code according to selected method
+        if method == "phone":
+            if not user.phone:
+                messages.error(request, "No phone number on file for this account.")
+                return redirect("choose_verification_method")
+            # Placeholder for SMS sending logic
+            print(f"SMS to {user.phone}: Your verification code is {code}")
+        else:  # email
+            send_mail(
+                subject="New Device Login Verification",
+                message=f"Your verification code is: {code}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False
+            )
+
+        # Store chosen method in session
+        request.session["pending_method"] = method
+        return redirect("verify_device")
+
+    return render(request, "choose_verification_method.html", {
+        "user": user,
+        "has_phone": bool(user.phone)
+    })
+
+
 
 def set_google_password(request):
     """
@@ -536,7 +596,6 @@ def login_view(request):
         # 1.5️⃣ Check if user has a password
         # -------------------------
         if not user_obj.has_usable_password():
-            # User has no password set → redirect to set password page
             request.session["set_password_user_id"] = user_obj.id
             messages.info(request, "Please set your password to continue.")
             return redirect("set_google_password")
@@ -566,18 +625,8 @@ def login_view(request):
             return redirect('dashboard')
 
         # -------------------------
-        # 5️⃣ Device is NEW → Trigger Verification
+        # 5️⃣ New device → store pending info and redirect to choose verification method
         # -------------------------
-        code = generate_code()
-        DeviceVerification.objects.create(
-            user=user,
-            code=code,
-            device_name=device_name,
-            user_agent=user_agent,
-            ip_address=ip
-        )
-
-        # Store temporary session for verification
         request.session.update({
             "pending_user_id": user.id,
             "pending_ip": ip,
@@ -585,24 +634,9 @@ def login_view(request):
             "pending_name": device_name,
         })
 
-        # -------------------------
-        # 6️⃣ Send verification code
-        # -------------------------
-        if user.phone:
-            # Placeholder for SMS sending logic
-            print(f"SMS to {user.phone}: Your verification code is {code}")
-        else:
-            send_mail(
-                subject="New Device Login Verification",
-                message=f"Your verification code is: {code}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True
-            )
+        return redirect("choose_verification_method")  # New page to let user pick email or phone
 
-        return redirect("verify_device")
-
-    # 7️⃣ GET request → show login page
+    # 6️⃣ GET request → show login page
     return render(request, 'login.html')
 
 
