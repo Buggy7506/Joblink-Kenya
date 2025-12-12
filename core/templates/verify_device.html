@@ -5,9 +5,6 @@
 {% block content %}
 
 <style>
-/* ===========================================================
-   WRAPPER → Prevents CSS conflicts with base.css
-   =========================================================== */
 .verify-wrapper * { box-sizing: border-box; }
 
 .verify-wrapper {
@@ -121,6 +118,17 @@
     margin-bottom: 15px;
 }
 
+/* CODE SENT MESSAGE */
+.code-sent-msg {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
 @keyframes pop {
     0% { transform: scale(0); opacity: 0; }
     70% { transform: scale(1.2); opacity: 1; }
@@ -156,16 +164,19 @@
 }
 </style>
 
-<!-- ================= DARK/LIGHT SWITCH ================= -->
+<!-- DARK/LIGHT SWITCH -->
 <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
 
 <div class="verify-wrapper dark" id="verifyWrapper">
-
     <div class="container">
 
         {% if messages %}
             {% for msg in messages %}
-                <div class="error">{{ msg }}</div>
+                {% if msg.tags == 'success' %}
+                    <div class="code-sent-msg">{{ msg }}</div>
+                {% else %}
+                    <div class="error">{{ msg }}</div>
+                {% endif %}
             {% endfor %}
         {% endif %}
 
@@ -205,9 +216,6 @@
 </div>
 
 <script>
-/* =======================================================
-   OTP AUTO-MOVEMENT + SUBMIT WITH FULL CODE
-   ======================================================= */
 const inputs = document.querySelectorAll(".otp-input");
 const hiddenInput = document.getElementById("full_code");
 const form = document.getElementById("verifyForm");
@@ -230,14 +238,10 @@ inputs.forEach((input, index) => {
 
 inputs[0].focus();
 
-/* Show checkmark animation on successful submit */
 form.addEventListener("submit", function () {
     successMark.style.display = "block";
 });
 
-/* =======================================================
-   RESEND TIMER
-   ======================================================= */
 let seconds = 30;
 let countdownDisplay = document.getElementById("countdown");
 let resendLink = document.getElementById("resendLink");
@@ -253,9 +257,6 @@ let timer = setInterval(() => {
     }
 }, 1000);
 
-/* =======================================================
-   DARK/LIGHT MODE SWITCH
-   ======================================================= */
 function toggleTheme() {
     const wrapper = document.getElementById("verifyWrapper");
     wrapper.classList.toggle("dark");
