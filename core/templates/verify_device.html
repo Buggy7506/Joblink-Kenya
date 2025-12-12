@@ -95,7 +95,7 @@
     transform: translateY(-2px);
 }
 
-/* REMEMBER DEVICE CHECKBOX */
+/* REMEMBER DEVICE */
 .verify-wrapper .remember-device {
     margin-top: 15px;
     text-align: left;
@@ -109,7 +109,7 @@
     color: #aaa;
 }
 
-/* SUCCESS CHECKMARK ANIMATION */
+/* SUCCESS CHECKMARK */
 .success-checkmark {
     display: none;
     font-size: 90px;
@@ -118,24 +118,25 @@
     margin-bottom: 15px;
 }
 
-/* CODE SENT MESSAGE */
 .code-sent-msg {
     background: #d1fae5;
     color: #065f46;
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 15px;
-    font-size: 0.95rem;
-    text-align: center;
+    font-size: .95rem;
 }
 
-@keyframes pop {
-    0% { transform: scale(0); opacity: 0; }
-    70% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); }
+.error {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: .95rem;
 }
 
-/* DARK/LIGHT TOGGLE BUTTON */
+/* DARK/LIGHT SWITCH */
 .theme-toggle {
     position: absolute;
     top: 20px;
@@ -146,25 +147,19 @@
     padding: 6px 14px;
     border-radius: 20px;
     cursor: pointer;
-    transition: 0.3s;
-}
-.theme-toggle:hover {
-    opacity: 0.7;
 }
 
-/* ERROR MESSAGES */
-.verify-wrapper .error {
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 0.95rem;
-    text-align: center;
+.theme-toggle:hover { opacity: 0.7; }
+
+@keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
 }
+
 </style>
 
-<!-- DARK/LIGHT SWITCH -->
+<!-- THEME BUTTON -->
 <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
 
 <div class="verify-wrapper dark" id="verifyWrapper">
@@ -189,12 +184,9 @@
             {% csrf_token %}
 
             <div class="otp-container">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
+                {% for i in "123456" %}
+                    <input type="text" maxlength="1" class="otp-input">
+                {% endfor %}
             </div>
 
             <input type="hidden" name="code" id="full_code">
@@ -216,51 +208,54 @@
 </div>
 
 <script>
+// OTP logic
 const inputs = document.querySelectorAll(".otp-input");
 const hiddenInput = document.getElementById("full_code");
 const form = document.getElementById("verifyForm");
 const successMark = document.getElementById("successMark");
 
-inputs.forEach((input, index) => {
+inputs.forEach((input, idx) => {
     input.addEventListener("input", () => {
-        if (input.value.length === 1 && index < inputs.length - 1) {
-            inputs[index + 1].focus();
+        if (input.value.length === 1 && idx < inputs.length - 1) {
+            inputs[idx + 1].focus();
         }
-        hiddenInput.value = Array.from(inputs).map(i => i.value).join("");
+        hiddenInput.value = [...inputs].map(i => i.value).join("");
     });
 
     input.addEventListener("keydown", (e) => {
-        if (e.key === "Backspace" && input.value === "" && index > 0) {
-            inputs[index - 1].focus();
+        if (e.key === "Backspace" && input.value === "" && idx > 0) {
+            inputs[idx - 1].focus();
         }
     });
 });
 
 inputs[0].focus();
 
-form.addEventListener("submit", function () {
+// Success animation on submit
+form.addEventListener("submit", () => {
     successMark.style.display = "block";
 });
 
+// Resend logic
 let seconds = 30;
-let countdownDisplay = document.getElementById("countdown");
+let countdown = document.getElementById("countdown");
 let resendLink = document.getElementById("resendLink");
 
 let timer = setInterval(() => {
     seconds--;
-    countdownDisplay.textContent = seconds;
+    countdown.textContent = seconds;
 
     if (seconds <= 0) {
         clearInterval(timer);
-        countdownDisplay.style.display = "none";
+        countdown.style.display = "none";
         resendLink.style.display = "inline";
     }
 }, 1000);
 
 function toggleTheme() {
-    const wrapper = document.getElementById("verifyWrapper");
-    wrapper.classList.toggle("dark");
-    wrapper.classList.toggle("light");
+    const w = document.getElementById("verifyWrapper");
+    w.classList.toggle("dark");
+    w.classList.toggle("light");
 }
 </script>
 
