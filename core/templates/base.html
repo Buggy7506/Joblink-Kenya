@@ -29,6 +29,7 @@ body {
   display:flex;
   flex-direction:column;
   min-height:100vh;
+  transition: background 0.4s, color 0.4s;
 }
 
 a { text-decoration:none; color:inherit; }
@@ -51,6 +52,7 @@ nav a { margin:0 1rem; font-weight:bold; }
   bottom:0; left:0;
   width:100%;
   z-index:40;
+  transition: background 0.4s, color 0.4s;
 }
 
 /* Guest links always white */
@@ -76,7 +78,7 @@ nav a { margin:0 1rem; font-weight:bold; }
   backdrop-filter: blur(10px);
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease, padding 0.4s ease;
+  transition: max-height 0.4s ease, padding 0.4s ease, background 0.4s, color 0.4s;
 }
 .mobile-toggle { display: none; }
 
@@ -93,6 +95,55 @@ nav a { margin:0 1rem; font-weight:bold; }
 /* Prevent zoom on input focus (iOS/Android fix) */
 input, select, textarea, button {
   font-size:16px !important;
+}
+
+/* DARK/LIGHT MODE */
+body.light-mode {
+  background: #f5f5f5;
+  color: #111;
+}
+
+body.light-mode .nav-bg {
+  background-color: rgba(255,255,255,0.9);
+}
+
+body.light-mode .footer {
+  background: #f5f5f5;
+  color: #111;
+}
+
+body.light-mode .hover-glow:hover {
+  color: #0077b6 !important;
+  text-shadow: 0 0 6px #0077b6;
+}
+
+body.light-mode .mobile-menu {
+  background-color: rgba(255,255,255,0.95);
+  color: #000;
+}
+
+body.light-mode .mobile-menu a {
+  color: #000 !important;
+}
+
+body.light-mode .mobile-menu a.active-link {
+  color: #0077b6 !important;
+  text-shadow: 0 0 6px #0077b6;
+}
+
+/* Desktop toggle button */
+#darkModeToggleDesktop {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  margin-left: 1rem;
+  transition: color 0.4s;
+}
+
+body.light-mode #darkModeToggleDesktop {
+  color: #0077b6;
 }
 </style>
 </head>
@@ -112,71 +163,76 @@ input, select, textarea, button {
     </a>
 
     <!-- Desktop Navigation -->
-    <nav class="desktop-nav">
+    <div style="display:flex; align-items:center;">
+      <nav class="desktop-nav">
 
-      <a href="{% url 'home' %}"
-         class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}
-         {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
-         Home
-      </a>
+        <a href="{% url 'home' %}"
+           class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}
+           {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+           Home
+        </a>
 
-      {% if user.is_authenticated %}
-          {% if user.is_superuser or user.role == 'admin' %}
-              <a href="{% url 'admin_dashboard' %}"
-                 class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}">
-                 Dashboard
-              </a>
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.role == 'admin' %}
+                <a href="{% url 'admin_dashboard' %}"
+                   class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}">
+                   Dashboard
+                </a>
 
-              <a href="{% url 'admin_profile' %}"
-                 class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-link{% endif %}">
-                 Profile
-              </a>
+                <a href="{% url 'admin_profile' %}"
+                   class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-link{% endif %}">
+                   Profile
+                </a>
 
-          {% elif user.role == 'employer' %}
-              <a href="{% url 'dashboard' %}"
-                 class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
-                 Dashboard
-              </a>
+            {% elif user.role == 'employer' %}
+                <a href="{% url 'dashboard' %}"
+                   class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
+                   Dashboard
+                </a>
 
-              <a href="{% url 'employer_profile' %}"
-                 class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-link{% endif %}">
-                 Profile
-              </a>
-          {% else %}
-              <a href="{% url 'dashboard' %}"
-                 class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
-                 Dashboard
-              </a>
+                <a href="{% url 'employer_profile' %}"
+                   class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-link{% endif %}">
+                   Profile
+                </a>
+            {% else %}
+                <a href="{% url 'dashboard' %}"
+                   class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
+                   Dashboard
+                </a>
 
-              <a href="{% url 'profile' %}"
-                 class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-link{% endif %}">
-                 Profile
-              </a>
-          {% endif %}
+                <a href="{% url 'profile' %}"
+                   class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-link{% endif %}">
+                   Profile
+                </a>
+            {% endif %}
 
-          <a href="{% url 'change_username_password' %}"
-             class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-link{% endif %}">
-             Change Password
-          </a>
+            <a href="{% url 'change_username_password' %}"
+               class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-link{% endif %}">
+               Change Password
+            </a>
 
-          <a href="{% url 'logout' %}"
-             class="hover-glow {% if request.resolver_match.url_name == 'logout' %}active-link{% endif %}"
-             style="color:#f87171;">
-             Logout
-          </a>
+            <a href="{% url 'logout' %}"
+               class="hover-glow {% if request.resolver_match.url_name == 'logout' %}active-link{% endif %}"
+               style="color:#f87171;">
+               Logout
+            </a>
 
-      {% else %}
-          <a href="{% url 'login' %}"
-             class="hover-glow guest-link {% if request.resolver_match.url_name == 'login' %}active-link{% endif %}">
-             Login
-          </a>
+        {% else %}
+            <a href="{% url 'login' %}"
+               class="hover-glow guest-link {% if request.resolver_match.url_name == 'login' %}active-link{% endif %}">
+               Login
+            </a>
 
-          <a href="{% url 'signup' %}"
-             class="hover-glow guest-link {% if request.resolver_match.url_name == 'signup' %}active-link{% endif %}">
-             Sign Up
-          </a>
-      {% endif %}
-    </nav>
+            <a href="{% url 'signup' %}"
+               class="hover-glow guest-link {% if request.resolver_match.url_name == 'signup' %}active-link{% endif %}">
+               Sign Up
+            </a>
+        {% endif %}
+      </nav>
+
+      <!-- Desktop Theme Toggle -->
+      <button id="darkModeToggleDesktop">🌙</button>
+    </div>
 
     <!-- Mobile toggle button -->
     <div class="mobile-toggle">
@@ -279,8 +335,26 @@ document.getElementById('menuToggle').addEventListener('click', () => {
         }, 10);
     }
 });
+
+// Dark/Light mode toggle
+const toggleDesktop = document.getElementById('darkModeToggleDesktop');
+const body = document.body;
+
+// Load saved theme
+if(localStorage.getItem('theme') === 'light'){
+    body.classList.add('light-mode');
+    toggleDesktop.textContent = '☀️';
+} else {
+    toggleDesktop.textContent = '🌙';
+}
+
+toggleDesktop.addEventListener('click', () => {
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    toggleDesktop.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+});
 </script>
 
 </body>
 </html>
-
