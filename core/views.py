@@ -48,37 +48,48 @@ from django.utils import timezone
 from django.http import JsonResponse
 from .utils import send_verification_email_smtp, generate_code
 
+
 def resend_device_code(request):
     """
     Resend a new verification code to the user's email.
+    Works for both logged-in users and pre-login email verification.
     """
-    user = request.user
+    # Determine email and user
+    user = request.user if request.user.is_authenticated else None
+    email = user.email if user else request.session.get("pending_email")
+
+    if not email:
+        return JsonResponse({"status": "error", "message": "No email found to send verification code."})
 
     # Prevent abuse: allow resend every 30 seconds
     last_sent = request.session.get("last_verification_sent")
     if last_sent:
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
-            return JsonResponse({"status": "error", "message": f"Please wait {int(30 - elapsed)}s before resending."})
+            return JsonResponse({
+                "status": "error",
+                "message": f"Please wait {int(30 - elapsed)}s before resending."
+            })
 
     # Generate new 6-digit code
     code = generate_code()
     DeviceVerification.objects.create(
         user=user,
+        email=email,
         code=code,
-        device_name=request.session.get("pending_name"),
-        user_agent=request.session.get("pending_ua"),
-        ip_address=request.session.get("pending_ip")
+        device_name=request.session.get("pending_name", "Unknown Device"),
+        user_agent=request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "")),
+        ip_address=request.session.get("pending_ip", request.META.get("REMOTE_ADDR", ""))
     )
 
     # Send email via SMTP
-    if user.email:
-        send_verification_email_smtp(user.email, code)
+    send_verification_email_smtp(email, code)
 
     # Update session timestamp
     request.session["last_verification_sent"] = timezone.now()
 
     return JsonResponse({"status": "ok", "message": "A new verification code has been sent!"})
+
 
 
 User = get_user_model()
