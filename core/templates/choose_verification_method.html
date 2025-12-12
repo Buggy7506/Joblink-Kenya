@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="verification-wrapper">
+  <div class="verification-card">
+    <h2 class="verification-title">Verify Your Device</h2>
+    <p class="verification-subtitle">
+      Choose how you want to receive the verification code.
+    </p>
+
+    {% if messages %}
+      <div class="verification-messages">
+        {% for message in messages %}
+          <div class="verification-message {{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="verification-form">
+      {% csrf_token %}
+      
+      <div class="verification-options">
+        <label class="verification-option">
+          <input type="radio" name="method" value="email" checked>
+          Verify via Email ({{ user.email }})
+        </label>
+
+        {% if user.phone %}
+        <label class="verification-option">
+          <input type="radio" name="method" value="phone">
+          Verify via Phone ({{ user.phone }})
+        </label>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="verification-btn">Send Code</button>
+    </form>
+  </div>
+</div>
+
+<style>
+/* Wrapper to prevent conflicts */
+.verification-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background: #f3f4f6;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.verification-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  padding: 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+.verification-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.verification-subtitle {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  color: #6b7280;
+}
+
+.verification-messages {
+  margin-bottom: 1rem;
+}
+
+.verification-message {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.verification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.verification-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.verification-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #111827;
+}
+
+.verification-option input[type="radio"] {
+  accent-color: #2563eb;
+  width: 1rem;
+  height: 1rem;
+}
+
+.verification-btn {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.verification-btn:hover {
+  background: #1e40af;
+}
+</style>
+{% endblock %}
