@@ -5,7 +5,6 @@ from django.utils import timezone
 from cloudinary.models import CloudinaryField
 from datetime import timedelta
 
-
 # ======================================================
 # CUSTOM USER
 # ======================================================
@@ -30,9 +29,14 @@ class CustomUser(AbstractUser):
 
 
 # ======================================================
-# PROFILE
+# PROFILE (Updated with verification method)
 # ======================================================
 class Profile(models.Model):
+    VERIFICATION_CHOICES = (
+        ('email', 'Email'),
+        ('phone', 'Phone'),
+    )
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, blank=True)
@@ -43,8 +47,43 @@ class Profile(models.Model):
     education = models.TextField(blank=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
 
+    # NEW FIELD → Preferred method for device verification
+    verification_method = models.CharField(
+        max_length=10,
+        choices=VERIFICATION_CHOICES,
+        default='email'
+    )
+
     def __str__(self):
         return self.full_name
+
+
+# ======================================================
+# DEVICE SECURITY MODELS
+# ======================================================
+
+class TrustedDevice(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="devices")
+    device_name = models.CharField(max_length=255)
+    user_agent = models.TextField()
+    ip_address = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.device_name} → {self.user.username}"
+
+
+class DeviceVerification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    device_name = models.CharField(max_length=255)
+    user_agent = models.TextField()
+    ip_address = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Verification for {self.user.username} ({self.device_name})"
 
 
 # ======================================================
@@ -72,17 +111,13 @@ class Job(models.Model):
     )
     posted_on = models.DateTimeField(auto_now_add=True)
     company = models.CharField(max_length=200, blank=True)
-    
-    # --- New fields ---
+
     salary = models.PositiveIntegerField(default=0, help_text="Enter salary in KES")
     is_premium = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     premium_expiry = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        """
-        Auto-set premium if salary > 30,000 KES.
-        """
         if self.salary > 30000:
             self.is_premium = True
         else:
@@ -90,15 +125,13 @@ class Job(models.Model):
         super().save(*args, **kwargs)
 
     def check_premium_status(self):
-        """
-        Check if premium has expired and deactivate premium if needed.
-        """
         if self.is_premium and self.premium_expiry and self.premium_expiry < timezone.now():
             self.is_premium = False
             self.save()
 
     def __str__(self):
         return self.title
+
 
 # ======================================================
 # APPLICATIONS
@@ -114,12 +147,7 @@ class Application(models.Model):
         (STATUS_REJECTED, 'Rejected'),
     ]
 
-    job = models.ForeignKey(
-        "Job",
-        on_delete=models.CASCADE,
-        related_name="applications"
-    )
-
+    job = models.ForeignKey("Job", on_delete=models.CASCADE, related_name="applications")
     applicant = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -130,21 +158,15 @@ class Application(models.Model):
     applied_on = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
 
-    # Payment
     is_paid = models.BooleanField(default=False)
     mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
 
-    # --------------------------
-    # Soft delete / Recycle bin
-    # --------------------------
-    is_deleted = models.BooleanField(default=False)  # Applicant-side soft delete
+    is_deleted = models.BooleanField(default=False)
     deleted_on = models.DateTimeField(null=True, blank=True)
 
-    # Hide application from employer when applicant deletes it
     is_deleted_for_employer = models.BooleanField(default=False)
 
     def is_expired(self):
-        """Auto-expire 7 days after soft delete."""
         if self.deleted_on:
             return timezone.now() > self.deleted_on + timedelta(days=7)
         return False
@@ -154,7 +176,6 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.applicant.username} → {self.job.title}"
-
 
 
 # ======================================================
@@ -219,6 +240,7 @@ class MessageReaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} reacted {self.reaction_type} to msg {self.message.id}"
+
 
 # ======================================================
 # CV UPLOADS
