@@ -16,6 +16,13 @@
     padding: 20px;
     box-sizing: border-box;
     flex-direction: column;
+    transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* Dark mode wrapper */
+.role-selection-wrapper.dark-mode {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+    color: #f0f0f0;
 }
 
 .role-selection-wrapper h2 {
@@ -25,6 +32,11 @@
     color: #333;
     margin-bottom: 20px;
     position: relative;
+    transition: color 0.4s ease;
+}
+
+.role-selection-wrapper.dark-mode h2 {
+    color: #fff;
 }
 
 .role-selection-wrapper h2::after {
@@ -51,6 +63,11 @@
     font-size: 18px;
     color: #555;
     margin-bottom: 30px;
+    transition: color 0.4s ease;
+}
+
+.role-selection-wrapper.dark-mode .user-info {
+    color: #ddd;
 }
 
 /* Form container */
@@ -62,12 +79,12 @@
     width: 100%;
     max-width: 450px;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.4s ease;
 }
 
-.role-selection-wrapper form:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 35px 70px rgba(0,0,0,0.15);
+.role-selection-wrapper.dark-mode form {
+    background: #2a2a2a;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
 }
 
 /* Role cards */
@@ -89,6 +106,12 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
 
+.role-selection-wrapper.dark-mode label {
+    background: #3c3c3c;
+    border-color: #555;
+    color: #eee;
+}
+
 .role-selection-wrapper label:hover {
     background: linear-gradient(90deg, #4d69ff, #3c51f6);
     color: #fff;
@@ -96,12 +119,10 @@
     transform: translateY(-5px) scale(1.02);
 }
 
-/* Hide radio input */
 .role-selection-wrapper input[type="radio"] {
     display: none;
 }
 
-/* Checked state */
 .role-selection-wrapper input[type="radio"]:checked + span {
     background: linear-gradient(90deg, #4d69ff, #3c51f6);
     color: #fff;
@@ -110,7 +131,6 @@
     transform: translateY(-5px) scale(1.02);
 }
 
-/* Span inside label */
 .role-selection-wrapper label span {
     display: flex;
     align-items: center;
@@ -118,7 +138,6 @@
     transition: all 0.3s ease;
 }
 
-/* Icon styling */
 .role-selection-wrapper label span i {
     font-size: 26px;
     transition: transform 0.3s ease;
@@ -148,6 +167,26 @@
     box-shadow: 0 15px 30px rgba(60, 81, 246, 0.3);
 }
 
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.role-selection-wrapper.dark-mode .dark-mode-toggle {
+    background: #444;
+    color: #fff;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .role-selection-wrapper form {
@@ -169,6 +208,9 @@
 
 {% block content %}
 <div class="role-selection-wrapper">
+    <!-- Dark mode toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle">🌙</button>
+
     <h2>Welcome!</h2>
 
     <!-- Google profile picture -->
@@ -204,5 +246,28 @@
 
     <!-- FontAwesome for icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <!-- Dark mode script -->
+    <script>
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const wrapper = document.querySelector('.role-selection-wrapper');
+
+        // Load dark mode preference from localStorage
+        if(localStorage.getItem('darkMode') === 'enabled'){
+            wrapper.classList.add('dark-mode');
+            toggleBtn.textContent = '☀️';
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            wrapper.classList.toggle('dark-mode');
+            if(wrapper.classList.contains('dark-mode')){
+                toggleBtn.textContent = '☀️';
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                toggleBtn.textContent = '🌙';
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+    </script>
 </div>
 {% endblock %}
