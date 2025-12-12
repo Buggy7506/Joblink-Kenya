@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Device Verification • JobLink Kenya{% endblock %}
+
 {% block content %}
 <div class="verification-wrapper">
   <div class="verification-card">
@@ -19,18 +21,24 @@
       </div>
     {% endif %}
 
+    {% if sent_method %}
+      <div class="verification-sent">
+        A verification code has been sent via <strong>{{ sent_method|title }}</strong> to your account.
+      </div>
+    {% endif %}
+
     <form method="post" class="verification-form">
       {% csrf_token %}
       
       <div class="verification-options">
         <label class="verification-option">
-          <input type="radio" name="method" value="email" checked>
+          <input type="radio" name="method" value="email" {% if sent_method == "email" %}checked{% endif %}>
           Verify via Email ({{ user.email }})
         </label>
 
         {% if user.phone %}
         <label class="verification-option">
-          <input type="radio" name="method" value="phone">
+          <input type="radio" name="method" value="phone" {% if sent_method == "phone" %}checked{% endif %}>
           Verify via Phone ({{ user.phone }})
         </label>
         {% endif %}
@@ -42,7 +50,7 @@
 </div>
 
 <style>
-/* Wrapper to prevent conflicts */
+/* Scoped wrapper to prevent conflicts with base.css */
 .verification-wrapper {
   display: flex;
   justify-content: center;
@@ -86,6 +94,16 @@
   padding: 0.75rem 1rem;
   border-radius: 6px;
   margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.verification-sent {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
   font-size: 0.95rem;
   text-align: left;
 }
