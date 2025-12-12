@@ -74,7 +74,7 @@ def verify_device(request):
 
         if not code:
             messages.error(request, "Please enter the verification code.")
-            return render(request, "verify_device.html")
+            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
 
         # Look for unused matching code
         verification = DeviceVerification.objects.filter(
@@ -85,12 +85,13 @@ def verify_device(request):
 
         if not verification:
             messages.error(request, "Invalid or incorrect verification code.")
-            return render(request, "verify_device.html")
+            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
 
-        # Optional: expire codes after 10 minutes
+        # Expire codes after 10 minutes
         expiry_time = verification.created_at + timezone.timedelta(minutes=10)
         if timezone.now() > expiry_time:
             messages.error(request, "The verification code has expired. Please login again.")
+            request.session.flush()
             return redirect("login")
 
         # Mark verification used
@@ -119,7 +120,8 @@ def verify_device(request):
     # 3️⃣ GET request → render verification page
     # -------------------------
     return render(request, "verify_device.html", {
-        "user": user
+        "user": user,
+        "pending_verification": True  # template can use this to suppress "already logged in" messages
     })
 
 
@@ -128,6 +130,7 @@ def choose_verification_method(request):
     Let the user choose how to receive the device verification code (email or phone)
     before verifying a new device.
     """
+
     # -------------------------
     # 1️⃣ Ensure pending login exists
     # -------------------------
@@ -155,6 +158,13 @@ def choose_verification_method(request):
             messages.error(request, "Please select a valid verification method.")
             return redirect("choose_verification_method")
 
+        if method == "phone" and not user.phone:
+            messages.error(request, "No phone number on file for this account.")
+            return redirect("choose_verification_method")
+        if method == "email" and not user.email:
+            messages.error(request, "No email on file for this account.")
+            return redirect("choose_verification_method")
+
         # -------------------------
         # Generate verification code
         # -------------------------
@@ -171,9 +181,6 @@ def choose_verification_method(request):
         # Send code according to method
         # -------------------------
         if method == "phone":
-            if not user.phone:
-                messages.error(request, "No phone number on file for this account.")
-                return redirect("choose_verification_method")
             # TODO: Integrate real SMS service
             print(f"SMS to {user.phone}: Your verification code is {code}")
         else:  # email
@@ -198,9 +205,9 @@ def choose_verification_method(request):
     # -------------------------
     return render(request, "choose_verification_method.html", {
         "user": user,
-        "has_phone": bool(user.phone)
+        "has_phone": bool(user.phone),
+        "pending_verification": True  # Template can use this to hide "already logged in"
     })
-
 
 
 
@@ -614,6 +621,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 def login_view(request):
     """
     Handle user login with device verification for untrusted devices.
@@ -624,6 +632,7 @@ def login_view(request):
     4. Check if device is trusted.
     5. If new device, redirect to choose verification method (email/phone).
     """
+
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()  # username/email/phone
         password = request.POST.get('password', '').strip()
@@ -665,7 +674,7 @@ def login_view(request):
         user_agent = request.META.get("HTTP_USER_AGENT", "")
 
         # -------------------------
-        # 4️⃣ Trusted device? → Direct login
+        # 4️⃣ Trusted device → log in directly
         # -------------------------
         if TrustedDevice.objects.filter(
             user=user, device_name=device_name, ip_address=ip
@@ -674,7 +683,7 @@ def login_view(request):
             return redirect('admin_dashboard' if user.is_superuser else 'dashboard')
 
         # -------------------------
-        # 5️⃣ New device → Store pending info
+        # 5️⃣ New device → store pending info for verification
         # -------------------------
         request.session.update({
             "pending_user_id": user.id,
@@ -683,14 +692,13 @@ def login_view(request):
             "pending_name": device_name,
         })
 
-        # Redirect to page where user chooses email or phone for verification
+        # User is NOT logged in yet
         return redirect("choose_verification_method")
 
     # -------------------------
     # 6️⃣ GET request → Show login page
     # -------------------------
     return render(request, 'login.html')
-
 
 #User Logout
 
