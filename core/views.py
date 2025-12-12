@@ -33,6 +33,70 @@ from datetime import timedelta
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, get_user_model
+from django.utils import timezone
+from .models import DeviceVerification, TrustedDevice
+
+User = get_user_model()
+
+
+def verify_device(request):
+    # Prevent direct access without pending verification
+    if "pending_user_id" not in request.session:
+        return redirect("login")  # or show an error page
+
+    if request.method == "POST":
+        code = request.POST.get("code")
+
+        user_id = request.session.get("pending_user_id")
+        ip = request.session.get("pending_ip")
+        ua = request.session.get("pending_ua")
+        device_name = request.session.get("pending_name")
+
+        # Look for unused matching code
+        verification = DeviceVerification.objects.filter(
+            user_id=user_id,
+            code=code,
+            is_used=False
+        ).order_by("-created_at").first()
+
+        if verification:
+            # OPTIONAL: Expire codes after 10 minutes
+            expiry_time = verification.created_at + timezone.timedelta(minutes=10)
+            if timezone.now() > expiry_time:
+                return render(request, "verify_device.html", {
+                    "error": "The verification code has expired. Please login again."
+                })
+
+            # Mark verification used
+            verification.is_used = True
+            verification.save()
+
+            # Save the device as trusted
+            TrustedDevice.objects.create(
+                user_id=user_id,
+                device_name=device_name,
+                user_agent=ua,
+                ip_address=ip
+            )
+
+            # Log user in
+            user = User.objects.get(id=user_id)
+            login(request, user)
+
+            # Clean up session data
+            for key in ["pending_user_id", "pending_ip", "pending_ua", "pending_name"]:
+                request.session.pop(key, None)
+
+            return redirect("dashboard")
+
+        else:
+            return render(request, "verify_device.html", {
+                "error": "Invalid or incorrect verification code."
+            })
+
+    return render(request, "verify_device.html")
 
 def set_google_password(request):
     """
