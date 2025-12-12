@@ -49,15 +49,17 @@ from django.http import JsonResponse
 from .utils import send_verification_email_smtp, generate_code
 
 
+
 def resend_device_code(request):
     """
     Resend a new verification code to the user's email.
     Works for both logged-in users and pre-login email verification.
     """
+
     # Determine email and user
     if request.user.is_authenticated:
         user = request.user
-        email = user.email
+        email = getattr(user, "email", None)
     else:
         user = None
         email = request.session.get("pending_email")
@@ -77,13 +79,20 @@ def resend_device_code(request):
 
     # Generate new 6-digit code
     code = generate_code()
+
+    # Fallbacks for device info
+    device_name = request.session.get("pending_name", "Unknown Device")
+    user_agent = request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "Unknown UA"))
+    ip_address = request.session.get("pending_ip", request.META.get("REMOTE_ADDR", "0.0.0.0"))
+
+    # Create DeviceVerification entry
     DeviceVerification.objects.create(
-        user=user,  # None if pre-login
+        user=user,
         email=email,
         code=code,
-        device_name=request.session.get("pending_name", "Unknown Device"),
-        user_agent=request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "")),
-        ip_address=request.session.get("pending_ip", request.META.get("REMOTE_ADDR", ""))
+        device_name=device_name,
+        user_agent=user_agent,
+        ip_address=ip_address
     )
 
     # Send email via SMTP
