@@ -201,7 +201,7 @@
         <div class="resend">
             Resend available in <span id="countdown">30</span>s  
             <br>
-            <a href="#" id="resendLink" style="display:none;">Resend Code</a>
+            <a href="{% url 'resend_verification_code' %}" id="resendLink" style="display:none;">Resend Code</a>
         </div>
 
     </div>
@@ -252,6 +252,7 @@ let timer = setInterval(() => {
     }
 }, 1000);
 
+// Theme toggle
 function toggleTheme() {
     const w = document.getElementById("verifyWrapper");
     w.classList.toggle("dark");
