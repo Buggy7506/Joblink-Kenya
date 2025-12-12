@@ -8,7 +8,7 @@
   <div class="verification-card">
     <h2 class="verification-title">Verify Your Device</h2>
     <p class="verification-subtitle">
-      Choose how you want to receive the verification code.
+      Choose how you want to receive your verification code.
     </p>
 
     {% if messages %}
@@ -23,7 +23,8 @@
 
     {% if sent_method %}
       <div class="verification-sent">
-        A verification code has been sent via <strong>{{ sent_method|title }}</strong> to your account.
+        A verification code has been sent via 
+        <strong>{{ sent_method|title }}</strong>.
       </div>
     {% endif %}
 
@@ -31,15 +32,28 @@
       {% csrf_token %}
       
       <div class="verification-options">
+
+        <!-- EMAIL OPTION -->
         <label class="verification-option">
-          <input type="radio" name="method" value="email" {% if sent_method == "email" %}checked{% endif %}>
-          Verify via Email ({{ user.email }})
+          <input 
+              type="radio" 
+              name="method" 
+              value="email"
+              {% if sent_method == "email" %}checked{% endif %}
+          >
+          <span>Verify via Email ({{ user.email }})</span>
         </label>
 
+        <!-- PHONE OPTION -->
         {% if user.phone %}
         <label class="verification-option">
-          <input type="radio" name="method" value="phone" {% if sent_method == "phone" %}checked{% endif %}>
-          Verify via Phone ({{ user.phone }})
+          <input 
+              type="radio" 
+              name="method" 
+              value="phone"
+              {% if sent_method == "phone" %}checked{% endif %}
+          >
+          <span>Verify via Phone ({{ user.phone }})</span>
         </label>
         {% endif %}
       </div>
@@ -50,7 +64,6 @@
 </div>
 
 <style>
-/* Scoped wrapper to prevent conflicts with base.css */
 .verification-wrapper {
   display: flex;
   justify-content: center;
@@ -98,6 +111,11 @@
   text-align: left;
 }
 
+.verification-message.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
 .verification-sent {
   background: #d1fae5;
   color: #065f46;
@@ -125,7 +143,7 @@
 .verification-option {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-size: 1rem;
   cursor: pointer;
   color: #111827;
