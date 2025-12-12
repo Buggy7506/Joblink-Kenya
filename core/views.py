@@ -78,8 +78,9 @@ def resend_device_code(request):
         return JsonResponse({"status": "error", "message": "No email found to send verification code."})
 
     # Prevent abuse: allow resend every 30 seconds
-    last_sent = request.session.get("last_verification_sent")
-    if last_sent:
+    last_sent_str = request.session.get("last_verification_sent")
+    if last_sent_str:
+        last_sent = datetime.fromisoformat(last_sent_str)  # convert string to datetime
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
             return JsonResponse({
@@ -108,8 +109,8 @@ def resend_device_code(request):
     # Send email via SMTP
     send_verification_email_smtp(email, code)
 
-    # Update session timestamp
-    request.session["last_verification_sent"] = timezone.now()
+    # Update session timestamp as ISO string
+    request.session["last_verification_sent"] = timezone.now().isoformat()
 
     return JsonResponse({"status": "ok", "message": "A new verification code has been sent!"})
 
