@@ -166,12 +166,6 @@ body.light-mode #darkModeToggleDesktop {
     <div style="display:flex; align-items:center;">
       <nav class="desktop-nav">
 
-        <!-- HOME ALWAYS VISIBLE -->
-        <a href="{% url 'home' %}"
-           class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
-           Home
-        </a>
-
         {% if user.is_authenticated %}
 
             {% if user.is_superuser or user.role == 'admin' %}
@@ -250,12 +244,7 @@ body.light-mode #darkModeToggleDesktop {
   <!-- Mobile Navigation -->
   <div id="mobileMenu" class="mobile-menu">
 
-    <!-- HOME ALWAYS -->
-    <a href="{% url 'home' %}"
-       class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
-       Home
-    </a>
-
+    
     {% if user.is_authenticated %}
 
         {% if user.is_superuser or user.role == 'admin' %}
