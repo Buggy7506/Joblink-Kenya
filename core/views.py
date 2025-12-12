@@ -101,8 +101,8 @@ def verify_device(request):
 
 def set_google_password(request):
     """
-    Allows new Google OAuth users to set a password after choosing their role.
-    Ensures they can login via the normal form next time.
+    Allows new Google OAuth users to set a password.
+    User cannot log in until password is set.
     """
     user_id = request.session.get('set_password_user_id')
     if not user_id:
@@ -116,34 +116,53 @@ def set_google_password(request):
         request.session.pop('set_password_user_id', None)
         return redirect('signup')
 
+    # Redirect to dashboard if password already set
+    if user.has_usable_password():
+        messages.info(request, "Password already set. You can login now.")
+        return redirect('login')
+
     if request.method == 'POST':
         password = request.POST.get('password', '').strip()
         confirm_password = request.POST.get('confirm_password', '').strip()
 
+        # Validate inputs
         if not password or not confirm_password:
-            messages.error(request, "Please enter both password fields.")
+            messages.error(request, "Please fill in both password fields.")
             return render(request, 'set_google_password.html', {"user": user})
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
             return render(request, 'set_google_password.html', {"user": user})
 
-        # Optional: enforce basic password strength
         if len(password) < 6:
             messages.error(request, "Password must be at least 6 characters long.")
             return render(request, 'set_google_password.html', {"user": user})
 
+        # Optional: enforce additional strength rules (uppercase, number, special char)
+        import re
+        if not re.search(r'[A-Z]', password):
+            messages.error(request, "Password must contain at least one uppercase letter.")
+            return render(request, 'set_google_password.html', {"user": user})
+        if not re.search(r'\d', password):
+            messages.error(request, "Password must contain at least one number.")
+            return render(request, 'set_google_password.html', {"user": user})
+        if not re.search(r'[@$!%*#?&]', password):
+            messages.error(request, "Password must contain at least one special character (@$!%*#?&).")
+            return render(request, 'set_google_password.html', {"user": user})
+
+        # Set password and save
         user.password = make_password(password)
         user.save()
 
-        # Automatically log in the user
+        # Log in the user
         login(request, user)
         request.session.pop('set_password_user_id', None)
         messages.success(request, "Password set successfully! You are now logged in.")
+
+        # Redirect after login (can add device verification here if needed)
         return redirect('dashboard')
 
     return render(request, 'set_google_password.html', {"user": user})
-
 
 
 # Google OAuth settings
@@ -540,7 +559,7 @@ def login_view(request):
             # User has no password set → redirect to set password page
             request.session["pending_user_id"] = user_obj.id
             messages.info(request, "Please set your password to continue.")
-            return redirect("set_password")  # page/popup to set password
+            return redirect("set_google_password")  # page/popup to set password
 
         # -------------------------
         # 2️⃣ Authenticate normally
