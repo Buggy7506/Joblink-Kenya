@@ -75,3 +75,6 @@ whitenoise==6.9.0
 wkhtmltopdf==0.2
 zope.interface==7.2
 zopfli==0.2.3.post1
+django-sendgrid-v5
+sendgrid
+
