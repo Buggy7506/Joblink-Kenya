@@ -55,8 +55,12 @@ def resend_device_code(request):
     Works for both logged-in users and pre-login email verification.
     """
     # Determine email and user
-    user = request.user if request.user.is_authenticated else None
-    email = user.email if user else request.session.get("pending_email")
+    if request.user.is_authenticated:
+        user = request.user
+        email = user.email
+    else:
+        user = None
+        email = request.session.get("pending_email")
 
     if not email:
         return JsonResponse({"status": "error", "message": "No email found to send verification code."})
@@ -74,7 +78,7 @@ def resend_device_code(request):
     # Generate new 6-digit code
     code = generate_code()
     DeviceVerification.objects.create(
-        user=user,
+        user=user,  # None if pre-login
         email=email,
         code=code,
         device_name=request.session.get("pending_name", "Unknown Device"),
@@ -192,66 +196,75 @@ def verify_device(request):
 def choose_verification_method(request):
     """
     Let the user choose how to receive the device verification code (email or phone)
-    before verifying a new device.
+    before verifying a new device. Supports pre-login verification.
     """
 
-    # 1️⃣ Ensure pending login exists
+    # 1️⃣ Determine pending email and/or user
     pending_user_id = request.session.get("pending_user_id")
-    if not pending_user_id:
+    pending_email = request.session.get("pending_email")
+
+    user = None
+    if pending_user_id:
+        try:
+            user = CustomUser.objects.get(id=pending_user_id)
+        except CustomUser.DoesNotExist:
+            messages.error(request, "User not found. Please login again.")
+            request.session.flush()
+            return redirect("login")
+
+    if not user and not pending_email:
         messages.error(request, "Please login first.")
         return redirect("login")
 
-    # 2️⃣ Get user object
-    try:
-        user = CustomUser.objects.get(id=pending_user_id)
-    except CustomUser.DoesNotExist:
-        messages.error(request, "User not found. Please login again.")
-        request.session.flush()
-        return redirect("login")
-
-    # 3️⃣ Handle POST → generate & send verification code
+    # 2️⃣ Handle POST → generate & send verification code
     if request.method == "POST":
         method = request.POST.get("method")
 
+        # Validate method
         if method not in ["email", "phone"]:
             messages.error(request, "Please select a valid verification method.")
             return redirect("choose_verification_method")
 
-        if method == "phone" and not user.phone:
-            messages.error(request, "No phone number on file for this account.")
-            return redirect("choose_verification_method")
+        if method == "phone":
+            if not user or not user.phone:
+                messages.error(request, "No phone number on file for this account.")
+                return redirect("choose_verification_method")
 
-        if method == "email" and not user.email:
-            messages.error(request, "No email on file for this account.")
-            return redirect("choose_verification_method")
+        if method == "email":
+            if not (user and user.email) and not pending_email:
+                messages.error(request, "No email available to send verification code.")
+                return redirect("choose_verification_method")
+
+        # Determine which email to use
+        email_to_send = user.email if user else pending_email
 
         # Generate verification code
         code = generate_code()
         DeviceVerification.objects.create(
-            user=user,
+            user=user,               # may be None for pre-login
+            email=email_to_send,     # store email for pre-login
             code=code,
-            device_name=request.session.get("pending_name"),
-            user_agent=request.session.get("pending_ua"),
-            ip_address=request.session.get("pending_ip")
+            device_name=request.session.get("pending_name", "Unknown Device"),
+            user_agent=request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "")),
+            ip_address=request.session.get("pending_ip", request.META.get("REMOTE_ADDR", ""))
         )
 
         # Send SMS OR SMTP EMAIL
         if method == "phone":
-            print(f"SMS to {user.phone}: Your verification code is {code}")
+            print(f"SMS to {user.phone}: Your verification code is {code}")  # replace with real SMS
         else:
-            send_verification_email_smtp(user.email, code)
+            send_verification_email_smtp(email_to_send, code)
 
         # Save method and redirect
         request.session["pending_method"] = method
         return redirect("verify_device")
 
-    # 4️⃣ GET → render
+    # 3️⃣ GET → render template
     return render(request, "choose_verification_method.html", {
         "user": user,
-        "has_phone": bool(user.phone),
+        "has_phone": bool(user.phone) if user else False,
         "pending_verification": True
     })
-
 
 
 
@@ -667,6 +680,7 @@ User = get_user_model()
 
 
 from django.contrib.auth import logout
+from .utils import get_client_ip, get_device_name
 
 def login_view(request):
     """
@@ -735,10 +749,12 @@ def login_view(request):
         # -------------------------
         # 5️⃣ New device → store pending info for verification
         # -------------------------
-        request.session.flush()  # remove any previous auth session data
+        request.session.flush()  # clear old session
 
+        # Save pending info for pre-login verification
         request.session.update({
             "pending_user_id": user.id,
+            "pending_email": user.email,  # store email for DeviceVerification
             "pending_ip": ip,
             "pending_ua": user_agent,
             "pending_name": device_name,
