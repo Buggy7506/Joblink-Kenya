@@ -1,5 +1,21 @@
 import random
 import hashlib
+from django.core.mail import EmailMessage
+
+def send_verification_email_smtp(email, code):
+    """
+    Sends a device verification code using Django SMTP email backend.
+    """
+    subject = "Your Device Verification Code"
+    message = f"Your verification code is: {code}\n\nIf you did not request this, please secure your account."
+
+    email_msg = EmailMessage(
+        subject=subject,
+        body=message,
+        to=[email],
+    )
+
+    email_msg.send()
 
 
 def generate_code():
