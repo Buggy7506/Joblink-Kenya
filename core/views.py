@@ -44,6 +44,44 @@ from django.core.files.base import ContentFile
 import re
 from collections import namedtuple
 from django.db.models import Q
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .utils import send_verification_email_smtp, generate_code
+
+@login_required
+def resend_device_code(request):
+    """
+    Resend a new verification code to the user's email.
+    """
+    user = request.user
+
+    # Prevent abuse: allow resend every 30 seconds
+    last_sent = request.session.get("last_verification_sent")
+    if last_sent:
+        elapsed = (timezone.now() - last_sent).total_seconds()
+        if elapsed < 30:
+            return JsonResponse({"status": "error", "message": f"Please wait {int(30 - elapsed)}s before resending."})
+
+    # Generate new 6-digit code
+    code = generate_code()
+    DeviceVerification.objects.create(
+        user=user,
+        code=code,
+        device_name=request.session.get("pending_name"),
+        user_agent=request.session.get("pending_ua"),
+        ip_address=request.session.get("pending_ip")
+    )
+
+    # Send email via SMTP
+    if user.email:
+        send_verification_email_smtp(user.email, code)
+
+    # Update session timestamp
+    request.session["last_verification_sent"] = timezone.now()
+
+    return JsonResponse({"status": "ok", "message": "A new verification code has been sent!"})
+
 
 User = get_user_model()
 
