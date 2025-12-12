@@ -32,13 +32,13 @@ body {
   transition: background 0.4s, color 0.4s;
 }
 
-a { text-decoration:none; color:inherit; }
+a { text-decoration:none; color:inherit; transition: color 0.4s; }
 .container { width:90%; max-width:1200px; margin:0 auto; }
 .glow { text-shadow:0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #0ff; }
 .glow-border { border:2px solid transparent; border-image:linear-gradient(45deg,#00f0ff,#0ea5e9); border-image-slice:1; }
-.nav-bg { background-color:rgba(30,41,59,0.8); backdrop-filter:blur(6px); }
+.nav-bg { background-color:rgba(30,41,59,0.8); backdrop-filter:blur(6px); transition: background 0.4s, color 0.4s; }
 .hover-glow:hover { color:#0ff; text-shadow:0 0 6px #00f0ff; }
-header { position:sticky; top:0; z-index:50; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,0.3); }
+header { position:sticky; top:0; z-index:50; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,0.3); transition: background 0.4s, color 0.4s; }
 nav a { margin:0 1rem; font-weight:bold; }
 .main { flex-grow:1; padding:2rem 0 80px; }
 
@@ -104,7 +104,7 @@ body.light-mode {
 }
 
 body.light-mode .nav-bg {
-  background-color: rgba(255,255,255,0.9);
+  background-color: rgba(255,255,255,0.95);
 }
 
 body.light-mode .footer {
@@ -167,8 +167,7 @@ body.light-mode #darkModeToggleDesktop {
       <nav class="desktop-nav">
 
         <a href="{% url 'home' %}"
-           class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}
-           {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+           class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %} {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
            Home
         </a>
 
@@ -244,8 +243,7 @@ body.light-mode #darkModeToggleDesktop {
   <div id="mobileMenu" class="mobile-menu">
 
     <a href="{% url 'home' %}"
-       class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %}
-       {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+       class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %} {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
        Home
     </a>
 
@@ -330,7 +328,7 @@ document.getElementById('menuToggle').addEventListener('click', () => {
     } else {
         menu.style.display = 'flex';
         setTimeout(() => {
-            menu.style.maxHeight = '500px'; // adjust if needed
+            menu.style.maxHeight = menu.scrollHeight + 'px';
             menu.style.padding = '1rem';
         }, 10);
     }
