@@ -534,6 +534,15 @@ def login_view(request):
             return render(request, 'login.html')
 
         # -------------------------
+        # 1.5️⃣ Check if user has a password
+        # -------------------------
+        if not user_obj.has_usable_password():
+            # User has no password set → redirect to set password page
+            request.session["pending_user_id"] = user_obj.id
+            messages.info(request, "Please set your password to continue.")
+            return redirect("set_password")  # page/popup to set password
+
+        # -------------------------
         # 2️⃣ Authenticate normally
         # -------------------------
         user = authenticate(request, username=username, password=password)
@@ -588,7 +597,6 @@ def login_view(request):
         # 6️⃣ Send code (email or SMS)
         # -------------------------
         if user.phone:
-            # You can integrate Twilio/Africa's Talking here
             print(f"SMS to {user.phone}: Your verification code is {code}")
         else:
             send_mail(
@@ -603,6 +611,7 @@ def login_view(request):
 
     # 7️⃣ GET request → show login page
     return render(request, 'login.html')
+
 
 
 
