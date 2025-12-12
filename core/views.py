@@ -616,6 +616,8 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+from django.contrib.auth import logout
+
 def login_view(request):
     """
     Handle user login with device verification for untrusted devices.
@@ -626,6 +628,10 @@ def login_view(request):
     4. Check if device is trusted.
     5. If new device, redirect to choose verification method (email/phone).
     """
+
+    # 🔥 Ensure no previous session keeps the user authenticated
+    if request.user.is_authenticated:
+        logout(request)
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()  # username/email/phone
@@ -679,6 +685,8 @@ def login_view(request):
         # -------------------------
         # 5️⃣ New device → store pending info for verification
         # -------------------------
+        request.session.flush()  # remove any previous auth session data
+
         request.session.update({
             "pending_user_id": user.id,
             "pending_ip": ip,
@@ -693,6 +701,7 @@ def login_view(request):
     # 6️⃣ GET request → Show login page
     # -------------------------
     return render(request, 'login.html')
+
 
 #User Logout
 
