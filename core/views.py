@@ -695,7 +695,10 @@ def login_view(request):
 
     # 🔥 Ensure no previous session keeps the user authenticated
     if request.user.is_authenticated:
-        logout(request)
+        # Only remove authentication keys, keep session data
+        for key in ["_auth_user_id", "_auth_user_backend", "_auth_user_hash"]:
+            if key in request.session:
+                del request.session[key]
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()  # username/email/phone
@@ -749,7 +752,10 @@ def login_view(request):
         # -------------------------
         # 5️⃣ New device → store pending info for verification
         # -------------------------
-        request.session.flush()  # clear old session
+        # Don't flush session; remove old auth keys instead
+        for key in ["_auth_user_id", "_auth_user_backend", "_auth_user_hash"]:
+            if key in request.session:
+                del request.session[key]
 
         # Save pending info for pre-login verification
         request.session.update({
