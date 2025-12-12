@@ -2,8 +2,6 @@
 
 {% block title %}Verification • JobLink Kenya{% endblock %}
 
-{% load static %}
-
 {% block content %}
 
 <style>
@@ -145,6 +143,17 @@
 .theme-toggle:hover {
     opacity: 0.7;
 }
+
+/* ERROR MESSAGES */
+.verify-wrapper .error {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    text-align: center;
+}
 </style>
 
 <!-- ================= DARK/LIGHT SWITCH ================= -->
@@ -156,9 +165,7 @@
 
         {% if messages %}
             {% for msg in messages %}
-                <div class="error" style="margin-bottom:15px;">
-                    {{ msg }}
-                </div>
+                <div class="error">{{ msg }}</div>
             {% endfor %}
         {% endif %}
 
