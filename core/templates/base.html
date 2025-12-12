@@ -166,12 +166,14 @@ body.light-mode #darkModeToggleDesktop {
     <div style="display:flex; align-items:center;">
       <nav class="desktop-nav">
 
+        <!-- HOME ALWAYS VISIBLE -->
         <a href="{% url 'home' %}"
-           class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %} {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+           class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
            Home
         </a>
 
         {% if user.is_authenticated %}
+
             {% if user.is_superuser or user.role == 'admin' %}
                 <a href="{% url 'admin_dashboard' %}"
                    class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}">
@@ -193,6 +195,7 @@ body.light-mode #darkModeToggleDesktop {
                    class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-link{% endif %}">
                    Profile
                 </a>
+
             {% else %}
                 <a href="{% url 'dashboard' %}"
                    class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
@@ -217,6 +220,11 @@ body.light-mode #darkModeToggleDesktop {
             </a>
 
         {% else %}
+            <a href="{% url 'home' %}"
+               class="hover-glow guest-link {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+               Home
+            </a>
+
             <a href="{% url 'login' %}"
                class="hover-glow guest-link {% if request.resolver_match.url_name == 'login' %}active-link{% endif %}">
                Login
@@ -242,12 +250,14 @@ body.light-mode #darkModeToggleDesktop {
   <!-- Mobile Navigation -->
   <div id="mobileMenu" class="mobile-menu">
 
+    <!-- HOME ALWAYS -->
     <a href="{% url 'home' %}"
-       class="hover-glow {% if not user.is_authenticated %}guest-link{% endif %} {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+       class="hover-glow {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
        Home
     </a>
 
     {% if user.is_authenticated %}
+
         {% if user.is_superuser or user.role == 'admin' %}
             <a href="{% url 'admin_dashboard' %}"
                class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}">
@@ -294,6 +304,11 @@ body.light-mode #darkModeToggleDesktop {
         </a>
 
     {% else %}
+        <a href="{% url 'home' %}"
+           class="hover-glow guest-link {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
+           Home
+        </a>
+
         <a href="{% url 'login' %}"
            class="hover-glow guest-link {% if request.resolver_match.url_name == 'login' %}active-link{% endif %}">
            Login
@@ -306,6 +321,7 @@ body.light-mode #darkModeToggleDesktop {
     {% endif %}
   </div>
 </header>
+
 
 <main class="main container" data-aos="fade-up">
   {% block content %}{% endblock %}
