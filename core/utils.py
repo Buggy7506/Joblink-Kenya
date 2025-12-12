@@ -2,34 +2,49 @@ import random
 import hashlib
 from django.core.mail import EmailMessage, get_connection
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_verification_email_smtp(email, code):
     """
     Sends a device verification code using Django SMTP email backend
-    with explicit connection settings, ensuring production works.
+    with explicit connection settings, ensuring it works in production.
     """
     subject = "Your Device Verification Code"
-    message = f"Your verification code is: {code}\n\nIf you did not request this, please secure your account."
-
-    # Use the same SMTP connection as Django password reset
-    connection = get_connection(
-        host=settings.EMAIL_HOST,
-        port=settings.EMAIL_PORT,
-        username=settings.EMAIL_HOST_USER,
-        password=settings.EMAIL_HOST_PASSWORD,
-        use_tls=settings.EMAIL_USE_TLS,
-        fail_silently=False
+    message = (
+        f"Your verification code is: {code}\n\n"
+        "If you did not request this, please secure your account."
     )
 
-    email_msg = EmailMessage(
-        subject=subject,
-        body=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[email],
-        connection=connection
-    )
+    try:
+        # Use explicit SMTP connection
+        connection = get_connection(
+            host=settings.EMAIL_HOST,
+            port=settings.EMAIL_PORT,
+            username=settings.EMAIL_HOST_USER,
+            password=settings.EMAIL_HOST_PASSWORD,
+            use_tls=settings.EMAIL_USE_TLS,
+            fail_silently=False
+        )
 
-    email_msg.send()
+        email_msg = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[email],
+            connection=connection
+        )
+
+        email_msg.send()
+        logger.info(f"Verification email sent successfully to {email}")
+        return True
+
+    except Exception as e:
+        # Log error for debugging in production
+        logger.error(f"Failed to send verification email to {email}: {e}")
+        return False
+
 
 
 
