@@ -52,9 +52,10 @@ def verify_device(request):
     Verify a new device using a 6-digit code sent via email or SMS.
     Marks device as trusted and logs in the user on successful verification.
     """
-    # -------------------------
-    # 1️⃣ Ensure pending verification exists
-    # -------------------------
+
+    # ----------------------------------------
+    # 1️⃣ Make sure session has a pending user
+    # ----------------------------------------
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
         messages.error(request, "No pending verification found. Please login first.")
@@ -67,17 +68,20 @@ def verify_device(request):
         request.session.flush()
         return redirect("login")
 
-    # -------------------------
-    # 2️⃣ Handle POST → verify code
-    # -------------------------
+    # ----------------------------------------
+    # 2️⃣ POST → check input & validate code
+    # ----------------------------------------
     if request.method == "POST":
         code = request.POST.get("code", "").strip()
 
         if not code:
             messages.error(request, "Please enter the verification code.")
-            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
+            return render(request, "verify_device.html", {
+                "user": user,
+                "pending_verification": True
+            })
 
-        # Look for unused matching code
+        # Look for valid unused code
         verification = DeviceVerification.objects.filter(
             user=user,
             code=code,
@@ -86,20 +90,28 @@ def verify_device(request):
 
         if not verification:
             messages.error(request, "Invalid or incorrect verification code.")
-            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
+            return render(request, "verify_device.html", {
+                "user": user,
+                "pending_verification": True
+            })
 
-        # Expire codes after 10 minutes
+        # Check expiry (10 min)
         expiry_time = verification.created_at + timezone.timedelta(minutes=10)
         if timezone.now() > expiry_time:
-            messages.error(request, "The verification code has expired. Please login again.")
+            verification.is_used = True
+            verification.save()
+
+            messages.error(request, "That code has expired. Please request a new one.")
             request.session.flush()
             return redirect("login")
 
-        # Mark verification used
+        # Mark code as used
         verification.is_used = True
         verification.save()
 
-        # Save the device as trusted
+        # ----------------------------------------
+        # 3️⃣ Save device as trusted
+        # ----------------------------------------
         TrustedDevice.objects.create(
             user=user,
             device_name=request.session.get("pending_name"),
@@ -107,38 +119,26 @@ def verify_device(request):
             ip_address=request.session.get("pending_ip")
         )
 
-        # Log user in
+        # ----------------------------------------
+        # 4️⃣ Log user in
+        # ----------------------------------------
         login(request, user)
 
-        # Clean up session data
-        for key in ["pending_user_id", "pending_ip", "pending_ua", "pending_name", "pending_method"]:
+        # Cleanup
+        for key in ["pending_user_id", "pending_ip", "pending_ua",
+                    "pending_name", "pending_method"]:
             request.session.pop(key, None)
 
         messages.success(request, "Device verified and logged in successfully!")
         return redirect("dashboard")
 
-    # -------------------------
-    # 3️⃣ GET request → render verification page
-    # -------------------------
+    # ----------------------------------------
+    # 5️⃣ GET → show verification page
+    # ----------------------------------------
     return render(request, "verify_device.html", {
         "user": user,
-        "pending_verification": True  # template can use this to suppress "already logged in" messages
+        "pending_verification": True
     })
-
-
-def send_verification_email_sendgrid(to_email, code):
-    """
-    Send device verification code using SendGrid backend only.
-    """
-    connection = get_connection("sendgrid_backend.SendgridBackend")
-    send_mail(
-        subject="New Device Login Verification",
-        message=f"Your verification code is: {code}",
-        from_email="JobLink Kenya <no-reply@joblink.co.ke>",
-        recipient_list=[to_email],
-        fail_silently=False,
-        connection=connection
-    )
 
 
 def choose_verification_method(request):
@@ -187,11 +187,11 @@ def choose_verification_method(request):
             ip_address=request.session.get("pending_ip")
         )
 
-        # Send SMS OR SendGrid email
+        # Send SMS OR SMTP EMAIL
         if method == "phone":
             print(f"SMS to {user.phone}: Your verification code is {code}")
         else:
-            send_verification_email_sendgrid(user.email, code)
+            send_verification_email_smtp(user.email, code)
 
         # Save method and redirect
         request.session["pending_method"] = method
@@ -203,6 +203,7 @@ def choose_verification_method(request):
         "has_phone": bool(user.phone),
         "pending_verification": True
     })
+
 
 
 
