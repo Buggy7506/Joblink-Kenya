@@ -314,12 +314,12 @@ def google_choose_role(request):
             messages.error(request, "Please select a valid role.")
             return redirect('google_choose_role')
 
-        # Store role and Google user info in session for later account creation
+        # Store role in session for later account creation
         request.session['google_role'] = role
 
         return redirect('set_google_password')
 
-    # GET request: render role selection template
+    # GET request → render role selection template
     return render(request, 'google_role.html', {
         "google_user": user_data,
     })
