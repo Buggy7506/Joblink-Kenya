@@ -74,7 +74,13 @@ class TrustedDevice(models.Model):
 
 
 class DeviceVerification(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,        # allow null for pre-login
+        blank=True        # optional in forms
+    )
+    email = models.EmailField(null=True, blank=True)  # store email temporarily
     code = models.CharField(max_length=6)
     device_name = models.CharField(max_length=255)
     user_agent = models.TextField()
@@ -83,7 +89,10 @@ class DeviceVerification(models.Model):
     is_used = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Verification for {self.user.username} ({self.device_name})"
+        if self.user:
+            return f"Verification for {self.user.username} ({self.device_name})"
+        return f"Verification for {self.email} ({self.device_name})"
+
 
 
 # ======================================================
