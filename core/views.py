@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404 
+from core.utils import send_verification_email_smtp
 from django.core.mail import send_mail, get_connection
 from django.contrib.auth import login, logout, authenticate 
 from django.contrib import messages 
