@@ -38,6 +38,10 @@ from django.db.models import Q
 from .models import TrustedDevice, DeviceVerification, CustomUser
 from .utils import get_client_ip, get_device_name, generate_code
 from django.core.mail import send_mail
+from django.core.files.base import ContentFile
+import re
+from collections import namedtuple
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -99,71 +103,102 @@ def verify_device(request):
 
     return render(request, "verify_device.html")
 
+
 def set_google_password(request):
     """
-    Allows new Google OAuth users to set a password.
-    User cannot log in until password is set.
+    Google OAuth users set a password here.
+    User account is created only after a valid password is set.
     """
-    user_id = request.session.get('set_password_user_id')
-    if not user_id:
-        messages.error(request, "Session expired. Please sign up again.")
+    google_user = request.session.get('google_user')
+    if not google_user:
+        messages.error(request, "Session expired. Please login with Google again.")
         return redirect('signup')
-
-    try:
-        user = User.objects.get(id=user_id)
-    except ObjectDoesNotExist:
-        messages.error(request, "User not found. Please sign up again.")
-        request.session.pop('set_password_user_id', None)
-        return redirect('signup')
-
-    # Redirect to dashboard if password already set
-    if user.has_usable_password():
-        messages.info(request, "Password already set. You can login now.")
-        return redirect('login')
 
     if request.method == 'POST':
         password = request.POST.get('password', '').strip()
         confirm_password = request.POST.get('confirm_password', '').strip()
 
-        # Validate inputs
+        # -------------------------
+        # 1️⃣ Validate inputs
+        # -------------------------
         if not password or not confirm_password:
             messages.error(request, "Please fill in both password fields.")
-            return render(request, 'set_google_password.html', {"user": user})
+            return render(request, 'set_google_password.html')
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'set_google_password.html', {"user": user})
+            return render(request, 'set_google_password.html')
 
         if len(password) < 6:
             messages.error(request, "Password must be at least 6 characters long.")
-            return render(request, 'set_google_password.html', {"user": user})
+            return render(request, 'set_google_password.html')
 
-        # Optional: enforce additional strength rules (uppercase, number, special char)
-        import re
+        # Strength checks
         if not re.search(r'[A-Z]', password):
             messages.error(request, "Password must contain at least one uppercase letter.")
-            return render(request, 'set_google_password.html', {"user": user})
+            return render(request, 'set_google_password.html')
         if not re.search(r'\d', password):
             messages.error(request, "Password must contain at least one number.")
-            return render(request, 'set_google_password.html', {"user": user})
+            return render(request, 'set_google_password.html')
         if not re.search(r'[@$!%*#?&]', password):
             messages.error(request, "Password must contain at least one special character (@$!%*#?&).")
-            return render(request, 'set_google_password.html', {"user": user})
+            return render(request, 'set_google_password.html')
 
-        # Set password and save
-        user.password = make_password(password)
+        # -------------------------
+        # 2️⃣ Create user account
+        # -------------------------
+        email = google_user['email']
+        first_name = google_user.get('first_name', '')
+        last_name = google_user.get('last_name', '')
+        role = request.session.get('google_role') or google_user.get('role')  # Role stored in session from role selection
+
+        # Generate unique username
+        base_username = ''.join(e for e in first_name.lower() if e.isalnum()) or 'user'
+        username = base_username
+        counter = 1
+        while CustomUser.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        user = CustomUser.objects.create(
+            email=email,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            role=role
+        )
+        user.set_password(password)
         user.save()
 
-        # Log in the user
-        login(request, user)
-        request.session.pop('set_password_user_id', None)
-        messages.success(request, "Password set successfully! You are now logged in.")
+        # -------------------------
+        # 3️⃣ Save profile picture if available
+        # -------------------------
+        profile_picture_url = google_user.get('picture')
+        if profile_picture_url:
+            try:
+                response = requests.get(profile_picture_url)
+                if response.status_code == 200:
+                    user.profile_pic.save(
+                        f"{username}_google.jpg",
+                        ContentFile(response.content),
+                        save=True
+                    )
+            except Exception as e:
+                print("Failed to fetch Google profile picture:", e)
 
-        # Redirect after login (can add device verification here if needed)
+        # -------------------------
+        # 4️⃣ Log user in and cleanup
+        # -------------------------
+        login(request, user)
+        request.session.pop('google_user', None)
+        if 'google_role' in request.session:
+            request.session.pop('google_role')
+
+        messages.success(request, "Account created and logged in successfully!")
         return redirect('dashboard')
 
-    return render(request, 'set_google_password.html', {"user": user})
-
+    # GET request → show password set page
+    return render(request, 'set_google_password.html')
 
 # Google OAuth settings
 GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
@@ -251,9 +286,10 @@ from .models import CustomUser  # Make sure to use your CustomUser
 
 def google_choose_role(request):
     """
-    Let user select role after Google OAuth and set password if first-time user.
+    Let user select role after Google OAuth.
     Only first-time users see this page.
-    Also saves profile picture from Google to Cloudinary.
+    Role selection is stored in session for later account creation.
+    Profile picture will be handled later in set_google_password.
     """
     user_data = request.session.get('google_user')
     if not user_data:
@@ -261,17 +297,16 @@ def google_choose_role(request):
         return redirect('signup')
 
     email = user_data['email']
-    profile_picture_url = user_data.get('picture')  # Google profile pic
 
-    # Check if user already exists and has a role
+    # If user already exists and has a usable password, log in directly
     try:
         existing_user = CustomUser.objects.get(email=email)
-        if existing_user.role and existing_user.has_usable_password():
+        if existing_user.has_usable_password():
             login(request, existing_user)
             request.session.pop('google_user', None)
             return redirect('dashboard')
     except CustomUser.DoesNotExist:
-        existing_user = None
+        pass
 
     if request.method == 'POST':
         role = request.POST.get('role')
@@ -279,63 +314,15 @@ def google_choose_role(request):
             messages.error(request, "Please select a valid role.")
             return redirect('google_choose_role')
 
-        first_name = user_data['first_name']
-
-        # Generate unique username
-        base_username = ''.join(e for e in first_name.lower() if e.isalnum())
-        username = base_username
-        counter = 1
-        while CustomUser.objects.filter(username=username).exists():
-            username = f"{base_username}{counter}"
-            counter += 1
-
-        # Create or update user
-        user, created = CustomUser.objects.get_or_create(
-            email=email,
-            defaults={
-                'username': username,
-                'first_name': first_name,
-                'last_name': user_data.get('last_name', ''),
-                'role': role
-            }
-        )
-
-        updated = False
-
-        if not user.role:
-            user.role = role
-            updated = True
-
-        # Upload profile picture from Google to Cloudinary if not already set
-        if profile_picture_url and not user.profile_pic:
-            try:
-                response = requests.get(profile_picture_url)
-                if response.status_code == 200:
-                    user.profile_pic.save(
-                        f"{username}_google.jpg",
-                        ContentFile(response.content),
-                        save=False
-                    )
-                    updated = True
-            except Exception as e:
-                print("Failed to fetch Google profile picture:", e)
-
-        if updated:
-            user.save()
-
-        # Store user ID in session for setting password
-        request.session['set_password_user_id'] = user.id
-        request.session.pop('google_user', None)
+        # Store role and Google user info in session for later account creation
+        request.session['google_role'] = role
 
         return redirect('set_google_password')
 
     # GET request: render role selection template
     return render(request, 'google_role.html', {
         "google_user": user_data,
-        "profile_picture": profile_picture_url
     })
-
-
 
 
     
@@ -369,12 +356,6 @@ def edit_message(request, msg_id):
         msg.save()
     return JsonResponse({"status": "ok", "new_text": msg.message})
 
-import re
-from collections import namedtuple
-from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db.models import Q
 
 NotificationItem = namedtuple("NotificationItem", ["title", "message", "timestamp", "is_read", "url"])
 
@@ -535,20 +516,19 @@ User = get_user_model()
 
 def login_view(request):
     if request.method == 'POST':
-        identifier = request.POST['identifier']  # username, email, or phone
-        password = request.POST['password']
+        identifier = request.POST.get('identifier', '').strip()  # username, email, or phone
+        password = request.POST.get('password', '').strip()
 
         # -------------------------
         # 1️⃣ Find user by username/email/phone
         # -------------------------
         try:
-            user_obj = User.objects.get(
+            user_obj = CustomUser.objects.get(
                 Q(username=identifier) |
                 Q(email=identifier) |
                 Q(phone=identifier)
             )
-            username = user_obj.username
-        except User.DoesNotExist:
+        except CustomUser.DoesNotExist:
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
@@ -557,15 +537,14 @@ def login_view(request):
         # -------------------------
         if not user_obj.has_usable_password():
             # User has no password set → redirect to set password page
-            request.session["pending_user_id"] = user_obj.id
+            request.session["set_password_user_id"] = user_obj.id
             messages.info(request, "Please set your password to continue.")
-            return redirect("set_google_password")  # page/popup to set password
+            return redirect("set_google_password")
 
         # -------------------------
         # 2️⃣ Authenticate normally
         # -------------------------
-        user = authenticate(request, username=username, password=password)
-
+        user = authenticate(request, username=user_obj.username, password=password)
         if user is None:
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
@@ -580,24 +559,16 @@ def login_view(request):
         # -------------------------
         # 4️⃣ Check if this device is already trusted
         # -------------------------
-        if TrustedDevice.objects.filter(
-            user=user,
-            device_name=device_name,
-            ip_address=ip
-        ).exists():
-            # Device is trusted → normal login
+        if TrustedDevice.objects.filter(user=user, device_name=device_name, ip_address=ip).exists():
             login(request, user)
-
             if user.is_superuser:
                 return redirect('admin_dashboard')
-
             return redirect('dashboard')
 
         # -------------------------
         # 5️⃣ Device is NEW → Trigger Verification
         # -------------------------
         code = generate_code()
-
         DeviceVerification.objects.create(
             user=user,
             code=code,
@@ -607,15 +578,18 @@ def login_view(request):
         )
 
         # Store temporary session for verification
-        request.session["pending_user_id"] = user.id
-        request.session["pending_ip"] = ip
-        request.session["pending_ua"] = user_agent
-        request.session["pending_name"] = device_name
+        request.session.update({
+            "pending_user_id": user.id,
+            "pending_ip": ip,
+            "pending_ua": user_agent,
+            "pending_name": device_name,
+        })
 
         # -------------------------
-        # 6️⃣ Send code (email or SMS)
+        # 6️⃣ Send verification code
         # -------------------------
         if user.phone:
+            # Placeholder for SMS sending logic
             print(f"SMS to {user.phone}: Your verification code is {code}")
         else:
             send_mail(
@@ -626,12 +600,10 @@ def login_view(request):
                 fail_silently=True
             )
 
-        return redirect("verify_device")  # Redirect to input verification code page
+        return redirect("verify_device")
 
     # 7️⃣ GET request → show login page
     return render(request, 'login.html')
-
-
 
 
 #User Logout
