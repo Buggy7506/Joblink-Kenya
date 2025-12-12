@@ -148,7 +148,7 @@
 }
 
 /* Continue button */
-.role-selection-wrapper button {
+.role-selection-wrapper button.continue-btn {
     width: 100%;
     background: linear-gradient(180deg,#4d69ff,#3c51f6);
     border: none;
@@ -162,28 +162,29 @@
     box-shadow: 0 10px 25px rgba(60, 81, 246, 0.25);
 }
 
-.role-selection-wrapper button:hover {
+.role-selection-wrapper button.continue-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(60, 81, 246, 0.3);
 }
 
-/* Dark mode toggle button */
+/* Dark mode toggle button - updated to compact style */
 .dark-mode-toggle {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: #fff;
-    border: none;
+    position: fixed;
+    top: 18px;
+    left: 18px;
     padding: 10px 14px;
-    border-radius: 50px;
+    font-size: 16px;
+    background: #444;
+    color: #fff;
+    border-radius: 10px;
     cursor: pointer;
+    z-index: 9999;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     transition: all 0.3s ease;
-    font-size: 16px;
 }
 
 .role-selection-wrapper.dark-mode .dark-mode-toggle {
-    background: #444;
+    background: #222;
     color: #fff;
 }
 
@@ -241,7 +242,7 @@
         </span>
       </label>
 
-      <button type="submit">Continue</button>
+      <button type="submit" class="continue-btn">Continue</button>
     </form>
 
     <!-- FontAwesome for icons -->
@@ -253,20 +254,16 @@
         const wrapper = document.querySelector('.role-selection-wrapper');
 
         // Load dark mode preference from localStorage
-        if(localStorage.getItem('darkMode') === 'enabled'){
+        if(localStorage.getItem('theme') === 'dark'){
             wrapper.classList.add('dark-mode');
             toggleBtn.textContent = '☀️';
         }
 
         toggleBtn.addEventListener('click', () => {
             wrapper.classList.toggle('dark-mode');
-            if(wrapper.classList.contains('dark-mode')){
-                toggleBtn.textContent = '☀️';
-                localStorage.setItem('darkMode', 'enabled');
-            } else {
-                toggleBtn.textContent = '🌙';
-                localStorage.setItem('darkMode', 'disabled');
-            }
+            const isDark = wrapper.classList.contains('dark-mode');
+            toggleBtn.textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
     </script>
 </div>
