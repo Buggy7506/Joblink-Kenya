@@ -47,71 +47,16 @@ User = get_user_model()
 
 
 def verify_device(request):
-    # Prevent direct access without pending verification
-    if "pending_user_id" not in request.session:
-        return redirect("login")  # or show an error page
-
-    if request.method == "POST":
-        code = request.POST.get("code")
-
-        user_id = request.session.get("pending_user_id")
-        ip = request.session.get("pending_ip")
-        ua = request.session.get("pending_ua")
-        device_name = request.session.get("pending_name")
-
-        # Look for unused matching code
-        verification = DeviceVerification.objects.filter(
-            user_id=user_id,
-            code=code,
-            is_used=False
-        ).order_by("-created_at").first()
-
-        if verification:
-            # OPTIONAL: Expire codes after 10 minutes
-            expiry_time = verification.created_at + timezone.timedelta(minutes=10)
-            if timezone.now() > expiry_time:
-                return render(request, "verify_device.html", {
-                    "error": "The verification code has expired. Please login again."
-                })
-
-            # Mark verification used
-            verification.is_used = True
-            verification.save()
-
-            # Save the device as trusted
-            TrustedDevice.objects.create(
-                user_id=user_id,
-                device_name=device_name,
-                user_agent=ua,
-                ip_address=ip
-            )
-
-            # Log user in
-            user = User.objects.get(id=user_id)
-            login(request, user)
-
-            # Clean up session data
-            for key in ["pending_user_id", "pending_ip", "pending_ua", "pending_name"]:
-                request.session.pop(key, None)
-
-            return redirect("dashboard")
-
-        else:
-            return render(request, "verify_device.html", {
-                "error": "Invalid or incorrect verification code."
-            })
-
-    return render(request, "verify_device.html")
-
-def choose_verification_method(request):
     """
-    Let the user choose how to receive the device verification code (email or phone)
-    before verifying a new device.
+    Verify a new device using a 6-digit code sent via email or SMS.
+    Marks device as trusted and logs in the user on successful verification.
     """
-    # Prevent access if no pending login verification
+    # -------------------------
+    # 1️⃣ Ensure pending verification exists
+    # -------------------------
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
-        messages.error(request, "Please login first.")
+        messages.error(request, "No pending verification found. Please login first.")
         return redirect("login")
 
     try:
@@ -121,13 +66,98 @@ def choose_verification_method(request):
         request.session.flush()
         return redirect("login")
 
+    # -------------------------
+    # 2️⃣ Handle POST → verify code
+    # -------------------------
+    if request.method == "POST":
+        code = request.POST.get("code", "").strip()
+
+        if not code:
+            messages.error(request, "Please enter the verification code.")
+            return render(request, "verify_device.html")
+
+        # Look for unused matching code
+        verification = DeviceVerification.objects.filter(
+            user=user,
+            code=code,
+            is_used=False
+        ).order_by("-created_at").first()
+
+        if not verification:
+            messages.error(request, "Invalid or incorrect verification code.")
+            return render(request, "verify_device.html")
+
+        # Optional: expire codes after 10 minutes
+        expiry_time = verification.created_at + timezone.timedelta(minutes=10)
+        if timezone.now() > expiry_time:
+            messages.error(request, "The verification code has expired. Please login again.")
+            return redirect("login")
+
+        # Mark verification used
+        verification.is_used = True
+        verification.save()
+
+        # Save the device as trusted
+        TrustedDevice.objects.create(
+            user=user,
+            device_name=request.session.get("pending_name"),
+            user_agent=request.session.get("pending_ua"),
+            ip_address=request.session.get("pending_ip")
+        )
+
+        # Log user in
+        login(request, user)
+
+        # Clean up session data
+        for key in ["pending_user_id", "pending_ip", "pending_ua", "pending_name", "pending_method"]:
+            request.session.pop(key, None)
+
+        messages.success(request, "Device verified and logged in successfully!")
+        return redirect("dashboard")
+
+    # -------------------------
+    # 3️⃣ GET request → render verification page
+    # -------------------------
+    return render(request, "verify_device.html", {
+        "user": user
+    })
+
+
+def choose_verification_method(request):
+    """
+    Let the user choose how to receive the device verification code (email or phone)
+    before verifying a new device.
+    """
+    # -------------------------
+    # 1️⃣ Ensure pending login exists
+    # -------------------------
+    pending_user_id = request.session.get("pending_user_id")
+    if not pending_user_id:
+        messages.error(request, "Please login first.")
+        return redirect("login")
+
+    # -------------------------
+    # 2️⃣ Get user object
+    # -------------------------
+    try:
+        user = CustomUser.objects.get(id=pending_user_id)
+    except CustomUser.DoesNotExist:
+        messages.error(request, "User not found. Please login again.")
+        request.session.flush()
+        return redirect("login")
+
+    # -------------------------
+    # 3️⃣ Handle POST → generate & send verification code
+    # -------------------------
     if request.method == "POST":
         method = request.POST.get("method")
         if method not in ["email", "phone"]:
             messages.error(request, "Please select a valid verification method.")
             return redirect("choose_verification_method")
 
+        # -------------------------
         # Generate verification code
+        # -------------------------
         code = generate_code()
         DeviceVerification.objects.create(
             user=user,
@@ -137,12 +167,14 @@ def choose_verification_method(request):
             ip_address=request.session.get("pending_ip")
         )
 
-        # Send code according to selected method
+        # -------------------------
+        # Send code according to method
+        # -------------------------
         if method == "phone":
             if not user.phone:
                 messages.error(request, "No phone number on file for this account.")
                 return redirect("choose_verification_method")
-            # Placeholder for SMS sending logic
+            # TODO: Integrate real SMS service
             print(f"SMS to {user.phone}: Your verification code is {code}")
         else:  # email
             send_mail(
@@ -153,14 +185,22 @@ def choose_verification_method(request):
                 fail_silently=False
             )
 
+        # -------------------------
         # Store chosen method in session
+        # -------------------------
         request.session["pending_method"] = method
+
+        # Redirect to OTP verification page
         return redirect("verify_device")
 
+    # -------------------------
+    # 4️⃣ GET → Render verification method selection page
+    # -------------------------
     return render(request, "choose_verification_method.html", {
         "user": user,
         "has_phone": bool(user.phone)
     })
+
 
 
 
@@ -575,12 +615,21 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 def login_view(request):
+    """
+    Handle user login with device verification for untrusted devices.
+    Steps:
+    1. Identify user by username, email, or phone.
+    2. Check if password is set.
+    3. Authenticate user.
+    4. Check if device is trusted.
+    5. If new device, redirect to choose verification method (email/phone).
+    """
     if request.method == 'POST':
-        identifier = request.POST.get('identifier', '').strip()  # username, email, or phone
+        identifier = request.POST.get('identifier', '').strip()  # username/email/phone
         password = request.POST.get('password', '').strip()
 
         # -------------------------
-        # 1️⃣ Find user by username/email/phone
+        # 1️⃣ Find user
         # -------------------------
         try:
             user_obj = CustomUser.objects.get(
@@ -601,7 +650,7 @@ def login_view(request):
             return redirect("set_google_password")
 
         # -------------------------
-        # 2️⃣ Authenticate normally
+        # 2️⃣ Authenticate user
         # -------------------------
         user = authenticate(request, username=user_obj.username, password=password)
         if user is None:
@@ -616,16 +665,16 @@ def login_view(request):
         user_agent = request.META.get("HTTP_USER_AGENT", "")
 
         # -------------------------
-        # 4️⃣ Check if this device is already trusted
+        # 4️⃣ Trusted device? → Direct login
         # -------------------------
-        if TrustedDevice.objects.filter(user=user, device_name=device_name, ip_address=ip).exists():
+        if TrustedDevice.objects.filter(
+            user=user, device_name=device_name, ip_address=ip
+        ).exists():
             login(request, user)
-            if user.is_superuser:
-                return redirect('admin_dashboard')
-            return redirect('dashboard')
+            return redirect('admin_dashboard' if user.is_superuser else 'dashboard')
 
         # -------------------------
-        # 5️⃣ New device → store pending info and redirect to choose verification method
+        # 5️⃣ New device → Store pending info
         # -------------------------
         request.session.update({
             "pending_user_id": user.id,
@@ -634,9 +683,12 @@ def login_view(request):
             "pending_name": device_name,
         })
 
-        return redirect("choose_verification_method")  # New page to let user pick email or phone
+        # Redirect to page where user chooses email or phone for verification
+        return redirect("choose_verification_method")
 
-    # 6️⃣ GET request → show login page
+    # -------------------------
+    # 6️⃣ GET request → Show login page
+    # -------------------------
     return render(request, 'login.html')
 
 
