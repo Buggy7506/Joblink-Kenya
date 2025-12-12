@@ -55,14 +55,24 @@ def resend_device_code(request):
     Resend a new verification code to the user's email.
     Works for both logged-in users and pre-login email verification.
     """
-
-    # Determine email and user
+    # Determine user and email
     if request.user.is_authenticated:
         user = request.user
         email = getattr(user, "email", None)
     else:
         user = None
         email = request.session.get("pending_email")
+        if not email:
+            # Try to retrieve email from pending_user_id
+            pending_user_id = request.session.get("pending_user_id")
+            if pending_user_id:
+                try:
+                    pending_user = CustomUser.objects.get(id=pending_user_id)
+                    email = pending_user.email
+                    # Save to session for future requests
+                    request.session["pending_email"] = email
+                except CustomUser.DoesNotExist:
+                    return JsonResponse({"status": "error", "message": "User not found."})
 
     if not email:
         return JsonResponse({"status": "error", "message": "No email found to send verification code."})
@@ -102,7 +112,6 @@ def resend_device_code(request):
     request.session["last_verification_sent"] = timezone.now()
 
     return JsonResponse({"status": "ok", "message": "A new verification code has been sent!"})
-
 
 
 User = get_user_model()
