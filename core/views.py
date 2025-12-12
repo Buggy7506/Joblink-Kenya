@@ -32,11 +32,12 @@ import urllib.parse
 from datetime import timedelta
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
-
-from django.shortcuts import render, redirect
 from django.contrib.auth import login, get_user_model
 from django.utils import timezone
-from .models import DeviceVerification, TrustedDevice
+from django.db.models import Q
+from .models import TrustedDevice, DeviceVerification, CustomUser
+from .utils import get_client_ip, get_device_name, generate_code
+from django.core.mail import send_mail
 
 User = get_user_model()
 
@@ -497,7 +498,6 @@ def home(request):
     return render(request, 'home.html')
 
 #User Signup
-
 def signup_view(request):
      if request.method == 'POST':
          form = CustomUserCreationForm(request.POST)
@@ -519,30 +519,91 @@ def login_view(request):
         identifier = request.POST['identifier']  # username, email, or phone
         password = request.POST['password']
 
+        # -------------------------
+        # 1️⃣ Find user by username/email/phone
+        # -------------------------
         try:
             user_obj = User.objects.get(
-                Q(username=identifier) | 
-                Q(email=identifier) | 
+                Q(username=identifier) |
+                Q(email=identifier) |
                 Q(phone=identifier)
             )
-            username = user_obj.username  # authenticate still needs username
+            username = user_obj.username
         except User.DoesNotExist:
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # Authenticate
+        # -------------------------
+        # 2️⃣ Authenticate normally
+        # -------------------------
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user is None:
+            messages.error(request, "Invalid credentials")
+            return render(request, 'login.html')
+
+        # -------------------------
+        # 3️⃣ Device fingerprint
+        # -------------------------
+        ip = get_client_ip(request)
+        device_name = get_device_name(request)
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
+
+        # -------------------------
+        # 4️⃣ Check if this device is already trusted
+        # -------------------------
+        if TrustedDevice.objects.filter(
+            user=user,
+            device_name=device_name,
+            ip_address=ip
+        ).exists():
+            # Device is trusted → normal login
             login(request, user)
 
             if user.is_superuser:
                 return redirect('admin_dashboard')
-            return redirect('dashboard')
-        else:
-            messages.error(request, "Invalid credentials")
 
+            return redirect('dashboard')
+
+        # -------------------------
+        # 5️⃣ Device is NEW → Trigger Verification
+        # -------------------------
+        code = generate_code()
+
+        DeviceVerification.objects.create(
+            user=user,
+            code=code,
+            device_name=device_name,
+            user_agent=user_agent,
+            ip_address=ip
+        )
+
+        # Store temporary session for verification
+        request.session["pending_user_id"] = user.id
+        request.session["pending_ip"] = ip
+        request.session["pending_ua"] = user_agent
+        request.session["pending_name"] = device_name
+
+        # -------------------------
+        # 6️⃣ Send code (email or SMS)
+        # -------------------------
+        if user.phone:
+            # You can integrate Twilio/Africa's Talking here
+            print(f"SMS to {user.phone}: Your verification code is {code}")
+        else:
+            send_mail(
+                subject="New Device Login Verification",
+                message=f"Your verification code is: {code}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True
+            )
+
+        return redirect("verify_device")  # Redirect to input verification code page
+
+    # 7️⃣ GET request → show login page
     return render(request, 'login.html')
+
 
 
 #User Logout
