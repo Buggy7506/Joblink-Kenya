@@ -125,23 +125,34 @@ def verify_device(request):
     })
 
 
+def send_verification_email_sendgrid(to_email, code):
+    """
+    Send device verification code using SendGrid backend only.
+    """
+    connection = get_connection("sendgrid_backend.SendgridBackend")
+    send_mail(
+        subject="New Device Login Verification",
+        message=f"Your verification code is: {code}",
+        from_email="JobLink Kenya <no-reply@joblink.co.ke>",
+        recipient_list=[to_email],
+        fail_silently=False,
+        connection=connection
+    )
+
+
 def choose_verification_method(request):
     """
     Let the user choose how to receive the device verification code (email or phone)
     before verifying a new device.
     """
 
-    # -------------------------
     # 1️⃣ Ensure pending login exists
-    # -------------------------
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
         messages.error(request, "Please login first.")
         return redirect("login")
 
-    # -------------------------
     # 2️⃣ Get user object
-    # -------------------------
     try:
         user = CustomUser.objects.get(id=pending_user_id)
     except CustomUser.DoesNotExist:
@@ -149,11 +160,10 @@ def choose_verification_method(request):
         request.session.flush()
         return redirect("login")
 
-    # -------------------------
     # 3️⃣ Handle POST → generate & send verification code
-    # -------------------------
     if request.method == "POST":
         method = request.POST.get("method")
+
         if method not in ["email", "phone"]:
             messages.error(request, "Please select a valid verification method.")
             return redirect("choose_verification_method")
@@ -161,13 +171,12 @@ def choose_verification_method(request):
         if method == "phone" and not user.phone:
             messages.error(request, "No phone number on file for this account.")
             return redirect("choose_verification_method")
+
         if method == "email" and not user.email:
             messages.error(request, "No email on file for this account.")
             return redirect("choose_verification_method")
 
-        # -------------------------
         # Generate verification code
-        # -------------------------
         code = generate_code()
         DeviceVerification.objects.create(
             user=user,
@@ -177,36 +186,21 @@ def choose_verification_method(request):
             ip_address=request.session.get("pending_ip")
         )
 
-        # -------------------------
-        # Send code according to method
-        # -------------------------
+        # Send SMS OR SendGrid email
         if method == "phone":
-            # TODO: Integrate real SMS service
             print(f"SMS to {user.phone}: Your verification code is {code}")
-        else:  # email
-            send_mail(
-                subject="New Device Login Verification",
-                message=f"Your verification code is: {code}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False
-            )
+        else:
+            send_verification_email_sendgrid(user.email, code)
 
-        # -------------------------
-        # Store chosen method in session
-        # -------------------------
+        # Save method and redirect
         request.session["pending_method"] = method
-
-        # Redirect to OTP verification page
         return redirect("verify_device")
 
-    # -------------------------
-    # 4️⃣ GET → Render verification method selection page
-    # -------------------------
+    # 4️⃣ GET → render
     return render(request, "choose_verification_method.html", {
         "user": user,
         "has_phone": bool(user.phone),
-        "pending_verification": True  # Template can use this to hide "already logged in"
+        "pending_verification": True
     })
 
 
