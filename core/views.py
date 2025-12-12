@@ -45,11 +45,9 @@ import re
 from collections import namedtuple
 from django.db.models import Q
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .utils import send_verification_email_smtp, generate_code
 
-@login_required
 def resend_device_code(request):
     """
     Resend a new verification code to the user's email.
