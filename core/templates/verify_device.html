@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+/* ===========================================================
+   WRAPPER → Prevents CSS conflicts with base.css
+   =========================================================== */
+.verify-wrapper * { box-sizing: border-box; }
+
+.verify-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: 0.4s ease;
+}
+
+/* Light & Dark Theme Variables */
+.verify-wrapper.light {
+    --bg: #f7f7f7;
+    --text: #222;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --input-bg: rgba(0, 0, 0, 0.05);
+}
+.verify-wrapper.dark {
+    --bg: linear-gradient(135deg, #0f0f0f, #1c1c1c);
+    --text: #fff;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --input-bg: rgba(255, 255, 255, 0.08);
+}
+
+.verify-wrapper .container {
+    background: var(--card-bg);
+    padding: 40px;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    text-align: center;
+    animation: fadeIn 0.7s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* OTP INPUT FIELDS */
+.verify-wrapper .otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.verify-wrapper .otp-input {
+    width: 50px;
+    height: 55px;
+    font-size: 24px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: var(--input-bg);
+    text-align: center;
+    color: var(--text);
+    outline: none;
+    transition: 0.25s;
+}
+
+.verify-wrapper .otp-input:focus {
+    transform: scale(1.12);
+    border-color: #4cafef;
+}
+
+/* BUTTON */
+.verify-wrapper button {
+    width: 100%;
+    padding: 12px;
+    background: #4cafef;
+    color: #fff;
+    border: none;
+    font-size: 17px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.verify-wrapper button:hover {
+    background: #38a0e6;
+    transform: translateY(-2px);
+}
+
+/* REMEMBER DEVICE CHECKBOX */
+.verify-wrapper .remember-device {
+    margin-top: 15px;
+    text-align: left;
+    font-size: 14px;
+}
+
+/* RESEND TIMER */
+.verify-wrapper .resend {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+/* SUCCESS CHECKMARK ANIMATION */
+.success-checkmark {
+    display: none;
+    font-size: 90px;
+    color: #4cafef;
+    animation: pop 0.6s ease-out;
+    margin-bottom: 15px;
+}
+
+@keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+/* DARK/LIGHT TOGGLE BUTTON */
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: none;
+    color: var(--text);
+    border: 2px solid var(--text);
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.theme-toggle:hover {
+    opacity: 0.7;
+}
+</style>
+
+<!-- ================= DARK/LIGHT SWITCH ================= -->
+<button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+<div class="verify-wrapper dark" id="verifyWrapper">
+
+    <div class="container">
+
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="error" style="margin-bottom:15px;">
+                    {{ msg }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="success-checkmark" id="successMark">✔</div>
+
+        <h2>Verify Your Device</h2>
+        <p>Enter the 6-digit code sent to your email/phone.</p>
+
+        <form method="POST" id="verifyForm">
+            {% csrf_token %}
+
+            <div class="otp-container">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+            </div>
+
+            <input type="hidden" name="code" id="full_code">
+
+            <label class="remember-device">
+                <input type="checkbox" name="remember_device"> Remember this device for 30 days
+            </label>
+
+            <button type="submit">Verify Device</button>
+        </form>
+
+        <div class="resend">
+            Resend available in <span id="countdown">30</span>s  
+            <br>
+            <a href="#" id="resendLink" style="display:none;">Resend Code</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* =======================================================
+   OTP AUTO-MOVEMENT + SUBMIT WITH FULL CODE
+   ======================================================= */
+const inputs = document.querySelectorAll(".otp-input");
+const hiddenInput = document.getElementById("full_code");
+const form = document.getElementById("verifyForm");
+const successMark = document.getElementById("successMark");
+
+inputs.forEach((input, index) => {
+    input.addEventListener("input", () => {
+        if (input.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+        hiddenInput.value = Array.from(inputs).map(i => i.value).join("");
+    });
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && input.value === "" && index > 0) {
+            inputs[index - 1].focus();
+        }
+    });
+});
+
+inputs[0].focus();
+
+/* Show checkmark animation on successful submit */
+form.addEventListener("submit", function () {
+    successMark.style.display = "block";
+});
+
+/* =======================================================
+   RESEND TIMER
+   ======================================================= */
+let seconds = 30;
+let countdownDisplay = document.getElementById("countdown");
+let resendLink = document.getElementById("resendLink");
+
+let timer = setInterval(() => {
+    seconds--;
+    countdownDisplay.textContent = seconds;
+
+    if (seconds <= 0) {
+        clearInterval(timer);
+        countdownDisplay.style.display = "none";
+        resendLink.style.display = "inline";
+    }
+}, 1000);
+
+/* =======================================================
+   DARK/LIGHT MODE SWITCH
+   ======================================================= */
+function toggleTheme() {
+    const wrapper = document.getElementById("verifyWrapper");
+    wrapper.classList.toggle("dark");
+    wrapper.classList.toggle("light");
+}
+</script>
+
+{% endblock %}
