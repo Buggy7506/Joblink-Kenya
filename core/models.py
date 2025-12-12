@@ -80,7 +80,7 @@ class DeviceVerification(models.Model):
         null=True,        # allow null for pre-login
         blank=True        # optional in forms
     )
-    email = models.EmailField(null=True, blank=True)  # store email temporarily
+    email = models.EmailField(null=True, blank=True)  # store email for pre-login verification
     code = models.CharField(max_length=6)
     device_name = models.CharField(max_length=255)
     user_agent = models.TextField()
@@ -91,7 +91,15 @@ class DeviceVerification(models.Model):
     def __str__(self):
         if self.user:
             return f"Verification for {self.user.username} ({self.device_name})"
-        return f"Verification for {self.email} ({self.device_name})"
+        elif self.email:
+            return f"Verification for {self.email} ({self.device_name})"
+        return f"Verification ({self.device_name})"
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Device Verification"
+        verbose_name_plural = "Device Verifications"
+
 
 
 
