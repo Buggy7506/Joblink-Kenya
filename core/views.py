@@ -720,7 +720,7 @@ def login_view(request):
     5. If new device, redirect to choose verification method (email/phone).
     """
 
-   if request.user.is_authenticated:
+    if request.user.is_authenticated:
         logout(request)  # ✅ fully clears authentication
 
     if request.method == 'POST':
