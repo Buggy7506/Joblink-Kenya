@@ -166,7 +166,8 @@ body.light-mode #darkModeToggleDesktop {
     <div style="display:flex; align-items:center;">
       <nav class="desktop-nav">
 
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and not pending_verification %}
+
 
             {% if user.is_superuser or user.role == 'admin' %}
                 <a href="{% url 'admin_dashboard' %}"
@@ -245,7 +246,8 @@ body.light-mode #darkModeToggleDesktop {
   <div id="mobileMenu" class="mobile-menu">
 
     
-    {% if user.is_authenticated %}
+  {% if user.is_authenticated and not pending_verification %}
+
 
         {% if user.is_superuser or user.role == 'admin' %}
             <a href="{% url 'admin_dashboard' %}"
