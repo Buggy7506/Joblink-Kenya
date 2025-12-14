@@ -195,22 +195,30 @@ def verify_device(request):
         # ----------------------------------------
         login(request, user)
 
-        # Cleanup
-        for key in ["pending_user_id", "pending_ip", "pending_ua",
-                    "pending_name", "pending_method"]:
+        # ----------------------------------------
+        # 5️⃣ CLEANUP VERIFICATION SESSION STATE ✅
+        # ----------------------------------------
+        for key in [
+            "pending_user_id",
+            "pending_email",
+            "pending_ip",
+            "pending_ua",
+            "pending_name",
+            "pending_method",
+            "device_verification_in_progress",  # 🔥 IMPORTANT
+        ]:
             request.session.pop(key, None)
 
         messages.success(request, "Device verified and logged in successfully!")
         return redirect("dashboard")
 
     # ----------------------------------------
-    # 5️⃣ GET → show verification page
+    # 6️⃣ GET → show verification page
     # ----------------------------------------
     return render(request, "verify_device.html", {
         "user": user,
         "pending_verification": True
     })
-
 
 def choose_verification_method(request):
     """
