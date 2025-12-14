@@ -712,12 +712,8 @@ def login_view(request):
     5. If new device, redirect to choose verification method (email/phone).
     """
 
-    # 🔥 Ensure no previous session keeps the user authenticated
-    if request.user.is_authenticated:
-        # Only remove authentication keys, keep session data
-        for key in ["_auth_user_id", "_auth_user_backend", "_auth_user_hash"]:
-            if key in request.session:
-                del request.session[key]
+   if request.user.is_authenticated:
+        logout(request)  # ✅ fully clears authentication
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()  # username/email/phone
@@ -783,6 +779,7 @@ def login_view(request):
             "pending_ip": ip,
             "pending_ua": user_agent,
             "pending_name": device_name,
+            "device_verification_in_progress": True,  # ✅ ADD THIS
         })
 
         # User is NOT logged in yet
