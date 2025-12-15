@@ -82,7 +82,7 @@ class DeviceVerification(models.Model):
     )
     email = models.EmailField(null=True, blank=True)  # store email for pre-login verification
     code = models.CharField(max_length=6)
-    device_name = models.CharField(max_length=255)
+    device_fingerprint = models.CharField(max_length=255)  # renamed from device_name
     user_agent = models.TextField()
     ip_address = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -90,16 +90,15 @@ class DeviceVerification(models.Model):
 
     def __str__(self):
         if self.user:
-            return f"Verification for {self.user.username} ({self.device_name})"
+            return f"Verification for {self.user.username} ({self.device_fingerprint})"
         elif self.email:
-            return f"Verification for {self.email} ({self.device_name})"
-        return f"Verification ({self.device_name})"
+            return f"Verification for {self.email} ({self.device_fingerprint})"
+        return f"Verification ({self.device_fingerprint})"
     
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Device Verification"
         verbose_name_plural = "Device Verifications"
-
 
 
 
