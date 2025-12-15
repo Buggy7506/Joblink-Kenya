@@ -7,7 +7,7 @@
 /* Role Selection Page Wrapper */
 .role-selection-wrapper {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    background: var(--bg-main);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -16,63 +16,54 @@
     padding: 20px;
     box-sizing: border-box;
     flex-direction: column;
+    color: var(--text-main);
     transition: background 0.4s ease, color 0.4s ease;
-}
-
-/* Dark mode wrapper */
-.role-selection-wrapper.dark-mode {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
-    color: #f0f0f0;
 }
 
 .role-selection-wrapper h2 {
     text-align: center;
     font-size: 32px;
     font-weight: 700;
-    color: #333;
+    color: var(--text-main);
     margin-bottom: 20px;
     position: relative;
     transition: color 0.4s ease;
-}
-
-.role-selection-wrapper.dark-mode h2 {
-    color: #fff;
 }
 
 .role-selection-wrapper h2::after {
     content: '';
     width: 60px;
     height: 4px;
-    background: linear-gradient(90deg,#4d69ff,#3c51f6);
+    background: var(--text-accent);
     display: block;
     margin: 12px auto 0;
     border-radius: 2px;
 }
 
+/* Profile picture */
 .role-selection-wrapper .profile-pic {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 15px;
-    border: 3px solid #4d69ff;
+    border: 3px solid var(--text-accent);
+    box-shadow: 0 0 15px var(--glow-accent);
+    transition: border 0.4s, box-shadow 0.4s;
 }
 
+/* User info */
 .role-selection-wrapper .user-info {
     text-align: center;
     font-size: 18px;
-    color: #555;
+    color: var(--text-muted);
     margin-bottom: 30px;
     transition: color 0.4s ease;
 }
 
-.role-selection-wrapper.dark-mode .user-info {
-    color: #ddd;
-}
-
 /* Form container */
 .role-selection-wrapper form {
-    background: #fff;
+    background: var(--bg-card);
     padding: 50px 35px;
     border-radius: 20px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
@@ -82,19 +73,14 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.4s ease;
 }
 
-.role-selection-wrapper.dark-mode form {
-    background: #2a2a2a;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-}
-
 /* Role cards */
 .role-selection-wrapper label {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background: #f7f8fa;
-    border: 2px solid #e2e4e8;
+    background: var(--bg-card);
+    border: 2px solid var(--text-muted);
     border-radius: 18px;
     padding: 22px 30px;
     margin-bottom: 22px;
@@ -102,20 +88,14 @@
     transition: all 0.4s ease;
     font-weight: 600;
     font-size: 17px;
-    color: #333;
+    color: var(--text-main);
     box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
 
-.role-selection-wrapper.dark-mode label {
-    background: #3c3c3c;
-    border-color: #555;
-    color: #eee;
-}
-
 .role-selection-wrapper label:hover {
-    background: linear-gradient(90deg, #4d69ff, #3c51f6);
-    color: #fff;
-    border-color: #3c51f6;
+    background: var(--text-accent);
+    color: var(--text-main);
+    border-color: var(--text-accent);
     transform: translateY(-5px) scale(1.02);
 }
 
@@ -124,10 +104,10 @@
 }
 
 .role-selection-wrapper input[type="radio"]:checked + span {
-    background: linear-gradient(90deg, #4d69ff, #3c51f6);
-    color: #fff;
+    background: var(--text-accent);
+    color: var(--text-main);
     border-radius: 18px;
-    box-shadow: 0 12px 25px rgba(60,81,246,0.3);
+    box-shadow: 0 12px 25px var(--glow-accent);
     transform: translateY(-5px) scale(1.02);
 }
 
@@ -150,42 +130,21 @@
 /* Continue button */
 .role-selection-wrapper button.continue-btn {
     width: 100%;
-    background: linear-gradient(180deg,#4d69ff,#3c51f6);
+    background: var(--text-accent);
     border: none;
     padding: 16px 0;
     border-radius: 20px;
-    color: #fff;
+    color: var(--text-main);
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 25px rgba(60, 81, 246, 0.25);
+    box-shadow: 0 10px 25px var(--glow-accent);
 }
 
 .role-selection-wrapper button.continue-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(60, 81, 246, 0.3);
-}
-
-/* Dark mode toggle button - updated to compact style */
-.dark-mode-toggle {
-    position: fixed;
-    top: 18px;
-    left: 18px;
-    padding: 10px 14px;
-    font-size: 16px;
-    background: #444;
-    color: #fff;
-    border-radius: 10px;
-    cursor: pointer;
-    z-index: 9999;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    transition: all 0.3s ease;
-}
-
-.role-selection-wrapper.dark-mode .dark-mode-toggle {
-    background: #222;
-    color: #fff;
+    box-shadow: 0 15px 30px var(--glow-accent);
 }
 
 /* Responsive */
@@ -209,17 +168,12 @@
 
 {% block content %}
 <div class="role-selection-wrapper">
-    <!-- Dark mode toggle -->
-    <button class="dark-mode-toggle" id="darkModeToggle">🌙</button>
-
     <h2>Welcome!</h2>
 
-    <!-- Google profile picture -->
     {% if profile_picture %}
         <img src="{{ profile_picture }}" alt="Profile Picture" class="profile-pic">
     {% endif %}
 
-    <!-- Show Google user info -->
     <div class="user-info">
         Hello, {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
         {{ request.session.google_user.email }}
@@ -247,24 +201,5 @@
 
     <!-- FontAwesome for icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-
-    <!-- Dark mode script -->
-    <script>
-        const toggleBtn = document.getElementById('darkModeToggle');
-        const wrapper = document.querySelector('.role-selection-wrapper');
-
-        // Load dark mode preference from localStorage
-        if(localStorage.getItem('theme') === 'dark'){
-            wrapper.classList.add('dark-mode');
-            toggleBtn.textContent = '☀️';
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            wrapper.classList.toggle('dark-mode');
-            const isDark = wrapper.classList.contains('dark-mode');
-            toggleBtn.textContent = isDark ? '☀️' : '🌙';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
-    </script>
 </div>
 {% endblock %}
