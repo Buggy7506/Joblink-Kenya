@@ -1,113 +1,117 @@
 {% extends 'base.html' %}
 {% block title %}Employer Profile • JobLink Kenya{% endblock %}
 {% block content %}
-  <style>
-    .employer-profile-container {
-      padding: 30px;
-      display: flex;
-      justify-content: center;
-    }
+ <style>
+.employer-profile-container {
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+}
 
-    .employer-profile-container .profile-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 25px;
-      border-radius: 15px;
-      max-width: 500px;
-      width: 100%;
-      margin: auto;
-      box-shadow: 0 0 15px cyan;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-    }
+.employer-profile-container .profile-box {
+  background: var(--bg-card);
+  padding: 25px;
+  border-radius: 15px;
+  max-width: 500px;
+  width: 100%;
+  margin: auto;
+  box-shadow: 0 0 15px var(--glow-accent);
+  color: var(--text-main);
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  transition: background 0.4s, color 0.4s, box-shadow 0.4s;
+}
 
-    .employer-profile-container .profile-pic {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 30px;
-    }
+.employer-profile-container .profile-pic {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
 
-    .employer-profile-container .profile-pic img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 3px solid cyan;
-      box-shadow: 0 0 15px cyan;
-      cursor: pointer;
-    }
+.employer-profile-container .profile-pic img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--text-accent);
+  box-shadow: 0 0 15px var(--glow-accent);
+  cursor: pointer;
+  transition: border 0.4s, box-shadow 0.4s;
+}
 
-    /* Left-align user details only */
-    .employer-profile-container .user-details {
-      text-align: left;
-      margin-top: 20px;
-    }
+/* Left-align user details only */
+.employer-profile-container .user-details {
+  text-align: left;
+  margin-top: 20px;
+}
 
-    .employer-profile-container .user-details p {
-      margin-bottom: 10px;
-    }
+.employer-profile-container .user-details p {
+  margin-bottom: 10px;
+  color: var(--text-main);
+}
 
-    .employer-profile-container h2 a {
-      color: cyan;
-      text-decoration: none;
-    }
+.employer-profile-container h2 a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
 
-    .employer-profile-container h2 a:hover {
-      text-decoration: underline;
-    }
+.employer-profile-container h2 a:hover {
+  text-decoration: underline;
+}
 
-    .employer-profile-container .edit-button {
-      margin-top: 40px;
-      text-align: center;
-    }
+/* Edit button */
+.employer-profile-container .edit-button {
+  margin-top: 40px;
+  text-align: center;
+}
 
-    .employer-profile-container .edit-button a {
-      display: inline-block;
-      background: #9333ea;
-      color: #fff;
-      padding: 12px 30px;
-      font-size: 16px;
-      border-radius: 30px;
-      text-decoration: none;
-      box-shadow: 0 0 12px #9333ea;
-      transition: 0.3s;
-    }
+.employer-profile-container .edit-button a {
+  display: inline-block;
+  background: var(--text-accent);
+  color: var(--text-main);
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 0 12px var(--glow-accent);
+  transition: 0.3s;
+}
 
-    .employer-profile-container .edit-button a:hover {
-      background: #7e22ce;
-      box-shadow: 0 0 20px #a855f7;
-    }
+.employer-profile-container .edit-button a:hover {
+  background: var(--glow-accent);
+  box-shadow: 0 0 20px var(--glow-accent);
+}
 
-    /* Modal styles */
-    #imgModal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.9);
-    }
+/* Modal styles */
+#imgModal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.9);
+}
 
-    #imgModal img {
-      margin: auto;
-      display: block;
-      max-width: 90%;
-      max-height: 90%;
-    }
+#imgModal img {
+  margin: auto;
+  display: block;
+  max-width: 90%;
+  max-height: 90%;
+}
 
-    #imgModal span {
-      position: absolute;
-      top: 20px;
-      right: 35px;
-      color: white;
-      font-size: 40px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-  </style>
+#imgModal span {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  color: var(--text-main);
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
 
   <div class="employer-profile-container">
     <div class="profile-box">
