@@ -3,45 +3,52 @@ import hashlib
 from django.core.mail import EmailMessage, get_connection
 from django.conf import settings
 import logging
+import os
+import requests
+
 
 logger = logging.getLogger(__name__)
 
 def send_verification_email_smtp(email, code):
     """
-    Sends a device verification code using Django SMTP email backend
-    with explicit connection settings, ensuring it works in production.
+    Sends a device verification code using Resend Email API (HTTPS).
+    This works on Render and other cloud platforms where SMTP is blocked.
     """
-    subject = "Your Device Verification Code"
-    message = (
-        f"Your verification code is: {code}\n\n"
-        "If you did not request this, please secure your account."
-    )
-
     try:
-        # Use explicit SMTP connection
-        connection = get_connection(
-            host=settings.EMAIL_HOST,
-            port=settings.EMAIL_PORT,
-            username=settings.EMAIL_HOST_USER,
-            password=settings.EMAIL_HOST_PASSWORD,
-            use_tls=settings.EMAIL_USE_TLS,
-            fail_silently=False
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {os.environ.get('RESEND_API_KEY')}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": "JobLink Kenya <onboarding@resend.dev>",
+                "to": [email],
+                "subject": "Your Device Verification Code",
+                "html": f"""
+                    <div style="font-family:Arial,sans-serif; line-height:1.6">
+                        <h2>Device Verification</h2>
+                        <p>Your verification code is:</p>
+                        <h1 style="letter-spacing:4px;">{code}</h1>
+                        <p>This code expires in <strong>10 minutes</strong>.</p>
+                        <p>If you did not request this, please secure your account.</p>
+                    </div>
+                """,
+            },
+            timeout=10,
         )
 
-        email_msg = EmailMessage(
-            subject=subject,
-            body=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[email],
-            connection=connection
-        )
+        if response.status_code not in (200, 201):
+            logger.error(
+                f"Failed to send verification email to {email}: "
+                f"{response.status_code} - {response.text}"
+            )
+            return False
 
-        email_msg.send()
         logger.info(f"Verification email sent successfully to {email}")
         return True
 
     except Exception as e:
-        # Log error for debugging in production
         logger.error(f"Failed to send verification email to {email}: {e}")
         return False
 
