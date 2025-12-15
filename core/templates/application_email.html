@@ -5,80 +5,102 @@
   <title>Job Application Confirmation</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
       background-color: #0f111a;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #e0f7fa;
-      padding: 30px;
+    }
+
+    .wrapper {
+      padding: 30px 15px;
     }
 
     .email-container {
-      background: linear-gradient(145deg, #1b1e2a, #0f111a);
-      border: 2px solid #00ffc3;
-      border-radius: 15px;
-      padding: 30px;
       max-width: 600px;
-      margin: auto;
-      box-shadow: 0 0 25px rgba(0, 255, 213, 0.3);
-      color: #e0f7fa;
+      margin: 0 auto;
+      background-color: #1b1e2a;
+      border: 2px solid #00ffc3;
+      border-radius: 14px;
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0, 255, 195, 0.25);
     }
 
     h2 {
-      color: #00ffc3;
+      margin-top: 0;
       text-align: center;
-      font-size: 28px;
-      text-shadow: 0 0 10px #00ffc3;
+      font-size: 26px;
+      color: #00ffc3;
     }
 
     p {
       font-size: 16px;
       line-height: 1.6;
+      margin: 15px 0;
+      color: #e0f7fa;
+    }
+
+    .btn-container {
+      text-align: center;
+      margin: 30px 0;
     }
 
     .btn {
       display: inline-block;
-      margin-top: 25px;
-      padding: 12px 25px;
-      background: #00ffc3;
+      padding: 14px 26px;
+      background-color: #00ffc3;
       color: #0f111a;
       text-decoration: none;
       font-weight: bold;
       border-radius: 8px;
-      box-shadow: 0 0 10px #00ffc3, 0 0 20px #00ffc3;
-      transition: 0.3s ease-in-out;
-    }
-
-    .btn:hover {
-      background: #0f111a;
-      color: #00ffc3;
-      box-shadow: 0 0 20px #00ffc3, 0 0 30px #00ffc3 inset;
       border: 1px solid #00ffc3;
     }
 
     .footer {
-      margin-top: 40px;
+      margin-top: 35px;
       text-align: center;
       font-size: 14px;
-      color: #888;
+      color: #9ca3af;
     }
   </style>
 </head>
+
 <body>
-  <div class="email-container">
-    <h2>🎉 Application Submitted!</h2>
-    <p>Hello <strong>{{ user.first_name }}</strong>,</p>
+  <div class="wrapper">
+    <div class="email-container">
 
-    <p>You’ve successfully applied for the position of <strong>{{ job.title }}</strong> at <strong>{{ job.company_name }}</strong>.</p>
+      <h2>🎉 Application Submitted!</h2>
 
-    <p>We’ve forwarded your profile to the employer. You’ll be contacted if shortlisted.</p>
+      <p>Hello <strong>{{ user.first_name }}</strong>,</p>
 
-    <p>Meanwhile, explore other exciting job opportunities crafted just for you:</p>
+      <p>
+        You’ve successfully applied for the position of
+        <strong>{{ job.title }}</strong> at
+        <strong>{{ job.company_name }}</strong>.
+      </p>
 
-    <a href="https://joblink.co.ke/suggestions/" class="btn">View Suggested Jobs</a>
+      <p>
+        Your profile has been forwarded to the employer.
+        You’ll be contacted if you’re shortlisted.
+      </p>
 
-    <p class="footer">
-      💼 JobLink Kenya<br>
-      Helping you level up your career
-    </p>
+      <p>
+        In the meantime, feel free to explore other job opportunities
+        tailored just for you.
+      </p>
+
+      <div class="btn-container">
+        <a href="https://joblink.co.ke/suggestions/" class="btn">
+          View Suggested Jobs
+        </a>
+      </div>
+
+      <div class="footer">
+        💼 <strong>JobLink Kenya</strong><br>
+        Helping you level up your career
+      </div>
+
+    </div>
   </div>
 </body>
 </html>
