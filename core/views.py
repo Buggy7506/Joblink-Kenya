@@ -297,7 +297,7 @@ def choose_verification_method(request):
             # Placeholder: integrate actual SMS provider if needed
             print(f"SMS to {user.phone}: Your verification code is {code}")
         else:
-            if not send_verification_email(pending_email, code):
+            if not send_verification_email_sendgrid(pending_email, code):
                 messages.error(
                     request,
                     "Failed to send verification email. Please try again."
