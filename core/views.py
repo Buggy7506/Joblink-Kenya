@@ -8,6 +8,7 @@ from django.contrib.auth import login, logout, authenticate, update_session_auth
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from django.contrib import messages
 
 # Django core utilities
 from django.core.mail import send_mail, get_connection, EmailMultiAlternatives
