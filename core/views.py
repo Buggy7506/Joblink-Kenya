@@ -38,7 +38,7 @@ from django.contrib.auth import login, get_user_model
 from django.utils import timezone
 from django.db.models import Q
 from .models import TrustedDevice, DeviceVerification, CustomUser
-from .utils import get_client_ip, get_device_name, generate_code
+from .utils import get_client_ip, get_device_fingerprint, generate_code
 from django.core.mail import send_mail
 from django.core.files.base import ContentFile
 import re
