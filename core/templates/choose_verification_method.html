@@ -76,16 +76,22 @@
 
 .verification-card {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-  padding: 2.5rem;
-  max-width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+  padding: 3rem 2.5rem;
+  max-width: 440px;
   width: 100%;
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.verification-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.15);
 }
 
 .verification-title {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #111827;
@@ -93,7 +99,7 @@
 
 .verification-subtitle {
   font-size: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   color: #6b7280;
 }
 
@@ -105,10 +111,11 @@
   background: #fee2e2;
   color: #b91c1c;
   padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 0.5rem;
   font-size: 0.95rem;
   text-align: left;
+  animation: fadeIn 0.4s ease forwards;
 }
 
 .verification-message.success {
@@ -120,10 +127,11 @@
   background: #d1fae5;
   color: #065f46;
   padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 1rem;
   font-size: 0.95rem;
   text-align: left;
+  animation: fadeIn 0.4s ease forwards;
 }
 
 .verification-form {
@@ -147,28 +155,62 @@
   font-size: 1rem;
   cursor: pointer;
   color: #111827;
+  transition: background 0.2s ease, color 0.2s ease;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+.verification-option:hover {
+  background: #f3f4f6;
 }
 
 .verification-option input[type="radio"] {
   accent-color: #2563eb;
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
 }
 
 .verification-btn {
   background: #2563eb;
   color: #ffffff;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease-in-out;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .verification-btn:hover {
   background: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* Fade-in animation for messages */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .verification-card {
+    padding: 2.5rem 1.5rem;
+  }
+  .verification-title {
+    font-size: 1.7rem;
+  }
+  .verification-subtitle {
+    font-size: 0.95rem;
+  }
+  .verification-btn {
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+  }
 }
 </style>
+
 {% endblock %}
