@@ -55,10 +55,11 @@ nav a { margin:0 1rem; font-weight:bold; }
   transition: background 0.4s, color 0.4s;
 }
 
-/* Guest links always white */
+/* NEW */
 .guest-link {
-  color: #ffffff !important;
+  color: inherit;
 }
+
 
 /* Active link highlight */
 .active-link {
@@ -130,6 +131,27 @@ body.light-mode .mobile-menu a.active-link {
   color: #0077b6 !important;
   text-shadow: 0 0 6px #0077b6;
 }
+
+/* ===============================
+   Guest links color handling
+================================ */
+
+/* Dark mode (default) */
+body:not(.light-mode) .guest-link {
+  color: #ffffff;
+}
+
+/* Light mode */
+body.light-mode .guest-link {
+  color: #0077b6;
+}
+
+/* Hover effect consistency */
+body.light-mode .guest-link:hover {
+  color: #005f8a;
+  text-shadow: 0 0 6px #0077b6;
+}
+
 
 /* Desktop toggle button */
 #darkModeToggleDesktop {
