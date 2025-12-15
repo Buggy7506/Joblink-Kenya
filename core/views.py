@@ -1,52 +1,50 @@
-from django.shortcuts import render, redirect, get_object_or_404 
-from core.utils import send_verification_email_sendgrid, generate_code
-from django.core.mail import send_mail, get_connection
-from django.contrib.auth import login, logout, authenticate 
-from django.contrib import messages 
-from django.contrib.auth.decorators import login_required, user_passes_test 
-from django.contrib.auth.models import User 
-from django.http import HttpResponse  
-from django.template.loader import get_template, render_to_string 
-from django.core.mail import EmailMultiAlternatives 
-from django.utils import timezone 
-from django.db.models import Q
-from .forms import EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm 
-from .models import JobAlert, ChatMessage, Application, Job, SkillResource, Resume, CVUpload, JobPlan, JobPayment, Profile 
-import pdfkit
-from django.contrib.auth import update_session_auth_hash
+# Django shortcuts & HTTP
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect, FileResponse, JsonResponse
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-import stripe
-from django.conf import settings
-from weasyprint import HTML
-from django.http import FileResponse, Http404
-import os
-from django.http import HttpResponseRedirect, FileResponse
-import requests
+
+# Django auth
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash, get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+
+# Django core utilities
+from django.core.mail import send_mail, get_connection, EmailMultiAlternatives
+from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
-from django.http import JsonResponse
-from .models import Notification
-from django.shortcuts import redirect, render
+from django.core.exceptions import ObjectDoesNotExist
+
+# Django templates
+from django.template.loader import get_template, render_to_string
+
+# Django utils
+from django.utils import timezone
+from django.db.models import Q
 from django.conf import settings
+
+# Third-party libraries
+import pdfkit
+import stripe
+from weasyprint import HTML
 import requests
 import urllib.parse
-from datetime import timedelta
-from django.contrib.auth.hashers import make_password
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth import login, get_user_model
-from django.utils import timezone
-from django.db.models import Q
-from .models import TrustedDevice, DeviceVerification, CustomUser
-from .utils import get_client_ip, get_device_fingerprint, generate_code
-from django.core.mail import send_mail
-from django.core.files.base import ContentFile
+import os
 import re
 from collections import namedtuple
-from django.db.models import Q
-from datetime import datetime
-from django.utils import timezone
-from django.http import JsonResponse
+from datetime import datetime, timedelta
+
+# Local apps
+from .models import (
+    JobAlert, ChatMessage, Application, Job, SkillResource, Resume, CVUpload, 
+    JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser
+)
+from .forms import (
+    EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, 
+    CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm
+)
+from .utils import get_client_ip, get_device_fingerprint, generate_code, send_verification_email_sendgrid
+from django.contrib.auth import logout
 
 
 
@@ -734,10 +732,6 @@ def signup_view(request):
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
-
-from django.contrib.auth import logout
-from .utils import get_client_ip, get_device_name
 
 def login_view(request):
     """
