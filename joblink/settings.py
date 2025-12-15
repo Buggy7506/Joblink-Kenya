@@ -203,10 +203,6 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawU
 # SendGrid API key from environment variable (recommended)
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 
-# Default "from" email
-DEFAULT_FROM_EMAIL = "JobLink Kenya <linux7506@gmail.com>"
-
-
 
 CSRF_TRUSTED_ORIGINS = [
     "https://joblink-kenya-6vrl.onrender.com",
