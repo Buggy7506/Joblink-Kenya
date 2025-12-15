@@ -108,10 +108,10 @@ def resend_device_code(request):
 
     # Send email via SMTP
     if not send_verification_email_smtp(email, code):
-    return JsonResponse({
-        "status": "error",
-        "message": "Failed to send verification email. Please try again."
-    })
+        return JsonResponse({
+            "status": "error",
+            "message": "Failed to send verification email. Please try again."
+        })
 
 
     # Update session timestamp as ISO string
