@@ -3,53 +3,91 @@
 
 {% block content %}
 <style>
-  body {
-    background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-  }
+body {
+  background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+}
 
+.confirm-box {
+  max-width: 500px;
+  margin: 100px auto;
+  padding: 35px 30px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 0 25px #ff4c4c, 0 0 50px rgba(255, 76, 76, 0.2);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.confirm-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 35px #ff4c4c, 0 0 60px rgba(255, 76, 76, 0.3);
+}
+
+.confirm-box h2 {
+  font-size: 30px;
+  margin-bottom: 20px;
+  color: #ff4c4c;
+  text-shadow: 0 0 10px #ff4c4c, 0 0 20px rgba(255, 76, 76, 0.6);
+}
+
+.confirm-box p {
+  font-size: 18px;
+  margin-bottom: 30px;
+  color: #f8f8f8;
+  line-height: 1.6;
+}
+
+.btn-glow {
+  background: linear-gradient(45deg, #ff4c4c, #ff0000);
+  color: #fff;
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 0 8px #ff4c4c, 0 0 15px #ff0000;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px #ff4c4c, 0 0 40px #ff0000, 0 0 60px rgba(255,0,0,0.4);
+  transform: scale(1.08);
+}
+
+/* Fade-in animation for the confirm box */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
   .confirm-box {
-    max-width: 500px;
-    margin: 100px auto;
-    padding: 30px;
-    background: rgba(30, 30, 30, 0.95);
-    border-radius: 15px;
-    box-shadow: 0 0 20px #ff4c4c;
-    text-align: center;
+    margin: 50px 20px;
+    padding: 25px 20px;
   }
-
   .confirm-box h2 {
-    font-size: 28px;
-    margin-bottom: 20px;
-    color: #ff4c4c;
+    font-size: 24px;
   }
-
   .confirm-box p {
-    font-size: 18px;
-    margin-bottom: 30px;
-  }
-
-  .btn-glow {
-    background: linear-gradient(45deg, #ff4c4c, #ff0000);
-    color: #fff;
-    padding: 12px 25px;
     font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin: 5px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
   }
-
-  .btn-glow:hover {
-    box-shadow: 0 0 15px #ff4c4c, 0 0 25px #ff0000;
-    transform: scale(1.05);
+  .btn-glow {
+    padding: 12px 22px;
+    font-size: 15px;
   }
+}
 </style>
+
 
 <div class="confirm-box">
   <h2>Confirm Delete</h2>
