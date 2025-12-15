@@ -1,119 +1,115 @@
 {% extends 'base.html' %}
 
-{% block title %}Job Application Status • JobLink Kenya{% endblock %} 
+{% block title %}Job Application Status • JobLink Kenya{% endblock %}
 
 {% block content %}
 <style>
-  /* Container Styling */
   .apply-status-container {
-    background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
+    min-height: calc(100vh - var(--navbar-height, 0px));
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    text-align: center;
-    padding: 20px;
+    padding: 40px 20px;
+    background: var(--page-bg);
+    color: var(--text);
   }
 
-  /* Status Box */
   .status-box {
-    background: rgba(30, 30, 30, 0.95);
+    background: var(--card-bg);
     padding: 40px 30px;
     border-radius: 16px;
-    border: 1px solid #8000ff;
-    box-shadow: 0 0 25px rgba(128, 0, 255, 0.6);
-    animation: fadeIn 1s ease;
+    border: 1px solid var(--accent);
+    box-shadow:
+      0 0 25px var(--glow-soft),
+      0 0 45px var(--glow-strong);
     max-width: 500px;
     width: 100%;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
     transition: transform 0.3s;
-    position: relative;
   }
 
   .status-box:hover {
     transform: translateY(-3px);
   }
 
-  /* Headings */
   .status-box h1 {
     margin-bottom: 20px;
-    font-size: 36px;
-    color: #a855f7;
-    text-shadow: 0 0 15px #a855f7;
+    font-size: 34px;
+    color: var(--accent);
+    text-shadow: 0 0 12px var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
   }
 
-  /* Paragraphs */
   .status-box p {
     font-size: 18px;
-    color: #c084fc;
+    color: var(--text-muted);
     margin-bottom: 15px;
   }
 
-  .status-details {
+  .status-details p {
     font-size: 16px;
-    color: #d8b4fe;
-    margin-bottom: 25px;
+    color: var(--text-soft);
+    margin: 5px 0;
   }
 
-  /* Countdown */
   .countdown {
     font-size: 14px;
-    color: #d8b4fe;
-    margin-bottom: 20px;
+    color: var(--text-soft);
+    margin: 20px 0;
   }
 
-  /* Glowing Button */
   .btn-glow {
     display: inline-block;
     padding: 12px 30px;
-    background: #9333ea;
-    color: white;
+    background: linear-gradient(
+      90deg,
+      var(--accent),
+      var(--accent-alt)
+    );
+    color: var(--btn-text);
     border-radius: 30px;
     font-weight: bold;
     text-decoration: none;
-    box-shadow: 0 0 12px #9333ea;
+    box-shadow:
+      0 0 12px var(--glow-soft),
+      0 0 25px var(--glow-strong);
     transition: 0.3s;
   }
 
   .btn-glow:hover {
-    background: #7e22ce;
-    box-shadow: 0 0 20px #a855f7;
-    animation: pulse 1s infinite;
+    box-shadow:
+      0 0 25px var(--glow-strong),
+      0 0 45px var(--glow-strong);
+    transform: scale(1.05);
   }
 
-  /* Animations */
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-
-  /* Responsive */
   @media (max-width: 600px) {
     .status-box { padding: 25px 20px; }
-    .status-box h1 { font-size: 28px; }
-    .status-box p { font-size: 16px; }
-    .status-details { font-size: 14px; }
+    .status-box h1 { font-size: 26px; }
+    .status-box p { font-size: 15px; }
   }
 </style>
 
 <div class="apply-status-container">
   <div class="status-box">
+
     {% if success %}
       <h1>✅ Application Successful!</h1>
-      <p>You have successfully applied for the job: <strong>{{ job.title }}</strong></p>
+      <p>You have successfully applied for:</p>
+      <p><strong>{{ job.title }}</strong></p>
     {% else %}
-      <h1>❌ Already Applied!</h1>
-      <p>You have already applied for this job: <strong>{{ job.title }}</strong></p>
+      <h1>❌ Already Applied</h1>
+      <p>You already applied for:</p>
+      <p><strong>{{ job.title }}</strong></p>
     {% endif %}
 
     {% if job.company or job.location %}
@@ -124,14 +120,17 @@
     {% endif %}
 
     <div class="countdown">
-      Redirecting to job suggestions in <span id="timer">5</span> seconds...
+      Redirecting to job suggestions in
+      <strong><span id="timer">5</span></strong> seconds…
     </div>
 
-    <a href="{% url 'job_suggestions' %}" class="btn-glow">Go to Job Suggestions</a>
+    <a href="{% url 'job_suggestions' %}" class="btn-glow">
+      Go to Job Suggestions
+    </a>
+
   </div>
 </div>
 
-<!-- Auto redirect with countdown -->
 <script>
   let timeLeft = 5;
   const timer = document.getElementById('timer');
