@@ -107,7 +107,12 @@ def resend_device_code(request):
     )
 
     # Send email via SMTP
-    send_verification_email_smtp(email, code)
+    if not send_verification_email_smtp(email, code):
+    return JsonResponse({
+        "status": "error",
+        "message": "Failed to send verification email. Please try again."
+    })
+
 
     # Update session timestamp as ISO string
     request.session["last_verification_sent"] = timezone.now().isoformat()
@@ -154,10 +159,11 @@ def verify_device(request):
 
         # Look for valid unused code
         verification = DeviceVerification.objects.filter(
-            user=user,
             code=code,
+            email=user.email,
             is_used=False
         ).order_by("-created_at").first()
+
 
         if not verification:
             messages.error(request, "Invalid or incorrect verification code.")
@@ -226,7 +232,9 @@ def choose_verification_method(request):
     before verifying a new device. Supports pre-login verification.
     """
 
-    # 1️⃣ Determine pending email and/or user
+    # ----------------------------------------
+    # 1️⃣ Resolve pending user / email
+    # ----------------------------------------
     pending_user_id = request.session.get("pending_user_id")
     pending_email = request.session.get("pending_email")
 
@@ -234,21 +242,37 @@ def choose_verification_method(request):
     if pending_user_id:
         try:
             user = CustomUser.objects.get(id=pending_user_id)
+            pending_email = user.email
+            request.session["pending_email"] = pending_email  # 🔥 normalize
         except CustomUser.DoesNotExist:
             messages.error(request, "User not found. Please login again.")
             request.session.flush()
             return redirect("login")
 
-    if not user and not pending_email:
+    if not pending_email:
         messages.error(request, "Please login first.")
         return redirect("login")
 
-    # 2️⃣ Handle POST → generate & send verification code
+    # ----------------------------------------
+    # 2️⃣ POST → rate-limit + send code
+    # ----------------------------------------
     if request.method == "POST":
+
+        # ⏳ Rate-limit (30 seconds)
+        last_sent_str = request.session.get("last_verification_sent")
+        if last_sent_str:
+            last_sent = datetime.fromisoformat(last_sent_str)
+            elapsed = (timezone.now() - last_sent).total_seconds()
+            if elapsed < 30:
+                messages.error(
+                    request,
+                    f"Please wait {int(30 - elapsed)} seconds before requesting another code."
+                )
+                return redirect("choose_verification_method")
+
         method = request.POST.get("method")
 
-        # Validate method
-        if method not in ["email", "phone"]:
+        if method not in ("email", "phone"):
             messages.error(request, "Please select a valid verification method.")
             return redirect("choose_verification_method")
 
@@ -257,42 +281,54 @@ def choose_verification_method(request):
                 messages.error(request, "No phone number on file for this account.")
                 return redirect("choose_verification_method")
 
-        if method == "email":
-            if not (user and user.email) and not pending_email:
-                messages.error(request, "No email available to send verification code.")
-                return redirect("choose_verification_method")
-
-        # Determine which email to use
-        email_to_send = user.email if user else pending_email
-
-        # Generate verification code
+        # ----------------------------------------
+        # 3️⃣ Generate verification code
+        # ----------------------------------------
         code = generate_code()
+
         DeviceVerification.objects.create(
-            user=user,               # may be None for pre-login
-            email=email_to_send,     # store email for pre-login
+            user=user,                 # may be None (pre-login)
+            email=pending_email,
             code=code,
             device_name=request.session.get("pending_name", "Unknown Device"),
-            user_agent=request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "")),
-            ip_address=request.session.get("pending_ip", request.META.get("REMOTE_ADDR", ""))
+            user_agent=request.session.get(
+                "pending_ua", request.META.get("HTTP_USER_AGENT", "")
+            ),
+            ip_address=request.session.get(
+                "pending_ip", request.META.get("REMOTE_ADDR", "")
+            ),
         )
 
-        # Send SMS OR SMTP EMAIL
+        # ----------------------------------------
+        # 4️⃣ Send code
+        # ----------------------------------------
         if method == "phone":
-            print(f"SMS to {user.phone}: Your verification code is {code}")  # replace with real SMS
+            print(f"SMS to {user.phone}: Your verification code is {code}")
         else:
-            send_verification_email_smtp(email_to_send, code)
+            if not send_verification_email_smtp(pending_email, code):
+                messages.error(
+                    request,
+                    "Failed to send verification email. Please try again."
+                )
+                return redirect("choose_verification_method")
 
-        # Save method and redirect
+        # ----------------------------------------
+        # 5️⃣ Save session state
+        # ----------------------------------------
         request.session["pending_method"] = method
+        request.session["device_verification_in_progress"] = True
+        request.session["last_verification_sent"] = timezone.now().isoformat()
+
         return redirect("verify_device")
 
-    # 3️⃣ GET → render template
+    # ----------------------------------------
+    # 6️⃣ GET → render page
+    # ----------------------------------------
     return render(request, "choose_verification_method.html", {
         "user": user,
-        "has_phone": bool(user.phone) if user else False,
+        "has_phone": bool(user and user.phone),
         "pending_verification": True
     })
-
 
 
 def set_google_password(request):
