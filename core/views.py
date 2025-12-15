@@ -51,7 +51,7 @@ def resend_device_code(request):
     """
     Resend a new verification code to the user's email.
     Works for both logged-in users and pre-login email verification.
-    Uses SendGrid via send_verification_email().
+    Uses SendGrid via send_verification_email_sendgrid().
     """
     # -----------------------------
     # 1️⃣ Determine user and email
@@ -80,16 +80,16 @@ def resend_device_code(request):
     # -----------------------------
     last_sent_str = request.session.get("last_verification_sent")
     if last_sent_str:
-        last_sent = datetime.fromisoformat(last_sent_str)
+        last_sent = timezone.datetime.fromisoformat(last_sent_str)
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
             return JsonResponse({
                 "status": "error",
-                "message": f"Please wait {int(30 - elapsed)}s before resending."
+                "message": f"Please wait {int(30 - elapsed)} seconds before resending."
             })
 
     # -----------------------------
-    # 3️⃣ Generate new 6-digit code
+    # 3️⃣ Generate new 6-digit secure code
     # -----------------------------
     code = generate_code()
 
@@ -127,7 +127,7 @@ def resend_device_code(request):
     request.session["last_verification_sent"] = timezone.now().isoformat()
 
     return JsonResponse({"status": "ok", "message": "A new verification code has been sent!"})
-
+    
 User = get_user_model()
 
 def verify_device(request):
@@ -187,11 +187,15 @@ def verify_device(request):
         # -----------------------------
         # 3️⃣ Save device as trusted
         # -----------------------------
+        device_fp = request.session.get("pending_name") or get_device_fingerprint(request)
+        user_agent = request.session.get("pending_ua") or request.META.get("HTTP_USER_AGENT", "")
+        ip_address = request.session.get("pending_ip") or get_client_ip(request)
+
         TrustedDevice.objects.create(
             user=user,
-            device_fingerprint=request.session.get("pending_name", get_device_fingerprint(request)),
-            user_agent=request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "")),
-            ip_address=request.session.get("pending_ip", request.META.get("REMOTE_ADDR", "")),
+            device_fingerprint=device_fp,
+            user_agent=user_agent,
+            ip_address=ip_address,
         )
 
         # -----------------------------
@@ -220,6 +224,7 @@ def verify_device(request):
     # 6️⃣ GET → show verification page
     # -----------------------------
     return render(request, "verify_device.html", {"user": user, "pending_verification": True})
+    
 
 def choose_verification_method(request):
     """
@@ -735,6 +740,7 @@ User = get_user_model()
 def login_view(request):
     """
     Handle user login with device verification for untrusted devices.
+    
     Steps:
     1. Identify user by username, email, or phone.
     2. Check if password is set.
@@ -743,16 +749,19 @@ def login_view(request):
     5. If new device, redirect to choose verification method (email/phone).
     """
 
+    # -----------------------------
+    # If user is already logged in, log them out
+    # -----------------------------
     if request.user.is_authenticated:
-        logout(request)  # fully clears authentication
+        logout(request)
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()  # username/email/phone
         password = request.POST.get('password', '').strip()
 
-        # -------------------------
+        # -----------------------------
         # 1️⃣ Find user
-        # -------------------------
+        # -----------------------------
         try:
             user_obj = CustomUser.objects.get(
                 Q(username=identifier) |
@@ -763,42 +772,42 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # -------------------------
+        # -----------------------------
         # 1.5️⃣ Check if user has a password
-        # -------------------------
+        # -----------------------------
         if not user_obj.has_usable_password():
             request.session["set_password_user_id"] = user_obj.id
             messages.info(request, "Please set your password to continue.")
             return redirect("set_google_password")
 
-        # -------------------------
+        # -----------------------------
         # 2️⃣ Authenticate user
-        # -------------------------
+        # -----------------------------
         user = authenticate(request, username=user_obj.username, password=password)
         if user is None:
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # -------------------------
+        # -----------------------------
         # 3️⃣ Device fingerprint
-        # -------------------------
+        # -----------------------------
         ip = get_client_ip(request)
         device_fp = get_device_fingerprint(request)  # stable device fingerprint
         user_agent = request.META.get("HTTP_USER_AGENT", "")
 
-        # -------------------------
+        # -----------------------------
         # 4️⃣ Trusted device → log in directly
-        # -------------------------
+        # -----------------------------
         if TrustedDevice.objects.filter(
             user=user, device_fingerprint=device_fp, ip_address=ip
         ).exists():
             login(request, user)
             return redirect('admin_dashboard' if user.is_superuser else 'dashboard')
 
-        # -------------------------
+        # -----------------------------
         # 5️⃣ New device → store pending info for verification
-        # -------------------------
-        # Clear old auth keys without flushing the session
+        # -----------------------------
+        # Clear old auth session keys without flushing the whole session
         for key in ["_auth_user_id", "_auth_user_backend", "_auth_user_hash"]:
             request.session.pop(key, None)
 
@@ -815,11 +824,11 @@ def login_view(request):
         # User is NOT logged in yet; redirect to verification
         return redirect("choose_verification_method")
 
-    # -------------------------
+    # -----------------------------
     # 6️⃣ GET request → Show login page
-    # -------------------------
+    # -----------------------------
     return render(request, 'login.html')
-
+    
 #User Logout
 
 def logout_view(request):
