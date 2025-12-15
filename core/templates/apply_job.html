@@ -3,36 +3,32 @@
 {% block content %}
 
 <style>
-  body {
-    background: radial-gradient(circle at top left, #0f0f1f, #000);
-    font-family: 'Poppins', sans-serif;
-    color: #fff;
-  }
-
   .apply-container {
     max-width: 700px;
     margin: 80px auto;
     padding: 40px;
-    background: rgba(20, 20, 30, 0.9);
+    background: var(--card-bg);
     border-radius: 20px;
-    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5),
-                0 0 50px rgba(0, 255, 255, 0.2);
+    box-shadow:
+      0 0 25px var(--glow-soft),
+      0 0 50px var(--glow-strong);
     animation: fadeIn 0.7s ease-out;
+    color: var(--text);
   }
 
   h1 {
     font-size: 2rem;
     text-align: center;
     margin-bottom: 15px;
-    color: #00eaff;
-    text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent);
   }
 
   p {
     font-size: 1.1rem;
     text-align: center;
     margin-bottom: 25px;
-    color: #ccc;
+    color: var(--text-muted);
   }
 
   .glow-btn {
@@ -42,28 +38,46 @@
     font-size: 1.2rem;
     font-weight: bold;
     text-transform: uppercase;
-    color: #fff;
-    background: linear-gradient(90deg, #ff00cc, #3333ff);
+    color: var(--btn-text);
+    background: linear-gradient(
+      90deg,
+      var(--accent),
+      var(--accent-alt)
+    );
     border: none;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 0 15px rgba(255, 0, 204, 0.7), 0 0 30px rgba(51, 51, 255, 0.6);
+    box-shadow:
+      0 0 15px var(--glow-soft),
+      0 0 30px var(--glow-strong);
   }
 
   .glow-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 0, 204, 1), 0 0 50px rgba(51, 51, 255, 1);
+    box-shadow:
+      0 0 30px var(--glow-strong),
+      0 0 50px var(--glow-strong);
   }
 
   .error-message {
-    background: rgba(255, 0, 0, 0.1);
+    background: var(--danger-bg);
     padding: 10px;
-    border: 1px solid red;
+    border: 1px solid var(--danger);
     border-radius: 10px;
-    color: red;
+    color: var(--danger);
     margin-bottom: 20px;
     text-align: center;
+  }
+
+  .premium {
+    color: var(--accent-alt);
+    font-weight: bold;
+  }
+
+  .free {
+    color: var(--success);
+    font-weight: bold;
   }
 
   @keyframes fadeIn {
@@ -81,21 +95,21 @@
   {% endif %}
 
   {% if job.is_premium %}
-    <p>This is a <span style="color: #ff00cc; font-weight: bold;">Premium Job</span> 💎  
-    An application fee of <strong>KES 200</strong> is required.</p>
+    <p>
+      This is a <span class="premium">Premium Job</span> 💎  
+      An application fee of <strong>KES 200</strong> is required.
+    </p>
   {% else %}
-    <p>This is a <span style="color: #00ff99; font-weight: bold;">Free Job</span> ✅  
-    You can apply instantly without payment.</p>
+    <p>
+      This is a <span class="free">Free Job</span> ✅  
+      You can apply instantly without payment.
+    </p>
   {% endif %}
 
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="glow-btn">
-      {% if job.is_premium %}
-        Pay & Apply
-      {% else %}
-        Apply Now
-      {% endif %}
+      {% if job.is_premium %}Pay & Apply{% else %}Apply Now{% endif %}
     </button>
   </form>
 </div>
