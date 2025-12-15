@@ -4,184 +4,179 @@
 {% block title %}Applicant Dashboard | JobLink Kenya{% endblock %}
 
 {% block content %}
+
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-    font-family: 'Segoe UI', sans-serif;
-    color: #fff;
-  }
+/* ===============================
+   DASHBOARD (THEME-AWARE)
+================================ */
 
-  .dashboard-container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 60px 20px;
-  }
+.dashboard-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 60px 20px;
+}
 
-  .dashboard-title {
-    font-size: 2.8rem;
-    text-align: center;
-    color: #00ffff;
-    margin-bottom: 50px;
-    text-shadow: 0 0 8px #00ffff, 0 0 20px #0ff;
-    animation: pulse 2s infinite ease-in-out;
-  }
+.dashboard-title {
+  font-size: 2.8rem;
+  text-align: center;
+  color: var(--text-accent);
+  margin-bottom: 50px;
+  text-shadow: 0 0 8px var(--glow-accent), 0 0 20px var(--glow-accent);
+  animation: pulse 2s infinite ease-in-out;
+}
 
-  @keyframes pulse {
-    0%, 100% { text-shadow: 0 0 8px #00ffff, 0 0 20px #0ff; }
-    50% { text-shadow: 0 0 15px #00ffff, 0 0 30px #0ff; }
+@keyframes pulse {
+  0%, 100% {
+    text-shadow: 0 0 8px var(--glow-accent), 0 0 20px var(--glow-accent);
   }
+  50% {
+    text-shadow: 0 0 15px var(--glow-accent), 0 0 30px var(--glow-accent);
+  }
+}
 
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 25px;
-  }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+}
 
-  .card {
-    background: #1a1a2e;
-    border-radius: 15px;
-    padding: 30px 20px;
-    text-align: center;
-    transition: all 0.4s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-  }
+/* Card inherits base theme */
+.dashboard-card {
+  background: var(--bg-card);
+  border-radius: 15px;
+  padding: 30px 20px;
+  text-align: center;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+}
 
-  .card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
-  }
+.dashboard-card:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 15px var(--glow-accent),
+    0 0 30px var(--glow-accent);
+}
 
-  .card img {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 15px;
-    filter: drop-shadow(0 0 5px #00ffff);
-  }
+.dashboard-card img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 5px var(--glow-accent));
+}
 
-  .card h2 {
-    font-size: 1.4rem;
-    color: #00e6e6;
-    margin-bottom: 10px;
-    text-shadow: 0 0 6px #00ffff;
-  }
+.dashboard-card h2 {
+  font-size: 1.4rem;
+  color: var(--text-accent);
+  margin-bottom: 10px;
+  text-shadow: 0 0 6px var(--glow-accent);
+}
 
-  .card p {
-    color: #ccc;
-    font-size: 0.9rem;
-  }
+.dashboard-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
 
-  .badge {
-    display: inline-block;
-    background: #ff007f;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
-    box-shadow: 0 0 8px #ff007f;
-  }
+/* Badge adapts to theme */
+.badge {
+  display: inline-block;
+  background: var(--text-danger);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  box-shadow: 0 0 8px var(--text-danger);
+}
 </style>
 
 <div class="dashboard-container">
   <h1 class="dashboard-title">🎓 Welcome to Your Dashboard</h1>
+
   <div class="card-grid">
 
-    <!-- Browse Jobs -->
     <a href="{% url 'job_list' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293034/jobs_j5uzcx.png" alt="Browse Jobs">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293034/jobs_j5uzcx.png">
         <h2>Browse Jobs</h2>
         <p>Explore curated jobs matched for Kenyan youth.</p>
       </div>
     </a>
 
-    <!-- Job Suggestions -->
     <a href="{% url 'job_suggestions' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293044/suggest_ojjngh.png" alt="Job Suggestions">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293044/suggest_ojjngh.png">
         <h2>Job Suggestions</h2>
         <p>AI-powered job suggestions tailored to you.</p>
       </div>
     </a>
 
-    <!-- Applied Jobs -->
     <a href="{% url 'applied_jobs' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293032/Black_Wallpaper_010_h4iy3f.png" alt="Applied Jobs">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293032/Black_Wallpaper_010_h4iy3f.png">
         <h2>Applied Jobs</h2>
         <p>Track jobs you have applied for in one place.</p>
       </div>
     </a>
 
-    <!-- Recycle Bin -->
     <a href="{% url 'recycle_bin' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765298637/joblink_m3cfto.png" alt="Recycle Bin">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765298637/joblink_m3cfto.png">
         {% with deleted_apps_count|default:0 as deleted_count %}
-          {% if deleted_count > 0 %}
-            <h2>Recycle Bin 
+          <h2>
+            Recycle Bin
+            {% if deleted_count > 0 %}
               <span class="badge">{{ deleted_count }} 🗑️</span>
-            </h2>
-          {% else %}
-            <h2>Recycle Bin</h2>
-          {% endif %}
+            {% endif %}
+          </h2>
         {% endwith %}
         <p>View and restore your deleted applications.</p>
       </div>
     </a>
 
-    <!-- Job Alerts -->
     <a href="{% url 'job_alerts' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293058/alert_oibikt.png" alt="Job Alerts">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293058/alert_oibikt.png">
         <h2>Job Alerts</h2>
         <p>Stay updated on jobs that match your profile.</p>
       </div>
     </a>
 
-    <!-- Resume Builder -->
     <a href="{% url 'build_resume' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293036/resume_wdunf1.png" alt="Resume Builder">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293036/resume_wdunf1.png">
         <h2>Resume Builder</h2>
         <p>Create a professional resume in minutes.</p>
       </div>
     </a>
 
-    <!-- View Resume -->
     <a href="{% url 'view_resume' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293036/profile_tckyav.png" alt="View Resume">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293036/profile_tckyav.png">
         <h2>View Resume</h2>
         <p>See and download your created resume instantly.</p>
       </div>
     </a>
 
-    <!-- Career Resources -->
     <a href="{% url 'resources' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293053/upload_cv_ycfvbc.png" alt="Career Resources">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293053/upload_cv_ycfvbc.png">
         <h2>Career Resources</h2>
         <p>Guides, templates, and training materials to support your journey.</p>
       </div>
     </a>
 
-    <!-- Notifications -->
     <a href="{% url 'notifications' %}">
-      <div class="card">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293033/Black_Wallpaper_008_outtg3.png" alt="Notifications">
+      <div class="dashboard-card">
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765293033/Black_Wallpaper_008_outtg3.png">
         {% with notifications_count|default:0 as notif_count %}
           {% with unread_messages_count|default:0 as unread_count %}
-            {% if notif_count|add:unread_count > 0 %}
-              <h2>Notifications 
+            <h2>
+              Notifications
+              {% if notif_count|add:unread_count > 0 %}
                 <span class="badge">{{ notif_count|add:unread_count }} 💬</span>
-              </h2>
-            {% else %}
-              <h2>Notifications</h2>
-            {% endif %}
+              {% endif %}
+            </h2>
           {% endwith %}
         {% endwith %}
         <p>Stay updated with job alerts and recruiter messages.</p>
@@ -190,4 +185,5 @@
 
   </div>
 </div>
+
 {% endblock %}
