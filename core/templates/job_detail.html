@@ -39,61 +39,74 @@
   padding: 40px;
   animation: fadeIn 1s ease-in-out;
 }
+
 .job-card {
-  background: rgba(10, 10, 10, 0.85);
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 30px;
-  color: #fff;
-  box-shadow: 0 0 25px rgba(0,255,200,0.4), 0 0 40px rgba(0,255,200,0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: var(--text-main);
+  box-shadow: 0 0 25px var(--glow-accent), 0 0 40px rgba(0, 255, 200, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.4s ease, color 0.4s ease;
 }
+
 .job-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 0 40px rgba(0,255,200,0.7), 0 0 60px rgba(0,255,200,0.4);
+  box-shadow: 0 0 40px var(--glow-accent), 0 0 60px rgba(0,255,200,0.3);
 }
+
 .job-title {
   font-size: 2rem;
   margin-bottom: 15px;
-  color: #00ffcc;
-  text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffaa;
+  color: var(--text-accent);
+  text-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--glow-accent);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
 }
+
 .job-actions {
   margin-top: 25px;
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
+
+/* Primary button */
 .btn-glow {
-  background: #00ffcc;
-  color: #000;
+  background: var(--text-accent);
+  color: var(--text-main);
   padding: 12px 22px;
   border-radius: 12px;
   font-weight: bold;
   text-decoration: none;
-  box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffaa;
+  box-shadow: 0 0 15px var(--glow-accent), 0 0 30px var(--glow-accent);
   transition: all 0.3s ease;
 }
+
 .btn-glow:hover {
-  background: #00ffaa;
-  box-shadow: 0 0 25px #00ffaa, 0 0 50px #00ffcc;
+  background: var(--glow-accent);
+  box-shadow: 0 0 25px var(--glow-accent), 0 0 50px var(--text-accent);
 }
+
+/* Secondary button */
 .btn-glow-secondary {
-  background: #222;
-  color: #fff;
+  background: rgba(0,0,0,0.3);
+  color: var(--text-main);
   padding: 12px 22px;
   border-radius: 12px;
   text-decoration: none;
-  box-shadow: 0 0 10px #666;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
 }
+
 .btn-glow-secondary:hover {
-  background: #333;
-  color: #00ffcc;
-  box-shadow: 0 0 20px #00ffcc;
+  background: rgba(0,0,0,0.4);
+  color: var(--text-accent);
+  box-shadow: 0 0 20px var(--glow-accent);
 }
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
+
 {% endblock %}
