@@ -3,97 +3,113 @@
 
 {% block content %}
 <style>
-    body {
-        background: linear-gradient(to bottom, #111827, #000);
-        color: white;
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .container {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 40px 20px;
-    }
-    h1 {
-        text-align: center;
-        font-size: 32px;
-        margin-bottom: 30px;
-        color: #38bdf8;
-    }
-    form {
-        background: linear-gradient(to bottom right, #1f2937, #0f172a);
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.4);
-        margin-bottom: 40px;
-    }
-    label {
-        display: block;
-        margin-bottom: 8px;
-        color: #cbd5e1;
-        font-weight: bold;
-    }
-    input[type="text"] {
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        background-color: #374151;
-        color: white;
-        margin-bottom: 20px;
-    }
-    input[type="text"]:focus {
-        outline: 2px solid #3b82f6;
-        background-color: #1e293b;
-    }
-    .submit-btn {
-        background-color: #2563eb;
-        color: white;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.3s ease;
-        float: right;
-    }
-    .submit-btn:hover {
-        background-color: #1d4ed8;
-    }
-    .alert-list {
-        list-style: none;
-        padding: 0;
-    }
-    .alert-item {
-        background-color: #1e293b;
-        border-left: 4px solid #3b82f6;
-        padding: 16px;
-        margin-bottom: 16px;
-        border-radius: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .alert-item h3 {
-        margin: 0;
-        color: #60a5fa;
-    }
-    .alert-item p {
-        margin: 4px 0 0;
-        color: #94a3b8;
-    }
-    .delete-link {
-        color: #f87171;
-        text-decoration: none;
-        font-size: 14px;
-    }
-    .delete-link:hover {
-        color: #ef4444;
-    }
-    .no-alerts {
-        text-align: center;
-        color: #64748b;
-        margin-top: 20px;
-    }
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 30px;
+    color: var(--text-accent);
+    text-shadow: 0 0 10px var(--glow-accent);
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+form {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px var(--glow-accent);
+    margin-bottom: 40px;
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    font-weight: bold;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: rgba(255,255,255,0.05);
+    color: var(--text-main);
+    margin-bottom: 20px;
+    transition: background 0.4s, border 0.3s ease;
+}
+
+input[type="text"]:focus {
+    outline: 2px solid var(--text-accent);
+    background-color: rgba(255,255,255,0.1);
+}
+
+.submit-btn {
+    background-color: var(--text-accent);
+    color: var(--text-main);
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    float: right;
+}
+
+.submit-btn:hover {
+    background-color: var(--glow-accent);
+}
+
+.alert-list {
+    list-style: none;
+    padding: 0;
+}
+
+.alert-item {
+    background-color: var(--bg-card);
+    border-left: 4px solid var(--text-accent);
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+
+.alert-item h3 {
+    margin: 0;
+    color: var(--text-accent);
+}
+
+.alert-item p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+}
+
+.delete-link {
+    color: var(--text-danger);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.delete-link:hover {
+    color: #ef4444; /* optional slightly brighter on hover */
+}
+
+.no-alerts {
+    text-align: center;
+    color: var(--text-muted);
+    margin-top: 20px;
+}
 </style>
+
 
 <div class="container">
     <h1>🚨 Job Alerts</h1>
