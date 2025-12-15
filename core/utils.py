@@ -23,7 +23,7 @@ def send_verification_email_sendgrid(email, code):
                 "personalizations": [
                     {"to": [{"email": email}], "subject": "Your Device Verification Code"}
                 ],
-                "from": {"email": "verified_sender@example.com", "name": "JobLink Kenya"},
+                "from": {"email": "linux7506@gmail.com", "name": "JobLink Kenya"},
                 "content": [
                     {
                         "type": "text/html",
