@@ -63,14 +63,19 @@ class Profile(models.Model):
 # ======================================================
 
 class TrustedDevice(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="devices")
-    device_name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="devices"
+    )
+    device_fingerprint = models.CharField(max_length=255)  # updated from device_name
     user_agent = models.TextField()
     ip_address = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.device_name} → {self.user.username}"
+        return f"{self.device_fingerprint} → {self.user.username}"
+
 
 
 class DeviceVerification(models.Model):
