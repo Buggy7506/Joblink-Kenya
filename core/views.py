@@ -115,7 +115,7 @@ def resend_device_code(request):
     # -----------------------------
     # 6️⃣ Send verification email via SendGrid
     # -----------------------------
-    if not send_verification_email(email, code):
+    if not send_verification_email_sendgrid(email, code):
         return JsonResponse({
             "status": "error",
             "message": "Failed to send verification email. Please try again."
