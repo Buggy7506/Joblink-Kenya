@@ -44,8 +44,6 @@ from .forms import (
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm
 )
 from .utils import get_client_ip, get_device_fingerprint, generate_code, send_verification_email_sendgrid
-from django.contrib.auth import logout
-
 
 
 def resend_device_code(request):
