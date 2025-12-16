@@ -60,9 +60,7 @@ def resend_device_code(request):
     Works for pre-login device verification.
     """
 
-    # -----------------------------
     # 1️⃣ Resolve pending user
-    # -----------------------------
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
         messages.error(request, "Verification session expired. Please login again.")
@@ -78,32 +76,24 @@ def resend_device_code(request):
         messages.error(request, "No phone number found for this account.")
         return redirect("login")
 
-    # -----------------------------
     # 2️⃣ Rate limit (30 seconds)
-    # -----------------------------
     last_sent_str = request.session.get("last_verification_sent")
     if last_sent_str:
         last_sent = timezone.datetime.fromisoformat(last_sent_str)
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
             messages.error(request, f"Please wait {int(30 - elapsed)} seconds before resending.")
-            return redirect("verify-device")  # make sure this matches your URL name
+            return redirect("verify_device")  # matches your URL name
 
-    # -----------------------------
     # 3️⃣ Generate new code
-    # -----------------------------
     code = generate_code()
 
-    # -----------------------------
     # 4️⃣ Device metadata
-    # -----------------------------
     device_fp = request.session.get("pending_name", get_device_fingerprint(request))
     user_agent = request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "Unknown UA"))
     ip_address = request.session.get("pending_ip", get_client_ip(request))
 
-    # -----------------------------
     # 5️⃣ Save verification record
-    # -----------------------------
     try:
         DeviceVerification.objects.create(
             user=user,
@@ -113,31 +103,27 @@ def resend_device_code(request):
             ip_address=ip_address,
         )
     except Exception as e:
-        print(e)
+        print("Error saving verification record:", e)
         messages.error(request, "Verification code wasn't resent. Try again later.")
-        return redirect("verify-device")
+        return redirect("verify_device")
 
-    # -----------------------------
     # 6️⃣ Send SMS via Termii
-    # -----------------------------
     try:
         response = send_sms(user.phone, code)
-        if response.get("message_id") or response.get("success"):  # depends on Termii response
+        if response.get("message_id") or response.get("success"):
             messages.success(request, "Verification code resent to your phone.")
         else:
-            print("Termii error:", response)
+            print("Termii response error:", response)
             messages.error(request, "Failed to send SMS. Try again later.")
     except Exception as e:
-        print(e)
+        print("SMS sending error:", e)
         messages.error(request, "Verification code wasn't resent. Try again later.")
 
-    # -----------------------------
     # 7️⃣ Update rate-limit timestamp
-    # -----------------------------
     request.session["last_verification_sent"] = timezone.now().isoformat()
 
-    return redirect("verify-device")  # make sure this URL name exists
-
+    return redirect("verify_device")  # matches your URL name
+    
 User = get_user_model()
 
 
@@ -147,9 +133,7 @@ def verify_device(request):
     Marks device as trusted and logs in the user on success.
     """
 
-    # -----------------------------
     # 1️⃣ Ensure session has pending user
-    # -----------------------------
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
         messages.error(request, "No pending verification found. Please login again.")
@@ -162,62 +146,41 @@ def verify_device(request):
         request.session.flush()
         return redirect("login")
 
-    # -----------------------------
     # 2️⃣ POST → validate code
-    # -----------------------------
     if request.method == "POST":
         code = request.POST.get("code", "").strip()
 
         if not code:
             messages.error(request, "Please enter the verification code.")
-            return render(
-                request,
-                "verify_device.html",
-                {"user": user, "pending_verification": True},
-            )
+            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
 
-        # -----------------------------
-        # Find latest unused code for user
-        # -----------------------------
+        # 3️⃣ Find latest unused code for user
         verification = DeviceVerification.objects.filter(
             user=user,
             code=code,
-            is_used=False,
+            is_used=False
         ).order_by("-created_at").first()
 
         if not verification:
             messages.error(request, "Invalid or incorrect verification code.")
-            return render(
-                request,
-                "verify_device.html",
-                {"user": user, "pending_verification": True},
-            )
+            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
 
-        # -----------------------------
-        # 3️⃣ Expiry check (10 minutes)
-        # -----------------------------
+        # 4️⃣ Expiry check (10 minutes)
         expiry_time = verification.created_at + timezone.timedelta(minutes=10)
         if timezone.now() > expiry_time:
             verification.is_used = True
             verification.save(update_fields=["is_used"])
-
             messages.error(request, "That code has expired. Please request a new one.")
             request.session.flush()
             return redirect("login")
 
-        # -----------------------------
-        # 4️⃣ Mark code as used
-        # -----------------------------
+        # 5️⃣ Mark code as used
         verification.is_used = True
         verification.save(update_fields=["is_used"])
 
-        # -----------------------------
-        # 5️⃣ Save trusted device
-        # -----------------------------
+        # 6️⃣ Save trusted device
         device_fp = request.session.get("pending_name") or get_device_fingerprint(request)
-        user_agent = request.session.get("pending_ua") or request.META.get(
-            "HTTP_USER_AGENT", ""
-        )
+        user_agent = request.session.get("pending_ua") or request.META.get("HTTP_USER_AGENT", "")
         ip_address = request.session.get("pending_ip") or get_client_ip(request)
 
         TrustedDevice.objects.create(
@@ -227,14 +190,10 @@ def verify_device(request):
             ip_address=ip_address,
         )
 
-        # -----------------------------
-        # 6️⃣ Log user in
-        # -----------------------------
+        # 7️⃣ Log user in
         login(request, user)
 
-        # -----------------------------
-        # 7️⃣ Cleanup session
-        # -----------------------------
+        # 8️⃣ Cleanup session
         for key in [
             "pending_user_id",
             "pending_ip",
@@ -249,14 +208,8 @@ def verify_device(request):
         messages.success(request, "Device verified and logged in successfully!")
         return redirect("dashboard")
 
-    # -----------------------------
-    # 8️⃣ GET → show verification page
-    # -----------------------------
-    return render(
-        request,
-        "verify_device.html",
-        {"user": user, "pending_verification": True},
-    )
+    # 9️⃣ GET → show verification page
+    return render(request, "verify_device.html", {"user": user, "pending_verification": True})
 
 
 def set_google_password(request):
