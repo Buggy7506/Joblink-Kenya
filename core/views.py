@@ -80,7 +80,7 @@ def resend_device_code(request):
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
             messages.error(request, f"Please wait {int(30 - elapsed)} seconds before resending.")
-            return redirect("verify-device")  # replace with your verification page
+            return redirect("verify_device")  # replace with your verification page
 
     # -----------------------------
     # 3️⃣ Generate new code
