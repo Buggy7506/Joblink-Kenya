@@ -4,139 +4,134 @@
 
 {% block content %}
 <style>
-/* General wrapper */
-.verify-wrapper {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    font-family: 'Segoe UI', sans-serif;
-    background: var(--bg-main);
+/* Full-page wrapper to avoid body flex conflicts */
+.fullpage-verify {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    padding: 20px !important;
+    background: var(--bg-main) !important;
 }
 
-/* Container */
-.verify-wrapper .container {
-    background: var(--bg-card);
-    padding: 35px 25px;
-    width: 100%;
-    max-width: 400px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.1);
-    backdrop-filter: blur(12px);
-    text-align: center;
-    color: var(--text-main);
-    animation: fadeIn 0.6s ease-in-out;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+/* Container specific to verification */
+.fullpage-verify .verify-container {
+    background: var(--bg-card) !important;
+    padding: 35px 25px !important;
+    width: 100% !important;
+    max-width: 400px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    backdrop-filter: blur(12px) !important;
+    text-align: center !important;
+    color: var(--text-main) !important;
+    animation: fadeIn 0.6s ease-in-out !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
 }
 
-/* Heading & text */
-.container h2 {
-    font-size: 1.8rem;
-    margin-bottom: 10px;
+/* Headings and text */
+.fullpage-verify .verify-container h2 {
+    font-size: 1.8rem !important;
+    margin-bottom: 10px !important;
 }
-.container p {
-    font-size: 1rem;
-    color: var(--text-muted);
-    margin-bottom: 25px;
-}
-
-/* OTP Inputs */
-.otp-container {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 25px;
+.fullpage-verify .verify-container p {
+    font-size: 1rem !important;
+    color: var(--text-muted) !important;
+    margin-bottom: 25px !important;
 }
 
-.otp-input {
-    width: 50px;
-    height: 55px;
-    font-size: 22px;
-    border-radius: 10px;
-    border: 1px solid var(--text-muted);
-    background: var(--bg-main);
-    text-align: center;
-    color: var(--text-main);
-    outline: none;
-    transition: 0.25s;
+/* OTP inputs */
+.fullpage-verify .otp-container {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    margin-bottom: 25px !important;
 }
 
-.otp-input:focus {
-    transform: scale(1.12);
-    border-color: var(--glow-main);
-    box-shadow: 0 0 8px var(--glow-main);
+.fullpage-verify .otp-input {
+    width: 50px !important;
+    height: 55px !important;
+    font-size: 22px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--text-muted) !important;
+    background: var(--bg-main) !important;
+    text-align: center !important;
+    color: var(--text-main) !important;
+    outline: none !important;
+    transition: 0.25s !important;
+}
+
+.fullpage-verify .otp-input:focus {
+    transform: scale(1.12) !important;
+    border-color: var(--glow-main) !important;
+    box-shadow: 0 0 8px var(--glow-main) !important;
 }
 
 /* Verify button */
-button {
-    width: 100%;
-    padding: 12px;
-    background: var(--glow-main);
-    color: var(--text-main);
-    border: none;
-    font-size: 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.25s;
-    opacity: 0.5;
-    pointer-events: none;
+.fullpage-verify button {
+    width: 100% !important;
+    padding: 12px !important;
+    background: var(--glow-main) !important;
+    color: var(--text-main) !important;
+    border: none !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: 0.25s !important;
+    opacity: 0.5 !important;
+    pointer-events: none !important;
 }
 
-button.enabled {
-    opacity: 1;
-    pointer-events: auto;
+.fullpage-verify button.enabled {
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
-button.enabled:hover {
-    background: var(--glow-accent);
-    transform: translateY(-2px);
+.fullpage-verify button.enabled:hover {
+    background: var(--glow-accent) !important;
+    transform: translateY(-2px) !important;
 }
 
 /* Loading dots */
 .loading-dots {
-    display: inline-block;
-    margin-left: 6px;
+    display: inline-block !important;
+    margin-left: 6px !important;
 }
 .loading-dots span {
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    margin: 0 1px;
-    background: var(--text-main);
-    border-radius: 50%;
-    animation: blink 1.2s infinite ease-in-out;
+    display: inline-block !important;
+    width: 4px !important;
+    height: 4px !important;
+    margin: 0 1px !important;
+    background: var(--text-main) !important;
+    border-radius: 50% !important;
+    animation: blink 1.2s infinite ease-in-out !important;
 }
-.loading-dots span:nth-child(1){animation-delay:0s;}
-.loading-dots span:nth-child(2){animation-delay:0.2s;}
-.loading-dots span:nth-child(3){animation-delay:0.4s;}
 @keyframes blink{
     0%, 80%, 100%{opacity:0;}
     40%{opacity:1;}
 }
 
 /* Checkbox */
-.remember-device {
-    margin-top: 15px;
-    font-size: 14px;
-    text-align: left;
+.fullpage-verify .remember-device {
+    margin-top: 15px !important;
+    font-size: 14px !important;
+    text-align: left !important;
 }
 
 /* Resend */
-.resend {
-    margin-top: 20px;
-    font-size: 14px;
-    color: var(--text-muted);
+.fullpage-verify .resend {
+    margin-top: 20px !important;
+    font-size: 14px !important;
+    color: var(--text-muted) !important;
 }
 
 /* Success checkmark */
-.success-checkmark {
-    display: none;
-    font-size: 80px;
-    color: var(--glow-main);
-    animation: pop 0.5s ease-out;
-    margin-bottom: 15px;
+.fullpage-verify .success-checkmark {
+    display: none !important;
+    font-size: 80px !important;
+    color: var(--glow-main) !important;
+    animation: pop 0.5s ease-out !important;
+    margin-bottom: 15px !important;
 }
 
 @keyframes pop {
@@ -146,22 +141,22 @@ button.enabled:hover {
 }
 
 /* Messages */
-.code-sent-msg {
-    background: #d1fae5;
-    color: #065f46;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 0.95rem;
+.fullpage-verify .code-sent-msg {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    margin-bottom: 15px !important;
+    font-size: 0.95rem !important;
 }
 
-.error {
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 0.95rem;
+.fullpage-verify .error {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    margin-bottom: 15px !important;
+    font-size: 0.95rem !important;
 }
 
 /* Fade-in animation */
@@ -171,8 +166,8 @@ button.enabled:hover {
 }
 </style>
 
-<div class="verify-wrapper">
-    <div class="container">
+<div class="fullpage-verify">
+    <div class="verify-container">
         {% if messages %}
             {% for msg in messages %}
                 {% if msg.tags == 'success' %}
