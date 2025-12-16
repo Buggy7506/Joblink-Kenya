@@ -203,7 +203,7 @@ def verify_device(request):
         return redirect("dashboard")
 
     # 9️⃣ GET → show verification page
-    return render(request, "verify_device.html", {"user": user, "pending_verification": True})
+    return render(request, "verify_device.html", {"user": user, "pending_verification": True, "user_phone": user.phone,})
 
 
 def set_google_password(request):
