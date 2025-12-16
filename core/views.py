@@ -58,24 +58,18 @@ def resend_device_code(request):
     # -----------------------------
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
-        return JsonResponse({
-            "status": "error",
-            "message": "Verification session expired. Please login again."
-        })
+        messages.error(request, "Verification session expired. Please login again.")
+        return redirect("login")  # replace "login" with your login route name
 
     try:
         user = CustomUser.objects.get(id=pending_user_id)
     except CustomUser.DoesNotExist:
-        return JsonResponse({
-            "status": "error",
-            "message": "User not found. Please login again."
-        })
+        messages.error(request, "User not found. Please login again.")
+        return redirect("login")
 
     if not user.phone:
-        return JsonResponse({
-            "status": "error",
-            "message": "No phone number found for this account."
-        })
+        messages.error(request, "No phone number found for this account.")
+        return redirect("login")
 
     # -----------------------------
     # 2️⃣ Rate limit (30 seconds)
@@ -85,10 +79,8 @@ def resend_device_code(request):
         last_sent = timezone.datetime.fromisoformat(last_sent_str)
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
-            return JsonResponse({
-                "status": "error",
-                "message": f"Please wait {int(30 - elapsed)} seconds before resending."
-            })
+            messages.error(request, f"Please wait {int(30 - elapsed)} seconds before resending.")
+            return redirect("verify-device")  # replace with your verification page
 
     # -----------------------------
     # 3️⃣ Generate new code
@@ -108,30 +100,34 @@ def resend_device_code(request):
     # -----------------------------
     # 5️⃣ Save verification record
     # -----------------------------
-    DeviceVerification.objects.create(
-        user=user,
-        code=code,
-        device_fingerprint=device_fp,
-        user_agent=user_agent,
-        ip_address=ip_address,
-    )
+    try:
+        DeviceVerification.objects.create(
+            user=user,
+            code=code,
+            device_fingerprint=device_fp,
+            user_agent=user_agent,
+            ip_address=ip_address,
+        )
+    except Exception as e:
+        messages.error(request, "Verification code wasn't resent. Try again later.")
+        return redirect("verify_device")
 
     # -----------------------------
     # 6️⃣ Send SMS (replace with provider)
     # -----------------------------
-    # TODO: Integrate Termii / Africa’s Talking / Twilio
-    print(f"📱 SMS to {user.phone}: Your verification code is {code}")
+    try:
+        # TODO: Integrate Termii / Africa’s Talking / Twilio
+        print(f"📱 SMS to {user.phone}: Your verification code is {code}")
+        messages.success(request, "Verification code resent to your phone.")
+    except Exception:
+        messages.error(request, "Verification code wasn't resent. Try again later.")
 
     # -----------------------------
     # 7️⃣ Update rate-limit timestamp
     # -----------------------------
     request.session["last_verification_sent"] = timezone.now().isoformat()
 
-    return JsonResponse({
-        "status": "ok",
-        "message": "A new verification code has been sent to your phone."
-    })
-
+    return redirect("verify_device")  # replace with your verification page
     
 User = get_user_model()
 
