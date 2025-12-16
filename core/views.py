@@ -47,6 +47,13 @@ from .forms import (
 from .utils import get_client_ip, get_device_fingerprint, generate_code, send_verification_email_sendgrid
 
 
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.utils import timezone
+from .models import CustomUser, DeviceVerification
+from .utils import send_sms  # make sure send_sms is in utils.py
+from .helpers import generate_code, get_device_fingerprint, get_client_ip
+
 def resend_device_code(request):
     """
     Resend a new device verification code via PHONE (SMS ONLY).
@@ -59,7 +66,7 @@ def resend_device_code(request):
     pending_user_id = request.session.get("pending_user_id")
     if not pending_user_id:
         messages.error(request, "Verification session expired. Please login again.")
-        return redirect("login")  # replace "login" with your login route name
+        return redirect("login")
 
     try:
         user = CustomUser.objects.get(id=pending_user_id)
@@ -80,7 +87,7 @@ def resend_device_code(request):
         elapsed = (timezone.now() - last_sent).total_seconds()
         if elapsed < 30:
             messages.error(request, f"Please wait {int(30 - elapsed)} seconds before resending.")
-            return redirect("verify_device")  # replace with your verification page
+            return redirect("verify-device")  # make sure this matches your URL name
 
     # -----------------------------
     # 3️⃣ Generate new code
@@ -91,10 +98,7 @@ def resend_device_code(request):
     # 4️⃣ Device metadata
     # -----------------------------
     device_fp = request.session.get("pending_name", get_device_fingerprint(request))
-    user_agent = request.session.get(
-        "pending_ua",
-        request.META.get("HTTP_USER_AGENT", "Unknown UA")
-    )
+    user_agent = request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "Unknown UA"))
     ip_address = request.session.get("pending_ip", get_client_ip(request))
 
     # -----------------------------
@@ -109,17 +113,22 @@ def resend_device_code(request):
             ip_address=ip_address,
         )
     except Exception as e:
+        print(e)
         messages.error(request, "Verification code wasn't resent. Try again later.")
-        return redirect("verify_device")
+        return redirect("verify-device")
 
     # -----------------------------
-    # 6️⃣ Send SMS (replace with provider)
+    # 6️⃣ Send SMS via Termii
     # -----------------------------
     try:
-        # TODO: Integrate Termii / Africa’s Talking / Twilio
-        print(f"📱 SMS to {user.phone}: Your verification code is {code}")
-        messages.success(request, "Verification code resent to your phone.")
-    except Exception:
+        response = send_sms(user.phone, code)
+        if response.get("message_id") or response.get("success"):  # depends on Termii response
+            messages.success(request, "Verification code resent to your phone.")
+        else:
+            print("Termii error:", response)
+            messages.error(request, "Failed to send SMS. Try again later.")
+    except Exception as e:
+        print(e)
         messages.error(request, "Verification code wasn't resent. Try again later.")
 
     # -----------------------------
@@ -127,8 +136,8 @@ def resend_device_code(request):
     # -----------------------------
     request.session["last_verification_sent"] = timezone.now().isoformat()
 
-    return redirect("verify_device")  # replace with your verification page
-    
+    return redirect("verify-device")  # make sure this URL name exists
+
 User = get_user_model()
 
 
