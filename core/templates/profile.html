@@ -4,154 +4,153 @@
 
 {% block content %}
 <style>
-  body {
-    background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-  }
+/* =========================================================
+   PROFILE PAGE STYLING (THEME-COMPATIBLE)
+========================================================= */
 
-  .profile-container {
-    max-width: 800px;
-    margin: 60px auto;
-    background: rgba(30, 30, 30, 0.95);
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 0 30px rgba(128, 0, 255, 0.6);
-    border: 1px solid #8000ff;
-    animation: fadeIn 1s ease;
-  }
+.profile-container {
+  max-width: 800px;
+  margin: 60px auto;
+  background: var(--bg-card);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(128, 0, 255, 0.6);
+  border: 1px solid var(--text-accent);
+  animation: fadeIn 1s ease;
+}
 
-  .profile-container h1 {
-    text-align: center;
-    margin-bottom: 40px;
-    font-size: 36px;
-    color: #a855f7;
-    text-shadow: 0 0 15px #a855f7;
-  }
+.profile-container h1 {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 36px;
+  color: var(--text-accent);
+  text-shadow: 0 0 15px var(--glow-accent);
+}
 
-  .profile-pic {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
-  }
+.profile-pic {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
 
-  .profile-pic img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid #a855f7;
-    box-shadow: 0 0 15px #a855f7;
-    cursor: pointer;
-  }
+.profile-pic img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--text-accent);
+  box-shadow: 0 0 15px var(--glow-accent);
+  cursor: pointer;
+}
 
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.profile-info div {
+  background: var(--bg-main);
+  padding: 15px 20px;
+  border-radius: 12px;
+  border-left: 5px solid var(--text-accent);
+}
+
+.profile-info div p:first-child {
+  font-weight: bold;
+  color: var(--text-accent);
+  margin-bottom: 6px;
+}
+
+.profile-info div p:last-child {
+  color: var(--text-main);
+}
+
+/* Resume Card */
+.resume-card {
+  margin-top: 40px;
+  padding: 20px;
+  border-radius: 15px;
+  background: var(--bg-card);
+  box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
+  text-align: center;
+  transition: 0.3s ease;
+  text-decoration: none;
+  display: block;
+  color: var(--text-accent);
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.resume-card:hover {
+  box-shadow: 0 0 35px var(--glow-accent);
+  transform: scale(1.05);
+}
+
+.edit-button {
+  display: block;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.edit-button a {
+  display: inline-block;
+  background: var(--text-accent);
+  color: var(--text-main);
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 0 12px var(--glow-accent);
+  transition: 0.3s;
+}
+
+.edit-button a:hover {
+  background: var(--glow-accent);
+  box-shadow: 0 0 20px var(--glow-accent);
+}
+
+@media (max-width: 768px) {
   .profile-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
+    grid-template-columns: 1fr;
   }
+}
 
-  .profile-info div {
-    background: #161616;
-    padding: 15px 20px;
-    border-radius: 12px;
-    border-left: 5px solid #a855f7;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  .profile-info div p:first-child {
-    font-weight: bold;
-    color: #c084fc;
-    margin-bottom: 6px;
-  }
+/* Modal */
+#imgModal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  padding-top: 60px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.9);
+}
 
-  .profile-info div p:last-child {
-    color: #e2e8f0;
-  }
+#imgModal img {
+  margin: auto;
+  display: block;
+  max-width: 90%;
+  max-height: 90%;
+}
 
-  /* Resume Card */
-  .resume-card {
-    margin-top: 40px;
-    padding: 20px;
-    border-radius: 15px;
-    background: linear-gradient(135deg, #0a0a0a, #111);
-    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
-    text-align: center;
-    transition: 0.3s ease;
-    text-decoration: none;
-    display: block;
-    color: #00ffc3;
-    font-weight: bold;
-    font-size: 18px;
-  }
-  .resume-card:hover {
-    box-shadow: 0 0 35px rgba(0, 255, 200, 0.8);
-    transform: scale(1.05);
-  }
-
-  .edit-button {
-    display: block;
-    text-align: center;
-    margin-top: 40px;
-  }
-
-  .edit-button a {
-    display: inline-block;
-    background: #9333ea;
-    color: #fff;
-    padding: 12px 30px;
-    font-size: 16px;
-    border-radius: 30px;
-    text-decoration: none;
-    box-shadow: 0 0 12px #9333ea;
-    transition: 0.3s;
-  }
-
-  .edit-button a:hover {
-    background: #7e22ce;
-    box-shadow: 0 0 20px #a855f7;
-  }
-
-  @media (max-width: 768px) {
-    .profile-info {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Modal */
-  #imgModal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    padding-top: 60px;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.9);
-  }
-
-  #imgModal img {
-    margin: auto;
-    display: block;
-    max-width: 90%;
-    max-height: 90%;
-  }
-
-  #imgModal span {
-    position: absolute;
-    top: 15px;
-    right: 35px;
-    color: #f1f1f1;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+#imgModal span {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: var(--text-main);
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}
 </style>
 
 <div class="profile-container">
