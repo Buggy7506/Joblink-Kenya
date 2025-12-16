@@ -15,27 +15,11 @@
     align-items: center;
     padding: 30px 0;
     font-family: 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--text);
     transition: 0.4s ease;
 }
 
-/* Light & Dark Theme Variables */
-.verify-wrapper.light {
-    --bg: #f7f7f7;
-    --text: #222;
-    --card-bg: rgba(255, 255, 255, 0.9);
-    --input-bg: rgba(0, 0, 0, 0.05);
-}
-.verify-wrapper.dark {
-    --bg: linear-gradient(135deg, #0f0f0f, #1c1c1c);
-    --text: #fff;
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --input-bg: rgba(255, 255, 255, 0.08);
-}
-
 .verify-wrapper .container {
-    background: var(--card-bg);
+    background: var(--bg-card);
     padding: 40px;
     width: 90%;
     max-width: 450px;
@@ -44,6 +28,7 @@
     backdrop-filter: blur(12px);
     text-align: center;
     animation: fadeIn 0.7s ease-in-out;
+    color: var(--text-main);
 }
 
 @keyframes fadeIn {
@@ -51,71 +36,101 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* OTP INPUT FIELDS */
-.verify-wrapper .otp-container {
+.otp-container {
     display: flex;
     justify-content: center;
     gap: 12px;
     margin-bottom: 25px;
 }
 
-.verify-wrapper .otp-input {
+.otp-input {
     width: 50px;
     height: 55px;
     font-size: 24px;
     border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.15);
-    background: var(--input-bg);
+    border: 1px solid var(--text-muted);
+    background: var(--bg-main);
     text-align: center;
-    color: var(--text);
+    color: var(--text-main);
     outline: none;
     transition: 0.25s;
 }
 
-.verify-wrapper .otp-input:focus {
+.otp-input:focus {
     transform: scale(1.12);
-    border-color: #4cafef;
+    border-color: var(--glow-main);
 }
 
-/* BUTTON */
-.verify-wrapper button {
+button {
     width: 100%;
     padding: 12px;
-    background: #4cafef;
-    color: #fff;
+    background: var(--glow-main);
+    color: var(--text-main);
     border: none;
     font-size: 17px;
     border-radius: 10px;
     cursor: pointer;
     transition: 0.25s;
+    opacity: 0.5;
+    pointer-events: none;
+    position: relative;
 }
 
-.verify-wrapper button:hover {
-    background: #38a0e6;
+button.enabled {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+button:hover.enabled {
+    background: var(--glow-accent);
     transform: translateY(-2px);
 }
 
-/* REMEMBER DEVICE */
-.verify-wrapper .remember-device {
+.loading-dots {
+    display: inline-block;
+    margin-left: 6px;
+}
+.loading-dots span {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin: 0 1px;
+    background: var(--text-main);
+    border-radius: 50%;
+    animation: blink 1.2s infinite ease-in-out;
+}
+.loading-dots span:nth-child(1){animation-delay:0s;}
+.loading-dots span:nth-child(2){animation-delay:0.2s;}
+.loading-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{
+    0%, 80%, 100%{opacity:0;}
+    40%{opacity:1;}
+}
+
+.remember-device {
     margin-top: 15px;
     text-align: left;
     font-size: 14px;
 }
 
-/* RESEND TIMER */
-.verify-wrapper .resend {
+.resend {
     margin-top: 15px;
     font-size: 14px;
-    color: #aaa;
+    color: var(--text-muted);
 }
 
-/* SUCCESS CHECKMARK */
 .success-checkmark {
     display: none;
     font-size: 90px;
-    color: #4cafef;
+    color: var(--glow-main);
     animation: pop 0.6s ease-out;
     margin-bottom: 15px;
+}
+
+@keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
 }
 
 .code-sent-msg {
@@ -135,34 +150,9 @@
     margin-bottom: 15px;
     font-size: .95rem;
 }
-
-/* DARK/LIGHT SWITCH */
-.theme-toggle {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    background: none;
-    color: var(--text);
-    border: 2px solid var(--text);
-    padding: 6px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.theme-toggle:hover { opacity: 0.7; }
-
-@keyframes pop {
-    0% { transform: scale(0); opacity: 0; }
-    70% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); }
-}
-
 </style>
 
-<!-- THEME BUTTON -->
-<button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-
-<div class="verify-wrapper dark" id="verifyWrapper">
+<div class="verify-wrapper">
     <div class="container">
 
         {% if messages %}
@@ -195,7 +185,7 @@
                 <input type="checkbox" name="remember_device"> Remember this device for 30 days
             </label>
 
-            <button type="submit">Verify Device</button>
+            <button type="submit" id="verifyBtn">Verify Device</button>
         </form>
 
         <div class="resend">
@@ -208,56 +198,62 @@
 </div>
 
 <script>
-// OTP logic
+// OTP inputs & hidden input
 const inputs = document.querySelectorAll(".otp-input");
 const hiddenInput = document.getElementById("full_code");
 const form = document.getElementById("verifyForm");
 const successMark = document.getElementById("successMark");
+const verifyBtn = document.getElementById("verifyBtn");
 
+function updateHiddenAndButton() {
+    hiddenInput.value = [...inputs].map(i => i.value).join("");
+    if(hiddenInput.value.length === inputs.length) {
+        verifyBtn.classList.add("enabled");
+        autoSubmit();
+    } else {
+        verifyBtn.classList.remove("enabled");
+        verifyBtn.innerHTML = "Verify Device";
+    }
+}
+
+// Auto-submit function with loading dots
+function autoSubmit() {
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = `Verifying <span class="loading-dots"><span></span><span></span><span></span></span>`;
+    form.submit();
+}
+
+// Input navigation
 inputs.forEach((input, idx) => {
     input.addEventListener("input", () => {
-        if (input.value.length === 1 && idx < inputs.length - 1) {
-            inputs[idx + 1].focus();
+        if(input.value.length === 1 && idx < inputs.length -1) {
+            inputs[idx+1].focus();
         }
-        hiddenInput.value = [...inputs].map(i => i.value).join("");
+        updateHiddenAndButton();
     });
 
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Backspace" && input.value === "" && idx > 0) {
-            inputs[idx - 1].focus();
+    input.addEventListener("keydown", e => {
+        if(e.key === "Backspace" && input.value === "" && idx > 0) {
+            inputs[idx-1].focus();
         }
     });
 });
 
 inputs[0].focus();
 
-// Success animation on submit
-form.addEventListener("submit", () => {
-    successMark.style.display = "block";
-});
-
 // Resend logic
 let seconds = 30;
-let countdown = document.getElementById("countdown");
-let resendLink = document.getElementById("resendLink");
-
+const countdown = document.getElementById("countdown");
+const resendLink = document.getElementById("resendLink");
 let timer = setInterval(() => {
     seconds--;
     countdown.textContent = seconds;
-
-    if (seconds <= 0) {
+    if(seconds <= 0){
         clearInterval(timer);
         countdown.style.display = "none";
         resendLink.style.display = "inline";
     }
 }, 1000);
-
-// Theme toggle
-function toggleTheme() {
-    const w = document.getElementById("verifyWrapper");
-    w.classList.toggle("dark");
-    w.classList.toggle("light");
-}
 </script>
 
 {% endblock %}
