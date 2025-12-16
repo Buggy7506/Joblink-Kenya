@@ -7,6 +7,20 @@ import time
 import secrets
 
 
+def send_sms(phone, code):
+    url = "https://api.ng.termii.com/api/sms/send"
+    payload = {
+        "to": phone,
+        "from": "JobLink",
+        "sms": f"Your verification code is {code}",
+        "type": "plain",
+        "api_key": "TLwTTGPGXsziHFdFJyEikXGUtImhesDENtZKtLyzdtPtMtmUqDvuvNQwgFqRnb"  # replace with your actual API key
+    }
+    response = requests.post(url, json=payload)
+    return response.json()
+
+
+
 logger = logging.getLogger(__name__)
 
 
