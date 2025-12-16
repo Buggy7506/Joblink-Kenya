@@ -5,29 +5,20 @@
 
 {% block extra_css %}
 <style>
-:root{
-  --bg: #fafafa;
-  --card-bg: #fff;
-  --muted: #8e8e8e;
-  --accent: #3897f0;
-  --input-border: #ddd;
-  --rounded: 8px;
-  --max-width: 1050px;
-}
-
 /* Base body */
-body { 
-  background: var(--bg) !important; 
-  color: #111 !important; 
-  margin:0; 
-  padding:0; 
-  font-family: Arial,sans-serif; 
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  transition: background 0.4s, color 0.4s;
 }
 
 /* Container layout */
 #login-page * { box-sizing: border-box; }
 #login-page .container{
-  max-width: var(--max-width);
+  max-width: var(--max-width, 1050px);
   margin: 60px auto;
   display:flex;
   gap:60px;
@@ -37,8 +28,8 @@ body {
 }
 
 /* HERO - left side mockup */
-#login-page .hero{flex:1; display:flex; align-items:center; justify-content:center;}
-#login-page .phone-stack{
+#login-page .hero { flex:1; display:flex; align-items:center; justify-content:center; }
+#login-page .phone-stack {
   position:relative;
   width:420px;
   height:420px;
@@ -48,137 +39,122 @@ body {
 }
 
 /* Decorative cards */
-#login-page .card{
+#login-page .card {
   position:absolute;
   border-radius:28px;
   box-shadow: 0 18px 30px rgba(0,0,0,0.12);
   transform-origin:center;
 }
-#login-page .back-card{
-  width:300px; 
-  height:420px; 
-  left:calc(50% - 120px); 
-  top:40px;
+#login-page .back-card {
+  width:300px; height:420px; left:calc(50% - 120px); top:40px;
   transform: rotate(-14deg) scale(.95);
-  background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
+  background: linear-gradient(180deg, var(--text-accent), var(--text-accent)33, var(--bg-card));
   z-index:1;
 }
-#login-page .left-card{
-  width:340px; 
-  height:420px; 
-  right:calc(50% - 120px); 
-  top:30px;
+#login-page .left-card {
+  width:340px; height:420px; right:calc(50% - 120px); top:30px;
   transform: rotate(10deg) scale(.98);
-  background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
+  background: linear-gradient(180deg, var(--text-accent), var(--text-main)66, var(--bg-card));
   z-index:2;
 }
-
-#login-page .phone-card{
-  width:300px; 
-  height:520px; 
-  border-radius:36px; 
-  overflow:hidden;
-  display:flex; 
-  align-items:center; 
-  justify-content:center;
-  background: #111;
+#login-page .phone-card {
+  width:300px; height:520px; border-radius:36px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--bg-card);
   box-shadow: 0 30px 60px rgba(0,0,0,0.25);
   transform: rotate(0deg);
   z-index:10;
+  transition: background 0.4s, box-shadow 0.4s;
 }
-
-#login-page .phone-screen{
-  width:92%; 
-  height:88%; 
-  margin:auto;
-  background:#fff; 
-  border-radius:24px; 
+#login-page .phone-screen {
+  width:92%; height:88%; margin:auto;
+  background: var(--bg-card);
+  border-radius:24px;
   overflow:hidden;
-  position:relative; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center;
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  transition: background 0.4s;
 }
-#login-page .phone-screen img{width:100%; height:100%; object-fit:cover;}
+#login-page .phone-screen img { width:100%; height:100%; object-fit:cover; }
 
-#login-page .floating-heart{
-  position:absolute; 
-  left:10%; 
-  top:20%;
-  background:linear-gradient(45deg,#ff3b6a,#ff8a5c);
-  color:white; 
-  font-weight:700;
-  padding:8px 10px; 
-  border-radius:14px;
-  box-shadow:0 8px 18px rgba(0,0,0,0.12);
+/* Floating decorations */
+#login-page .floating-heart {
+  position:absolute; left:10%; top:20%;
+  background: var(--text-accent);
+  color: var(--text-inverse, #fff);
+  font-weight:700; padding:8px 10px;
+  border-radius:14px; box-shadow:0 8px 18px rgba(0,0,0,0.12);
   font-size:14px;
+  transition: background 0.4s;
 }
-#login-page .floating-bubble{
-  position:absolute; 
-  right:6%; 
-  bottom:16%;
-  background:white; 
-  padding:6px 10px; 
-  border-radius:20px;
+#login-page .floating-bubble {
+  position:absolute; right:6%; bottom:16%;
+  background: var(--bg-card);
+  padding:6px 10px; border-radius:20px;
   box-shadow:0 8px 18px rgba(0,0,0,0.12);
   font-size:13px;
+  transition: background 0.4s;
 }
 
 /* RIGHT AUTH BOX */
-#login-page .auth{
+#login-page .auth {
   flex:0 0 auto;
   width:360px;
-  display:flex;
-  flex-direction:column;
+  display:flex; flex-direction:column;
   align-items:center;
   margin:auto;
 }
-#login-page .auth-card{
+#login-page .auth-card {
   width:100%;
-  background:var(--card-bg);
+  background: var(--bg-card);
   padding:28px;
-  border:1px solid var(--input-border);
+  border:1px solid var(--text-muted);
   border-radius:6px;
   text-align:center;
   position:relative;
+  transition: background 0.4s, border 0.4s, color 0.4s;
 }
-#login-page .logo{
-  font-family:Pacifico,cursive;
+#login-page .logo {
+  font-family: Pacifico, cursive;
   font-size:44px;
   margin:4px 0 18px;
-  color:#262626;
+  color: var(--text-main);
 }
 
-#login-page .login-form{display:flex; flex-direction:column; gap:10px;}
-#login-page .input{
+#login-page .login-form { display:flex; flex-direction:column; gap:10px; }
+#login-page .input {
   width:100%;
   padding:10px 12px;
   border-radius:4px;
-  border:1px solid var(--input-border);
+  border:1px solid var(--text-muted);
   font-size:14px;
+  background: transparent;
+  color: var(--text-main);
+  transition: border 0.4s, color 0.4s, box-shadow 0.4s;
 }
-#login-page .input:focus{
-  box-shadow:0 0 0 3px rgba(56,151,240,0.12);
-  border-color:#bcdffb;
+#login-page .input:focus {
+  box-shadow:0 0 0 3 rgba(34,211,238,0.12);
+  border-color: var(--text-accent);
 }
-#login-page .password-row{display:flex; gap:8px; align-items:center;}
-#login-page .password-row .input{flex:1;}
-#login-page .show-btn{
+#login-page .password-row { display:flex; gap:8px; align-items:center; }
+#login-page .password-row .input { flex:1; }
+#login-page .show-btn {
   padding:8px 10px;
   border-radius:4px;
-  border:1px solid #bdbdbd;
-  background:white;
+  border:1px solid var(--text-muted);
+  background: var(--bg-card);
   cursor:pointer;
   font-weight:600;
   font-size:13px;
+  transition: background 0.4s, border 0.4s, color 0.4s;
 }
 
 /* LOGIN BUTTON + SPINNER */
 #login-page .primary-btn {
   margin-top:6px;
-  background: linear-gradient(180deg,#4d69ff,#3c51f6);
+  background: linear-gradient(180deg, var(--text-accent), var(--text-accent-hover, var(--text-accent)));
   border:none;
-  color:white;
+  color: var(--text-inverse, #fff);
   padding:9px;
   border-radius:6px;
   font-weight:600;
@@ -191,55 +167,41 @@ body {
   align-items: center;
   gap: 8px;
   overflow: hidden;
+  transition: background 0.4s, color 0.4s;
 }
-
-#login-page .primary-btn .btn-text {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
+#login-page .primary-btn .btn-text { transition: transform 0.3s ease, opacity 0.3s ease; }
 #login-page .primary-btn .spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #fff;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  border: 3px solid var(--text-muted);
+  border-top: 3px solid var(--text-inverse, #fff);
+  border-radius: 50%; width: 18px; height: 18px;
   animation: spin 1s linear infinite;
-  position: absolute;
-  opacity: 0;
+  position: absolute; opacity: 0;
   transition: opacity 0.3s ease;
 }
+#login-page .primary-btn.loading .btn-text { transform: translateX(-20px); opacity:0; }
+#login-page .primary-btn.loading .spinner { opacity:1; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-#login-page .primary-btn.loading .btn-text {
-  transform: translateX(-20px);
-  opacity: 0;
+/* Divider & links */
+#login-page .divider { display:flex; align-items:center; gap:16px; margin:16px 0; }
+#login-page .divider::before, #login-page .divider::after { content:""; height:1px; background: var(--text-muted); flex:1; }
+#login-page .divider span { color: var(--text-muted); font-size:13px; }
+#login-page .facebook-btn {
+  display:flex; align-items:center; gap:10px; justify-content:center;
+  padding:8px; border:none; background:transparent; color:#385185; font-weight:700; cursor:pointer;
 }
-
-#login-page .primary-btn.loading .spinner {
-  opacity: 1;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-#login-page .divider{display:flex; align-items:center; gap:16px; margin:16px 0;}
-#login-page .divider::before,#login-page .divider::after{content:""; height:1px; background:#eee; flex:1;}
-#login-page .divider span{color:var(--muted); font-size:13px;}
-#login-page .facebook-btn{
-  display:flex; align-items:center; gap:10px; justify-content:center; padding:8px; border:none; background:transparent; color:#385185; font-weight:700; cursor:pointer;
-}
-#login-page .forgot{color:var(--muted); font-size:13px; margin-top:10px;}
-#login-page .signup-card{
+#login-page .forgot { color: var(--text-muted); font-size:13px; margin-top:10px; }
+#login-page .signup-card {
   margin-top:12px;
   width:100%;
   text-align:center;
   padding:16px;
-  background:var(--card-bg);
-  border:1px solid var(--input-border);
+  background: var(--bg-card);
+  border:1px solid var(--text-muted);
   border-radius:6px;
+  transition: background 0.4s, border 0.4s, color 0.4s;
 }
-#login-page .signup-card a{color:#0095f6; text-decoration:none; font-weight:600;}
+#login-page .signup-card a { color: var(--text-accent); text-decoration:none; font-weight:600; }
 
 /* --- FLASH MESSAGES --- */
 #login-page .messages {
@@ -257,13 +219,13 @@ body {
   font-weight:600;
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  color: #000; /* Black text for better readability */
+  transition: opacity 0.5s ease, transform 0.5s ease, background 0.4s, color 0.4s;
+  color: var(--text-main);
   box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
-#login-page .messages li.error { background-color: #f44336; }
-#login-page .messages li.success { background-color: #4caf50; }
-#login-page .messages li.info { background-color: #2196f3; }
+#login-page .messages li.error { background-color: var(--text-danger); }
+#login-page .messages li.success { background-color: var(--text-accent); }
+#login-page .messages li.info { background-color: var(--text-accent); }
 #login-page .messages li.warning { background-color: #ff9800; }
 
 /* Mobile adjustments */
@@ -273,9 +235,7 @@ body {
     align-items:center;
     padding:0 2vw;
   }
-  #login-page .hero{
-    display:none; 
-  }
+  #login-page .hero{ display:none; }
   #login-page .auth{
     order:1;
     width:100%;
