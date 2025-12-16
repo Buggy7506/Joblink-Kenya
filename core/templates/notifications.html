@@ -52,22 +52,24 @@
 .notifications-container {
     max-width: 900px;
     margin: 40px auto;
-    background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
+    background: var(--bg-card);
     padding: 30px;
     border-radius: 20px;
-    color: #fff;
-    box-shadow: 0 0 25px rgba(0, 255, 200, 0.3),
-                0 0 60px rgba(0, 255, 200, 0.15);
-    border: 1px solid rgba(0, 255, 200, 0.2);
+    color: var(--text-main);
+    box-shadow: 0 0 25px var(--glow-accent, rgba(0,255,200,0.3)),
+                0 0 60px var(--glow-accent, rgba(0,255,200,0.15));
+    border: 1px solid rgba(0,255,200,0.2);
     animation: pulseGlow 4s infinite alternate;
+    transition: background 0.4s, color 0.4s, box-shadow 0.4s, border 0.4s;
 }
 
 .glow-heading {
     font-size: 2.5rem;
     text-align: center;
     margin-bottom: 20px;
-    color: #0ff;
-    text-shadow: 0 0 15px #0ff, 0 0 25px #00e6e6;
+    color: var(--text-accent);
+    text-shadow: 0 0 15px var(--glow-accent), 0 0 25px var(--glow-accent);
+    transition: color 0.4s, text-shadow 0.4s;
 }
 
 .actions-bar {
@@ -80,26 +82,26 @@
 }
 
 .mark-read-btn {
-    background: #00ffaa;
-    color: #111;
+    background: var(--text-accent);
+    color: var(--text-inverse, #111);
     font-weight: bold;
     padding: 8px 14px;
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    box-shadow: 0 0 10px #00ffaa, 0 0 20px #00e6e6;
+    box-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--glow-accent);
     transition: all 0.3s ease;
 }
 
 .mark-read-btn:hover {
-    background: #00e6e6;
-    box-shadow: 0 0 20px #00e6e6, 0 0 40px #00ffaa;
+    background: var(--text-accent-hover, var(--text-accent));
+    box-shadow: 0 0 20px var(--glow-accent), 0 0 40px var(--glow-main);
 }
 
 .unread-count {
     font-size: 0.95rem;
-    color: #0ff;
-    text-shadow: 0 0 8px #0ff;
+    color: var(--text-accent);
+    text-shadow: 0 0 8px var(--glow-accent);
 }
 
 .notification-list {
@@ -117,23 +119,23 @@
 }
 
 .notification-card {
-    background: rgba(25, 25, 40, 0.95);
+    background: var(--bg-card);
     padding: 18px 20px;
     border-radius: 15px;
-    border-left: 4px solid #0ff;
-    transition: all 0.3s ease, transform 0.2s;
+    border-left: 4px solid var(--text-accent);
+    transition: all 0.3s ease, transform 0.2s, box-shadow 0.3s;
     animation: fadeInUp 0.6s ease both;
     position: relative;
 }
 
 .notification-card:hover {
     transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 0 25px #0ff, 0 0 50px #00e6e6;
+    box-shadow: 0 0 25px var(--glow-accent), 0 0 50px var(--glow-main);
 }
 
 .notification-card.unread {
-    border-left-color: #ff4f6d;
-    box-shadow: 0 0 12px #ff4f6d;
+    border-left-color: var(--text-danger);
+    box-shadow: 0 0 12px var(--text-danger);
 }
 
 .card-header {
@@ -145,18 +147,19 @@
 .card-header h4 {
     margin: 0;
     font-size: 1.3rem;
-    color: #0ff;
-    text-shadow: 0 0 8px #0ff;
+    color: var(--text-accent);
+    text-shadow: 0 0 8px var(--glow-accent);
+    transition: color 0.4s, text-shadow 0.4s;
 }
 
 .card-header small {
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 0.8rem;
 }
 
 .notification-card p {
     margin: 10px 0;
-    color: #ccc;
+    color: var(--text-muted);
 }
 
 .badges {
@@ -170,10 +173,10 @@
     display: inline-block;
     padding: 3px 8px;
     font-size: 0.75rem;
-    background: #ff4f6d;
+    background: var(--text-danger);
     color: #fff;
     border-radius: 6px;
-    box-shadow: 0 0 8px #ff4f6d;
+    box-shadow: 0 0 8px var(--text-danger);
 }
 
 .role-badge {
@@ -188,26 +191,26 @@
 
 .role-badge.applicant {
     background: rgba(0, 123, 255, 0.15);
-    color: #00aaff;
-    border: 1px solid #00aaff;
+    color: var(--text-accent);
+    border: 1px solid var(--text-accent);
 }
 
 .role-badge.employer {
     background: rgba(255, 102, 0, 0.15);
-    color: #ff6600;
-    border: 1px solid #ff6600;
+    color: var(--text-danger);
+    border: 1px solid var(--text-danger);
 }
 
 .empty-msg {
     text-align: center;
     font-size: 1.2rem;
-    color: #888;
-    text-shadow: 0 0 10px #444;
+    color: var(--text-muted);
+    text-shadow: 0 0 10px rgba(0,0,0,0.25);
 }
 
 @keyframes pulseGlow {
-    from { box-shadow: 0 0 20px rgba(0, 255, 200, 0.2); }
-    to   { box-shadow: 0 0 40px rgba(0, 255, 200, 0.4); }
+    from { box-shadow: 0 0 20px var(--glow-accent, rgba(0,255,200,0.2)); }
+    to   { box-shadow: 0 0 40px var(--glow-accent, rgba(0,255,200,0.4)); }
 }
 
 @keyframes fadeInUp {
