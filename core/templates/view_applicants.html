@@ -5,72 +5,96 @@
 {% block content %}
 <style>
   .view-applicants-page {
-    background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
-    color: white;
-    font-family: Arial, sans-serif;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 0 15px rgba(0, 255, 150, 0.3);
-  }
-  .applicant {
-    background: rgba(255, 255, 255, 0.07);
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 15px;
-    box-shadow: 0 0 10px lime;
-  }
-  .view-applicants-page h2 {
-    text-align: center;
-    margin-bottom: 30px;
-    text-shadow: 0 0 10px #00ffc6;
-  }
-  .cv-actions a {
-    color: #34d399;
-    margin-right: 15px;
-    text-decoration: none;
-    font-weight: bold;
-  }
-  .cv-actions a:hover {
-    text-decoration: underline;
-  }
-  .action-btn {
-    margin-top: 15px;
-    padding: 8px 18px;
-    border: none;
-    border-radius: 8px;
-    color: #fff;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s ease;
-  }
-  .accept-btn { background-color: #22c55e; }
-  .accept-btn:hover { background-color: #16a34a; }
-  .reject-btn { background-color: #ef4444; }
-  .reject-btn:hover { background-color: #dc2626; }
-  .chat-btn {
-    background-color: #3b82f6;
-    margin-top: 15px;
-    display: inline-block;
-    padding: 8px 18px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    color: #fff;
-  }
-  .chat-btn:hover { background-color: #2563eb; }
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: Arial, sans-serif;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0, 255, 150, 0.3);
+  transition: background 0.4s, color 0.4s;
+}
 
-  /* Status badges */
-  .status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 0.85rem;
-    margin-left: 5px;
-  }
-  .status-pending { background-color: #facc15; color: #111; }
-  .status-accepted { background-color: #22c55e; color: #fff; }
-  .status-rejected { background-color: #ef4444; color: #fff; }
+.applicant {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px var(--glow-main);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.applicant:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px var(--glow-main);
+}
+
+.view-applicants-page h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  text-shadow: 0 0 10px var(--glow-main), 0 0 20px var(--glow-accent);
+}
+
+.cv-actions a {
+  color: var(--text-accent);
+  margin-right: 15px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.cv-actions a:hover {
+  text-decoration: underline;
+  color: var(--glow-main);
+}
+
+.action-btn {
+  margin-top: 15px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease, box-shadow 0.3s;
+}
+
+.accept-btn { background-color: #22c55e; }
+.accept-btn:hover { background-color: #16a34a; }
+
+.reject-btn { background-color: #ef4444; }
+.reject-btn:hover { background-color: #dc2626; }
+
+.chat-btn {
+  background-color: #3b82f6;
+  margin-top: 15px;
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  color: #fff;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.chat-btn:hover { 
+  background-color: #2563eb; 
+  box-shadow: 0 0 10px var(--glow-main);
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-left: 5px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.status-pending { background-color: #facc15; color: #111; }
+.status-accepted { background-color: #22c55e; color: #fff; }
+.status-rejected { background-color: #ef4444; color: #fff; }
 </style>
 
 <div class="view-applicants-page">
