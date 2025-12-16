@@ -11,9 +11,10 @@ def send_sms(phone, code):
     url = "https://api.ng.termii.com/api/sms/send"
     payload = {
         "to": phone,
-        "from": "JobLink Kenya",  # must be verified
+        "from": "JobLink",  # must be a verified Sender ID
         "sms": f"Your verification code is {code}",
         "type": "plain",
+        "channel": "sms",  # or "sms" depending on your account
         "api_key": "TLwTTGPGXsziHFdFJyEikXGUtImhesDENtZKtLyzdtPtMtmUqDvuvNQwgFqRnb"
     }
     try:
@@ -24,8 +25,6 @@ def send_sms(phone, code):
     except Exception as e:
         print("Error sending SMS:", e)
         return {"success": False, "error": str(e)}
-
-
 
 
 logger = logging.getLogger(__name__)
