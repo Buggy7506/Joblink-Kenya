@@ -44,15 +44,9 @@ from .forms import (
     EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, 
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm
 )
-from .utils import get_client_ip, get_device_fingerprint, generate_code, send_verification_email_sendgrid
+from .utils import get_client_ip, get_device_fingerprint, generate_code, send_verification_email_sendgrid, send_sms 
 
 
-from django.shortcuts import redirect
-from django.contrib import messages
-from django.utils import timezone
-from .models import CustomUser, DeviceVerification
-from .utils import send_sms  # make sure send_sms is in utils.py
-from .helpers import generate_code, get_device_fingerprint, get_client_ip
 
 def resend_device_code(request):
     """
