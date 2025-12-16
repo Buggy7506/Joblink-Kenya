@@ -73,13 +73,18 @@
     padding: 12px !important;
     background: var(--glow-main) !important;
     color: var(--text-main) !important;
+    font-weight: bold !important;
     border: none !important;
     font-size: 16px !important;
     border-radius: 10px !important;
     cursor: pointer !important;
     transition: 0.25s !important;
-    opacity: 0.7 !important; /* text always visible */
+    opacity: 0.9 !important;
     pointer-events: none !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px;
 }
 
 .fullpage-verify button.enabled {
@@ -94,14 +99,13 @@
 
 /* Loading dots */
 .loading-dots {
-    display: inline-block !important;
-    margin-left: 6px !important;
+    display: inline-flex !important;
+    gap: 2px !important;
 }
 .loading-dots span {
     display: inline-block !important;
     width: 4px !important;
     height: 4px !important;
-    margin: 0 1px !important;
     background: var(--text-main) !important;
     border-radius: 50% !important;
     animation: blink 1.2s infinite ease-in-out !important;
@@ -217,7 +221,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // OTP logic
     const inputs = document.querySelectorAll(".otp-input");
     const hiddenInput = document.getElementById("full_code");
     const form = document.getElementById("verifyForm");
@@ -236,8 +239,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function autoSubmit() {
         verifyBtn.disabled = true;
-        verifyBtn.innerHTML = `Verifying <span class="loading-dots"><span></span><span></span><span></span></span>`;
-        form.submit();
+        // Keep "Verifying" text visible
+        verifyBtn.innerHTML = `<span>Verifying</span><span class="loading-dots"><span></span><span></span><span></span></span>`;
     }
 
     inputs.forEach((input, idx) => {
@@ -273,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }, 1000);
 
-    // Auto-hide messages after 5 seconds
+    // Auto-hide messages
     const messages = document.querySelectorAll(".message");
     messages.forEach(msg => {
         setTimeout(() => {
