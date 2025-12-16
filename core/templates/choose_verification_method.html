@@ -8,7 +8,7 @@
   <div class="verification-card">
     <h2 class="verification-title">Verify Your Device</h2>
     <p class="verification-subtitle">
-      Choose how you want to receive your verification code.
+      A verification code will be sent to your phone.
     </p>
 
     {% if messages %}
@@ -24,7 +24,7 @@
     {% if sent_method %}
       <div class="verification-sent">
         A verification code has been sent via 
-        <strong>{{ sent_method|title }}</strong>.
+        <strong>{{ sent_method|title }}</strong> to <strong>{{ user.phone }}</strong>.
       </div>
     {% endif %}
 
@@ -32,26 +32,13 @@
       {% csrf_token %}
       
       <div class="verification-options">
-
-        <!-- EMAIL OPTION -->
-        <label class="verification-option">
-          <input 
-              type="radio" 
-              name="method" 
-              value="email"
-              {% if sent_method == "email" %}checked{% endif %}
-          >
-          <span>Verify via Email ({{ user.email }})</span>
-        </label>
-
-        <!-- PHONE OPTION -->
         {% if user.phone %}
         <label class="verification-option">
           <input 
               type="radio" 
               name="method" 
               value="phone"
-              {% if sent_method == "phone" %}checked{% endif %}
+              checked
           >
           <span>Verify via Phone ({{ user.phone }})</span>
         </label>
@@ -189,7 +176,6 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
-/* Fade-in animation for messages */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -212,5 +198,4 @@
   }
 }
 </style>
-
 {% endblock %}
