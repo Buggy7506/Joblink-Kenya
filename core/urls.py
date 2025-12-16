@@ -3,6 +3,8 @@ from django.contrib.auth import views as auth_views
 from . import views
  
 urlpatterns = [
+    path("settings/", views.account_settings, name="account_settings"),
+    path("delete-account/", views.delete_account, name="delete_account"),
     path("google/set-password/", views.set_google_password, name="set_google_password"),
     path('google/choose-role/', views.google_choose_role, name='google_choose_role'),
     path("applications/undo/<int:app_id>/", views.undo_delete_application, name="undo_delete_application"),
