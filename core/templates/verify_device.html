@@ -73,13 +73,13 @@
     padding: 12px !important;
     background: var(--glow-main) !important;
     color: var(--text-main) !important;
-    font-weight: bold !important; /* Always bold */
+    font-weight: bold !important;
     border: none !important;
     font-size: 16px !important;
     border-radius: 10px !important;
     cursor: pointer !important;
-    transition: 0.25s !important;
-    opacity: 0.9 !important; /* fully visible even when disabled */
+    transition: 0.25s, opacity 0.25s !important;
+    opacity: 0.5 !important; /* faded by default */
     pointer-events: none !important;
 }
 
@@ -187,7 +187,10 @@
         <div class="success-checkmark" id="successMark">✔</div>
 
         <h2>Verify Your Device</h2>
-        <p>Enter the 6-digit code sent to your email/phone.</p>
+        <p>
+            Enter the 6-digit code sent to phone number ending in 
+            <strong>{{ user_phone|slice:"-4:" }}</strong>.
+        </p>
 
         <form method="POST" id="verifyForm">
             {% csrf_token %}
@@ -218,7 +221,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // OTP logic
     const inputs = document.querySelectorAll(".otp-input");
     const hiddenInput = document.getElementById("full_code");
     const form = document.getElementById("verifyForm");
@@ -228,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
         hiddenInput.value = [...inputs].map(i => i.value).join("");
         if(hiddenInput.value.length === inputs.length) {
             verifyBtn.classList.add("enabled");
-            autoSubmit();
+            verifyBtn.innerHTML = "Verify Device";
         } else {
             verifyBtn.classList.remove("enabled");
             verifyBtn.innerHTML = "Verify Device";
@@ -250,6 +252,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if(e.key === "Backspace" && input.value === "" && idx > 0) inputs[idx-1].focus();
         });
     });
+
+    // Optional: auto-submit when all inputs filled
+    inputs.forEach(input => input.addEventListener("input", () => {
+        if([...inputs].every(i => i.value.length === 1)) {
+            autoSubmit();
+        }
+    }));
 
     inputs[0].focus();
 
