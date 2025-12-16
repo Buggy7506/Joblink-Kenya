@@ -42,8 +42,58 @@ from .models import (
 )
 from .forms import (
     EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, 
-    CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm
+    CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm
 )
+
+
+@login_required
+def account_settings(request):
+    """
+    Handles username + password update
+    """
+    user = request.user
+
+    if request.method == "POST":
+        form = AccountSettingsForm(user=user, data=request.POST)
+
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, user)  # keep user logged in
+            messages.success(request, "Account details updated successfully.")
+            return redirect("account_settings")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = AccountSettingsForm(user=user)
+
+    return render(request, "settings.html", {
+        "form": form
+    })
+
+
+@login_required
+def delete_account(request):
+    """
+    Requires password re-entry before deletion
+    """
+    if request.method != "POST":
+        return redirect("account_settings")
+
+    password = request.POST.get("password")
+
+    user = authenticate(
+        username=request.user.username,
+        password=password
+    )
+
+    if user is None:
+        messages.error(request, "Incorrect password. Account not deleted.")
+        return redirect("/account/settings/#danger")
+
+    user.delete()
+    messages.success(request, "Your account has been permanently deleted.")
+    return redirect("login")
+
 
 
 def set_google_password(request):
