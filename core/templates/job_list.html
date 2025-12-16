@@ -4,125 +4,135 @@
 
 {% block content %}
 <style>
-  body {
-    background-color: #0e0e2c;
-    font-family: Arial, sans-serif;
-  }
+/* Page base */
+body {
+  background: var(--bg-main);
+  font-family: Arial, sans-serif;
+  color: var(--text-main);
+}
 
-  .container {
-    margin-top: 40px;
-    padding: 20px;
-    color: #fff;
-  }
+/* Layout */
+.container {
+  margin-top: 40px;
+  padding: 20px;
+}
 
-  h2 {
-    font-size: 24px;
-    margin-bottom: 16px;
-    color: #00e6e6;
-    border-bottom: 2px solid #00e6e6;
-    padding-bottom: 6px;
-  }
+/* Section titles */
+h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 6px;
+}
 
-  .premium-job, .normal-job {
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.1);
-    border-left: 5px solid;
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
+/* Job cards */
+.premium-job,
+.normal-job {
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  border-left: 5px solid;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-  .premium-job {
-    background: linear-gradient(to right, #6a00ff, #4b0082);
-    border-color: gold;
-  }
+/* Premium */
+.premium-job {
+  background: linear-gradient(135deg, #6a00ff, #4b0082);
+  border-color: gold;
+  box-shadow: 0 0 25px rgba(255,215,0,0.35);
+}
 
-  .normal-job {
-    background-color: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(5px);
-    border-color: #00e6e6;
-  }
+/* Normal */
+.normal-job {
+  background: var(--bg-card);
+  border-color: var(--accent);
+}
 
-  .premium-job:hover, .normal-job:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
-  }
+/* Hover */
+.premium-job:hover,
+.normal-job:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px var(--accent-glow);
+}
 
-  .job-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #ffcc00;
-  }
+/* Titles */
+.job-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: gold;
+}
 
-  .normal-job .job-title {
-    color: #00e6e6;
-  }
+.normal-job .job-title {
+  color: var(--accent);
+}
 
-  .job-meta {
-    font-size: 14px;
-    margin: 2px 0;
-    color: #ddd;
-  }
+/* Meta */
+.job-meta {
+  font-size: 14px;
+  margin: 3px 0;
+  color: var(--text-muted);
+}
 
-  .apply-link {
-    display: inline-block;
-    margin-top: 10px;
-    color: #00e6e6;
-    text-decoration: none;
-    border-bottom: 1px dashed #00e6e6;
-    transition: color 0.3s, border-color 0.3s;
-  }
+/* Apply link */
+.apply-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+  transition: all 0.3s ease;
+}
 
-  .apply-link:hover {
-    color: #fff;
-    border-color: #fff;
-  }
+.apply-link:hover {
+  color: var(--text-main);
+  border-color: var(--text-main);
+}
 
-  .premium-badge {
-    background-color: gold;
-    color: #000;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    margin-left: 10px;
-    vertical-align: middle;
-  }
+/* Premium badge */
+.premium-badge {
+  background: gold;
+  color: #000;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-left: 10px;
+  font-weight: bold;
+}
 
-  .no-jobs {
-    color: #aaa;
-    font-style: italic;
-  }
+/* Empty state */
+.no-jobs {
+  color: var(--text-muted);
+  font-style: italic;
+}
 
-  /* Messages Styling */
-  .messages {
-    margin-bottom: 20px;
-    text-align: center;
-  }
+/* Messages */
+.messages {
+  margin-bottom: 20px;
+  text-align: center;
+}
 
-  .message-text {
-    display: inline-block;
-    padding: 12px 20px;
-    border-radius: 25px;
-    font-weight: bold;
-    text-align: center;
-    color: #fff;
-    font-size: 1rem;
-    opacity: 1;
-    transition: opacity 1s ease-out, transform 0.3s ease;
-    box-shadow: 0 0 15px rgba(0,255,255,0.6), 0 0 25px rgba(0,255,255,0.4);
-    margin-bottom: 10px;
-  }
+.message-text {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 25px;
+  font-weight: bold;
+  color: #fff;
+  font-size: 1rem;
+  transition: opacity 1s ease, transform 0.3s ease;
+  box-shadow: 0 0 15px var(--accent-glow);
+  margin-bottom: 10px;
+}
 
-  .message-text.error {
-    background: linear-gradient(90deg, #ff4b5c, #ff2a39);
-    box-shadow: 0 0 15px #ff4b5c, 0 0 25px #ff2a39;
-  }
+.message-text.success {
+  background: linear-gradient(90deg, var(--success), #00cc66);
+}
 
-  .message-text.success {
-    background: linear-gradient(90deg, #00ff99, #00cc66);
-    box-shadow: 0 0 15px #00ff99, 0 0 25px #00cc66;
-  }
+.message-text.error {
+  background: linear-gradient(90deg, var(--error), #ff2a39);
+}
 </style>
 
 <div class="container">
