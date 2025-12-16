@@ -14,53 +14,56 @@
   </div>
 
   <style>
-    .resources-container {
-      max-width: 700px;
-      margin: 60px auto;
-      padding: 30px;
-      background-color: #0f172a;
-      border-radius: 20px;
-      box-shadow: 0 0 15px #38bdf8;
-      text-align: center;
-      color: white;
-    }
+.resources-container {
+  max-width: 700px;
+  margin: 60px auto;
+  padding: 30px;
+  background-color: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: 0 0 15px var(--glow-accent);
+  text-align: center;
+  color: var(--text-main);
+  transition: background 0.4s, color 0.4s, box-shadow 0.4s;
+}
 
-    .glow {
-      font-size: 2rem;
-      color: #38bdf8;
-      text-shadow: 0 0 10px #38bdf8;
-      margin-bottom: 25px;
-    }
+.glow {
+  font-size: 2rem;
+  color: var(--glow-main);
+  text-shadow: 0 0 10px var(--glow-main);
+  margin-bottom: 25px;
+}
 
-    .resource-list {
-      list-style: none;
-      padding: 0;
-    }
+.resource-list {
+  list-style: none;
+  padding: 0;
+}
 
-    .resource-list li {
-      background-color: #1e293b;
-      margin: 12px 0;
-      padding: 15px;
-      border-radius: 10px;
-      transition: 0.3s ease;
-      box-shadow: 0 0 8px #3b82f6;
-    }
+.resource-list li {
+  background-color: rgba(30,41,59,0.85);
+  margin: 12px 0;
+  padding: 15px;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 8px var(--glow-accent);
+}
 
-    .resource-list li:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 15px #38bdf8;
-    }
+.resource-list li:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 15px var(--glow-main);
+}
 
-    .resource-list a {
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
+.resource-list a {
+  color: var(--text-link);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: color 0.3s, text-decoration 0.3s;
+}
 
-    .resource-list a:hover {
-      color: #38bdf8;
-      text-decoration: underline;
-    }
+.resource-list a:hover {
+  color: var(--text-accent);
+  text-decoration: underline;
+}
+
   </style>
 {% endblock %}
