@@ -3,39 +3,46 @@
 {% block title %}Verification • JobLink Kenya{% endblock %}
 
 {% block content %}
-
 <style>
-.verify-wrapper * { box-sizing: border-box; }
-
+/* General wrapper */
 .verify-wrapper {
     width: 100%;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 30px 0;
+    padding: 20px;
     font-family: 'Segoe UI', sans-serif;
-    transition: 0.4s ease;
+    background: var(--bg-main);
 }
 
+/* Container */
 .verify-wrapper .container {
     background: var(--bg-card);
-    padding: 40px;
-    width: 90%;
-    max-width: 450px;
-    border-radius: 20px;
+    padding: 35px 25px;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 16px;
     border: 1px solid rgba(255,255,255,0.1);
     backdrop-filter: blur(12px);
     text-align: center;
-    animation: fadeIn 0.7s ease-in-out;
     color: var(--text-main);
+    animation: fadeIn 0.6s ease-in-out;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Heading & text */
+.container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+.container p {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 25px;
 }
 
+/* OTP Inputs */
 .otp-container {
     display: flex;
     justify-content: center;
@@ -46,7 +53,7 @@
 .otp-input {
     width: 50px;
     height: 55px;
-    font-size: 24px;
+    font-size: 22px;
     border-radius: 10px;
     border: 1px solid var(--text-muted);
     background: var(--bg-main);
@@ -59,21 +66,22 @@
 .otp-input:focus {
     transform: scale(1.12);
     border-color: var(--glow-main);
+    box-shadow: 0 0 8px var(--glow-main);
 }
 
+/* Verify button */
 button {
     width: 100%;
     padding: 12px;
     background: var(--glow-main);
     color: var(--text-main);
     border: none;
-    font-size: 17px;
+    font-size: 16px;
     border-radius: 10px;
     cursor: pointer;
     transition: 0.25s;
     opacity: 0.5;
     pointer-events: none;
-    position: relative;
 }
 
 button.enabled {
@@ -81,11 +89,12 @@ button.enabled {
     pointer-events: auto;
 }
 
-button:hover.enabled {
+button.enabled:hover {
     background: var(--glow-accent);
     transform: translateY(-2px);
 }
 
+/* Loading dots */
 .loading-dots {
     display: inline-block;
     margin-left: 6px;
@@ -107,23 +116,26 @@ button:hover.enabled {
     40%{opacity:1;}
 }
 
+/* Checkbox */
 .remember-device {
     margin-top: 15px;
-    text-align: left;
     font-size: 14px;
+    text-align: left;
 }
 
+/* Resend */
 .resend {
-    margin-top: 15px;
+    margin-top: 20px;
     font-size: 14px;
     color: var(--text-muted);
 }
 
+/* Success checkmark */
 .success-checkmark {
     display: none;
-    font-size: 90px;
+    font-size: 80px;
     color: var(--glow-main);
-    animation: pop 0.6s ease-out;
+    animation: pop 0.5s ease-out;
     margin-bottom: 15px;
 }
 
@@ -133,13 +145,14 @@ button:hover.enabled {
     100% { transform: scale(1); }
 }
 
+/* Messages */
 .code-sent-msg {
     background: #d1fae5;
     color: #065f46;
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 15px;
-    font-size: .95rem;
+    font-size: 0.95rem;
 }
 
 .error {
@@ -148,13 +161,18 @@ button:hover.enabled {
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 15px;
-    font-size: .95rem;
+    font-size: 0.95rem;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
 <div class="verify-wrapper">
     <div class="container">
-
         {% if messages %}
             {% for msg in messages %}
                 {% if msg.tags == 'success' %}
@@ -172,13 +190,11 @@ button:hover.enabled {
 
         <form method="POST" id="verifyForm">
             {% csrf_token %}
-
             <div class="otp-container">
                 {% for i in "123456" %}
                     <input type="text" maxlength="1" class="otp-input">
                 {% endfor %}
             </div>
-
             <input type="hidden" name="code" id="full_code">
 
             <label class="remember-device">
@@ -193,16 +209,14 @@ button:hover.enabled {
             <br>
             <a href="{% url 'resend_device_code' %}" id="resendLink" style="display:none;">Resend Code</a>
         </div>
-
     </div>
 </div>
 
 <script>
-// OTP inputs & hidden input
+// OTP logic
 const inputs = document.querySelectorAll(".otp-input");
 const hiddenInput = document.getElementById("full_code");
 const form = document.getElementById("verifyForm");
-const successMark = document.getElementById("successMark");
 const verifyBtn = document.getElementById("verifyBtn");
 
 function updateHiddenAndButton() {
@@ -216,32 +230,25 @@ function updateHiddenAndButton() {
     }
 }
 
-// Auto-submit function with loading dots
 function autoSubmit() {
     verifyBtn.disabled = true;
     verifyBtn.innerHTML = `Verifying <span class="loading-dots"><span></span><span></span><span></span></span>`;
     form.submit();
 }
 
-// Input navigation
 inputs.forEach((input, idx) => {
     input.addEventListener("input", () => {
-        if(input.value.length === 1 && idx < inputs.length -1) {
-            inputs[idx+1].focus();
-        }
+        if(input.value.length === 1 && idx < inputs.length -1) inputs[idx+1].focus();
         updateHiddenAndButton();
     });
-
     input.addEventListener("keydown", e => {
-        if(e.key === "Backspace" && input.value === "" && idx > 0) {
-            inputs[idx-1].focus();
-        }
+        if(e.key === "Backspace" && input.value === "" && idx > 0) inputs[idx-1].focus();
     });
 });
 
 inputs[0].focus();
 
-// Resend logic
+// Resend timer
 let seconds = 30;
 const countdown = document.getElementById("countdown");
 const resendLink = document.getElementById("resendLink");
@@ -255,5 +262,4 @@ let timer = setInterval(() => {
     }
 }, 1000);
 </script>
-
 {% endblock %}
