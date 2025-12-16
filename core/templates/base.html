@@ -286,7 +286,7 @@ textarea::placeholder {
 
             <a href="{% url 'change_username_password' %}"
                class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-link{% endif %}">
-               Change Password
+               Account Settings
             </a>
 
             <a href="{% url 'logout' %}"
@@ -366,7 +366,7 @@ textarea::placeholder {
 
         <a href="{% url 'change_username_password' %}"
            class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-link{% endif %}">
-           Change Password
+           Account Settings
         </a>
 
         <a href="{% url 'logout' %}"
