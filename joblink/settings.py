@@ -189,13 +189,7 @@ MESSAGE_TAGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SENDGRID_SANDBOX_MODE_IN_DEBUG = False  # True = emails won't be sent, just logged
-
-# SendGrid API key from environment variable (recommended)
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-
-EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
