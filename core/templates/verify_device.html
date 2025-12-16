@@ -78,7 +78,7 @@
     border-radius: 10px !important;
     cursor: pointer !important;
     transition: 0.25s !important;
-    opacity: 0.5 !important;
+    opacity: 0.7 !important; /* text always visible */
     pointer-events: none !important;
 }
 
@@ -125,7 +125,7 @@
 .fullpage-verify .remember-device input[type="checkbox"] {
     width: 18px !important;
     height: 18px !important;
-    accent-color: var(--glow-main) !important; /* modern colored checkbox */
+    accent-color: var(--glow-main) !important;
     cursor: pointer;
 }
 
@@ -205,7 +205,9 @@
         </form>
 
         <div class="resend">
-            Resend available in <span id="countdown">30</span>s  
+            <span id="countdownContainer">
+                Resend available in <span id="countdown">30</span>s
+            </span>
             <br>
             <a href="{% url 'resend_device_code' %}" id="resendLink" style="display:none;">Resend Code</a>
         </div>
@@ -253,8 +255,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Resend timer
     let seconds = 30;
     const countdown = document.getElementById("countdown");
+    const countdownContainer = document.getElementById("countdownContainer");
     const resendLink = document.getElementById("resendLink");
-    const resendContainer = countdown.parentElement; // contains text + span
 
     let timer = setInterval(() => {
         seconds--;
@@ -262,18 +264,16 @@ document.addEventListener("DOMContentLoaded", () => {
             countdown.textContent = seconds;
         } else {
             clearInterval(timer);
-            // Smooth fade out for countdown line
-            resendContainer.style.transition = 'opacity 0.5s';
-            resendContainer.style.opacity = '0';
+            countdownContainer.style.transition = 'opacity 0.5s';
+            countdownContainer.style.opacity = '0';
             setTimeout(() => {
-                resendContainer.style.display = 'none';
-                // show the resend link alone
+                countdownContainer.style.display = 'none';
                 resendLink.style.display = 'inline';
             }, 500);
         }
     }, 1000);
 
-    // Auto-hide messages after 5 seconds with smooth fade
+    // Auto-hide messages after 5 seconds
     const messages = document.querySelectorAll(".message");
     messages.forEach(msg => {
         setTimeout(() => {
