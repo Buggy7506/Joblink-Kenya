@@ -11,13 +11,20 @@ def send_sms(phone, code):
     url = "https://api.ng.termii.com/api/sms/send"
     payload = {
         "to": phone,
-        "from": "JobLink",
+        "from": "JobLink Kenya",  # must be verified
         "sms": f"Your verification code is {code}",
         "type": "plain",
-        "api_key": "TLwTTGPGXsziHFdFJyEikXGUtImhesDENtZKtLyzdtPtMtmUqDvuvNQwgFqRnb"  # replace with your actual API key
+        "api_key": "TLwTTGPGXsziHFdFJyEikXGUtImhesDENtZKtLyzdtPtMtmUqDvuvNQwgFqRnb"
     }
-    response = requests.post(url, json=payload)
-    return response.json()
+    try:
+        response = requests.post(url, json=payload)
+        data = response.json()
+        print("Termii response:", data)  # log for debugging
+        return data
+    except Exception as e:
+        print("Error sending SMS:", e)
+        return {"success": False, "error": str(e)}
+
 
 
 
