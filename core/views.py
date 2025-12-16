@@ -96,70 +96,59 @@ def delete_account(request):
 
 def set_google_password(request):
     """
-    Google OAuth users must set password AND phone number.
-    Phone is mandatory.
+    Google OAuth users must set a password.
     """
-
     google_user = request.session.get('google_user')
     if not google_user:
         messages.error(request, "Session expired. Please login with Google again.")
         return redirect('signup')
 
+    # Pre-fill first name for template
+    first_name = google_user.get('first_name', '')
+
     if request.method == 'POST':
         password = request.POST.get('password', '').strip()
         confirm_password = request.POST.get('confirm_password', '').strip()
-        phone = request.POST.get('phone', '').strip()
 
         # -------------------------
         # 1️⃣ Validate inputs
         # -------------------------
-        if not password or not confirm_password or not phone:
-            messages.error(request, "All fields are required.")
-            return render(request, 'set_google_password.html')
+        if not password or not confirm_password:
+            messages.error(request, "Both password fields are required.")
+            return render(request, 'set_google_password.html', {'user': google_user})
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'set_google_password.html')
+            return render(request, 'set_google_password.html', {'user': google_user})
 
-        # 🔐 Stronger password rule (recommended)
+        # Strong password rules
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters long.")
-            return render(request, 'set_google_password.html')
+            return render(request, 'set_google_password.html', {'user': google_user})
 
         if not re.search(r'[A-Z]', password):
             messages.error(request, "Password must contain an uppercase letter.")
-            return render(request, 'set_google_password.html')
+            return render(request, 'set_google_password.html', {'user': google_user})
 
         if not re.search(r'\d', password):
             messages.error(request, "Password must contain a number.")
-            return render(request, 'set_google_password.html')
+            return render(request, 'set_google_password.html', {'user': google_user})
 
         if not re.search(r'[@$!%*#?&]', password):
             messages.error(request, "Password must contain a special character.")
-            return render(request, 'set_google_password.html')
-
-        # 📞 Phone validation
-        if not re.match(r'^\+?[1-9]\d{7,14}$', phone):
-            messages.error(request, "Enter a valid phone number.")
-            return render(request, 'set_google_password.html')
+            return render(request, 'set_google_password.html', {'user': google_user})
 
         # -------------------------
-        # 2️⃣ Prevent duplicates (CRITICAL)
+        # 2️⃣ Prevent duplicate email
         # -------------------------
         email = google_user['email']
-
         if CustomUser.objects.filter(email=email).exists():
             messages.error(request, "An account with this email already exists. Please log in.")
             return redirect('login')
 
-        if CustomUser.objects.filter(phone=phone).exists():
-            messages.error(request, "This phone number is already in use.")
-            return render(request, 'set_google_password.html')
-
         # -------------------------
         # 3️⃣ Create user
         # -------------------------
-        first_name = google_user.get('first_name', '')
         last_name = google_user.get('last_name', '')
         role = request.session.get('google_role')
 
@@ -176,15 +165,12 @@ def set_google_password(request):
             username=username,
             first_name=first_name,
             last_name=last_name,
-            phone=phone,
             role=role,
         )
         user.set_password(password)
         user.save()
 
-        # -------------------------
-        # 4️⃣ Save Google profile picture (optional)
-        # -------------------------
+        # Optional: Save Google profile picture
         picture_url = google_user.get('picture')
         if picture_url:
             try:
@@ -199,7 +185,7 @@ def set_google_password(request):
                 pass
 
         # -------------------------
-        # 5️⃣ Login + cleanup
+        # 4️⃣ Login + cleanup
         # -------------------------
         login(request, user)
         request.session.pop('google_user', None)
@@ -208,7 +194,8 @@ def set_google_password(request):
         messages.success(request, "Account created successfully!")
         return redirect('dashboard')
 
-    return render(request, 'set_google_password.html')
+    # GET request
+    return render(request, 'set_google_password.html', {'user': google_user})
 
 
 # Google OAuth settings
