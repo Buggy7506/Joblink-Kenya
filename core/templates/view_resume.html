@@ -9,46 +9,51 @@
   max-width: 900px;
   margin: 50px auto;
   padding: 40px;
-  background: linear-gradient(135deg, #0a0a0a, #111);
+  background: var(--resume-bg, linear-gradient(135deg, #0a0a0a, #111));
   border-radius: 20px;
-  box-shadow: 0 0 25px rgba(0, 255, 200, 0.3);
-  color: #fff;
+  box-shadow: 0 0 25px var(--glow-accent, rgba(0, 255, 200, 0.3));
+  color: var(--text-main, #fff);
   font-family: 'Poppins', sans-serif;
   animation: fadeIn 0.8s ease-in-out;
   text-align: center;
+  transition: all 0.4s ease;
 }
 
 /* Header */
 .resume-header h1 {
   font-size: 2.5rem;
-  background: linear-gradient(90deg, #00ffc3, #00bfff);
+  background: linear-gradient(90deg, var(--glow-main, #00ffc3), var(--glow-accent, #00bfff));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: glowText 2s ease-in-out infinite alternate;
 }
 .resume-header p {
   font-size: 1rem;
-  color: #ccc;
+  color: var(--text-secondary, #ccc);
+  margin-top: 8px;
 }
 
 /* Section Styling */
 .resume-section {
   margin-bottom: 25px;
   padding: 15px;
-  border-left: 4px solid #00ffc3;
+  border-left: 4px solid var(--glow-main, #00ffc3);
   background: rgba(255, 255, 255, 0.03);
   border-radius: 10px;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease, box-shadow 0.4s ease;
   text-align: left;
 }
 .resume-section:hover {
-  box-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+  box-shadow: 0 0 20px var(--glow-accent, rgba(0, 255, 200, 0.5)), 0 0 40px var(--glow-main, rgba(0, 255, 195, 0.4));
+  transform: translateY(-2px);
 }
 
 /* Headings */
 .resume-section h3 {
   margin-bottom: 10px;
   font-size: 1.3rem;
-  color: #00ffc3;
+  color: var(--glow-main, #00ffc3);
+  text-shadow: 0 0 8px var(--glow-main, #00ffc3), 0 0 16px var(--glow-accent, #00bfff);
 }
 
 /* Buttons */
@@ -62,29 +67,36 @@
   padding: 12px 25px;
   border: none;
   border-radius: 30px;
-  background: linear-gradient(90deg, #00ffc3, #00bfff);
-  color: #000;
+  background: linear-gradient(90deg, var(--glow-main, #00ffc3), var(--glow-accent, #00bfff));
+  color: var(--text-invert, #000);
   font-weight: bold;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.3s ease;
+  box-shadow: 0 0 15px var(--glow-main, #00ffc3), 0 0 30px var(--glow-accent, #00bfff);
+  transition: all 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 .glow-btn:hover {
-  box-shadow: 0 0 20px rgba(0, 255, 200, 0.8);
+  box-shadow: 0 0 25px var(--glow-main, #00ffc3), 0 0 50px var(--glow-accent, #00bfff);
   transform: scale(1.05);
 }
 
 /* Message for no resume */
 .no-resume {
   font-size: 1.2rem;
-  color: #ccc;
+  color: var(--text-secondary, #ccc);
   margin: 50px 0;
+  animation: fadeIn 1s ease-in-out;
 }
 
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glowText {
+  from { text-shadow: 0 0 8px var(--glow-main, #00ffc3), 0 0 16px var(--glow-accent, #00bfff); }
+  to { text-shadow: 0 0 16px var(--glow-accent, #00bfff), 0 0 32px var(--glow-main, #00ffc3); }
 }
 </style>
 
