@@ -18,7 +18,12 @@
 }
 
 /* HERO - left side mockup */
-#login-page .hero{flex:1; display:flex; align-items:center; justify-content:center;}
+#login-page .hero{
+  flex:1; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
+}
 #login-page .phone-stack{
   position:relative;
   width:420px;
@@ -28,7 +33,7 @@
   justify-content:center;
 }
 
-/* Decorative cards */
+/* Decorative stacked cards */
 #login-page .card{
   position:absolute;
   border-radius:28px;
@@ -53,7 +58,6 @@
   background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
   z-index:2;
 }
-
 #login-page .phone-card{
   width:300px; 
   height:520px; 
@@ -68,6 +72,7 @@
   z-index:10;
 }
 
+/* Phone screen & floating elements */
 #login-page .phone-screen{
   width:92%; 
   height:88%; 
@@ -80,8 +85,11 @@
   align-items:center; 
   justify-content:center;
 }
-#login-page .phone-screen img{width:100%; height:100%; object-fit:cover;}
-
+#login-page .phone-screen img{
+  width:100%; 
+  height:100%; 
+  object-fit:cover;
+}
 #login-page .floating-heart{
   position:absolute; 
   left:10%; 
@@ -132,6 +140,7 @@
   color: var(--text-main);
 }
 
+/* FORM INPUTS */
 #login-page .login-form{display:flex; flex-direction:column; gap:10px;}
 #login-page .input{
   width:100%;
@@ -204,6 +213,7 @@
   100% { transform: rotate(360deg); }
 }
 
+/* DIVIDER & SOCIAL BUTTONS */
 #login-page .divider{display:flex; align-items:center; gap:16px; margin:16px 0;}
 #login-page .divider::before,#login-page .divider::after{content:""; height:1px; background:var(--text-muted); flex:1;}
 #login-page .divider span{color:var(--text-muted); font-size:13px;}
@@ -213,6 +223,8 @@
 #login-page .google-btn{
   display:flex; align-items:center; gap:10px; justify-content:center; padding:8px; border:1px solid var(--text-muted); background: var(--bg-card); color: var(--text-main); font-weight:700; cursor:pointer; margin-top:8px;
 }
+
+/* FOOTER & SIGNUP */
 #login-page .forgot{color:var(--text-muted); font-size:13px; margin-top:10px;}
 #login-page .signup-card{
   margin-top:12px;
@@ -226,7 +238,7 @@
 }
 #login-page .signup-card a{color: var(--text-accent); text-decoration:none; font-weight:600;}
 
-/* --- FLASH MESSAGES --- */
+/* FLASH MESSAGES */
 #login-page .messages {
   list-style: none;
   padding: 0;
@@ -271,6 +283,7 @@
     padding:20px;
   }
 }
+
 </style>
 {% endblock %}
 
