@@ -74,25 +74,23 @@ def account_settings(request):
 @login_required
 def delete_account(request):
     """
-    Requires password re-entry before deletion
+    Requires password re-entry before deletion.
     """
     if request.method != "POST":
-        return redirect("account_settings")
+        return redirect(reverse("account_settings"))
 
     password = request.POST.get("password")
-
-    user = authenticate(
-        username=request.user.username,
-        password=password
-    )
+    user = authenticate(username=request.user.username, password=password)
 
     if user is None:
         messages.error(request, "Incorrect password. Account not deleted.")
         return redirect(f"{reverse('account_settings')}#danger")
 
+    # Delete user and log out
     user.delete()
+    logout(request)
     messages.success(request, "Your account has been permanently deleted.")
-    return redirect("login")
+    return redirect(reverse("login"))
 
 
 
