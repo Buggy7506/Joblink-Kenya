@@ -44,166 +44,6 @@ from .forms import (
     EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, 
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm
 )
-from .utils import get_client_ip, get_device_fingerprint, generate_code, send_verification_email_sendgrid, send_sms 
-
-
-
-def resend_device_code(request):
-    """
-    Resend a new device verification code via PHONE (SMS ONLY).
-    Works for pre-login device verification.
-    """
-
-    # 1️⃣ Resolve pending user
-    pending_user_id = request.session.get("pending_user_id")
-    if not pending_user_id:
-        messages.error(request, "Verification session expired. Please login again.")
-        return redirect("login")
-
-    try:
-        user = CustomUser.objects.get(id=pending_user_id)
-    except CustomUser.DoesNotExist:
-        messages.error(request, "User not found. Please login again.")
-        return redirect("login")
-
-    if not user.phone:
-        messages.error(request, "No phone number found for this account.")
-        return redirect("login")
-
-    # 2️⃣ Rate limit (30 seconds)
-    last_sent_str = request.session.get("last_verification_sent")
-    if last_sent_str:
-        last_sent = timezone.datetime.fromisoformat(last_sent_str)
-        elapsed = (timezone.now() - last_sent).total_seconds()
-        if elapsed < 30:
-            messages.error(request, f"Please wait {int(30 - elapsed)} seconds before resending.")
-            return redirect("verify_device")  # matches your URL name
-
-    # 3️⃣ Generate new code
-    code = generate_code()
-
-    # 4️⃣ Device metadata
-    device_fp = request.session.get("pending_name", get_device_fingerprint(request))
-    user_agent = request.session.get("pending_ua", request.META.get("HTTP_USER_AGENT", "Unknown UA"))
-    ip_address = request.session.get("pending_ip", get_client_ip(request))
-
-    # 5️⃣ Save verification record
-    try:
-        DeviceVerification.objects.create(
-            user=user,
-            code=code,
-            device_fingerprint=device_fp,
-            user_agent=user_agent,
-            ip_address=ip_address,
-        )
-    except Exception as e:
-        print("Error saving verification record:", e)
-        messages.error(request, "Verification code wasn't resent. Try again later.")
-        return redirect("verify_device")
-
-    # 6️⃣ Send SMS via Termii
-    try:
-        response = send_sms(user.phone, code)
-        if response.get("message_id") or response.get("success"):
-            messages.success(request, "Verification code resent to your phone.")
-        else:
-            print("Termii response error:", response)
-            messages.error(request, "Failed to send SMS. Try again later.")
-    except Exception as e:
-        print("SMS sending error:", e)
-        messages.error(request, "Verification code wasn't resent. Try again later.")
-
-    # 7️⃣ Update rate-limit timestamp
-    request.session["last_verification_sent"] = timezone.now().isoformat()
-
-    return redirect("verify_device")  # matches your URL name
-    
-User = get_user_model()
-
-
-def verify_device(request):
-    """
-    Verify a new device using a 6-digit code sent via SMS (PHONE ONLY).
-    Marks device as trusted and logs in the user on success.
-    """
-
-    # 1️⃣ Ensure session has pending user
-    pending_user_id = request.session.get("pending_user_id")
-    if not pending_user_id:
-        messages.error(request, "No pending verification found. Please login again.")
-        return redirect("login")
-
-    try:
-        user = CustomUser.objects.get(id=pending_user_id)
-    except CustomUser.DoesNotExist:
-        messages.error(request, "User not found. Please login again.")
-        request.session.flush()
-        return redirect("login")
-
-    # 2️⃣ POST → validate code
-    if request.method == "POST":
-        code = request.POST.get("code", "").strip()
-
-        if not code:
-            messages.error(request, "Please enter the verification code.")
-            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
-
-        # 3️⃣ Find latest unused code for user
-        verification = DeviceVerification.objects.filter(
-            user=user,
-            code=code,
-            is_used=False
-        ).order_by("-created_at").first()
-
-        if not verification:
-            messages.error(request, "Invalid or incorrect verification code.")
-            return render(request, "verify_device.html", {"user": user, "pending_verification": True})
-
-        # 4️⃣ Expiry check (10 minutes)
-        expiry_time = verification.created_at + timezone.timedelta(minutes=10)
-        if timezone.now() > expiry_time:
-            verification.is_used = True
-            verification.save(update_fields=["is_used"])
-            messages.error(request, "That code has expired. Please request a new one.")
-            request.session.flush()
-            return redirect("login")
-
-        # 5️⃣ Mark code as used
-        verification.is_used = True
-        verification.save(update_fields=["is_used"])
-
-        # 6️⃣ Save trusted device
-        device_fp = request.session.get("pending_name") or get_device_fingerprint(request)
-        user_agent = request.session.get("pending_ua") or request.META.get("HTTP_USER_AGENT", "")
-        ip_address = request.session.get("pending_ip") or get_client_ip(request)
-
-        TrustedDevice.objects.create(
-            user=user,
-            device_fingerprint=device_fp,
-            user_agent=user_agent,
-            ip_address=ip_address,
-        )
-
-        # 7️⃣ Log user in
-        login(request, user)
-
-        # 8️⃣ Cleanup session
-        for key in [
-            "pending_user_id",
-            "pending_ip",
-            "pending_ua",
-            "pending_name",
-            "device_verification_in_progress",
-            "last_verification_sent",
-            "code_sent",
-        ]:
-            request.session.pop(key, None)
-
-        messages.success(request, "Device verified and logged in successfully!")
-        return redirect("dashboard")
-
-    # 9️⃣ GET → show verification page
-    return render(request, "verify_device.html", {"user": user, "pending_verification": True, "user_phone": user.phone,})
 
 
 def set_google_password(request):
@@ -626,17 +466,13 @@ User = get_user_model()
 
 def login_view(request):
     """
-    Handle user login with PHONE-ONLY device verification for untrusted devices.
-
-    Flow:
-    Login →
-    Trusted device → dashboard
-    New device → SMS verification → dashboard
+    Simple login:
+    - Username / Email / Phone
+    - No device verification
+    - No SMS
     """
 
-    # -----------------------------
-    # If user is already logged in, log them out
-    # -----------------------------
+    # If user is already logged in, log them out first
     if request.user.is_authenticated:
         logout(request)
 
@@ -644,9 +480,7 @@ def login_view(request):
         identifier = request.POST.get('identifier', '').strip()
         password = request.POST.get('password', '').strip()
 
-        # -----------------------------
-        # 1️⃣ Find user
-        # -----------------------------
+        # 1️⃣ Find user by username, email, or phone
         try:
             user_obj = CustomUser.objects.get(
                 Q(username=identifier) |
@@ -657,17 +491,13 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # -----------------------------
-        # 1.5️⃣ Check password exists (Google users)
-        # -----------------------------
+        # 2️⃣ Google users without password → force password setup
         if not user_obj.has_usable_password():
             request.session["set_password_user_id"] = user_obj.id
             messages.info(request, "Please set your password to continue.")
             return redirect("set_google_password")
 
-        # -----------------------------
-        # 2️⃣ Authenticate
-        # -----------------------------
+        # 3️⃣ Authenticate
         user = authenticate(
             request,
             username=user_obj.username,
@@ -678,58 +508,16 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # -----------------------------
-        # 3️⃣ Enforce phone number
-        # -----------------------------
-        if not user.phone:
-            messages.error(
-                request,
-                "No phone number found for this account. Please update your profile."
-            )
-            return render(request, 'login.html')
+        # 4️⃣ Login user
+        login(request, user)
 
-        # -----------------------------
-        # 4️⃣ Device fingerprint
-        # -----------------------------
-        ip = get_client_ip(request)
-        device_fp = get_device_fingerprint(request)
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
+        # 5️⃣ Redirect based on role
+        return redirect(
+            'admin_dashboard' if user.is_superuser else 'dashboard'
+        )
 
-        # -----------------------------
-        # 5️⃣ Trusted device → login
-        # -----------------------------
-        if TrustedDevice.objects.filter(
-            user=user,
-            device_fingerprint=device_fp,
-            ip_address=ip
-        ).exists():
-            login(request, user)
-            return redirect(
-                'admin_dashboard' if user.is_superuser else 'dashboard'
-            )
-
-        # -----------------------------
-        # 6️⃣ New device → prepare verification
-        # -----------------------------
-        for key in ["_auth_user_id", "_auth_user_backend", "_auth_user_hash"]:
-            request.session.pop(key, None)
-
-        request.session.update({
-            "pending_user_id": user.id,
-            "pending_ip": ip,
-            "pending_ua": user_agent,
-            "pending_name": device_fp,
-            "device_verification_in_progress": True,
-        })
-
-        # 🔥 PHONE-ONLY: go straight to verification
-        return redirect("verify_device")
-
-    # -----------------------------
     # GET → login page
-    # -----------------------------
     return render(request, 'login.html')
-    
 #User Logout
 
 def logout_view(request):
