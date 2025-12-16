@@ -66,7 +66,7 @@ def account_settings(request):
     else:
         form = AccountSettingsForm(user=user)
 
-    return render(request, "settings.html", {
+    return render(request, "change_username_password.html", {
         "form": form
     })
 
@@ -88,7 +88,7 @@ def delete_account(request):
 
     if user is None:
         messages.error(request, "Incorrect password. Account not deleted.")
-        return redirect("/account/settings/#danger")
+        return redirect(f"{reverse('account_settings')}#danger")
 
     user.delete()
     messages.success(request, "Your account has been permanently deleted.")
