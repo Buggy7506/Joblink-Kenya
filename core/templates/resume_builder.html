@@ -4,115 +4,116 @@
 
 {% block content %}
 <style>
-  /* Wrapper to center form on screen */
-  .resume-wrapper {
-    min-height: 100vh; /* Full height */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px; /* Prevent edge overlap on small screens */
-    box-sizing: border-box;
-  }
+ /* Wrapper to center form on screen */
+.resume-wrapper {
+  min-height: 100vh; /* Full height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px; /* Prevent edge overlap on small screens */
+  box-sizing: border-box;
+}
 
-  .resume-container {
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 20px;
-    box-shadow: 0 0 25px #00ffff;
-    padding: 40px;
-    width: 100%;
-    max-width: 600px;
-    backdrop-filter: blur(10px);
-    border: 1px solid #00ffff;
-    animation: fadeIn 0.8s ease-in-out;
-  }
+.resume-container {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: 0 0 25px var(--glow-main);
+  padding: 40px;
+  width: 100%;
+  max-width: 600px;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glow-main);
+  animation: fadeIn 0.8s ease-in-out;
+  color: var(--text-main);
+}
 
-  .resume-container h1 {
-    text-align: center;
-    font-size: 2.2em;
-    color: #00ffff;
-    text-shadow: 0 0 10px #00ffff;
-    margin-bottom: 30px;
-  }
+.resume-container h1 {
+  text-align: center;
+  font-size: 2.2em;
+  color: var(--glow-main);
+  text-shadow: 0 0 10px var(--glow-main);
+  margin-bottom: 30px;
+}
 
-  .resume-container label {
-    display: block;
-    margin-bottom: 5px;
-    color: #00ffff;
-    font-weight: bold;
-    text-shadow: 0 0 5px #00ffff;
-  }
+.resume-container label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-accent);
+  font-weight: bold;
+}
 
-  .resume-container input[type="text"],
-  .resume-container input[type="email"],
-  .resume-container input[type="file"],
-  .resume-container textarea,
-  .resume-container select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: none;
-    border-radius: 8px;
-    background-color: #1e1e1e;
-    color: #00ffff;
-    box-shadow: 0 0 10px #00ffff;
-    outline: none;
-  }
+.resume-container input[type="text"],
+.resume-container input[type="email"],
+.resume-container input[type="file"],
+.resume-container textarea,
+.resume-container select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(30,30,30,0.85);
+  color: var(--text-main);
+  box-shadow: 0 0 10px var(--glow-accent);
+  outline: none;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
 
-  .resume-container input[type="submit"],
-  .resume-container .btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #00ffff;
-    color: #000;
-    font-size: 1.1em;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 0 15px #00ffff;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  }
+.resume-container input[type="submit"],
+.resume-container .btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--glow-main);
+  color: var(--text-main);
+  font-size: 1.1em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 0 15px var(--glow-main);
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
 
-  .resume-container input[type="submit"]:hover,
-  .resume-container .btn:hover {
-    background-color: #00dddd;
-    transform: scale(1.03);
-    box-shadow: 0 0 25px #00ffff, 0 0 10px #00ffff inset;
-  }
+.resume-container input[type="submit"]:hover,
+.resume-container .btn:hover {
+  background-color: var(--glow-accent);
+  transform: scale(1.03);
+  box-shadow: 0 0 25px var(--glow-main), 0 0 10px var(--glow-accent) inset;
+}
 
-  /* Messages */
-  .resume-messages {
-    margin-bottom: 20px;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
-    animation: fadeOut 1.5s ease forwards;
-    animation-delay: 1.5s;
-  }
+/* Messages */
+.resume-messages {
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  animation: fadeOut 1.5s ease forwards;
+  animation-delay: 1.5s;
+}
 
-  .resume-messages.success {
-    background-color: rgba(0, 255, 255, 0.1);
-    border: 1px solid #00ffff;
-    color: #00ffff;
-    box-shadow: 0 0 15px #00ffff;
-  }
+.resume-messages.success {
+  background-color: rgba(0, 255, 255, 0.1);
+  border: 1px solid var(--glow-main);
+  color: var(--glow-main);
+  box-shadow: 0 0 15px var(--glow-main);
+}
 
-  .resume-messages.error {
-    background-color: rgba(255, 0, 0, 0.1);
-    border: 1px solid #ff4d4d;
-    color: #ff4d4d;
-    box-shadow: 0 0 15px #ff4d4d;
-  }
+.resume-messages.error {
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid var(--text-danger);
+  color: var(--text-danger);
+  box-shadow: 0 0 15px var(--text-danger);
+}
 
-  @keyframes fadeOut {
-    to { opacity: 0; transform: translateY(-10px); }
-  }
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-10px); }
+}
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>
 
 <div class="resume-wrapper">
