@@ -3,8 +3,39 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
 from django.contrib.auth import get_user_model
 from django.forms.widgets import ClearableFileInput 
-
 from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import User
+
+
+class AccountSettingsForm(PasswordChangeForm):
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Username"
+        })
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+        self.user = user
+        self.fields["username"].initial = user.username
+
+        # Apply classes to password fields
+        for field in ["old_password", "new_password1", "new_password2"]:
+            self.fields[field].widget.attrs.update({
+                "class": "form-control",
+                "autocomplete": "new-password"
+            })
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data["username"]
+        if commit:
+            user.save()
+        return user
 
 
 # 🔹 Utility Mixin for Bootstrap tooltips
