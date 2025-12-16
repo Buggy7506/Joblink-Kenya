@@ -9,32 +9,36 @@
 <style>
 /* Container & Title */
 .recycle-container {
-  background: rgba(15,15,30,0.95);
+  background: rgba(15,15,30,0.95); /* can replace with var(--bg-card) if using global theme */
   padding: 30px;
   max-width: 900px;
   margin: 40px auto;
   border-radius: 18px;
-  box-shadow: 0 0 30px rgba(0,255,255,0.25);
+  box-shadow: 0 0 30px var(--glow-accent, rgba(0,255,255,0.25));
+  transition: background 0.4s, box-shadow 0.4s;
 }
+
 .recycle-title {
   font-size: 2rem;
   text-align: center;
-  color: #00f5ff;
-  text-shadow: 0 0 10px #00f5ff;
+  color: var(--text-accent, #00f5ff);
+  text-shadow: 0 0 10px var(--glow-accent, #00f5ff);
+  transition: color 0.4s, text-shadow 0.4s;
 }
 
 /* Cards */
 .recycle-card {
-  background: rgba(25,25,50,0.85);
+  background: rgba(25,25,50,0.85); /* can use var(--card-bg) with opacity */
   padding: 20px;
   margin-bottom: 18px;
   border-radius: 14px;
-  box-shadow: 0 0 20px rgba(0,255,255,0.15);
-  transition: transform .25s, box-shadow .25s;
+  box-shadow: 0 0 20px var(--glow-accent, rgba(0,255,255,0.15));
+  transition: transform .25s, box-shadow .25s, background 0.4s;
 }
+
 .recycle-card:hover {
   transform: scale(1.02);
-  box-shadow: 0 0 30px rgba(0,255,255,0.35);
+  box-shadow: 0 0 30px var(--glow-accent, rgba(0,255,255,0.35));
 }
 
 /* Buttons */
@@ -42,33 +46,36 @@
   padding: 10px 18px;
   border-radius: 12px;
   text-decoration: none;
-  color: #fff;
+  color: var(--text-main, #fff);
   font-weight: bold;
   margin-right: 10px;
   display: inline-block;
-  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s, background 0.3s;
   text-align: center;
+  cursor: pointer;
 }
 
 /* Restore Button */
 .restore-btn {
-  background: #00ff99;
-  box-shadow: 0 0 15px #00ff99;
+  background: var(--success-color, #00ff99);
+  box-shadow: 0 0 15px var(--success-color, #00ff99);
 }
+
 .restore-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 25px #00ff99;
+  box-shadow: 0 0 25px var(--success-color, #00ff99);
   filter: brightness(1.2);
 }
 
 /* Delete Permanently Button */
 .delete-permanently-btn {
-  background: #ff3b3b;
-  box-shadow: 0 0 15px #ff3b3b;
+  background: var(--danger-color, #ff3b3b);
+  box-shadow: 0 0 15px var(--danger-color, #ff3b3b);
 }
+
 .delete-permanently-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 30px #ff3b3b;
+  box-shadow: 0 0 30px var(--danger-color, #ff3b3b);
   filter: brightness(1.2);
 }
 </style>
