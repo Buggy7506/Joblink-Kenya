@@ -3,119 +3,170 @@
 
 {% block content %}
 <style>
-.container {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 40px 20px;
+/* =========================================================
+   ALERTS PAGE — SCOPED STYLES (NO BASE CONFLICTS)
+========================================================= */
+
+/* Page wrapper */
+.alerts-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
-h1 {
-    text-align: center;
-    font-size: 32px;
-    margin-bottom: 30px;
-    color: var(--text-accent);
-    text-shadow: 0 0 10px var(--glow-accent);
-    transition: color 0.4s ease, text-shadow 0.4s ease;
+/* Page title */
+.alerts-page .alerts-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: var(--text-accent);
+  text-shadow: 0 0 10px var(--glow-accent);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 
-form {
-    background: var(--bg-card);
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px var(--glow-accent);
-    margin-bottom: 40px;
-    transition: background 0.4s ease, box-shadow 0.4s ease;
+/* =========================================================
+   FORM
+========================================================= */
+
+.alerts-page .alerts-form {
+  background: var(--bg-card);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px var(--glow-accent);
+  margin-bottom: 40px;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
 }
 
-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-main);
-    font-weight: bold;
+.alerts-page .alerts-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-main);
+  font-weight: 600;
 }
 
-input[type="text"] {
+.alerts-page .alerts-form input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  margin-bottom: 20px;
+  transition: background 0.4s ease, border 0.3s ease;
+}
+
+.alerts-page .alerts-form input[type="text"]:focus {
+  outline: none;
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.25);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Submit button */
+.alerts-page .submit-btn {
+  background-color: var(--text-accent);
+  color: #000;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  float: right;
+}
+
+.alerts-page .submit-btn:hover {
+  background-color: var(--glow-accent);
+  box-shadow: 0 0 10px var(--glow-accent);
+}
+
+/* =========================================================
+   ALERT LIST
+========================================================= */
+
+.alerts-page .alert-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.alerts-page .alert-item {
+  background-color: var(--bg-card);
+  border-left: 4px solid var(--text-accent);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.alerts-page .alert-content h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-accent);
+}
+
+.alerts-page .alert-content p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Delete link */
+.alerts-page .delete-link {
+  color: var(--text-danger);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.alerts-page .delete-link:hover {
+  color: #ef4444;
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.alerts-page .no-alerts {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+/* =========================================================
+   MOBILE OPTIMIZATION
+========================================================= */
+
+@media (max-width: 768px) {
+  .alerts-page {
+    padding: 25px 16px;
+  }
+
+  .alerts-page .alert-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .alerts-page .submit-btn {
+    float: none;
     width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    background-color: rgba(255,255,255,0.05);
-    color: var(--text-main);
-    margin-bottom: 20px;
-    transition: background 0.4s, border 0.3s ease;
-}
-
-input[type="text"]:focus {
-    outline: 2px solid var(--text-accent);
-    background-color: rgba(255,255,255,0.1);
-}
-
-.submit-btn {
-    background-color: var(--text-accent);
-    color: var(--text-main);
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    float: right;
-}
-
-.submit-btn:hover {
-    background-color: var(--glow-accent);
-}
-
-.alert-list {
-    list-style: none;
-    padding: 0;
-}
-
-.alert-item {
-    background-color: var(--bg-card);
-    border-left: 4px solid var(--text-accent);
-    padding: 16px;
-    margin-bottom: 16px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
-}
-
-.alert-item h3 {
-    margin: 0;
-    color: var(--text-accent);
-}
-
-.alert-item p {
-    margin: 4px 0 0;
-    color: var(--text-muted);
-}
-
-.delete-link {
-    color: var(--text-danger);
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.delete-link:hover {
-    color: #ef4444; /* optional slightly brighter on hover */
-}
-
-.no-alerts {
-    text-align: center;
-    color: var(--text-muted);
-    margin-top: 20px;
+  }
 }
 </style>
 
+<div class="alerts-page">
 
-<div class="container">
-    <h1>🚨 Job Alerts</h1>
+    <h1 class="alerts-title">Job Alerts</h1>
 
-    <form method="post">
+    <form method="post" class="alerts-form">
         {% csrf_token %}
+
         <label>Preferred Job Title</label>
         <input type="text" name="job_title" placeholder="e.g., Software Developer">
 
@@ -123,22 +174,31 @@ input[type="text"]:focus {
         <input type="text" name="location" placeholder="e.g., Nairobi">
 
         <button type="submit" class="submit-btn">Set Alert</button>
-        <div style="clear: both;"></div>
     </form>
 
-    <h2 style="margin-bottom: 16px; color: #cbd5e1;">Your Alerts</h2>
+    <h2 style="margin-bottom:16px; color:var(--text-muted);">
+        Your Alerts
+    </h2>
+
     <ul class="alert-list">
         {% for alert in alerts %}
             <li class="alert-item">
-                <div>
+                <div class="alert-content">
                     <h3>{{ alert.job_title }}</h3>
                     <p>Location: {{ alert.location }}</p>
                 </div>
-                <a href="{% url 'delete_alert' alert.id  %}" class="btn btn-danger">Delete</a>
+
+                <a href="{% url 'delete_alert' alert.id %}" class="delete-link">
+                    Delete
+                </a>
             </li>
         {% empty %}
-            <li class="no-alerts">You haven't set any job alerts yet.</li>
+            <li class="no-alerts">
+                You haven't set any job alerts yet.
+            </li>
         {% endfor %}
     </ul>
+
 </div>
+
 {% endblock %}
