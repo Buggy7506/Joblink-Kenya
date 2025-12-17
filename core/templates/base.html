@@ -159,9 +159,20 @@ nav a {
   border-radius: 0.6rem;
   background: var(--bg-card);
   backdrop-filter: blur(10px);
+
   max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, padding 0.4s ease;
+  overflow-y: auto;           /* ✅ allow scrolling */
+  transition: max-height 0.35s ease, padding 0.35s ease;
+
+  scrollbar-width: none;      /* Firefox */
+}
+
+.mobile-menu::-webkit-scrollbar {
+  display: none;              /* Chrome / Safari */
+}
+
+.mobile-menu a:last-child {
+  margin-bottom: 0.5rem;
 }
 
 .mobile-toggle {
@@ -446,19 +457,21 @@ AOS.init();
 
 // Mobile menu toggle with smooth slide
 const menu = document.getElementById('mobileMenu');
+
 document.getElementById('menuToggle').addEventListener('click', () => {
     if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
         menu.style.maxHeight = '0';
         menu.style.padding = '0 1rem';
-        setTimeout(() => menu.style.display = 'none', 400);
+        setTimeout(() => menu.style.display = 'none', 350);
     } else {
         menu.style.display = 'flex';
         setTimeout(() => {
-            menu.style.maxHeight = menu.scrollHeight + 'px';
+            menu.style.maxHeight = '70vh';
             menu.style.padding = '1rem';
         }, 10);
     }
 });
+
 
 // Dark/Light mode toggle
 const toggleDesktop = document.getElementById('darkModeToggleDesktop');
