@@ -202,6 +202,7 @@ STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChu
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
 
 CSRF_TRUSTED_ORIGINS = [
+    "stepper.dpdns.org"
     "https://joblink-kenya-6vrl.onrender.com",
     "https://*.onrender.com",
 ]
