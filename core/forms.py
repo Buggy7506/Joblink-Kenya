@@ -108,40 +108,6 @@ class JobPlanSelectForm(TooltipFormMixin, forms.Form):
     )
 
 
-# 🔹 Registration Forms
-class RegisterForm(TooltipFormMixin, UserCreationForm):
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password1', 'password2', 'role']
-        help_texts = {
-            'username': "Choose a unique username.",
-            'email': "Enter a valid email address.",
-            'role': "Select your role (Employer or Job Seeker).",
-        }
-        widgets = {
-            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
-            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
-        }
-
-
-class UserRegisterForm(TooltipFormMixin, forms.ModelForm):
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Enter password'}),
-        help_text="Password should be strong."
-    )
-    
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password']
-        help_texts = {
-            'username': "Choose your username.",
-            'email': "Provide your email address.",
-        }
-        widgets = {
-            'username': forms.TextInput(attrs={'placeholder': 'Enter username'}),
-            'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
-        }
-
 
 # 🔹 Profile Edit Form
 User = get_user_model()
