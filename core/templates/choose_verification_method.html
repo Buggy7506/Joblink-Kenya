@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Device Verification • JobLink Kenya{% endblock %}
+{% block title %}Choose Verification Method • JobLink Kenya{% endblock %}
 
 {% block content %}
 <div class="verification-wrapper">
   <div class="verification-card">
-    <h2 class="verification-title">Verify Your Device</h2>
+    <h2 class="verification-title">Choose Verification Method</h2>
     <p class="verification-subtitle">
-      A verification code will be sent to your phone.
+      Select how you want to receive your verification code.
     </p>
 
     {% if messages %}
@@ -21,31 +21,31 @@
       </div>
     {% endif %}
 
-    {% if sent_method %}
-      <div class="verification-sent">
-        A verification code has been sent via 
-        <strong>{{ sent_method|title }}</strong> to <strong>{{ user.phone }}</strong>.
-      </div>
-    {% endif %}
-
     <form method="post" class="verification-form">
       {% csrf_token %}
-      
+
       <div class="verification-options">
-        {% if user.phone %}
+        {% if user.email %}
         <label class="verification-option">
-          <input 
-              type="radio" 
-              name="method" 
-              value="phone"
-              checked
-          >
-          <span>Verify via Phone ({{ user.phone }})</span>
+          <input type="radio" name="method" value="email" {% if selected_method == "email" %}checked{% endif %}>
+          <span>Verify via Email ({{ user.email }})</span>
+        </label>
+        {% endif %}
+
+        {% if user.profile.phone_number %}
+        <label class="verification-option">
+          <input type="radio" name="method" value="whatsapp" {% if selected_method == "whatsapp" %}checked{% endif %}>
+          <span>Verify via WhatsApp ({{ user.profile.phone_number }})</span>
+        </label>
+
+        <label class="verification-option">
+          <input type="radio" name="method" value="sms" {% if selected_method == "sms" %}checked{% endif %}>
+          <span>Verify via SMS ({{ user.profile.phone_number }})</span>
         </label>
         {% endif %}
       </div>
 
-      <button type="submit" class="verification-btn">Send Code</button>
+      <button type="submit" class="verification-btn">Continue</button>
     </form>
   </div>
 </div>
@@ -56,13 +56,14 @@
   justify-content: center;
   align-items: center;
   min-height: 80vh;
-  background: #f3f4f6;
+  background: var(--bg-main);
+  color: var(--text-main);
   padding: 2rem;
   font-family: 'Segoe UI', sans-serif;
 }
 
 .verification-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.1);
   padding: 3rem 2.5rem;
@@ -81,13 +82,12 @@
   font-size: 2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #111827;
 }
 
 .verification-subtitle {
   font-size: 1rem;
   margin-bottom: 2rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .verification-messages {
@@ -110,17 +110,6 @@
   color: #065f46;
 }
 
-.verification-sent {
-  background: #d1fae5;
-  color: #065f46;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  text-align: left;
-  animation: fadeIn 0.4s ease forwards;
-}
-
 .verification-form {
   display: flex;
   flex-direction: column;
@@ -141,26 +130,27 @@
   gap: 0.6rem;
   font-size: 1rem;
   cursor: pointer;
-  color: #111827;
   transition: background 0.2s ease, color 0.2s ease;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 
 .verification-option:hover {
-  background: #f3f4f6;
+  background: var(--bg-card);
 }
 
 .verification-option input[type="radio"] {
-  accent-color: #2563eb;
+  accent-color: var(--glow-main);
   width: 1.1rem;
   height: 1.1rem;
   cursor: pointer;
 }
 
 .verification-btn {
-  background: #2563eb;
-  color: #ffffff;
+  background: var(--glow-main);
+  color: var(--text-main);
   padding: 0.85rem 1rem;
   border: none;
   border-radius: 10px;
@@ -171,9 +161,9 @@
 }
 
 .verification-btn:hover {
-  background: #1e40af;
+  background: var(--glow-accent);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 12px rgba(0,255,255,0.3);
 }
 
 @keyframes fadeIn {
