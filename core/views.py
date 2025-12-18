@@ -41,7 +41,7 @@ from .models import (
     JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser
 )
 from .forms import (
-    EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, 
+    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, 
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint
