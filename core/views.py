@@ -53,20 +53,31 @@ from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, gen
 def choose_verification_method(request):
     """
     Let user choose email / WhatsApp / SMS to receive OTP.
+    User is retrieved from session since device is not verified yet.
     """
+    user_id = request.session.get('verify_device_user_id')
+    if not user_id:
+        messages.error(request, "Session expired. Please login again.")
+        return redirect("login")
+
+    user = get_object_or_404(CustomUser, id=user_id)
+
     if request.method == "POST":
         method = request.POST.get("method")
         request.session['verification_method'] = method
         return redirect("verify-device")
 
-    # Automatically detect available options
-    user = request.user
+    # Detect available methods
     options = []
     if user.email:
         options.append("email")
     phone = getattr(user.profile, "phone_number", None)
     if phone:
         options.extend(["whatsapp", "sms"])
+
+    if not options:
+        messages.error(request, "No verification method available. Contact support.")
+        return redirect("login")
 
     return render(request, "choose_verification_method.html", {"options": options})
 
@@ -77,20 +88,26 @@ def choose_verification_method(request):
 def verify_device(request):
     """
     Handle OTP verification for new devices.
+    User is retrieved from session before full login.
     """
-    user = request.user
+    user_id = request.session.get('verify_device_user_id')
+    if not user_id:
+        messages.error(request, "Session expired. Please login again.")
+        return redirect("login")
+
+    user = get_object_or_404(CustomUser, id=user_id)
     device_hash = get_device_fingerprint(request)
     ip = get_client_ip(request)
     method = request.session.get('verification_method', 'email')
 
     # Get latest unused verification for this device
-    try:
-        verification = DeviceVerification.objects.filter(
-            user=user,
-            device_fingerprint=device_hash,
-            is_used=False
-        ).latest("created_at")
-    except DeviceVerification.DoesNotExist:
+    verification = DeviceVerification.objects.filter(
+        user=user,
+        device_fingerprint=device_hash,
+        is_used=False
+    ).order_by('-created_at').first()
+
+    if not verification:
         # Create a new OTP if not found
         code = generate_code()
         verification = DeviceVerification.objects.create(
@@ -100,7 +117,7 @@ def verify_device(request):
             ip_address=ip,
             code=code
         )
-        # Send OTP via chosen method
+        # Send OTP automatically via chosen method
         if method == "email":
             send_verification_email(user.email, code)
         elif method == "whatsapp":
@@ -113,7 +130,7 @@ def verify_device(request):
                 send_sms_otp(phone, code)
 
     if request.method == "POST":
-        entered_code = request.POST.get("otp")
+        entered_code = request.POST.get("otp", "").strip()
         if entered_code == verification.code:
             verification.is_used = True
             verification.verified_via = method
@@ -131,6 +148,14 @@ def verify_device(request):
             device.verified = True
             device.save()
 
+            # Login user after device verification
+            from django.contrib.auth import login
+            login(request, user)
+
+            # Clear session variables
+            request.session.pop('verify_device_user_id', None)
+            request.session.pop('verification_method', None)
+
             messages.success(request, "Device verified successfully!")
             return redirect("home")
         else:
@@ -138,7 +163,6 @@ def verify_device(request):
 
     return render(request, "verify_device.html", {"method": method})
     
-
 @login_required
 def account_settings(request):
     """
