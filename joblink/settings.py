@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-42z8(o&(y1uu&rx*x9s8nzn(_qhfkrh)9ks(d4(5^hm9i*yn=y
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "www.stepper.dpdns.org"
+    "www.stepper.dpdns.org",
     "stepper.dpdns.org",
     "joblink-kenya-6vrl.onrender.com",
     "localhost",
