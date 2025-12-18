@@ -97,6 +97,54 @@ def choose_verification_method(request):
 
     return render(request, "choose_verification_method.html", context)
 
+def resend_device_code(request):
+    user_id = request.session.get('verify_device_user_id')
+    if not user_id:
+        messages.error(request, "Session expired. Please login again.")
+        return redirect("login")
+
+    user = get_object_or_404(CustomUser, id=user_id)
+    profile, _ = Profile.objects.get_or_create(user=user)
+
+    # Determine verification method
+    method = request.session.get('verification_method', profile.verification_method or 'email')
+
+    # Generate new OTP
+    otp_code = generate_code()
+
+    # Save or update OTP for this device
+    device_fingerprint = request.session.get('device_fingerprint', 'unknown')
+    DeviceVerification.objects.update_or_create(
+        user=user,
+        device_fingerprint=device_fingerprint,
+        defaults={'code': otp_code, 'is_used': False, 'verified_via': method}
+    )
+
+    # Send OTP via selected method
+    try:
+        if method == "email":
+            send_mail(
+                subject="Your JobLink Verification Code",
+                message=f"Your verification code is: {otp_code}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+        elif method in ["sms", "whatsapp"]:
+            phone_number = profile.phone
+            if phone_number:
+                # Replace with your SMS/WhatsApp API call
+                print(f"OTP for {method.upper()} sent to {phone_number}: {otp_code}")
+            else:
+                messages.error(request, f"No phone number available for {method.upper()}.")
+                return redirect("verify-device")
+
+        messages.success(request, f"A new verification code has been sent via {method.upper()}.")
+    except Exception as e:
+        messages.error(request, f"Failed to send OTP: {str(e)}")
+
+    return redirect("verify-device")
+    
 
 def verify_device(request):
     """
