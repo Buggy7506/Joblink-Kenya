@@ -635,7 +635,7 @@ def login_view(request):
     - Username / Email / Phone
     - Device verification via Email / WhatsApp / SMS
     """
-    # If user is already logged in, log them out first
+    # Logout any already authenticated user
     if request.user.is_authenticated:
         logout(request)
 
@@ -682,17 +682,24 @@ def login_view(request):
             device = None
 
         if device is None or not device.verified:
-            # Create DeviceVerification entry
+            # Create DeviceVerification entry if none exists
             ip = get_client_ip(request)
-            code = generate_code()
-            verification = DeviceVerification.objects.create(
+            verification = DeviceVerification.objects.filter(
                 user=user,
                 device_fingerprint=device_hash,
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                ip_address=ip,
-                code=code
-            )
-            # Save user in session to continue after verification
+                is_used=False
+            ).first()
+            if not verification:
+                code = generate_code()
+                DeviceVerification.objects.create(
+                    user=user,
+                    device_fingerprint=device_hash,
+                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                    ip_address=ip,
+                    code=code
+                )
+
+            # Save user ID in session to continue after verification
             request.session['verify_device_user_id'] = user.id
 
             # Redirect to choose verification method
