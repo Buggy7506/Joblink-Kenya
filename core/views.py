@@ -211,10 +211,12 @@ def verify_device(request):
             messages.error(request, "Invalid OTP. Please try again.")
 
     return render(request, "verify_device.html", {
-        "method": method,
-        "user": user,
-        "profile": profile,
-    })
+    "method": method,
+    "verification_method": method,  # add this
+    "user": user,
+    "profile": profile,
+})
+
     
 @login_required
 def account_settings(request):
