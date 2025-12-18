@@ -65,6 +65,7 @@ sqlparse==0.5.3
 tinycss2==1.4.0
 tinyhtml5==2.0.0
 Twisted==24.11.0
+twilio>=8.0.0
 txaio==23.1.1
 typing_extensions==4.13.0
 tzdata==2025.2
