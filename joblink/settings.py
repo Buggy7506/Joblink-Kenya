@@ -191,13 +191,24 @@ MESSAGE_TAGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Security / Domain
+SITE_URL = "https://www.stepper.dpdns.org"
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+
+# SendGrid
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
-
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-
 DEFAULT_FROM_EMAIL = "security@stepper.dpdns.org"
-
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Twilio
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 
 
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
