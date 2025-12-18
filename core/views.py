@@ -77,8 +77,7 @@ def choose_verification_method(request):
     options = []
     if user.email:
         options.append("email")
-    phone = getattr(profile, "phone_number", None)
-    if phone:
+    if profile.phone_number:
         options.extend(["whatsapp", "sms"])
 
     # If no method available, redirect with error
@@ -86,8 +85,16 @@ def choose_verification_method(request):
         messages.error(request, "No verification method available. Please contact support.")
         return redirect("login")
 
-    return render(request, "choose_verification_method.html", {"options": options})
-    
+    # Pass data to template
+    context = {
+        "user": user,
+        "profile": profile,
+        "options": options,
+        "selected_method": request.session.get("verification_method", ""),
+    }
+
+    return render(request, "choose_verification_method.html", context)
+
 
 def verify_device(request):
     """
@@ -100,6 +107,10 @@ def verify_device(request):
         return redirect("login")
 
     user = get_object_or_404(CustomUser, id=user_id)
+    
+    # Ensure profile exists
+    profile, _ = Profile.objects.get_or_create(user=user)
+
     device_hash = get_device_fingerprint(request)
     ip = get_client_ip(request)
     method = request.session.get('verification_method', 'email')
@@ -121,17 +132,14 @@ def verify_device(request):
             ip_address=ip,
             code=code
         )
+
         # Send OTP via chosen method
-        if method == "email":
+        if method == "email" and user.email:
             send_verification_email(user.email, code)
-        elif method == "whatsapp":
-            phone = getattr(user.profile, "phone_number", None)
-            if phone:
-                send_whatsapp_otp(phone, code)
-        elif method == "sms":
-            phone = getattr(user.profile, "phone_number", None)
-            if phone:
-                send_sms_otp(phone, code)
+        elif method == "whatsapp" and profile.phone_number:
+            send_whatsapp_otp(profile.phone_number, code)
+        elif method == "sms" and profile.phone_number:
+            send_sms_otp(profile.phone_number, code)
 
     if request.method == "POST":
         entered_code = request.POST.get("otp", "").strip()
@@ -166,7 +174,12 @@ def verify_device(request):
         else:
             messages.error(request, "Invalid OTP. Please try again.")
 
-    return render(request, "verify_device.html", {"method": method})
+    return render(request, "verify_device.html", {
+        "method": method,
+        "user": user,
+        "profile": profile
+    })
+
     
 @login_required
 def account_settings(request):
