@@ -62,20 +62,21 @@ class Profile(models.Model):
 # DEVICE SECURITY MODELS
 # ======================================================
 
-from django.conf import settings
-from django.db import models
-
+# ---------------------------
+# Trusted Device Model
+# ---------------------------
 class TrustedDevice(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="devices"
     )
-    device_fingerprint = models.CharField(max_length=255)  # unique fingerprint for the device
+    device_fingerprint = models.CharField(max_length=255, unique=True)  # unique fingerprint
     user_agent = models.TextField()
     ip_address = models.CharField(max_length=50)
-    location = models.CharField(max_length=255, blank=True, null=True)  # store city/country
-    verified = models.BooleanField(default=False)  # mark if the device is trusted
+    location = models.CharField(max_length=255, blank=True, null=True)  # city/country
+    verified = models.BooleanField(default=False)  # mark if trusted
+    verified_at = models.DateTimeField(blank=True, null=True)  # timestamp when verified
     last_seen = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -83,14 +84,17 @@ class TrustedDevice(models.Model):
         return f"{self.device_fingerprint} → {self.user.username}"
 
 
+# ---------------------------
+# Device Verification Model
+# ---------------------------
 class DeviceVerification(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        null=True,        # allow null for pre-login
-        blank=True        # optional in forms
+        null=True,
+        blank=True
     )
-    email = models.EmailField(null=True, blank=True)  # store email for pre-login verification
+    email = models.EmailField(null=True, blank=True)  # store email if pre-login
     code = models.CharField(max_length=6)  # OTP code
     device_fingerprint = models.CharField(max_length=255)
     user_agent = models.TextField()
@@ -99,10 +103,14 @@ class DeviceVerification(models.Model):
     is_used = models.BooleanField(default=False)
     verified_via = models.CharField(
         max_length=20,
-        choices=[('email', 'Email'), ('whatsapp', 'WhatsApp'), ('sms', 'SMS')],
+        choices=[
+            ('email', 'Email'),
+            ('whatsapp', 'WhatsApp'),
+            ('sms', 'SMS')
+        ],
         blank=True,
         null=True,
-        help_text="Which channel the verification was completed through"
+        help_text="Channel used to complete verification"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -112,11 +120,12 @@ class DeviceVerification(models.Model):
         elif self.email:
             return f"Verification for {self.email} ({self.device_fingerprint})"
         return f"Verification ({self.device_fingerprint})"
-    
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Device Verification"
         verbose_name_plural = "Device Verifications"
+
 
 # ======================================================
 # JOB CATEGORY
