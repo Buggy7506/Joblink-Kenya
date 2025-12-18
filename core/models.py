@@ -62,20 +62,25 @@ class Profile(models.Model):
 # DEVICE SECURITY MODELS
 # ======================================================
 
+from django.conf import settings
+from django.db import models
+
 class TrustedDevice(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="devices"
     )
-    device_fingerprint = models.CharField(max_length=255)  # updated from device_name
+    device_fingerprint = models.CharField(max_length=255)  # unique fingerprint for the device
     user_agent = models.TextField()
     ip_address = models.CharField(max_length=50)
+    location = models.CharField(max_length=255, blank=True, null=True)  # store city/country
+    verified = models.BooleanField(default=False)  # mark if the device is trusted
+    last_seen = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.device_fingerprint} → {self.user.username}"
-
 
 
 class DeviceVerification(models.Model):
@@ -86,12 +91,20 @@ class DeviceVerification(models.Model):
         blank=True        # optional in forms
     )
     email = models.EmailField(null=True, blank=True)  # store email for pre-login verification
-    code = models.CharField(max_length=6)
-    device_fingerprint = models.CharField(max_length=255)  # renamed from device_name
+    code = models.CharField(max_length=6)  # OTP code
+    device_fingerprint = models.CharField(max_length=255)
     user_agent = models.TextField()
     ip_address = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
     is_used = models.BooleanField(default=False)
+    verified_via = models.CharField(
+        max_length=20,
+        choices=[('email', 'Email'), ('whatsapp', 'WhatsApp'), ('sms', 'SMS')],
+        blank=True,
+        null=True,
+        help_text="Which channel the verification was completed through"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         if self.user:
@@ -104,8 +117,6 @@ class DeviceVerification(models.Model):
         ordering = ['-created_at']
         verbose_name = "Device Verification"
         verbose_name_plural = "Device Verifications"
-
-
 
 # ======================================================
 # JOB CATEGORY
