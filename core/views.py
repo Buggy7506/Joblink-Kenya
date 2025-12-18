@@ -77,7 +77,8 @@ def choose_verification_method(request):
     options = []
     if user.email:
         options.append("email")
-    if profile.phone_number:
+    phone = getattr(user, "phone", None)  # Use user.phone instead of profile.phone_number
+    if phone:
         options.extend(["whatsapp", "sms"])
 
     # If no method available, redirect with error
@@ -88,9 +89,10 @@ def choose_verification_method(request):
     # Pass data to template
     context = {
         "user": user,
-        "profile": profile,
+        "profile": profile,  # optional if template needs it
         "options": options,
         "selected_method": request.session.get("verification_method", ""),
+        "phone": phone,  # pass phone to template for rendering
     }
 
     return render(request, "choose_verification_method.html", context)
