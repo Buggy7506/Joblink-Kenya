@@ -3,10 +3,16 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from .models import Profile, TrustedDevice, DeviceVerification
-from .utils import get_device_fingerprint, get_client_ip, generate_code, send_verification_email, send_whatsapp_otp, send_sms_otp
+from .utils import (
+    get_device_fingerprint,
+    get_client_ip,
+    generate_code,
+    send_verification_email,
+    send_whatsapp_otp,
+    send_sms_otp
+)
 
 User = get_user_model()
-
 
 # -------------------------
 # Profile creation signals
@@ -29,15 +35,15 @@ def save_profile(sender, instance, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def detect_new_device(sender, instance, created, **kwargs):
     """
-    Detects if the user logs in from a new device and triggers verification.
+    Detects if the user logs in from a new device and triggers OTP verification.
     """
     if created:
-        # Skip new users (no need to verify their first device)
+        # Skip newly created users (first device doesn't need verification)
         return
 
     request = getattr(instance, "_request", None)
     if not request:
-        # Request must be set in the view before saving user
+        # Must attach request in login view: user._request = request
         return
 
     device_hash = get_device_fingerprint(request)
@@ -51,24 +57,35 @@ def detect_new_device(sender, instance, created, **kwargs):
         defaults={
             "user_agent": user_agent,
             "ip_address": ip,
+            "verified": False
         }
     )
 
-    if created_device or not device.verified:
-        # Generate OTP
-        code = generate_code()
-        # Save verification entry
-        DeviceVerification.objects.create(
+    if not device.verified:
+        # Avoid creating multiple OTPs for the same device
+        existing_otp = DeviceVerification.objects.filter(
             user=instance,
             device_fingerprint=device_hash,
-            user_agent=user_agent,
-            ip_address=ip,
-            code=code
-        )
-        # Send verification via email
+            is_used=False
+        ).first()
+
+        if existing_otp:
+            code = existing_otp.code
+        else:
+            code = generate_code()
+            DeviceVerification.objects.create(
+                user=instance,
+                device_fingerprint=device_hash,
+                user_agent=user_agent,
+                ip_address=ip,
+                code=code
+            )
+
+        # Send OTP via Email
         if instance.email:
             send_verification_email(instance.email, code)
-        # Optional: send WhatsApp and SMS if phone number exists
+
+        # Send OTP via WhatsApp/SMS if phone number exists
         phone = getattr(instance.profile, 'phone_number', None)
         if phone:
             send_whatsapp_otp(phone, code)
