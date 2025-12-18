@@ -6,6 +6,7 @@ from .models import Profile, TrustedDevice, DeviceVerification
 from .utils import (
     get_device_fingerprint,
     get_client_ip,
+    get_location_from_ip,
     generate_code,
     send_verification_email,
     send_whatsapp_otp,
@@ -13,6 +14,7 @@ from .utils import (
 )
 
 User = get_user_model()
+
 
 # -------------------------
 # Profile creation signals
@@ -49,6 +51,7 @@ def detect_new_device(sender, instance, created, **kwargs):
     device_hash = get_device_fingerprint(request)
     ip = get_client_ip(request)
     user_agent = request.META.get('HTTP_USER_AGENT', '')
+    location = get_location_from_ip(ip)
 
     # Check if device already exists
     device, created_device = TrustedDevice.objects.get_or_create(
@@ -57,6 +60,7 @@ def detect_new_device(sender, instance, created, **kwargs):
         defaults={
             "user_agent": user_agent,
             "ip_address": ip,
+            "location": location,
             "verified": False
         }
     )
@@ -78,6 +82,7 @@ def detect_new_device(sender, instance, created, **kwargs):
                 device_fingerprint=device_hash,
                 user_agent=user_agent,
                 ip_address=ip,
+                location=location,
                 code=code
             )
 
