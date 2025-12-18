@@ -47,14 +47,12 @@ from .forms import (
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint
 
 
-# -------------------------
-# Choose verification method
-# -------------------------
 def choose_verification_method(request):
     """
-    Let user choose email / WhatsApp / SMS to receive OTP.
-    User is retrieved from session since device is not verified yet.
+    Let user choose a verification method (Email / WhatsApp / SMS) for OTP.
+    User is retrieved from session since the device is not verified yet.
     """
+    # Get the user from session
     user_id = request.session.get('verify_device_user_id')
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
@@ -64,10 +62,15 @@ def choose_verification_method(request):
 
     if request.method == "POST":
         method = request.POST.get("method")
+        if method not in ["email", "whatsapp", "sms"]:
+            messages.error(request, "Invalid verification method selected.")
+            return redirect("choose-verification-method")
+
+        # Save chosen method in session
         request.session['verification_method'] = method
         return redirect("verify-device")
 
-    # Detect available methods
+    # Detect available methods dynamically
     options = []
     if user.email:
         options.append("email")
@@ -75,16 +78,14 @@ def choose_verification_method(request):
     if phone:
         options.extend(["whatsapp", "sms"])
 
+    # If no method available, redirect with error
     if not options:
-        messages.error(request, "No verification method available. Contact support.")
+        messages.error(request, "No verification method available. Please contact support.")
         return redirect("login")
 
     return render(request, "choose_verification_method.html", {"options": options})
 
 
-# -------------------------
-# Verify device view
-# -------------------------
 def verify_device(request):
     """
     Handle OTP verification for new devices.
@@ -100,15 +101,15 @@ def verify_device(request):
     ip = get_client_ip(request)
     method = request.session.get('verification_method', 'email')
 
-    # Get latest unused verification for this device
+    # Fetch the latest unused verification for this device
     verification = DeviceVerification.objects.filter(
         user=user,
         device_fingerprint=device_hash,
         is_used=False
     ).order_by('-created_at').first()
 
+    # If no verification exists, generate and send a new OTP
     if not verification:
-        # Create a new OTP if not found
         code = generate_code()
         verification = DeviceVerification.objects.create(
             user=user,
@@ -117,7 +118,7 @@ def verify_device(request):
             ip_address=ip,
             code=code
         )
-        # Send OTP automatically via chosen method
+        # Send OTP via chosen method
         if method == "email":
             send_verification_email(user.email, code)
         elif method == "whatsapp":
@@ -132,6 +133,7 @@ def verify_device(request):
     if request.method == "POST":
         entered_code = request.POST.get("otp", "").strip()
         if entered_code == verification.code:
+            # Mark verification as used
             verification.is_used = True
             verification.verified_via = method
             verification.save()
@@ -142,15 +144,15 @@ def verify_device(request):
                 device_fingerprint=device_hash,
                 defaults={
                     "user_agent": request.META.get("HTTP_USER_AGENT", ""),
-                    "ip_address": ip
+                    "ip_address": ip,
+                    "verified": True
                 }
             )
             device.verified = True
             device.save()
 
-            # Login user after device verification
-            from django.contrib.auth import login
-            login(request, user)
+            # Log in user
+            auth_login(request, user)
 
             # Clear session variables
             request.session.pop('verify_device_user_id', None)
@@ -629,6 +631,17 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.db.models import Q
+from .models import CustomUser, TrustedDevice, DeviceVerification
+from .utils import (
+    get_device_fingerprint,
+    get_client_ip,
+    generate_code
+)
+
 def login_view(request):
     """
     Login view with device verification:
@@ -660,28 +673,20 @@ def login_view(request):
             messages.info(request, "Please set your password to continue.")
             return redirect("set_google_password")
 
-        # 3️⃣ Authenticate
-        user = authenticate(
-            request,
-            username=user_obj.username,
-            password=password
-        )
-
+        # 3️⃣ Authenticate user
+        user = authenticate(request, username=user_obj.username, password=password)
         if user is None:
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # 4️⃣ Attach request to user for signals
+        # 4️⃣ Attach request to user (used in signals)
         user._request = request
 
-        # 5️⃣ Device verification check
+        # 5️⃣ Check for trusted device
         device_hash = get_device_fingerprint(request)
-        try:
-            device = TrustedDevice.objects.get(user=user, device_fingerprint=device_hash)
-        except TrustedDevice.DoesNotExist:
-            device = None
+        device = TrustedDevice.objects.filter(user=user, device_fingerprint=device_hash).first()
 
-        if device is None or not device.verified:
+        if not device or not device.verified:
             # Create DeviceVerification entry if none exists
             ip = get_client_ip(request)
             verification = DeviceVerification.objects.filter(
@@ -699,13 +704,13 @@ def login_view(request):
                     code=code
                 )
 
-            # Save user ID in session to continue after verification
+            # Save user in session to continue after verification
             request.session['verify_device_user_id'] = user.id
 
             # Redirect to choose verification method
             return redirect("choose-verification-method")
 
-        # 6️⃣ Login user (trusted device)
+        # 6️⃣ Trusted device → log in directly
         login(request, user)
 
         # 7️⃣ Redirect based on role
@@ -713,6 +718,7 @@ def login_view(request):
 
     # GET → login page
     return render(request, 'login.html')
+
     
 #User Logout
 
