@@ -25,24 +25,20 @@
       {% csrf_token %}
 
       <div class="verification-options">
-        {% if user.email %}
-        <label class="verification-option">
-          <input type="radio" name="method" value="email" {% if selected_method == "email" %}checked{% endif %}>
-          <span>Verify via Email ({{ user.email }})</span>
-        </label>
-        {% endif %}
-
-        {% if user.profile.phone_number %}
-        <label class="verification-option">
-          <input type="radio" name="method" value="whatsapp" {% if selected_method == "whatsapp" %}checked{% endif %}>
-          <span>Verify via WhatsApp ({{ user.profile.phone_number }})</span>
-        </label>
-
-        <label class="verification-option">
-          <input type="radio" name="method" value="sms" {% if selected_method == "sms" %}checked{% endif %}>
-          <span>Verify via SMS ({{ user.profile.phone_number }})</span>
-        </label>
-        {% endif %}
+        {% for option in options %}
+          <label class="verification-option">
+            <input type="radio" name="method" value="{{ option }}" {% if option == selected_method %}checked{% endif %}>
+            <span>
+              {% if option == "email" %}
+                Verify via Email ({{ user.email }})
+              {% elif option == "whatsapp" %}
+                Verify via WhatsApp ({{ profile.phone_number }})
+              {% elif option == "sms" %}
+                Verify via SMS ({{ profile.phone_number }})
+              {% endif %}
+            </span>
+          </label>
+        {% endfor %}
       </div>
 
       <button type="submit" class="verification-btn">Continue</button>
