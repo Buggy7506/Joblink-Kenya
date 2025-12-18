@@ -17,18 +17,21 @@ User = get_user_model()
 
 
 # -------------------------
-# Profile creation signals
+# Profile creation signal
 # -------------------------
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_profile(sender, instance, created, **kwargs):
+def create_or_update_profile(sender, instance, created, **kwargs):
+    """
+    Ensure that a Profile exists for every user.
+    """
     if created:
+        # Create profile if it doesn't exist
         Profile.objects.get_or_create(user=instance)
-        instance.profile.save()
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def save_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    else:
+        # Save existing profile if it exists
+        profile = getattr(instance, "profile", None)
+        if profile:
+            profile.save()
 
 
 # -------------------------
@@ -40,7 +43,7 @@ def detect_new_device(sender, instance, created, **kwargs):
     Detects if the user logs in from a new device and triggers OTP verification.
     """
     if created:
-        # Skip newly created users (first device doesn't need verification)
+        # Skip newly created users
         return
 
     request = getattr(instance, "_request", None)
@@ -50,11 +53,11 @@ def detect_new_device(sender, instance, created, **kwargs):
 
     device_hash = get_device_fingerprint(request)
     ip = get_client_ip(request)
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
     location = get_location_from_ip(ip)
 
     # Check if device already exists
-    device, created_device = TrustedDevice.objects.get_or_create(
+    device, device_created = TrustedDevice.objects.get_or_create(
         user=instance,
         device_fingerprint=device_hash,
         defaults={
@@ -86,12 +89,13 @@ def detect_new_device(sender, instance, created, **kwargs):
                 code=code
             )
 
-        # Send OTP via Email
+        # Send OTP via Email if available
         if instance.email:
             send_verification_email(instance.email, code)
 
-        # Send OTP via WhatsApp/SMS if phone number exists
-        phone = getattr(instance.profile, 'phone_number', None)
+        # Send OTP via WhatsApp/SMS if phone number exists in profile
+        profile = getattr(instance, "profile", None)
+        phone = getattr(profile, "phone_number", None) if profile else None
         if phone:
             send_whatsapp_otp(phone, code)
             send_sms_otp(phone, code)
