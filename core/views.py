@@ -59,19 +59,21 @@ def choose_verification_method(request):
         messages.error(request, "Unauthorized access.")
         return redirect("login")
 
-    # 🔐 Ensure user is NOT authenticated
+    # 🔐 Ensure user is NOT authenticated (only if they are not in verification process)
     if request.user.is_authenticated:
         logout(request)
 
+    # Check if session is valid
     user_id = request.session.get("verify_device_user_id")
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
         return redirect("login")
 
+    # Retrieve the user from the database
     user = get_object_or_404(CustomUser, id=user_id)
     profile, _ = Profile.objects.get_or_create(user=user)
 
-    # Available methods
+    # Available methods for verification
     options = []
     if user.email:
         options.append("email")
@@ -80,25 +82,27 @@ def choose_verification_method(request):
     if phone:
         options.extend(["whatsapp", "sms"])
 
+    # If no methods are available, show an error
     if not options:
-        messages.error(
-            request,
-            "No verification method available. Please contact support."
-        )
+        messages.error(request, "No verification method available. Please contact support.")
         return redirect("login")
 
+    # Handle POST request for method selection
     if request.method == "POST":
         method = request.POST.get("method")
 
+        # Ensure the selected method is valid
         if method not in options:
             messages.error(request, "Invalid verification method selected.")
             return redirect("choose-verification-method")
 
-        # ✅ Save choice
+        # Save the selected method to session
         request.session["verification_method"] = method
 
+        # Redirect to verify device page
         return redirect("verify-device")
 
+    # Render the verification method selection page
     return render(
         request,
         "choose_verification_method.html",
@@ -111,7 +115,6 @@ def choose_verification_method(request):
             "pending_verification": True,
         },
     )
-
 
 def resend_device_code(request):
     """
