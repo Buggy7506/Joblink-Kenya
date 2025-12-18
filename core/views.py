@@ -52,6 +52,9 @@ def choose_verification_method(request):
     Let user choose a verification method (Email / WhatsApp / SMS) for OTP.
     User is retrieved from session since the device is not verified yet.
     """
+    if request.user.is_authenticated:
+        logout(request)
+        
     user_id = request.session.get('verify_device_user_id')
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
@@ -141,6 +144,10 @@ def verify_device(request):
     Handle OTP verification for new devices.
     User is not logged in until device verification completes.
     """
+    # Force logout to ensure session is clean
+    if request.user.is_authenticated:
+        logout(request)
+        
     user_id = request.session.get('verify_device_user_id')
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
