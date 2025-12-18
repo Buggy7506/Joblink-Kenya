@@ -188,14 +188,14 @@
         <h2>Verify Your Device</h2>
         <p>
             Enter the 6-digit code sent via 
-            {% if verification_method == 'email' %}
+            {% if method == 'email' %}
                 email to <strong>{{ user.email }}</strong>
-            {% elif verification_method == 'sms' %}
+            {% elif method == 'sms' %}
                 SMS to phone ending in <strong>{{ user.phone|slice:"-4:" }}</strong>
-            {% elif verification_method == 'whatsapp' %}
+            {% elif method == 'whatsapp' %}
                 WhatsApp to phone ending in <strong>{{ user.phone|slice:"-4:" }}</strong>
             {% else %}
-                <strong>{{ verification_method|title }}</strong>
+                <strong>{{ method|title }}</strong>
             {% endif %}
         </p>
 
