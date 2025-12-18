@@ -60,6 +60,9 @@ def choose_verification_method(request):
 
     user = get_object_or_404(CustomUser, id=user_id)
 
+    # Ensure profile exists
+    profile, _ = Profile.objects.get_or_create(user=user)
+
     if request.method == "POST":
         method = request.POST.get("method")
         if method not in ["email", "whatsapp", "sms"]:
@@ -74,7 +77,7 @@ def choose_verification_method(request):
     options = []
     if user.email:
         options.append("email")
-    phone = getattr(user.profile, "phone_number", None)
+    phone = getattr(profile, "phone_number", None)
     if phone:
         options.extend(["whatsapp", "sms"])
 
@@ -84,7 +87,7 @@ def choose_verification_method(request):
         return redirect("login")
 
     return render(request, "choose_verification_method.html", {"options": options})
-
+    
 
 def verify_device(request):
     """
@@ -631,17 +634,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from django.db.models import Q
-from .models import CustomUser, TrustedDevice, DeviceVerification
-from .utils import (
-    get_device_fingerprint,
-    get_client_ip,
-    generate_code
-)
-
 def login_view(request):
     """
     Login view with device verification:
@@ -667,6 +659,9 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
+        # Ensure profile exists
+        Profile.objects.get_or_create(user=user_obj)
+
         # 2️⃣ Google users without password → force password setup
         if not user_obj.has_usable_password():
             request.session["set_password_user_id"] = user_obj.id
@@ -687,6 +682,9 @@ def login_view(request):
         device = TrustedDevice.objects.filter(user=user, device_fingerprint=device_hash).first()
 
         if not device or not device.verified:
+            # Ensure profile exists before accessing phone/email
+            profile, _ = Profile.objects.get_or_create(user=user)
+
             # Create DeviceVerification entry if none exists
             ip = get_client_ip(request)
             verification = DeviceVerification.objects.filter(
