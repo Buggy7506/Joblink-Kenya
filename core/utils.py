@@ -5,6 +5,7 @@ import secrets
 import requests
 from twilio.rest import Client
 from django.conf import settings
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ def send_verification_email(email, code, max_retries=3):
         "personalizations": [
             {"to": [{"email": email}], "subject": "Your Device Verification Code"}
         ],
-        "from": {"email": "security@stepper.dpdns.org", "name": "JobLink Kenya"},
+        "from": {"email": "security@stepper.dpdns.org", "name": "Stepper"},
         "content": [
             {
                 "type": "text/html",
@@ -99,8 +100,7 @@ def send_verification_email(email, code, max_retries=3):
         except requests.RequestException as e:
             logger.warning(f"Attempt {attempt}: Network error sending email to {email}: {e}")
 
-        # small delay before retrying
-        import time; time.sleep(2)
+        time.sleep(2)
 
     logger.error(f"All attempts failed. Could not send verification email to {email}.")
     return False
