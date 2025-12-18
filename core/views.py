@@ -44,7 +44,100 @@ from .forms import (
     EditProfileForm, UserForm, ProfileForm, RegisterForm, JobForm, ResumeForm, 
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm
 )
+from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint
 
+
+# -------------------------
+# Choose verification method
+# -------------------------
+def choose_verification_method(request):
+    """
+    Let user choose email / WhatsApp / SMS to receive OTP.
+    """
+    if request.method == "POST":
+        method = request.POST.get("method")
+        request.session['verification_method'] = method
+        return redirect("verify-device")
+
+    # Automatically detect available options
+    user = request.user
+    options = []
+    if user.email:
+        options.append("email")
+    phone = getattr(user.profile, "phone_number", None)
+    if phone:
+        options.extend(["whatsapp", "sms"])
+
+    return render(request, "choose_verification_method.html", {"options": options})
+
+
+# -------------------------
+# Verify device view
+# -------------------------
+def verify_device(request):
+    """
+    Handle OTP verification for new devices.
+    """
+    user = request.user
+    device_hash = get_device_fingerprint(request)
+    ip = get_client_ip(request)
+    method = request.session.get('verification_method', 'email')
+
+    # Get latest unused verification for this device
+    try:
+        verification = DeviceVerification.objects.filter(
+            user=user,
+            device_fingerprint=device_hash,
+            is_used=False
+        ).latest("created_at")
+    except DeviceVerification.DoesNotExist:
+        # Create a new OTP if not found
+        code = generate_code()
+        verification = DeviceVerification.objects.create(
+            user=user,
+            device_fingerprint=device_hash,
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            ip_address=ip,
+            code=code
+        )
+        # Send OTP via chosen method
+        if method == "email":
+            send_verification_email(user.email, code)
+        elif method == "whatsapp":
+            phone = getattr(user.profile, "phone_number", None)
+            if phone:
+                send_whatsapp_otp(phone, code)
+        elif method == "sms":
+            phone = getattr(user.profile, "phone_number", None)
+            if phone:
+                send_sms_otp(phone, code)
+
+    if request.method == "POST":
+        entered_code = request.POST.get("otp")
+        if entered_code == verification.code:
+            verification.is_used = True
+            verification.verified_via = method
+            verification.save()
+
+            # Mark device as trusted
+            device, _ = TrustedDevice.objects.get_or_create(
+                user=user,
+                device_fingerprint=device_hash,
+                defaults={
+                    "user_agent": request.META.get("HTTP_USER_AGENT", ""),
+                    "ip_address": ip
+                }
+            )
+            device.verified = True
+            device.save()
+
+            messages.success(request, "Device verified successfully!")
+            return redirect("home")
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, "verify_device.html", {"method": method})
+    
 
 @login_required
 def account_settings(request):
@@ -514,12 +607,10 @@ User = get_user_model()
 
 def login_view(request):
     """
-    Simple login:
+    Login view with device verification:
     - Username / Email / Phone
-    - No device verification
-    - No SMS
+    - Device verification via Email / WhatsApp / SMS
     """
-
     # If user is already logged in, log them out first
     if request.user.is_authenticated:
         logout(request)
@@ -556,16 +647,42 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # 4️⃣ Login user
+        # 4️⃣ Attach request to user for signals
+        user._request = request
+
+        # 5️⃣ Device verification check
+        device_hash = get_device_fingerprint(request)
+        try:
+            device = TrustedDevice.objects.get(user=user, device_fingerprint=device_hash)
+        except TrustedDevice.DoesNotExist:
+            device = None
+
+        if device is None or not device.verified:
+            # Create DeviceVerification entry
+            ip = get_client_ip(request)
+            code = generate_code()
+            verification = DeviceVerification.objects.create(
+                user=user,
+                device_fingerprint=device_hash,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                ip_address=ip,
+                code=code
+            )
+            # Save user in session to continue after verification
+            request.session['verify_device_user_id'] = user.id
+
+            # Redirect to choose verification method
+            return redirect("choose-verification-method")
+
+        # 6️⃣ Login user (trusted device)
         login(request, user)
 
-        # 5️⃣ Redirect based on role
-        return redirect(
-            'admin_dashboard' if user.is_superuser else 'dashboard'
-        )
+        # 7️⃣ Redirect based on role
+        return redirect('admin_dashboard' if user.is_superuser else 'dashboard')
 
     # GET → login page
     return render(request, 'login.html')
+    
 #User Logout
 
 def logout_view(request):
