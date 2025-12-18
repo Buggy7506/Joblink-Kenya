@@ -32,9 +32,9 @@
               {% if option == "email" %}
                 Verify via Email ({{ user.email }})
               {% elif option == "whatsapp" %}
-                Verify via WhatsApp ({{ profile.phone_number }})
+                Verify via WhatsApp ({{ phone }})
               {% elif option == "sms" %}
-                Verify via SMS ({{ profile.phone_number }})
+                Verify via SMS ({{ phone }})
               {% endif %}
             </span>
           </label>
