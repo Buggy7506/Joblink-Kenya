@@ -135,6 +135,10 @@ def resend_device_code(request):
 
     # 3️⃣ Rate-limit OTP requests (30s cooldown)
     last_otp_sent = request.session.get('last_otp_sent', None)
+    if last_otp_sent:
+        # Convert last_otp_sent back to datetime from string if it exists
+        last_otp_sent = datetime.strptime(last_otp_sent, "%Y-%m-%d %H:%M:%S")
+
     now_time = datetime.now()
     if last_otp_sent and now_time < last_otp_sent + timedelta(seconds=30):
         remaining_time = (last_otp_sent + timedelta(seconds=30) - now_time).seconds
@@ -170,8 +174,8 @@ def resend_device_code(request):
                 messages.error(request, f"No phone number available for {method.upper()}.")
                 return redirect("verify-device")
 
-        # 6️⃣ Update last OTP sent time
-        request.session['last_otp_sent'] = now_time
+        # 6️⃣ Update last OTP sent time (store as string)
+        request.session['last_otp_sent'] = now_time.strftime("%Y-%m-%d %H:%M:%S")
 
         messages.success(request, f"A new verification code has been sent via {method.upper()}.")
     except Exception as e:
