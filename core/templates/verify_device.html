@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Verification • JobLink Kenya{% endblock %}
+{% block title %}Device Verification • JobLink Kenya{% endblock %}
 
 {% block content %}
 <style>
@@ -174,13 +174,12 @@
 
 <div class="fullpage-verify">
     <div class="verify-container">
+
         {% if messages %}
             {% for msg in messages %}
-                {% if msg.tags == 'success' %}
-                    <div class="code-sent-msg message">{{ msg }}</div>
-                {% else %}
-                    <div class="error message">{{ msg }}</div>
-                {% endif %}
+                <div class="{% if msg.tags == 'success' %}code-sent-msg{% else %}error{% endif %} message">
+                    {{ msg }}
+                </div>
             {% endfor %}
         {% endif %}
 
@@ -188,8 +187,12 @@
 
         <h2>Verify Your Device</h2>
         <p>
-            Enter the 6-digit code sent to phone number ending in 
-            <strong>{{ user_phone|slice:"-4:" }}</strong>.
+            Enter the 6-digit code sent to 
+            {% if user.email %}
+                <strong>{{ user.email }}</strong>
+            {% else %}
+                phone ending in <strong>{{ user_phone|slice:"-4:" }}</strong>
+            {% endif %}
         </p>
 
         <form method="POST" id="verifyForm">
@@ -199,7 +202,7 @@
                     <input type="text" maxlength="1" class="otp-input">
                 {% endfor %}
             </div>
-            <input type="hidden" name="code" id="full_code">
+            <input type="hidden" name="otp" id="full_code">
 
             <label class="remember-device">
                 <input type="checkbox" name="remember_device"> Remember this device for 30 days
@@ -220,7 +223,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-
     const inputs = document.querySelectorAll(".otp-input");
     const hiddenInput = document.getElementById("full_code");
     const form = document.getElementById("verifyForm");
@@ -230,10 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
         hiddenInput.value = [...inputs].map(i => i.value).join("");
         if(hiddenInput.value.length === inputs.length) {
             verifyBtn.classList.add("enabled");
-            verifyBtn.innerHTML = "Verify Device";
         } else {
             verifyBtn.classList.remove("enabled");
-            verifyBtn.innerHTML = "Verify Device";
         }
     }
 
@@ -253,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Optional: auto-submit when all inputs filled
+    // Auto-submit when all inputs are filled
     inputs.forEach(input => input.addEventListener("input", () => {
         if([...inputs].every(i => i.value.length === 1)) {
             autoSubmit();
@@ -283,9 +283,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }, 1000);
 
-    // Auto-hide messages after 5 seconds
-    const messages = document.querySelectorAll(".message");
-    messages.forEach(msg => {
+    // Auto-hide messages after 5s
+    document.querySelectorAll(".message").forEach(msg => {
         setTimeout(() => {
             msg.style.transition = 'opacity 0.5s, max-height 0.5s, margin 0.5s';
             msg.style.opacity = '0';
@@ -294,7 +293,6 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => msg.remove(), 500);
         }, 5000);
     });
-
 });
 </script>
 {% endblock %}
