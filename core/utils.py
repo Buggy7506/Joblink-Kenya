@@ -26,6 +26,7 @@ def get_client_ip(request):
 
     return request.META.get('REMOTE_ADDR', '')
 
+
 def get_device_fingerprint(request):
     """
     Returns a hashed fingerprint representing the device.
@@ -37,12 +38,34 @@ def get_device_fingerprint(request):
     # Hash → 32-character fingerprint
     return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
+
+# ---------------------------
+# Location Lookup
+# ---------------------------
+def get_location_from_ip(ip):
+    """
+    Get approximate location (city, country) from IP using ipinfo.io API.
+    Free plan has rate limits.
+    """
+    try:
+        response = requests.get(f"https://ipinfo.io/{ip}/json", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            city = data.get("city", "")
+            country = data.get("country", "")
+            return f"{city}, {country}" if city else country
+    except Exception as e:
+        logger.warning(f"Failed to get location for IP {ip}: {e}")
+    return ""
+
+
 # ---------------------------
 # OTP / Verification Code
 # ---------------------------
 def generate_code():
     """Generate a cryptographically secure 6-digit verification code."""
     return f"{secrets.randbelow(900000) + 100000}"  # 100000–999999
+
 
 # ---------------------------
 # SendGrid Email
@@ -105,6 +128,7 @@ def send_verification_email(email, code, max_retries=3):
     logger.error(f"All attempts failed. Could not send verification email to {email}.")
     return False
 
+
 # ---------------------------
 # Twilio WhatsApp / SMS
 # ---------------------------
@@ -124,6 +148,7 @@ def send_whatsapp_otp(phone, code):
     except Exception as e:
         logger.error(f"Failed to send WhatsApp OTP to {phone}: {e}")
         return False
+
 
 def send_sms_otp(phone, code):
     """
