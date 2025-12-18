@@ -184,9 +184,12 @@ def verify_device(request):
     Handle OTP verification for new devices.
     User is not logged in until device verification completes.
     """
-    # Force logout to ensure session is clean (if already authenticated)
+    # Force logout to ensure session is clean
     if request.user.is_authenticated:
         logout(request)
+
+    # Explicitly clear any session variables that may keep the user logged in
+    request.session.flush()
         
     user_id = request.session.get('verify_device_user_id')
     if not user_id:
@@ -752,6 +755,12 @@ def login_view(request):
     - Username / Email / Phone
     - Device verification via Email / WhatsApp / SMS
     """
+    # Force logout to ensure session is clean
+    if request.user.is_authenticated:
+        logout(request)
+
+    # Explicitly clear any session variables that may keep the user logged in
+    request.session.flush()
 
     # 🔒 Always start clean
     if request.user.is_authenticated:
