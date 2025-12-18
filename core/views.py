@@ -116,9 +116,9 @@ def choose_verification_method(request):
 def resend_device_code(request):
     """
     Handle the logic for resending the device verification OTP.
-    This includes rate-limiting the number of OTP requests.
+    Rate-limits requests to prevent abuse.
     """
-    # 1️⃣ Retrieve user session and check if the session is valid
+    # 1️⃣ Retrieve user from session
     user_id = request.session.get('verify_device_user_id')
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
@@ -127,21 +127,22 @@ def resend_device_code(request):
     user = get_object_or_404(CustomUser, id=user_id)
     profile, _ = Profile.objects.get_or_create(user=user)
 
-    # 2️⃣ Verify the selected verification method
+    # 2️⃣ Verify chosen method
     method = request.session.get('verification_method', 'email')
     if method not in ['email', 'whatsapp', 'sms']:
         messages.error(request, "Invalid verification method.")
         return redirect("verify-device")
 
-    # 3️⃣ Prevent abuse by rate-limiting OTP requests (e.g., 30s cooldown)
+    # 3️⃣ Rate-limit OTP requests (30s cooldown)
     last_otp_sent = request.session.get('last_otp_sent', None)
-    if last_otp_sent and now() < last_otp_sent + timedelta(seconds=30):
-        remaining_time = (last_otp_sent + timedelta(seconds=30) - now()).seconds
+    now_time = datetime.now()
+    if last_otp_sent and now_time < last_otp_sent + timedelta(seconds=30):
+        remaining_time = (last_otp_sent + timedelta(seconds=30) - now_time).seconds
         messages.error(request, f"Please wait {remaining_time} seconds before requesting a new OTP.")
         return redirect("verify-device")
 
-    # 4️⃣ Generate a new OTP
-    otp_code = generate_code()
+    # 4️⃣ Generate OTP
+    otp_code = generate_code()  # your existing OTP generator function
 
     device_fingerprint = request.session.get('device_fingerprint', 'unknown')
     DeviceVerification.objects.update_or_create(
@@ -150,7 +151,7 @@ def resend_device_code(request):
         defaults={'code': otp_code, 'is_used': False, 'verified_via': method}
     )
 
-    # 5️⃣ Send OTP via chosen method
+    # 5️⃣ Send OTP
     try:
         if method == "email" and user.email:
             send_mail(
@@ -163,14 +164,14 @@ def resend_device_code(request):
         elif method in ["sms", "whatsapp"]:
             phone_number = profile.phone
             if phone_number:
-                # You should implement actual SMS/WhatsApp sending logic here
+                # Replace print with actual SMS/WhatsApp sending logic
                 print(f"OTP for {method.upper()} sent to {phone_number}: {otp_code}")
             else:
                 messages.error(request, f"No phone number available for {method.upper()}.")
                 return redirect("verify-device")
 
-        # 6️⃣ Update the session with the time of the last OTP request
-        request.session['last_otp_sent'] = now()
+        # 6️⃣ Update last OTP sent time
+        request.session['last_otp_sent'] = now_time
 
         messages.success(request, f"A new verification code has been sent via {method.upper()}.")
     except Exception as e:
