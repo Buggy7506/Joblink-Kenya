@@ -55,21 +55,24 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* Privacy & Terms links top-right */
+/* Top-left links */
 .top-links {
-  text-align: right;
+  text-align: left;
   margin: 10px 20px;
   font-size: 14px;
 }
 
 .top-links a {
-  color: #22d3ee;
+  /* Use theme-aware text color */
+  color: var(--text-accent);
   text-decoration: underline;
-  margin-left: 8px;
+  margin-right: 8px;
+  transition: color 0.3s ease;
 }
 
-.top-links a:first-child {
-  margin-left: 0;
+.top-links a:hover {
+  text-decoration: none;
+  text-shadow: 0 0 5px var(--glow-accent);
 }
 
 /* Fade-in animation */
@@ -89,10 +92,12 @@
 {% endblock %}
 
 {% block content %}
-<!-- ✅ Privacy Policy & Terms at top-right -->
+<!-- ✅ Top-left links: Privacy, Terms, Cookies, Learn More -->
 <div class="top-links">
-  <a href="/privacy/">Privacy Policy</a> |
+  <a href="/privacy/">Privacy Policy</a>
   <a href="/terms/">Terms of Service</a>
+  <a href="/cookies/">Cookies Policy</a>
+  <a href="/learn-more/">Learn More</a>
 </div>
 
 <div class="home-container">
