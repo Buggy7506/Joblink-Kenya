@@ -6,12 +6,13 @@
 <style>
 .home-container {
   text-align: center;
-  margin-top: 100px;
+  margin-top: 50px; /* adjusted since links are above */
   padding: 0 20px;
   color: var(--text-main);
   transition: color 0.4s ease;
 }
 
+/* Hero text */
 .glow-title {
   font-size: 3rem;
   font-weight: bold;
@@ -35,6 +36,7 @@
   transition: color 0.4s ease;
 }
 
+/* Browse button */
 .browse-btn {
   margin-top: 30px;
   display: inline-block;
@@ -53,28 +55,26 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* 🔽 Footer / Google OAuth required links */
-.site-footer {
-  margin-top: 100px;
-  padding: 20px 0;
+/* Google OAuth required links at top */
+.privacy-links {
   text-align: center;
   font-size: 14px;
-  color: var(--text-muted);
+  margin-top: 10px;
+  margin-bottom: 40px;
 }
 
-.site-footer a {
+.privacy-links a {
   color: var(--text-accent);
   text-decoration: none;
-  margin: 0 10px;
-  transition: all 0.3s ease;
+  margin: 0 6px;
 }
 
-.site-footer a:hover {
+.privacy-links a:hover {
   text-decoration: underline;
   text-shadow: 0 0 5px var(--glow-accent);
 }
 
-/* 🌟 Optional: fade-in effect for homepage hero */
+/* Fade-in animation */
 .home-container {
   opacity: 0;
   transform: translateY(20px);
@@ -91,6 +91,12 @@
 {% endblock %}
 
 {% block content %}
+<!-- ✅ Google OAuth links right after header -->
+<div class="privacy-links">
+  <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
+  <a href="{% url 'terms_of_service' %}">Terms of Service</a>
+</div>
+
 <div class="home-container">
   <h1 class="glow-title">
     Welcome to <span class="highlight">JobLink Kenya</span>
@@ -102,12 +108,4 @@
 
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
 </div>
-{% endblock %}
-
-{% block footer %}
-<!-- ✅ Google OAuth: visible Privacy & Terms links -->
-<footer class="site-footer">
-  <a href="{% url 'privacy_policy' %}" style="display:inline-block;">Privacy Policy</a> |
-  <a href="{% url 'terms_of_service' %}" style="display:inline-block;">Terms of Service</a>
-</footer>
 {% endblock %}
