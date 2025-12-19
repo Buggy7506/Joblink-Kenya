@@ -34,6 +34,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
+    "https://joblink-kenya-xpzd.onrender.com",
     "joblink-kenya-6vrl.onrender.com",
     "localhost",
     "127.0.0.1",
