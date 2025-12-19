@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy • JobLink Kenya{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page Wrapper */
+.privacy-wrapper {
+  max-width: 900px;
+  margin: 80px auto;
+  padding: 40px 30px;
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  line-height: 1.8;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Headings */
+.privacy-wrapper h1 {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+  color: var(--text-accent);
+  text-align: center;
+}
+
+.privacy-wrapper h2 {
+  margin-top: 40px;
+  font-size: 1.6rem;
+  color: var(--text-main);
+  border-left: 4px solid var(--text-accent);
+  padding-left: 12px;
+}
+
+.privacy-wrapper h3 {
+  margin-top: 25px;
+  font-size: 1.2rem;
+  color: var(--text-main);
+}
+
+/* Text */
+.privacy-wrapper p {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+/* Lists */
+.privacy-wrapper ul {
+  margin: 15px 0 15px 25px;
+}
+
+.privacy-wrapper li {
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}
+
+/* Highlight Box */
+.notice-box {
+  margin: 25px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0f7ff, #e8f2ff);
+  border-left: 5px solid var(--text-accent);
+}
+
+/* Contact Box */
+.contact-box {
+  margin-top: 40px;
+  padding: 25px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.03);
+  text-align: center;
+}
+
+.contact-box strong {
+  color: var(--text-accent);
+  font-size: 1.05rem;
+}
+
+/* Footer Note */
+.last-updated {
+  margin-top: 40px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-wrapper">
+
+  <h1>Privacy Policy</h1>
+  <p style="text-align:center;">
+    Your privacy matters to us. This policy explains how JobLink Kenya collects,
+    uses, and protects your personal information.
+  </p>
+
+  <h2>1. Introduction</h2>
+  <p>
+    JobLink Kenya ("we", "our", or "us") is a platform designed to connect job
+    seekers with employers across Kenya. We are committed to safeguarding your
+    personal data and being transparent about how it is handled.
+  </p>
+
+  <h2>2. Information We Collect</h2>
+  <p>We may collect the following information:</p>
+  <ul>
+    <li>Your full name</li>
+    <li>Email address</li>
+    <li>Profile picture</li>
+    <li>Account role (job seeker or employer)</li>
+  </ul>
+
+  <div class="notice-box">
+    <strong>Important:</strong>
+    We only collect information that is necessary to provide our services and
+    improve your experience on JobLink Kenya.
+  </div>
+
+  <h2>3. Google Sign-In & OAuth Data</h2>
+  <p>
+    JobLink Kenya uses Google Sign-In for secure authentication. When you choose
+    to sign in with Google, we request access only to:
+  </p>
+  <ul>
+    <li>Your name</li>
+    <li>Your email address</li>
+    <li>Your Google profile picture</li>
+  </ul>
+
+  <p>
+    We do <strong>not</strong> access your contacts, files, calendar, or any
+    other Google services.
+  </p>
+
+  <h2>4. How We Use Your Information</h2>
+  <p>Your information is used to:</p>
+  <ul>
+    <li>Create and manage your JobLink Kenya account</li>
+    <li>Enable secure login and identity verification</li>
+    <li>Match job seekers with relevant opportunities</li>
+    <li>Improve platform features and performance</li>
+  </ul>
+
+  <h2>5. Data Sharing & Disclosure</h2>
+  <p>
+    We do <strong>not</strong> sell, rent, or trade your personal information.
+    Your data is never shared with third parties except when required by law or
+    to protect our platform and users.
+  </p>
+
+  <h2>6. Data Security</h2>
+  <p>
+    We implement appropriate technical and organizational security measures to
+    protect your data from unauthorized access, loss, or misuse.
+  </p>
+
+  <h2>7. Data Retention</h2>
+  <p>
+    Your data is retained only for as long as necessary to provide our services
+    or comply with legal obligations. You may request account deletion at any
+    time.
+  </p>
+
+  <h2>8. Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li>Access your personal data</li>
+    <li>Update or correct your information</li>
+    <li>Request deletion of your account</li>
+  </ul>
+
+  <h2>9. Changes to This Policy</h2>
+  <p>
+    We may update this Privacy Policy from time to time. Any changes will be
+    posted on this page.
+  </p>
+
+  <div class="contact-box">
+    <p>
+      If you have any questions about this Privacy Policy or how your data is
+      handled, please contact us at:
+    </p>
+    <strong>support@stepper.dpdns.org</strong>
+  </div>
+
+  <p class="last-updated">
+    Last updated: {{ now|date:"F Y" }}
+  </p>
+
+</div>
+{% endblock %}
