@@ -1,11 +1,18 @@
 services:
   - type: web
-    name: joblink-kenya
+    name: joblink-web
     env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python manage.py collectstatic --no-input
-    startCommand: gunicorn joblink.wsgi
-    releaseCommand: |
-      python manage.py makemigrations --noinput
-      python manage.py migrate --noinput
+    plan: starter
+    buildCommand: >
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --noinput &&
+      python manage.py migrate
+    startCommand: >
+      gunicorn joblink.asgi:application -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: joblink.settings
+      - key: SECRET_KEY
+        fromDatabase: true  # optional if you store secrets in Render database
+      - key: DEBUG
+        value: 'False'
