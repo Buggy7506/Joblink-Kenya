@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Cookies Policy • JobLink Kenya{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page Wrapper */
+.cookies-wrapper {
+  max-width: 900px;
+  margin: 80px auto;
+  padding: 40px 30px;
+  background: var(--bg-card, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.6s ease-in-out;
+  color: var(--text-main);
+  line-height: 1.8;
+}
+
+/* Headings */
+.cookies-wrapper h1 {
+  font-size: 2.6rem;
+  color: var(--text-accent);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.cookies-wrapper h2 {
+  font-size: 1.6rem;
+  margin-top: 30px;
+  border-left: 4px solid var(--text-accent);
+  padding-left: 12px;
+  color: var(--text-main);
+}
+
+.cookies-wrapper p,
+.cookies-wrapper li {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.cookies-wrapper ul {
+  margin: 15px 0 15px 25px;
+}
+
+.notice-box {
+  margin: 25px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(var(--text-accent-rgb, 34, 211, 238), 0.1);
+  border-left: 5px solid var(--text-accent);
+  color: var(--text-main);
+}
+
+/* Footer Note */
+.last-updated {
+  margin-top: 40px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cookies-wrapper">
+
+  <h1>Cookies Policy</h1>
+  <p style="text-align:center;">
+    This Cookies Policy explains how JobLink Kenya uses cookies and similar technologies,
+    what they do, and how you can manage them.
+  </p>
+
+  <h2>1. What Are Cookies?</h2>
+  <p>
+    Cookies are small text files placed on your device (computer, phone, or tablet) that
+    store information about your visit. They help websites remember preferences, track
+    usage for analytics, and support functionality you expect to work when you visit again. :contentReference[oaicite:1]{index=1}
+  </p>
+
+  <h2>2. Why We Use Cookies</h2>
+  <p>
+    We use cookies to provide, protect, and improve our services, including:
+  </p>
+  <ul>
+    <li>Ensuring secure login and user session management.</li>
+    <li>Remembering your preferences and settings.</li>
+    <li>Measuring how you use the site so we can improve content and performance.</li>
+    <li>Delivering relevant features or marketing content (where applicable).</li>
+  </ul>
+
+  <div class="notice-box">
+    <strong>Important:</strong> Cookies do not store your password or personal information like your full name or email, unless you provide those directly to us.
+  </div>
+
+  <h2>3. Types of Cookies We Use</h2>
+  <ul>
+    <li><strong>Strictly Necessary Cookies:</strong> Required for basic site functions such as authentication and security.</li>
+    <li><strong>Performance Cookies:</strong> Help us understand how visitors use the site so we can improve it.</li>
+    <li><strong>Functionality Cookies:</strong> Remember choices you make, like language or display preferences.</li>
+    <li><strong>Advertising Cookies:</strong> May be used to deliver personalized content and measure effectiveness of promotions.</li>
+  </ul>
+
+  <p>
+    Cookies can also be categorized by duration:
+  </p>
+  <ul>
+    <li><strong>Session Cookies:</strong> Deleted when you close your browser.</li>
+    <li><strong>Persistent Cookies:</strong> Remain on your device until they expire or are deleted manually.</li>
+  </ul>
+
+  <h2>4. Third Party Cookies</h2>
+  <p>
+    We may allow third parties (such as analytics or advertising partners) to place
+    cookies when you interact with content such as embedded videos or social media features.
+    These cookies are governed by the third party’s own policies. :contentReference[oaicite:2]{index=2}
+  </p>
+
+  <h2>5. Your Cookie Choices</h2>
+  <p>
+    You can manage cookies through your browser settings:
+  </p>
+  <ul>
+    <li>Block all cookies (note: this may affect site functionality).</li>
+    <li>Delete cookies already stored on your device.</li>
+    <li>Customize cookie settings per site in some browsers.</li>
+  </ul>
+
+  <h2>6. Changes to This Policy</h2>
+  <p>
+    We may update this Cookies Policy occasionally to reflect changes in our
+    practices or legal requirements. We will post the updated version here.
+  </p>
+
+  <p class="last-updated">Last updated: {{ now|date:"F Y" }}</p>
+
+</div>
+{% endblock %}
