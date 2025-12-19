@@ -49,12 +49,21 @@ from .forms import (
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint
 
 
+# Privacy Policy page
 def privacy_policy(request):
-    return render(request, "privacy_policy.html")
+    return render(request, "privacy_policy.html", {"now": timezone.now()})
 
-
+# Terms of Service page
 def terms_of_service(request):
-    return render(request, "terms_of_service.html")
+    return render(request, "terms_of_service.html", {"now": timezone.now()})
+
+# Learn More page
+def learn_more(request):
+    return render(request, "learn_more.html", {"now": timezone.now()})
+
+# Cookies Policy page
+def cookies_policy(request):
+    return render(request, "cookies_policy.html", {"now": timezone.now()})
 
 
 # def choose_verification_method(request):
