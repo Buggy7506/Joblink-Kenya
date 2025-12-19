@@ -238,7 +238,22 @@
   margin-top:8px;
 }
 #login-page .facebook-btn { background: transparent; color:#385185; }
-#login-page .google-btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--text-muted); }
+#login-page .google-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    padding: 8px;
+    border: none;               /* removed outer line */
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    background: var(--bg-card); /* keep background */
+    color: var(--text-main);
+}
+
 
 /* FOOTER & SIGNUP */
 #login-page .forgot { color: var(--text-muted); font-size: 13px; margin-top: 10px; }
