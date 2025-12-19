@@ -3,9 +3,9 @@ from django.contrib.auth import views as auth_views
 from . import views
  
 urlpatterns = [
-    path('security/resend-device-code/', views.resend_device_code, name='resend_device_code'),
-    path("security/choose-method/", views.choose_verification_method, name="choose-verification-method"),
-    path("security/verify-device/", views.verify_device, name="verify-device"),
+    #path('security/resend-device-code/', views.resend_device_code, name='resend_device_code'),
+    #path("security/choose-method/", views.choose_verification_method, name="choose-verification-method"),
+    #path("security/verify-device/", views.verify_device, name="verify-device"),
     path("settings/", views.account_settings, name="account_settings"),
     path("delete-account/", views.delete_account, name="delete_account"),
     path("google/set-password/", views.set_google_password, name="set_google_password"),
