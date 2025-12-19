@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service • JobLink Kenya{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page Wrapper */
+.terms-wrapper {
+  max-width: 900px;
+  margin: 80px auto;
+  padding: 40px 30px;
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  line-height: 1.8;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Headings */
+.terms-wrapper h1 {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+  color: var(--text-accent);
+  text-align: center;
+}
+
+.terms-wrapper h2 {
+  margin-top: 40px;
+  font-size: 1.6rem;
+  color: var(--text-main);
+  border-left: 4px solid var(--text-accent);
+  padding-left: 12px;
+}
+
+.terms-wrapper h3 {
+  margin-top: 25px;
+  font-size: 1.2rem;
+  color: var(--text-main);
+}
+
+/* Text */
+.terms-wrapper p {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+/* Lists */
+.terms-wrapper ul {
+  margin: 15px 0 15px 25px;
+}
+
+.terms-wrapper li {
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}
+
+/* Highlight Box */
+.notice-box {
+  margin: 25px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border-left: 5px solid var(--text-accent);
+}
+
+/* Footer Note */
+.last-updated {
+  margin-top: 40px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terms-wrapper">
+
+  <h1>Terms of Service</h1>
+  <p style="text-align:center;">
+    Please read these Terms of Service carefully before using JobLink Kenya.
+  </p>
+
+  <h2>1. Acceptance of Terms</h2>
+  <p>
+    By accessing or using JobLink Kenya ("the Platform"), you agree to be bound
+    by these Terms of Service and all applicable laws and regulations. If you do
+    not agree, you must not use the platform.
+  </p>
+
+  <h2>2. Description of Service</h2>
+  <p>
+    JobLink Kenya is an online platform that connects job seekers with employers
+    by providing job listings, applications, and communication tools.
+  </p>
+
+  <h2>3. Eligibility</h2>
+  <p>
+    You must be at least 18 years old to create an account and use JobLink Kenya.
+    By using the platform, you confirm that you meet this requirement.
+  </p>
+
+  <h2>4. User Accounts</h2>
+  <p>
+    To access certain features, you may be required to create an account. You
+    agree to provide accurate and up-to-date information and to keep your login
+    credentials secure.
+  </p>
+
+  <div class="notice-box">
+    <strong>Account Security:</strong>
+    You are solely responsible for all activities that occur under your
+    account.
+  </div>
+
+  <h2>5. User Responsibilities</h2>
+  <ul>
+    <li>Provide truthful and accurate information</li>
+    <li>Use the platform only for lawful purposes</li>
+    <li>Respect other users and employers</li>
+    <li>Do not post misleading, abusive, or harmful content</li>
+  </ul>
+
+  <h2>6. Prohibited Activities</h2>
+  <ul>
+    <li>Attempting to gain unauthorized access to the platform</li>
+    <li>Misusing job listings or applicant data</li>
+    <li>Uploading malicious software or spam</li>
+  </ul>
+
+  <h2>7. Google Sign-In</h2>
+  <p>
+    JobLink Kenya allows users to authenticate using Google Sign-In. By using
+    this feature, you agree to Google’s terms and our Privacy Policy regarding
+    the handling of your personal data.
+  </p>
+
+  <h2>8. Termination of Accounts</h2>
+  <p>
+    We reserve the right to suspend or terminate your account at any time if you
+    violate these Terms of Service or engage in behavior that harms the platform
+    or its users.
+  </p>
+
+  <h2>9. Limitation of Liability</h2>
+  <p>
+    JobLink Kenya is provided on an "as is" basis. We are not responsible for
+    job outcomes, employer decisions, or any damages resulting from the use of
+    the platform.
+  </p>
+
+  <h2>10. Modifications to the Service</h2>
+  <p>
+    We may modify, suspend, or discontinue any part of the platform at any time
+    without prior notice.
+  </p>
+
+  <h2>11. Changes to These Terms</h2>
+  <p>
+    These Terms of Service may be updated periodically. Continued use of the
+    platform after changes constitutes acceptance of the updated terms.
+  </p>
+
+  <h2>12. Governing Law</h2>
+  <p>
+    These Terms are governed by the laws of the Republic of Kenya.
+  </p>
+
+  <p class="last-updated">
+    Last updated: {{ now|date:"F Y" }}
+  </p>
+
+</div>
+{% endblock %}
