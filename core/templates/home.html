@@ -52,15 +52,44 @@
   transform: scale(1.05);
   box-shadow: 0 0 15px var(--glow-accent);
 }
+
+/* 🔽 Footer for Google verification */
+.site-footer {
+  margin-top: 120px;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.site-footer a {
+  color: var(--text-accent);
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="home-container">
-  <h1 class="glow-title">Welcome to <span class="highlight">JobLink Kenya</span></h1>
+  <h1 class="glow-title">
+    Welcome to <span class="highlight">JobLink Kenya</span>
+  </h1>
+
   <p class="subtitle">
     Connecting youth with career opportunities and employer networks across Kenya.
   </p>
+
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
 </div>
+
+<!-- ✅ REQUIRED FOR GOOGLE OAUTH -->
+<footer class="site-footer">
+  <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
+  <a href="{% url 'terms_of_service' %}">Terms of Service</a>
+</footer>
 {% endblock %}
