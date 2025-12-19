@@ -170,6 +170,82 @@
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* =========================
+   MOBILE RESPONSIVENESS
+========================= */
+
+/* Small phones: up to 480px width */
+@media (max-width: 480px) {
+
+    /* Full-page wrapper */
+    .fullpage-verify {
+        padding: 12px !important;
+        align-items: flex-start !important;
+    }
+
+    /* Container */
+    .fullpage-verify .verify-container {
+        padding: 25px 18px !important;
+        border-radius: 14px !important;
+        margin-top: 40px !important;
+        max-width: 95% !important;
+    }
+
+    /* Headings & text */
+    .fullpage-verify .verify-container h2 {
+        font-size: 1.5rem !important;
+    }
+    .fullpage-verify .verify-container p {
+        font-size: 0.95rem !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* OTP container & inputs */
+    .fullpage-verify .otp-container {
+        gap: 8px !important;
+    }
+    .fullpage-verify .otp-input {
+        width: 44px !important;
+        height: 50px !important;
+        font-size: 20px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Verify button */
+    .fullpage-verify button {
+        padding: 12px !important;
+        font-size: 15px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Checkbox text */
+    .fullpage-verify .remember-device {
+        font-size: 13px !important;
+    }
+
+    /* Messages */
+    .fullpage-verify .code-sent-msg,
+    .fullpage-verify .error {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* Extra-small phones: up to 360px width */
+@media (max-width: 360px) {
+
+    /* OTP inputs */
+    .fullpage-verify .otp-input {
+        width: 38px !important;
+        height: 46px !important;
+        font-size: 18px !important;
+    }
+
+    /* OTP container gap */
+    .fullpage-verify .otp-container {
+        gap: 6px !important;
+    }
+}
 </style>
 
 <div class="fullpage-verify">
