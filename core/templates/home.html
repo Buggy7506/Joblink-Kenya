@@ -102,10 +102,12 @@
 
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
 </div>
+{% endblock %}
 
+{% block footer %}
 <!-- ✅ Google OAuth: visible Privacy & Terms links -->
 <footer class="site-footer">
-  <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
-  <a href="{% url 'terms_of_service' %}">Terms of Service</a>
+  <a href="{% url 'privacy_policy' %}" style="display:inline-block;">Privacy Policy</a> |
+  <a href="{% url 'terms_of_service' %}" style="display:inline-block;">Terms of Service</a>
 </footer>
 {% endblock %}
