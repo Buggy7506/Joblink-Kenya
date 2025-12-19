@@ -190,102 +190,100 @@ def resend_device_code(request):
 def verify_device(request):
     """
     Handle OTP verification for new devices.
-    User is not logged in until device verification completes.
+    User is NOT logged in until device verification completes.
     """
-    # Force logout to ensure session is clean
+
+    # Ensure user is logged out and session auth cleared
     if request.user.is_authenticated:
         logout(request)
-        
-    user_id = request.session.get('verify_device_user_id')
+        request.session.flush()
+
+    user_id = request.session.get("verify_device_user_id")
     if not user_id:
         messages.error(request, "Session expired. Please login again.")
         return redirect("login")
 
-    # Retrieve user and profile based on session data
-    user = get_object_or_404(CustomUser, id=user_id)
-    profile, _ = Profile.objects.get_or_create(user=user)
+    # Use a SAFE variable name (NOT 'user')
+    pending_user = get_object_or_404(CustomUser, id=user_id)
+    profile, _ = Profile.objects.get_or_create(user=pending_user)
 
-    # Get device fingerprint and method for OTP (email, sms, or whatsapp)
     device_hash = get_device_fingerprint(request)
     ip = get_client_ip(request)
-    method = request.session.get('verification_method', 'email')
+    method = request.session.get("verification_method", "email")
 
-    # Retrieve the latest unverified OTP entry for the device
     verification = DeviceVerification.objects.filter(
-        user=user,
+        user=pending_user,
         device_fingerprint=device_hash,
         is_used=False
-    ).order_by('-created_at').first()
+    ).order_by("-created_at").first()
 
-    # If no verification exists, generate a new OTP and send it
+    # Generate & send OTP if none exists
     if not verification:
         code = generate_code()
         verification = DeviceVerification.objects.create(
-            user=user,
+            user=pending_user,
             device_fingerprint=device_hash,
             user_agent=request.META.get("HTTP_USER_AGENT", ""),
             ip_address=ip,
             code=code
         )
 
-        # Send OTP through the chosen method
         try:
-            if method == "email" and user.email:
+            if method == "email" and pending_user.email:
                 send_mail(
                     subject="Your JobLink Verification Code",
                     message=f"Your verification code is: {code}",
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
+                    recipient_list=[pending_user.email],
                     fail_silently=False,
                 )
-            elif method == "whatsapp" and profile.phone:
-                # Implement WhatsApp OTP sending logic here (for example, using Twilio API)
-                print(f"WhatsApp OTP sent to {profile.phone}: {code}")
-            elif method == "sms" and profile.phone:
-                # Implement SMS OTP sending logic here (e.g., using Twilio API)
-                print(f"SMS OTP sent to {profile.phone}: {code}")
-            else:
-                messages.error(request, f"No phone number available for {method.upper()}.")
-                return redirect("verify-device")
-        except Exception as e:
-            messages.error(request, f"Failed to send OTP: {str(e)}")
 
-    # POST request to validate entered OTP
+            elif method == "sms" and profile.phone:
+                print(f"SMS OTP sent to {profile.phone}: {code}")
+
+            elif method == "whatsapp" and profile.phone:
+                print(f"WhatsApp OTP sent to {profile.phone}: {code}")
+
+            else:
+                messages.error(request, "No contact method available.")
+                return redirect("verify-device")
+
+        except Exception:
+            messages.error(request, "Failed to send OTP.")
+            return redirect("verify-device")
+
+    # Validate OTP
     if request.method == "POST":
         entered_code = request.POST.get("otp", "").strip()
+
         if verification and entered_code == verification.code:
-            # Mark the OTP as used and associate with the chosen verification method
             verification.is_used = True
             verification.verified_via = method
             verification.save()
 
-            # Mark the device as trusted
-            device, _ = TrustedDevice.objects.get_or_create(
-                user=user,
+            TrustedDevice.objects.update_or_create(
+                user=pending_user,
                 device_fingerprint=device_hash,
                 defaults={
                     "user_agent": request.META.get("HTTP_USER_AGENT", ""),
                     "ip_address": ip,
-                    "verified": True
+                    "verified": True,
                 }
             )
-            device.verified = True
-            device.save()
 
-            # Device successfully verified, allow login process
-            messages.success(request, "Device verified successfully! You may now log in.")
-            return redirect("login")  # Redirect to login page for user to log in after device verification
+            messages.success(
+                request,
+                "Device verified successfully. Please log in."
+            )
+            return redirect("login")
 
-        else:
-            # Incorrect OTP entered
-            messages.error(request, "Invalid OTP. Please try again.")
+        messages.error(request, "Invalid OTP. Please try again.")
 
-    # Render the verification page with necessary data
+    # DO NOT pass `user` into template
     return render(request, "verify_device.html", {
-        "method": method,
-        "verification_method": method,  # Pass selected method for display
-        "user": user,
+        "verification_method": method,
         "profile": profile,
+        "pending_user": pending_user,  # ✅ SAFE
     })
     
 @login_required
