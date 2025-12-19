@@ -5,10 +5,6 @@
 
 {% block extra_css %}
 <style>
-/* =========================================================
-   LOGIN PAGE STYLING (SCOPED)
-========================================================= */
-
 #login-page * { box-sizing: border-box; }
 
 #login-page .container {
@@ -21,99 +17,18 @@
   flex-wrap: nowrap;
 }
 
-/* -------------------- HERO / MOCKUP -------------------- */
+/* -------------------- HERO IMAGE -------------------- */
 #login-page .hero {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-#login-page .phone-stack {
-  position: relative;
-  width: 420px;
-  height: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Decorative stacked cards */
-#login-page .card {
-  position: absolute;
-  border-radius: 28px;
-  box-shadow: 0 18px 30px rgba(0,0,0,0.12);
-  transform-origin: center;
-}
-#login-page .back-card {
-  width: 300px;
-  height: 420px;
-  left: calc(50% - 120px);
-  top: 40px;
-  transform: rotate(-14deg) scale(.95);
-  background: linear-gradient(180deg,#f5a3b1,#f7d6a3);
-  z-index: 1;
-}
-#login-page .left-card {
-  width: 340px;
-  height: 420px;
-  right: calc(50% - 120px);
-  top: 30px;
-  transform: rotate(10deg) scale(.98);
-  background: linear-gradient(180deg,#a6d4f7,#d6b1ff);
-  z-index: 2;
-}
-#login-page .phone-card {
-  width: 300px;
-  height: 520px;
-  border-radius: 36px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-main);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
-  z-index: 10;
-}
-
-/* Phone screen & floating elements */
-#login-page .phone-screen {
-  width: 92%;
-  height: 88%;
-  background: var(--bg-card);
-  border-radius: 24px;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#login-page .phone-screen img {
+#login-page .hero img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-#login-page .floating-heart {
-  position: absolute;
-  left: 10%;
-  top: 20%;
-  background: linear-gradient(45deg,#ff3b6a,#ff8a5c);
-  color: white;
-  font-weight: 700;
-  padding: 8px 10px;
-  border-radius: 14px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-  font-size: 14px;
-}
-#login-page .floating-bubble {
-  position: absolute;
-  right: 6%;
-  bottom: 16%;
-  background: var(--bg-card);
-  color: var(--text-main);
-  padding: 6px 10px;
-  border-radius: 20px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-  font-size: 13px;
+  max-width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 18px 30px rgba(0,0,0,0.12);
 }
 
 /* -------------------- RIGHT AUTH BOX -------------------- */
@@ -292,18 +207,11 @@
 {% block content %}
 <div id="login-page">
   <main class="container">
-    <!-- LEFT MOCKUP -->
+    <!-- LEFT HERO IMAGE -->
     <section class="hero">
       <div class="phone-stack">
-        <div class="card back-card"></div>
-        <div class="card phone-card">
-          <div class="phone-screen">
-            <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/cup-on-a-table.jpg" alt="Cup on a table">
-            <div class="floating-heart">❤</div>
-            <div class="floating-bubble">🔥 💜</div>
-          </div>
-        </div>
-        <div class="card left-card"></div>
+        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1766174560/landing-2x_ivfwtw.png" 
+             alt="JobLink Hero">
       </div>
     </section>
 
