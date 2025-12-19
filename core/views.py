@@ -48,6 +48,15 @@ from .forms import (
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint
 
+
+def privacy_policy(request):
+    return render(request, "privacy_policy.html")
+
+
+def terms_of_service(request):
+    return render(request, "terms_of_service.html")
+
+
 # def choose_verification_method(request):
 #     """
 #     Let user choose a verification method (Email / WhatsApp / SMS) for OTP.
