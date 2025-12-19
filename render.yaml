@@ -5,14 +5,26 @@ services:
     plan: starter
     buildCommand: >
       pip install -r requirements.txt &&
-      python manage.py collectstatic --noinput &&
-      python manage.py migrate
+      python manage.py collectstatic --noinput
     startCommand: >
+      python manage.py migrate &&
       gunicorn joblink.asgi:application -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: joblink.settings
       - key: SECRET_KEY
-        fromDatabase: true  # optional if you store secrets in Render database
+        fromDatabase: true
       - key: DEBUG
         value: 'False'
+      - key: DATABASE_URL
+        fromDatabase: true
+      - key: SENDGRID_API_KEY
+        fromDatabase: true
+      - key: CLOUDINARY_CLOUD_NAME
+        fromDatabase: true
+      - key: CLOUDINARY_API_KEY
+        fromDatabase: true
+      - key: CLOUDINARY_API_SECRET
+        fromDatabase: true
+      - key: TWILIO_ACCOUNT_SID
+        fromDatabase: true
+      - key: TWILIO_AUTH_TOKEN
+        fromDatabase: true
