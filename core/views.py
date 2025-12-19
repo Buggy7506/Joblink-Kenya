@@ -203,7 +203,6 @@ def verify_device(request):
         messages.error(request, "Session expired. Please login again.")
         return redirect("login")
 
-    # Use a SAFE variable name (NOT 'user')
     pending_user = get_object_or_404(CustomUser, id=user_id)
     profile, _ = Profile.objects.get_or_create(user=pending_user)
 
@@ -248,6 +247,8 @@ def verify_device(request):
                 messages.error(request, "No contact method available.")
                 return redirect("verify-device")
 
+            messages.success(request, f"OTP sent via {method.upper()}.")
+
         except Exception:
             messages.error(request, "Failed to send OTP.")
             return redirect("verify-device")
@@ -271,20 +272,18 @@ def verify_device(request):
                 }
             )
 
-            messages.success(
-                request,
-                "Device verified successfully. Please log in."
-            )
+            messages.success(request, "Device verified successfully. Please log in.")
             return redirect("login")
 
         messages.error(request, "Invalid OTP. Please try again.")
 
-    # DO NOT pass `user` into template
+    # Pass variables for template
     return render(request, "verify_device.html", {
-        "verification_method": method,
-        "profile": profile,
-        "pending_user": pending_user,  # ✅ SAFE
+        "method": method,           # for template logic
+        "user": pending_user,       # safe access in template
+        "profile": profile,         # optional if needed
     })
+
     
 @login_required
 def account_settings(request):
