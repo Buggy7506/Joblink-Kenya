@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Learn More • JobLink Kenya{% endblock %}
+
+{% block extra_css %}
+<style>
+.learn-wrapper {
+  max-width: 900px;
+  margin: 80px auto;
+  padding: 40px 30px;
+  background: var(--bg-card, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.6s ease-in-out;
+  color: var(--text-main);
+  line-height: 1.8;
+}
+
+/* Headings */
+.learn-wrapper h1 {
+  font-size: 2.6rem;
+  color: var(--text-accent);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.learn-wrapper h2 {
+  font-size: 1.6rem;
+  margin-top: 30px;
+  border-left: 4px solid var(--text-accent);
+  padding-left: 12px;
+  color: var(--text-main);
+}
+
+.learn-wrapper p,
+.learn-wrapper li {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.learn-wrapper ul {
+  margin: 15px 0 15px 25px;
+}
+
+.notice-box {
+  margin: 25px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(var(--text-accent-rgb, 34, 211, 238), 0.1);
+  border-left: 5px solid var(--text-accent);
+  color: var(--text-main);
+}
+
+/* Small note */
+.last-updated {
+  margin-top: 40px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="learn-wrapper">
+
+  <h1>Learn More About Information Sharing</h1>
+
+  <p style="text-align:center;">
+    This page helps explain how contact information may be shared on JobLink Kenya,
+    how to protect your data, and how to get help when you need support.
+  </p>
+
+  <h2>1. Why Contact Information May Be Shared</h2>
+  <p>
+    On JobLink Kenya, users interact with others to connect about job opportunities,
+    networking, and professional growth. When you upload your resume or contact
+    details, other users may see or interact with that information as part of
+    legitimate networking activities within the platform.
+  </p>
+
+  <h2>2. What This Means for Your Privacy</h2>
+  <ul>
+    <li>You control what contact info you share (email, phone, links).</li>
+    <li>Your profile settings determine who can see contact details.</li>
+    <li>Uploaded contact information is only visible to authenticated users.</li>
+  </ul>
+
+  <div class="notice-box">
+    <strong>Important:</strong>
+    Always be cautious about sharing personal details outside the platform,
+    and ensure you only connect with trusted individuals and employers.
+  </div>
+
+  <h2>3. How We Protect Your Information</h2>
+  <p>
+    We implement industry-standard encryption and access controls to protect
+    user data. Contact details are stored securely and shared only when you
+    choose to make them visible or interact with others on the platform.
+  </p>
+
+  <h2>4. Getting Help & Reporting Issues</h2>
+  <p>
+    If you find that someone is misusing your contact information or behaving
+    inappropriately, you can report the user through your account settings:
+  </p>
+  <ul>
+    <li>Go to the user’s profile.</li>
+    <li>Click “Report” or “Block”.</li>
+    <li>Provide details about the issue so our support team can review.</li>
+  </ul>
+
+  <h2>5. Support Tools & Account Assistance</h2>
+  <p>
+    If you need help with your account, profile settings, or data privacy, you
+    can reach out through the support tools available in your dashboard. These
+    tools provide guides, FAQs, and ways to contact support if you experience
+    technical problems or account concerns.
+  </p>
+
+  <h2>6. Updates to This Page</h2>
+  <p>
+    We may update this page as our platform evolves, technology standards
+    improve, or legal requirements change. Check back regularly to stay informed.
+  </p>
+
+  <p class="last-updated">
+    Last updated: {{ now|date:"F Y" }}
+  </p>
+
+</div>
+{% endblock %}
