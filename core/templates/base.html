@@ -12,7 +12,9 @@
 
 <!-- Prevent zooming on all devices -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="google-site-verification" content="_INwcu7Q7GdEdU2Yf7DOAR2sISOfO_K9NuGEsIBiVCc">
 
+      
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://kit.fontawesome.com/a2c5a4f60f.js" crossorigin="anonymous"></script>
@@ -449,7 +451,25 @@ textarea::placeholder {
 </main>
 
 <footer class="footer glow-border">
-  <p>English(UK) •&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
+  <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+
+    <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
+      <a href="{% url 'privacy_policy' %}" class="hover-glow">
+        Privacy Policy
+      </a>
+      <span style="opacity:0.5;">•</span>
+      <a href="{% url 'terms_of_service' %}" class="hover-glow">
+        Terms of Service
+      </a>
+    </div>
+
+    <p style="margin:0;">
+      English (UK) • &copy; 2025
+      <span style="color:#22d3ee;">JobLink Kenya</span>.
+      All rights reserved.
+    </p>
+
+  </div>
 </footer>
 
 <script>
