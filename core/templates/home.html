@@ -19,22 +19,23 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: -2;
   overflow: hidden;
-  perspective: 2000px; /* for subtle parallax */
 }
 
 .bg-slide {
   position: absolute;
-  width: 110%; /* slight zoom for parallax */
-  height: 110%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   background-repeat: no-repeat;
   opacity: 0;
-  transform: scale(1) translateZ(0);
+  transform: scale(1);
   animation: fadeZoomParallax 60s infinite;
   animation-timing-function: ease-in-out;
 }
@@ -62,9 +63,9 @@ html, body {
 .overlay {
   position: fixed;
   top: 0;
-  left:0;
-  width: 100vw;
-  height: 100vh;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0,0,0,0.45);
   z-index: -1;
   backdrop-filter: blur(1px);
@@ -86,12 +87,13 @@ html, body {
 
 /* Hero text with glowing pulse */
 .glow-title {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 900;
   color: #00ffff;
   text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
   white-space: pre-wrap;
   animation: glowPulse 2.5s infinite alternate;
+  margin-bottom: 20px;
 }
 
 @keyframes glowPulse {
@@ -102,18 +104,18 @@ html, body {
 
 /* Subtitle & purpose text */
 .subtitle, .purpose-box, .visible-privacy {
-  font-size: 1.25rem;
-  line-height: 1.8;
+  font-size: 1.2rem;
+  line-height: 1.6;
   max-width: 850px;
-  margin-top: 20px;
+  margin-top: 15px;
   color: #e0f7fa;
   text-shadow: 0 0 8px rgba(0,255,255,0.4);
 }
 
 /* Browse button with radiant pulse */
 .browse-btn {
-  margin-top: 40px;
-  padding: 16px 36px;
+  margin-top: 35px;
+  padding: 14px 32px;
   font-size: 18px;
   font-weight: bold;
   text-decoration: none;
@@ -133,10 +135,7 @@ html, body {
   box-shadow: 0 0 35px #00ffff, 0 0 60px #00ffff, 0 0 90px #007fff inset;
 }
 
-@keyframes bubbleIn {
-  to { opacity: 1; transform: scale(1); }
-}
-
+@keyframes bubbleIn { to { opacity: 1; transform: scale(1); } }
 @keyframes buttonPulse {
   0% { box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff, 0 0 75px #007fff inset; }
   50% { box-shadow: 0 0 35px #0ff, 0 0 70px #0ff, 0 0 100px #00ffff inset; }
@@ -153,8 +152,8 @@ html, body {
 
 /* Footer styling */
 .oauth-footer {
-  margin-top: 100px;
-  padding: 25px 10px;
+  margin-top: 50px;
+  padding: 20px 10px;
   text-align: center;
   font-size: 14px;
   color: #00ffff;
@@ -162,7 +161,7 @@ html, body {
 }
 
 .oauth-footer a {
-  margin: 0 10px;
+  margin: 0 8px;
   color: #00ffff;
   text-decoration: underline;
   font-weight: 500;
@@ -174,10 +173,23 @@ html, body {
   text-shadow: 0 0 8px #00ffff;
 }
 
-@media (max-width: 768px){
+/* Responsive adjustments */
+@media (max-width: 1024px) {
   .glow-title { font-size: 2.5rem; }
+  .subtitle, .purpose-box, .visible-privacy { font-size: 1.1rem; }
+  .browse-btn { font-size: 16px; padding: 12px 28px; }
+}
+
+@media (max-width: 768px) {
+  .glow-title { font-size: 2rem; }
   .subtitle, .purpose-box, .visible-privacy { font-size: 1rem; }
-  .browse-btn { font-size: 16px; padding: 14px 28px; }
+  .browse-btn { font-size: 15px; padding: 10px 24px; }
+}
+
+@media (max-width: 480px) {
+  .glow-title { font-size: 1.6rem; }
+  .subtitle, .purpose-box, .visible-privacy { font-size: 0.95rem; }
+  .browse-btn { font-size: 14px; padding: 10px 20px; }
 }
 </style>
 {% endblock %}
