@@ -109,6 +109,28 @@
     transform: translateY(0);
   }
 }
+
+
+/* OAuth-required footer */
+.oauth-footer {
+  margin-top: 100px;
+  padding: 25px 10px;
+  text-align: center;
+  font-size: 14px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+.oauth-footer a {
+  margin: 0 12px;
+  color: var(--text-accent, #4da3ff);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.oauth-footer a:hover {
+  text-decoration: none;
+}
+
 </style>
 {% endblock %}
 
@@ -148,4 +170,11 @@
 
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
 </div>
+<footer class="oauth-footer">
+  <a href="/learn-more/">Learn More</a>
+  <a href="/privacy/">Privacy Policy</a>
+  <a href="/terms/">Terms of Service</a>
+  <a href="/cookies/">Cookies Policy</a>
+</footer>
+
 {% endblock %}
