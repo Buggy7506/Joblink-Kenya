@@ -6,7 +6,7 @@
 <style>
 .home-container {
   text-align: center;
-  margin-top: 50px; /* adjusted since links are above */
+  margin-top: 40px;
   padding: 0 20px;
   color: var(--text-main);
   transition: color 0.4s ease;
@@ -21,7 +21,6 @@
     0 0 10px var(--glow-accent),
     0 0 20px var(--glow-accent),
     0 0 30px var(--glow-accent);
-  transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 
 .highlight {
@@ -33,12 +32,20 @@
   margin-top: 15px;
   font-size: 18px;
   color: var(--text-muted);
-  transition: color 0.4s ease;
+}
+
+/* Purpose section */
+.purpose-box {
+  max-width: 900px;
+  margin: 35px auto 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-main);
 }
 
 /* Browse button */
 .browse-btn {
-  margin-top: 30px;
+  margin-top: 35px;
   display: inline-block;
   background: var(--text-accent);
   color: var(--text-main);
@@ -55,24 +62,38 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* Top-left links */
+/* Top links (desktop) */
 .top-links {
-  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   margin: 10px 20px;
   font-size: 14px;
+  gap: 10px;
 }
 
 .top-links a {
-  /* Use theme-aware text color */
   color: var(--text-accent);
   text-decoration: underline;
-  margin-right: 8px;
-  transition: color 0.3s ease;
 }
 
 .top-links a:hover {
   text-decoration: none;
   text-shadow: 0 0 5px var(--glow-accent);
+}
+
+/* 📱 Mobile alignment fix */
+@media (max-width: 600px) {
+  .top-links {
+    justify-content: center;
+    text-align: center;
+    margin: 15px 10px;
+  }
+
+  .top-links a {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }
 
 /* Fade-in animation */
@@ -92,7 +113,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- ✅ Top-left links: Privacy, Terms, Cookies, Learn More -->
+<!-- ✅ Required visible links -->
 <div class="top-links">
   <a href="/privacy/">Privacy Policy</a>
   <a href="/terms/">Terms of Service</a>
@@ -106,8 +127,24 @@
   </h1>
 
   <p class="subtitle">
-    Connecting youth with career opportunities and employer networks across Kenya.
+    Connecting job seekers with trusted employers across Kenya.
   </p>
+
+  <!-- ✅ Google OAuth verification section -->
+  <div class="purpose-box">
+    <p>
+      <strong>JobLink Kenya</strong> is an online employment platform designed to help
+      job seekers discover career opportunities and connect with verified employers.
+      Users can create profiles, apply for jobs, manage applications, and communicate
+      securely within the platform.
+    </p>
+
+    <p>
+      To provide a fast and secure experience, JobLink Kenya allows users to sign in
+      using Google. Google Sign-In helps verify user identity and prevents unauthorized
+      access while eliminating the need to create a separate password.
+    </p>
+  </div>
 
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
 </div>
