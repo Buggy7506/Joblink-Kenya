@@ -354,77 +354,92 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 </footer>
 
 <script>
-AOS.init();
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize AOS animations
+  AOS.init();
 
-// Mobile menu toggle
-const menu = document.getElementById('mobileMenu');
-document.getElementById('menuToggle').addEventListener('click', () => {
-    if(menu.style.maxHeight && menu.style.maxHeight !== '0px'){
-        menu.style.maxHeight = '0';
-        menu.style.padding = '0 1rem';
-        setTimeout(() => menu.style.display = 'none', 350);
+  // ---------------------------
+  // Mobile menu toggle
+  // ---------------------------
+  const menu = document.getElementById('mobileMenu');
+  const menuToggle = document.getElementById('menuToggle');
+
+  menuToggle.addEventListener('click', () => {
+    if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
+      menu.style.maxHeight = '0';
+      menu.style.padding = '0 1rem';
+      setTimeout(() => (menu.style.display = 'none'), 350);
     } else {
-        menu.style.display = 'flex';
-        setTimeout(() => { menu.style.maxHeight = '70vh'; menu.style.padding = '1rem'; }, 10);
+      menu.style.display = 'flex';
+      setTimeout(() => {
+        menu.style.maxHeight = '70vh';
+        menu.style.padding = '1rem';
+      }, 10);
     }
-});
+  });
 
-// Theme toggles
-const toggleDesktop = document.getElementById('darkModeToggleDesktop');
-const toggleMobile = document.getElementById('darkModeToggleMobile');
-const mobileIcon = document.getElementById('mobileThemeIcon');
-const mobileText = document.getElementById('mobileThemeText');
-const body = document.body;
+  // ---------------------------
+  // Theme toggle (desktop & mobile)
+  // ---------------------------
+  const toggleDesktop = document.getElementById('darkModeToggleDesktop');
+  const toggleMobile = document.getElementById('darkModeToggleMobile');
+  const mobileIcon = document.getElementById('mobileThemeIcon');
+  const mobileText = document.getElementById('mobileThemeText');
+  const body = document.body;
 
-// Load theme
-if(localStorage.getItem('theme') === 'light'){
+  // Load saved theme
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
     body.classList.add('light-mode');
     toggleDesktop.textContent = '☀️';
     mobileIcon.textContent = '☀️';
     mobileText.textContent = 'Light Mode';
-} else {
+  } else {
     toggleDesktop.textContent = '🌙';
     mobileIcon.textContent = '🌙';
     mobileText.textContent = 'Dark Mode';
-}
+  }
 
-// Toggle function
-function toggleTheme() {
+  // Theme toggle function
+  function toggleTheme() {
     body.classList.toggle('light-mode');
     const isLight = body.classList.contains('light-mode');
     toggleDesktop.textContent = isLight ? '☀️' : '🌙';
     mobileIcon.textContent = isLight ? '☀️' : '🌙';
     mobileText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
-}
-
-// Desktop & Mobile event listeners
-toggleDesktop.addEventListener('click', toggleTheme);
-toggleMobile.addEventListener('click', toggleTheme);
-
-const slides = document.querySelectorAll('.bg-slide');
-let current = 0;
-let forward = true; // mirror direction
-
-function showSlide(index) {
-  slides.forEach((slide, i) => slide.classList.remove('active'));
-  slides[index].classList.add('active');
-}
-
-// initial display
-showSlide(current);
-
-setInterval(() => {
-  if(forward) {
-    current++;
-    if(current >= slides.length - 1) forward = false;
-  } else {
-    current--;
-    if(current <= 0) forward = true;
   }
+
+  toggleDesktop.addEventListener('click', toggleTheme);
+  toggleMobile.addEventListener('click', toggleTheme);
+
+  // ---------------------------
+  // Background slideshow (fade + mirror)
+  // ---------------------------
+  const slides = document.querySelectorAll('.bg-slide');
+  let current = 0;
+  let forward = true;
+
+  function showSlide(index) {
+    slides.forEach((slide) => slide.classList.remove('active'));
+    slides[index].classList.add('active');
+  }
+
+  // Initial slide
   showSlide(current);
-}, 4000); // change image every 4 seconds
-      
+
+  // Slide rotation
+  setInterval(() => {
+    if (forward) {
+      current++;
+      if (current >= slides.length - 1) forward = false;
+    } else {
+      current--;
+      if (current <= 0) forward = true;
+    }
+    showSlide(current);
+  }, 4000); // Change every 4 seconds
+});
 </script>
 
 </body>
