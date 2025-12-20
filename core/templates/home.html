@@ -150,6 +150,17 @@ html, body {
   overflow: hidden;
 }
 
+/* Typing animation cursor */
+.typing::after {
+  content: '|';
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
 /* Footer styling */
 .oauth-footer {
   margin-top: 50px;
@@ -236,25 +247,46 @@ const typingTexts = {
   "privacy": 'By using JobLink Kenya, you agree to our <a href="/privacy/" style="color:#ffcc00; font-weight:800; text-decoration:none;">Privacy Policy</a>.'
 };
 
-function typeText(elementId, text, delay=50) {
-  const el = document.getElementById(elementId);
+// Function to type HTML correctly
+function typeHTML(elementId, htmlString, speed = 30) {
+  const element = document.getElementById(elementId);
   let i = 0;
-  function typeChar() {
-    if(i < text.length){
-      el.innerHTML += text.charAt(i);
+  let isTag = false;
+  let textBuffer = '';
+
+  function type() {
+    if (i < htmlString.length) {
+      const char = htmlString[i];
+
+      if (char === '<') isTag = true;
+      if (char === '>') {
+        isTag = false;
+        textBuffer += char;
+        element.innerHTML = textBuffer;
+        i++;
+        return setTimeout(type, speed);
+      }
+
+      textBuffer += char;
+
+      if (!isTag) {
+        element.innerHTML = textBuffer;
+      }
+
       i++;
-      setTimeout(typeChar, delay);
+      setTimeout(type, speed);
     }
   }
-  typeChar();
+
+  type();
 }
 
 // Sequential typing
 function startTyping() {
-  typeText("hero-title", typingTexts["hero-title"], 60);
-  setTimeout(() => typeText("subtitle", typingTexts["subtitle"], 40), 1500);
-  setTimeout(() => typeText("purpose-box", typingTexts["purpose-box"], 20), 3500);
-  setTimeout(() => typeText("privacy", typingTexts["privacy"], 20), 9000);
+  typeHTML("hero-title", typingTexts["hero-title"], 60);
+  setTimeout(() => typeHTML("subtitle", typingTexts["subtitle"], 40), 1500);
+  setTimeout(() => typeHTML("purpose-box", typingTexts["purpose-box"], 20), 3500);
+  setTimeout(() => typeHTML("privacy", typingTexts["privacy"], 20), 9000);
 }
 
 window.onload = startTyping;
