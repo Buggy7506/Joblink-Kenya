@@ -5,20 +5,22 @@
 {% block extra_css %}
 <style>
 /* ================= Background Slideshow ================= */
-body {
+html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
   font-family: 'Segoe UI', sans-serif;
   overflow-x: hidden;
-  background: #000;
+  background: #000; /* fallback color */
 }
 
 .bg-slideshow {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: -2;
   overflow: hidden;
 }
@@ -27,8 +29,9 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
+  background-size: cover;      /* cover ensures full viewport fill */
+  background-position: center; /* center the image */
+  background-repeat: no-repeat;
   opacity: 0;
   animation: fadeZoom 60s infinite;
   animation-timing-function: ease-in-out;
@@ -58,8 +61,8 @@ body {
   position: fixed;
   top: 0;
   left:0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0,0,0,0.45);
   z-index: -1;
 }
@@ -175,16 +178,20 @@ body {
 {% block content %}
 <!-- Background slideshow -->
 <div class="bg-slideshow">
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/main-sample.png')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-3.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-2.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1765282520/samples/cup-on-a-table.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/upscale-face-1.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/dessert-on-a-plate.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/coffee.jpg')"></div>
-  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/woman-on-a-football-field.jpg')"></div>
+  {% for img in [
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/main-sample.png',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-3.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-2.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1765282520/samples/cup-on-a-table.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/upscale-face-1.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/dessert-on-a-plate.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/coffee.jpg',
+    'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/woman-on-a-football-field.jpg'
+  ] %}
+  <div class="bg-slide" style="background-image: url('{{ img }}');"></div>
+  {% endfor %}
 </div>
 <div class="overlay"></div>
 
