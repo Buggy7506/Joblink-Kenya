@@ -62,18 +62,20 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* Top links (desktop) - spread links evenly */
+/* Top links (desktop) - spread links evenly and match footer styling */
 .top-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between; /* <-- spread across width */
+  justify-content: space-between; /* spread across width */
   margin: 10px 20px;
   font-size: 14px;
 }
 
 .top-links a {
-  color: var(--text-accent);
+  margin: 0 12px; /* same as footer links */
+  color: var(--text-accent, #4da3ff);
   text-decoration: underline;
+  font-weight: 500; /* same as footer */
 }
 
 .top-links a:hover {
@@ -94,6 +96,7 @@
     font-size: 13px;
   }
 }
+
 
 /* Fade-in animation */
 .home-container {
