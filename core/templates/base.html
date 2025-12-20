@@ -24,7 +24,6 @@
    GLOBAL THEME VARIABLES
 ========================================================= */
 
-/* DARK MODE (default) */
 :root {
   --bg-main: linear-gradient(to right, #0f172a, #1e293b);
   --bg-nav: rgba(30, 41, 59, 0.8);
@@ -41,7 +40,6 @@
   --glow-accent: #00f0ff;
 }
 
-/* LIGHT MODE */
 body.light-mode {
   --bg-main: #f5f5f5;
   --bg-nav: rgba(255, 255, 255, 0.95);
@@ -62,9 +60,7 @@ body.light-mode {
    BASE ELEMENTS
 ========================================================= */
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -78,22 +74,11 @@ body {
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-a {
-  text-decoration: none;
-  color: var(--text-link);
-  transition: color 0.3s ease;
-}
+a { text-decoration: none; color: var(--text-link); transition: color 0.3s ease; }
 
-.container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
+.container { width: 90%; max-width: 1200px; margin: 0 auto; }
 
-.main {
-  flex-grow: 1;
-  padding: 1.5rem 0 2.5rem;
-}
+.main { flex-grow: 1; padding: 1.5rem 0 2.5rem; }
 
 /* =========================================================
    GLOW / EFFECTS
@@ -131,21 +116,9 @@ header {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-nav a {
-  margin: 0 0.8rem;
-  font-weight: 600;
-}
-
-/* Active link */
-.active-link {
-  color: var(--text-accent);
-  text-shadow: 0 0 10px var(--glow-accent);
-}
-
-/* Guest links */
-.guest-link {
-  color: var(--text-link);
-}
+nav a { margin: 0 0.8rem; font-weight: 600; }
+.active-link { color: var(--text-accent); text-shadow: 0 0 10px var(--glow-accent); }
+.guest-link { color: var(--text-link); }
 
 /* =========================================================
    MOBILE MENU
@@ -161,32 +134,30 @@ nav a {
   backdrop-filter: blur(10px);
 
   max-height: 0;
-  overflow-y: auto;           /* ✅ allow scrolling */
+  overflow-y: auto;
   transition: max-height 0.35s ease, padding 0.35s ease;
 
-  scrollbar-width: none;      /* Firefox */
+  scrollbar-width: none;
 }
+.mobile-menu::-webkit-scrollbar { display: none; }
 
-.mobile-menu::-webkit-scrollbar {
-  display: none;              /* Chrome / Safari */
-}
+.mobile-toggle { display: none; }
 
-.mobile-menu a:last-child {
-  margin-bottom: 0.5rem;
-}
-
-.mobile-toggle {
-  display: none;
+#darkModeToggleMobile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-link);
+  cursor: pointer;
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 768px) {
-  .desktop-nav {
-    display: none;
-  }
-
-  .mobile-toggle {
-    display: block;
-  }
+  .desktop-nav { display: none; }
+  .mobile-toggle { display: block; }
 }
 
 /* =========================================================
@@ -202,45 +173,32 @@ nav a {
   z-index: 40;
 }
 
-/* Fixed footer only on large screens */
 @media (min-width: 900px) {
-  .footer {
-    position: relative;
-    bottom: 0;
-    left: 0;
-  }
+  .footer { position: relative; bottom: 0; left: 0; }
 }
 
 /* =========================================================
    FORMS / INPUTS
 ========================================================= */
 
-input,
-select,
-textarea {
+input, select, textarea {
   background: transparent;
   color: var(--text-main);
   border: 1px solid var(--text-muted);
   font-size: 16px;
 }
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted);
-}
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 /* =========================================================
    CARD UTILITIES
 ========================================================= */
 
-.card,
-.form-card,
-.glass-card {
+.card, .form-card, .glass-card {
   background: var(--bg-card);
   color: var(--text-main);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
 }
 
 /* =========================================================
@@ -261,18 +219,9 @@ textarea::placeholder {
 ========================================================= */
 
 @media (max-width: 768px) {
-  header {
-    padding: 0.5rem 0.8rem;
-  }
-
-  nav a {
-    margin: 0 0.5rem;
-  }
-
-  .footer {
-    font-size: 0.8rem;
-    padding: 0.5rem 0;
-  }
+  header { padding: 0.5rem 0.8rem; }
+  nav a { margin: 0 0.5rem; }
+  .footer { font-size: 0.8rem; padding: 0.5rem 0; }
 }
 </style>
 
@@ -281,84 +230,32 @@ textarea::placeholder {
 
 <header class="nav-bg">
   <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-
-    <!-- LOGO + TEXT -->
+    <!-- LOGO -->
     <a href="{% url 'home' %}" style="display:flex; align-items:center; gap:10px;">
-        <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png"
-             alt="JobLink Logo"
-             style="height:40px; width:auto; border-radius:6px;">
-        <h1 class="glow" style="font-size:2rem; font-weight:bold; margin:0;">
-            JobLink <span style="color:#22d3ee;">Kenya</span>
-        </h1>
+      <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png" alt="JobLink Logo" style="height:40px; width:auto; border-radius:6px;">
+      <h1 class="glow" style="font-size:2rem; font-weight:bold; margin:0;">JobLink <span style="color:#22d3ee;">Kenya</span></h1>
     </a>
 
     <!-- Desktop Navigation -->
     <div style="display:flex; align-items:center;">
       <nav class="desktop-nav">
-
         {% if user.is_authenticated and not pending_verification %}
-
-
-            {% if user.is_superuser or user.role == 'admin' %}
-                <a href="{% url 'admin_dashboard' %}"
-                   class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}">
-                   Dashboard
-                </a>
-
-                <a href="{% url 'admin_profile' %}"
-                   class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-link{% endif %}">
-                   Profile
-                </a>
-
-            {% elif user.role == 'employer' %}
-                <a href="{% url 'dashboard' %}"
-                   class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
-                   Dashboard
-                </a>
-
-                <a href="{% url 'employer_profile' %}"
-                   class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-link{% endif %}">
-                   Profile
-                </a>
-
-            {% else %}
-                <a href="{% url 'dashboard' %}"
-                   class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
-                   Dashboard
-                </a>
-
-                <a href="{% url 'profile' %}"
-                   class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-link{% endif %}">
-                   Profile
-                </a>
-            {% endif %}
-
-            <a href="{% url 'change_username_password' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-link{% endif %}">
-               Account Settings
-            </a>
-
-            <a href="{% url 'logout' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'logout' %}active-link{% endif %}"
-               style="color:#f87171;">
-               Logout
-            </a>
-
+          {% if user.is_superuser or user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
+          {% elif user.role == 'employer' %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+          {% else %}
+            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+          {% endif %}
+          <a href="{% url 'change_username_password' %}" class="hover-glow">Account Settings</a>
+          <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
         {% else %}
-            <a href="{% url 'home' %}"
-               class="hover-glow guest-link {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
-               Home
-            </a>
-
-            <a href="{% url 'login' %}"
-               class="hover-glow guest-link {% if request.resolver_match.url_name == 'login' %}active-link{% endif %}">
-               Login
-            </a>
-
-            <a href="{% url 'signup' %}"
-               class="hover-glow guest-link {% if request.resolver_match.url_name == 'signup' %}active-link{% endif %}">
-               Sign Up
-            </a>
+          <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
+          <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
+          <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
         {% endif %}
       </nav>
 
@@ -366,83 +263,40 @@ textarea::placeholder {
       <button id="darkModeToggleDesktop">🌙</button>
     </div>
 
-    <!-- Mobile toggle button -->
+    <!-- Mobile toggle -->
     <div class="mobile-toggle">
       <button id="menuToggle" style="font-size:1.5rem; color:white;"><i class="fas fa-bars"></i></button>
     </div>
   </div>
 
-  <!-- Mobile Navigation -->
+  <!-- Mobile Menu -->
   <div id="mobileMenu" class="mobile-menu">
-
-    
-  {% if user.is_authenticated and not pending_verification %}
-
-
-        {% if user.is_superuser or user.role == 'admin' %}
-            <a href="{% url 'admin_dashboard' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'admin_dashboard' %}active-link{% endif %}">
-               Dashboard
-            </a>
-
-            <a href="{% url 'admin_profile' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'admin_profile' %}active-link{% endif %}">
-               Profile
-            </a>
-
-        {% elif user.role == 'employer' %}
-            <a href="{% url 'dashboard' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
-               Dashboard
-            </a>
-
-            <a href="{% url 'employer_profile' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'employer_profile' %}active-link{% endif %}">
-               Profile
-            </a>
-
-        {% else %}
-            <a href="{% url 'dashboard' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'dashboard' %}active-link{% endif %}">
-               Dashboard
-            </a>
-
-            <a href="{% url 'profile' %}"
-               class="hover-glow {% if request.resolver_match.url_name == 'profile' %}active-link{% endif %}">
-               Profile
-            </a>
-        {% endif %}
-
-        <a href="{% url 'change_username_password' %}"
-           class="hover-glow {% if request.resolver_match.url_name == 'change_username_password' %}active-link{% endif %}">
-           Account Settings
-        </a>
-
-        <a href="{% url 'logout' %}"
-           class="hover-glow {% if request.resolver_match.url_name == 'logout' %}active-link{% endif %}"
-           style="color:#f87171;">
-           Logout
-        </a>
-
+    {% if user.is_authenticated and not pending_verification %}
+      {% if user.is_superuser or user.role == 'admin' %}
+        <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
+        <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
+      {% elif user.role == 'employer' %}
+        <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+        <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+        <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
+      {% endif %}
+      <a href="{% url 'change_username_password' %}" class="hover-glow">Account Settings</a>
+      <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
-        <a href="{% url 'home' %}"
-           class="hover-glow guest-link {% if request.resolver_match.url_name == 'home' %}active-link{% endif %}">
-           Home
-        </a>
-
-        <a href="{% url 'login' %}"
-           class="hover-glow guest-link {% if request.resolver_match.url_name == 'login' %}active-link{% endif %}">
-           Login
-        </a>
-
-        <a href="{% url 'signup' %}"
-           class="hover-glow guest-link {% if request.resolver_match.url_name == 'signup' %}active-link{% endif %}">
-           Sign Up
-        </a>
+      <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
+      <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
+      <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
     {% endif %}
+
+    <!-- Mobile Theme Toggle -->
+    <button id="darkModeToggleMobile">
+      <span id="mobileThemeIcon">🌙</span>
+      <span id="mobileThemeText">Dark Mode</span>
+    </button>
   </div>
 </header>
-
 
 <main class="main container" data-aos="fade-up">
   {% block content %}{% endblock %}
@@ -455,42 +309,51 @@ textarea::placeholder {
 <script>
 AOS.init();
 
-// Mobile menu toggle with smooth slide
+// Mobile menu toggle
 const menu = document.getElementById('mobileMenu');
-
 document.getElementById('menuToggle').addEventListener('click', () => {
-    if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
+    if(menu.style.maxHeight && menu.style.maxHeight !== '0px'){
         menu.style.maxHeight = '0';
         menu.style.padding = '0 1rem';
         setTimeout(() => menu.style.display = 'none', 350);
     } else {
         menu.style.display = 'flex';
-        setTimeout(() => {
-            menu.style.maxHeight = '70vh';
-            menu.style.padding = '1rem';
-        }, 10);
+        setTimeout(() => { menu.style.maxHeight = '70vh'; menu.style.padding = '1rem'; }, 10);
     }
 });
 
-
-// Dark/Light mode toggle
+// Theme toggles
 const toggleDesktop = document.getElementById('darkModeToggleDesktop');
+const toggleMobile = document.getElementById('darkModeToggleMobile');
+const mobileIcon = document.getElementById('mobileThemeIcon');
+const mobileText = document.getElementById('mobileThemeText');
 const body = document.body;
 
-// Load saved theme
+// Load theme
 if(localStorage.getItem('theme') === 'light'){
     body.classList.add('light-mode');
     toggleDesktop.textContent = '☀️';
+    mobileIcon.textContent = '☀️';
+    mobileText.textContent = 'Light Mode';
 } else {
     toggleDesktop.textContent = '🌙';
+    mobileIcon.textContent = '🌙';
+    mobileText.textContent = 'Dark Mode';
 }
 
-toggleDesktop.addEventListener('click', () => {
+// Toggle function
+function toggleTheme() {
     body.classList.toggle('light-mode');
     const isLight = body.classList.contains('light-mode');
     toggleDesktop.textContent = isLight ? '☀️' : '🌙';
+    mobileIcon.textContent = isLight ? '☀️' : '🌙';
+    mobileText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
-});
+}
+
+// Desktop & Mobile event listeners
+toggleDesktop.addEventListener('click', toggleTheme);
+toggleMobile.addEventListener('click', toggleTheme);
 </script>
 
 </body>
