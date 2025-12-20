@@ -394,22 +394,24 @@
 
 <script>
 (function(){
-  // ------------------ SIDEBAR ------------------
   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("sidebar-toggle");
   const overlay = document.getElementById("sidebar-overlay");
 
   if(sidebar && toggleBtn && overlay){
+    // Toggle sidebar
     toggleBtn.addEventListener("click", ()=> {
       sidebar.classList.toggle("show");
       overlay.classList.toggle("show");
     });
 
+    // Close sidebar on overlay click
     overlay.addEventListener("click", ()=> {
       sidebar.classList.remove("show");
       overlay.classList.remove("show");
     });
 
+    // Auto close when resizing to desktop
     window.addEventListener("resize", ()=>{
       if(window.innerWidth > 900){
         sidebar.classList.remove("show");
@@ -418,13 +420,14 @@
     });
   }
 
-  // ------------------ CHAT VARIABLES ------------------
+  // --- Your chat websocket, typing, context menu etc. can stay here ---
   const username = "{{ request.user.username|escapejs }}";
   const chatBox = document.getElementById("chat-box");
   const input = document.getElementById("msg-input");
   const sendBtn = document.getElementById("send-btn");
   const menu = document.getElementById("message-menu");
 
+  // Popup chat elements
   const chatButton = document.getElementById("chat-popup-button");
   const chatPopup  = document.getElementById("chat-popup");
   const chatClose  = document.getElementById("close-chat");
@@ -432,29 +435,7 @@
   const popupSend  = document.getElementById("chat-popup-send");
   const popupBody  = document.getElementById("chat-popup-body");
 
-  // Reply preview container
-  let replyPreview = document.createElement("div");
-  replyPreview.className = "reply-preview";
-  replyPreview.style.display = "none";
-  replyPreview.style.padding = "5px 10px";
-  replyPreview.style.background = "#f1f1f1";
-  replyPreview.style.borderLeft = "4px solid #0b93f6";
-  replyPreview.style.marginBottom = "5px";
-  replyPreview.style.fontSize = "0.9em";
-  replyPreview.innerHTML = `<strong>Replying to:</strong> <span class="reply-text"></span>
-                            <span class="reply-cancel" style="float:right;cursor:pointer;color:red;">&times;</span>`;
-  input.parentNode.insertBefore(replyPreview, input);
-
-  const replyTextSpan = replyPreview.querySelector(".reply-text");
-  const replyCancelBtn = replyPreview.querySelector(".reply-cancel");
-  let replyToMsgId = null;
-
-  replyCancelBtn.addEventListener("click", ()=>{
-    replyToMsgId = null;
-    replyPreview.style.display = "none";
-  });
-
-  // ------------------ WEBSOCKET ------------------
+  // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
   if(!appId) return;
@@ -463,6 +444,7 @@
   function scrollBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
   scrollBottom(chatBox);
 
+  // Typing indicator
   let typingIndicator = null;
   function showTyping(){
     if(!typingIndicator && chatBox){
@@ -475,7 +457,7 @@
   }
   function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
-  // ------------------ SEND MESSAGE ------------------
+  // Send message
   function sendMessage(msgInput=input, targetBody=chatBox){
     if(!msgInput) return;
     const text = msgInput.value.trim();
@@ -483,22 +465,13 @@
 
     function reallySend(){
       if(socket.readyState !== 1) return;
-      let payload;
-      if(msgInput.dataset.editId){
-        payload = {action:"edit", id: msgInput.dataset.editId, message: text};
-      } else if(replyToMsgId){
-        payload = {action:"message", message: text, reply_to: replyToMsgId};
-      } else {
-        payload = {action:"message", message: text};
-      }
+      const payload = msgInput.dataset.editId
+        ? {action:"edit", id: msgInput.dataset.editId, message: text}
+        : {action:"message", message: text};
       socket.send(JSON.stringify(payload));
-
+      if(msgInput.dataset.editId) delete msgInput.dataset.editId;
       msgInput.value = "";
       if(sendBtn){ sendBtn.classList.add("send-effect"); setTimeout(()=>sendBtn.classList.remove("send-effect"),500); }
-
-      // Clear reply
-      replyToMsgId = null;
-      replyPreview.style.display = "none";
 
       // Append bubble
       if(targetBody){
@@ -506,7 +479,6 @@
         bubble.className = `bubble me pop`;
         bubble.dataset.text = text;
         bubble.innerHTML = `<div><strong>${username}</strong></div>
-                            ${payload.reply_to?'<div class="replying-to">Replying</div>':''}
                             <div>${text}</div>
                             <div class="meta">just now</div>`;
         targetBody.appendChild(bubble);
@@ -521,12 +493,13 @@
     }
   }
 
-  // ------------------ EVENT LISTENERS ------------------
+  // Event listeners
   if(sendBtn) sendBtn.addEventListener("click", ()=>sendMessage(input, chatBox));
   if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(input, chatBox); } });
   if(popupSend && popupInput) popupSend.addEventListener("click", ()=>sendMessage(popupInput, popupBody));
   if(popupInput) popupInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); popupSend.click(); } });
 
+  // Popup toggle
   if(chatPopup) chatPopup.style.display="none";
   if(chatButton && chatPopup) chatButton.addEventListener("click", ()=>{
     chatPopup.style.display = (chatPopup.style.display==="flex")?"none":"flex";
@@ -534,7 +507,7 @@
   });
   if(chatClose && chatPopup) chatClose.addEventListener("click", ()=>chatPopup.style.display="none");
 
-  // ------------------ SOCKET MESSAGES ------------------
+  // Socket messages
   socket.onmessage = function(e){
     const data = JSON.parse(e.data);
     if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
@@ -547,156 +520,201 @@
           bubble.dataset.id=data.id;
           bubble.dataset.text=data.message;
           bubble.innerHTML=`<div><strong>${data.sender}</strong></div>
-                            ${data.reply_to?'<div class="replying-to">Replying</div>':''}
                             <div>${data.message}</div>
                             <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
           c.appendChild(bubble);
           scrollBottom(c);
         } else if(data.type==="edit"){
           const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
-          if(msg){ 
-            msg.dataset.text=data.message; 
-            msg.querySelector("div:nth-child(3)").innerText=data.message;
-            const meta=msg.querySelector(".meta"); 
-            if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
+          if(msg){ msg.dataset.text=data.message; msg.querySelector("div:nth-child(2)").innerText=data.message;
+            const meta=msg.querySelector(".meta"); if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
           }
         } else if(data.type==="delete"){
           const msg = c.querySelector(`.bubble[data-id="${data.id}"]`);
           if(msg) data.mode==="everyone"?msg.remove():msg.style.display="none";
         }
       });
-    } else if(data.type==="delete_applicant" && data.app_id){
-      moveToDeleted(data.app_id);
     }
   };
 
-  // ------------------ CONTEXT MENU ------------------
-  let selectedBubble = null;
-
+  // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
 
-    [chatBox,popupBody].forEach(c=>c?.querySelectorAll(".bubble").forEach(b=>b.classList.remove("selected")));
-    msgElem.classList.add("selected");
-    selectedBubble = msgElem;
-
     const rect = msgElem.getBoundingClientRect();
-    const menuHeight = menu.offsetHeight || 180;
-    const menuWidth = menu.offsetWidth || 160;
+    const container = msgElem.offsetParent || document.body;
+    const containerRect = container.getBoundingClientRect();
 
-    let x = rect.left + window.scrollX;
-    let y = rect.bottom + window.scrollY;
+    const menuHeight = menu.offsetHeight || 150;
+    const menuWidth  = menu.offsetWidth  || 160;
 
-    if(y + menuHeight > window.innerHeight + window.scrollY) y = rect.top + window.scrollY - menuHeight - 5;
-    if(x + menuWidth > window.innerWidth + window.scrollX) x = rect.right + window.scrollX - menuWidth;
+    // Position relative to container
+    let x = rect.left - containerRect.left + container.scrollLeft;
+    let y = rect.bottom - containerRect.top + container.scrollTop;
+
+    // Adjust vertical if overflow
+    if(y + menuHeight > container.scrollHeight){
+        y = rect.top - containerRect.top + container.scrollTop - menuHeight - 5;
+    } else {
+        y += 5; // small gap below bubble
+    }
+
+    // Adjust horizontal if overflow
+    if(x + menuWidth > container.scrollWidth){
+        x = rect.right - containerRect.left + container.scrollLeft - menuWidth;
+    }
 
     menu.style.left = `${x}px`;
     menu.style.top  = `${y}px`;
     menu.style.display = "block";
-    void menu.offsetWidth;
+
+    void menu.offsetWidth; // trigger animation
     menu.classList.add("show");
-  }
 
-  function hideMenu(){
-    if(menu){
-      menu.classList.remove("show");
-      selectedBubble?.classList.remove("selected");
-      selectedBubble = null;
-      setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200);
-    }
-  }
-
-  function handleAction(action){
-    if(!selectedBubble) return;
-    const msgId = selectedBubble.dataset.id;
-    const text  = selectedBubble.dataset.text;
-
-    switch(action){
-      case "reply":
-        replyToMsgId = msgId;
-        replyTextSpan.innerText = text;
-        replyPreview.style.display = "block";
-        input.focus();
-        break;
-      case "copy":
-        navigator.clipboard.writeText(text); break;
-      case "edit":
-        input.value = text; input.dataset.editId = msgId; input.focus(); break;
-      case "delete-me":
-        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
-        selectedBubble.style.display="none"; break;
-      case "delete-everyone":
-        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"})); break;
-      case "forward":
-        const targetAppId = prompt("Enter target chat/app ID to forward this message:");
-        if(targetAppId){ 
-          socket.send(JSON.stringify({action:"forward", message: text, target_app: targetAppId})); 
-          alert("Message forwarded!"); 
-        }
-        break;
-      case "pin":
-        selectedBubble.classList.add("pinned");
-        [chatBox,popupBody].forEach(c=>{ if(c?.contains(selectedBubble)) c.prepend(selectedBubble); });
-        alert("Pinned!"); break;
-    }
-    hideMenu();
-  }
-
-  menu.querySelectorAll("li").forEach(item=>item.addEventListener("click", ()=>handleAction(item.dataset.action)));
-
-  [chatBox,popupBody].forEach(c=>{
-    if(!c) return;
-    c.addEventListener("contextmenu", e=>{ 
-      e.preventDefault(); 
-      const t=e.target.closest(".bubble"); 
-      if(t) showMenu(t); 
+    menu.querySelectorAll("li").forEach(item => {
+        item.onclick = () => handleAction(item.dataset.action, msgElem);
     });
+}
 
-    // Long-press support
-    let timer=null, target=null, pointerId=null;
-    const LONG_MS=600, MOVE_TOL=10;
-    const cancel = ()=>{ if(timer){ clearTimeout(timer); timer=null;} target=null; pointerId=null; };
-
-    c.addEventListener("pointerdown", e=>{
-      const t = e.target.closest(".bubble");
-      if(!t) return;
-      target = t; pointerId = e.pointerId;
-      const startX = e.clientX, startY = e.clientY;
-      timer = setTimeout(()=>{ if(target) showMenu(target); }, LONG_MS);
-
-      const moveHandler = ev=>{
-        if(pointerId!==ev.pointerId) return;
-        if(Math.abs(ev.clientX-startX)>MOVE_TOL || Math.abs(ev.clientY-startY)>MOVE_TOL) cancel();
-      };
-      c.addEventListener("pointermove", moveHandler, {passive:true});
-      window.addEventListener("pointerup", cancel, {once:true});
-      window.addEventListener("blur", cancel, {once:true});
-    });
-  });
-
-  document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
-
-  // ------------------ DELETED APPLICANTS ------------------
+    // ---- ADD THIS FUNCTION BELOW ----
+  // Function to move applicant to deleted section dynamically
   function moveToDeleted(appId) {
     const appLink = document.querySelector(`.sidebar .applicant[data-app-id="${appId}"]`);
     if(!appLink) return;
+
+    // Remove selection & add deleted class
     appLink.classList.remove("selected");
     appLink.classList.add("deleted");
+
+    // Move to deleted section
     const deletedContainer = document.getElementById("deleted-applicants");
     if(deletedContainer) deletedContainer.appendChild(appLink);
-    appLink.addEventListener('click', e=>{ e.preventDefault(); alert("This application has been deleted and cannot be accessed."); });
-    appLink.addEventListener('mouseenter', ()=>appLink.style.backgroundColor="rgba(255,0,0,0.05)");
-    appLink.addEventListener('mouseleave', ()=>appLink.style.backgroundColor="transparent");
+
+    // Disable click and add hover effect
+    appLink.addEventListener('click', e => {
+        e.preventDefault();
+        alert("This application has been deleted and cannot be accessed.");
+    });
+
+    appLink.addEventListener('mouseenter', () => appLink.style.backgroundColor="rgba(255,0,0,0.05)");
+    appLink.addEventListener('mouseleave', () => appLink.style.backgroundColor="transparent");
   }
 
-  document.addEventListener("DOMContentLoaded", function(){
-    const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
-    deletedApps.forEach(app=>{
-      app.addEventListener('click', e=>{ e.preventDefault(); alert("This application has been deleted and cannot be accessed."); });
-      app.addEventListener('mouseenter', ()=>app.style.backgroundColor="rgba(255,0,0,0.05)");
-      app.addEventListener('mouseleave', ()=>app.style.backgroundColor="transparent");
-    });
+  // Example: listen for WebSocket delete events for applications
+  socket.addEventListener('message', function(e){
+    const data = JSON.parse(e.data);
+    if(data.type === "delete_applicant" && data.app_id){
+        moveToDeleted(data.app_id);
+    }
   });
+  
+  function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
+
+  function handleAction(action, msgElem){
+    if(!socket || !msgElem) return;
+    const msgId = msgElem.dataset.id;
+    const text  = msgElem.dataset.text;
+
+    if(action === "copy"){
+        navigator.clipboard.writeText(text);
+    }
+    else if(action === "reply"){
+        input.value = "Replying to: " + text + "\n";
+        input.focus();
+    }
+    else if(action === "edit"){
+        input.value = text;
+        input.dataset.editId = msgId;
+        input.focus();
+    }
+    else if(action === "delete-me"){
+        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
+        msgElem.style.display = "none";
+    }
+    else if(action === "delete-everyone"){
+        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
+    }
+    else if(action === "forward"){
+        // --- Forward implementation ---
+        const targetAppId = prompt("Enter the target chat/app ID to forward this message:");
+        if(targetAppId){
+            socket.send(JSON.stringify({
+                action: "forward",
+                message: text,
+                target_app: targetAppId
+            }));
+            alert("Message forwarded!");
+        }
+    }
+    else if(action==="pin") {
+    if(!msgElem) return;
+    msgElem.classList.add("pinned"); // optional: add special styling
+    // Move message to top
+    [chatBox, popupBody].forEach(c=>{
+        if(c && c.contains(msgElem)) {
+            c.prepend(msgElem);
+        }
+    });
+    alert("Pinned: " + text);
+}
+
+    hideMenu();
+}
+
+  // Right-click to open menu
+  [chatBox, popupBody].forEach(c=>{
+    if(!c) return;
+    c.addEventListener("contextmenu", e=>{ e.preventDefault(); const t=e.target.closest(".bubble"); if(t) showMenu(t); });
+  });
+
+  // Long-press for touch
+  function addLongPress(container){
+    if(!container) return;
+    container.style.touchAction="manipulation"; // disable default long-press
+
+    let timer=null, target=null, startX=0, startY=0, pointerId=null;
+    const LONG_MS=600, MOVE_TOL=10;
+    const cancel = ()=>{ if(timer){ clearTimeout(timer); timer=null; } target=null; pointerId=null; };
+
+    container.addEventListener("pointerdown", e=>{
+      const t=e.target.closest(".bubble");
+      if(!t) return;
+      target=t; pointerId=e.pointerId; startX=e.clientX; startY=e.clientY;
+      if(timer) clearTimeout(timer);
+      timer=setTimeout(()=>{ if(target) showMenu(target); }, LONG_MS);
+    }, {passive:true});
+
+    container.addEventListener("pointermove", e=>{
+      if(pointerId!==e.pointerId || !timer) return;
+      if(Math.abs(e.clientX-startX)>MOVE_TOL || Math.abs(e.clientY-startY)>MOVE_TOL) cancel();
+    }, {passive:true});
+
+    container.addEventListener("pointerup", cancel, {passive:true});
+    container.addEventListener("pointercancel", cancel, {passive:true});
+    container.addEventListener("mouseleave", cancel, {passive:true});
+    window.addEventListener("blur", cancel);
+  }
+
+  addLongPress(chatBox);
+  addLongPress(popupBody);
+
+  // Hide menu when clicking outside
+  document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
+
+  // Disable clicks and hover effects for deleted applicants
+document.addEventListener("DOMContentLoaded", function(){
+    const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
+
+    deletedApps.forEach(app => {
+        app.addEventListener('click', e => {
+            e.preventDefault();
+            alert("This application has been deleted and cannot be accessed.");
+        });
+
+        app.addEventListener('mouseenter', () => app.style.backgroundColor="rgba(255,0,0,0.05)");
+        app.addEventListener('mouseleave', () => app.style.backgroundColor="transparent");
+    });
+});
 
 })();
 </script>
