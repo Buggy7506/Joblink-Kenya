@@ -4,12 +4,51 @@
 
 {% block extra_css %}
 <style>
+/* ================= Background Slideshow ================= */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
+
+.bg-slideshow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  animation: slideshow 60s infinite;
+}
+
+@keyframes slideshow {
+  0%   { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg'); }
+  10%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg'); }
+  20%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/main-sample.png'); }
+  30%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-3.jpg'); }
+  40%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-2.jpg'); }
+  50%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1765282520/samples/cup-on-a-table.jpg'); }
+  60%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/upscale-face-1.jpg'); }
+  70%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/dessert-on-a-plate.jpg'); }
+  80%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/coffee.jpg'); }
+  90%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/woman-on-a-football-field.jpg'); }
+  100% { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg'); }
+}
+
+/* ================= Home Container ================= */
 .home-container {
+  position: relative;
   text-align: center;
   margin-top: 40px;
   padding: 0 20px;
   color: var(--text-main);
   transition: color 0.4s ease;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Hero text */
@@ -17,30 +56,16 @@
   font-size: 3rem;
   font-weight: bold;
   color: var(--text-accent);
-  text-shadow:
-    0 0 10px var(--glow-accent),
-    0 0 20px var(--glow-accent),
-    0 0 30px var(--glow-accent);
+  text-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--glow-accent), 0 0 30px var(--glow-accent);
+  white-space: pre-wrap;
 }
 
-.highlight {
-  color: var(--text-accent);
-  text-shadow: 0 0 5px var(--glow-accent), 0 0 10px var(--glow-accent);
-}
-
-.subtitle {
-  margin-top: 15px;
+/* Subtitle and other texts */
+.subtitle, .purpose-box, .visible-privacy {
   font-size: 18px;
   color: var(--text-muted);
-}
-
-/* Purpose section */
-.purpose-box {
-  max-width: 900px;
-  margin: 35px auto 0;
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--text-main);
+  margin-top: 15px;
+  white-space: pre-wrap;
 }
 
 /* Browse button */
@@ -62,8 +87,8 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* Top links - match footer styling and spread evenly */
-.top-links {
+/* Top links and footer styling */
+.top-links, .oauth-footer {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -71,27 +96,25 @@
   font-size: 14px;
 }
 
-.top-links a {
+.top-links a, .oauth-footer a {
   margin: 0 12px;
   color: var(--text-accent, #4da3ff);
   text-decoration: underline;
   font-weight: 500;
 }
 
-.top-links a:hover {
+.top-links a:hover, .oauth-footer a:hover {
   text-decoration: none;
   text-shadow: 0 0 5px var(--glow-accent);
 }
 
-/* 📱 Mobile alignment fix */
 @media (max-width: 600px) {
-  .top-links {
+  .top-links, .oauth-footer {
     justify-content: center;
     text-align: center;
-    margin: 15px 10px;
   }
 
-  .top-links a {
+  .top-links a, .oauth-footer a {
     padding: 6px 10px;
     font-size: 13px;
   }
@@ -111,46 +134,21 @@
   }
 }
 
-/* Footer for Google reviewer */
-.oauth-footer {
-  margin-top: 100px;
-  padding: 25px 10px;
-  text-align: center;
-  font-size: 14px;
-  border-top: 1px solid rgba(255,255,255,0.15);
-}
-
-.oauth-footer a {
-  margin: 0 12px;
-  color: var(--text-accent, #4da3ff);
-  text-decoration: underline;
-  font-weight: 500;
-}
-
-.oauth-footer a:hover {
-  text-decoration: none;
-}
-
-/* Visible privacy policy for Google reviewers */
-.visible-privacy {
-  margin-top: 25px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.visible-privacy a {
-  color: var(--text-accent, #4da3ff);
-  text-decoration: underline;
-}
-
-.visible-privacy a:hover {
-  text-decoration: none;
+/* Typing animation */
+.typing {
+  display: inline-block;
+  border-right: 2px solid var(--text-accent);
+  white-space: pre-wrap;
+  overflow: hidden;
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- ✅ Top links -->
+<!-- Background slideshow -->
+<div class="bg-slideshow"></div>
+
+<!-- Top links -->
 <div class="top-links">
   <a href="/privacy/">Privacy Policy</a>
   <a href="/terms/">Terms of Service</a>
@@ -159,40 +157,14 @@
 </div>
 
 <div class="home-container">
-  <h1 class="glow-title">
-    Welcome to <span class="highlight">JobLink Kenya</span>
-  </h1>
-
-  <p class="subtitle">
-    Connecting job seekers with trusted employers across Kenya.
-  </p>
-
-  <!-- ✅ Google OAuth verification section -->
-  <div class="purpose-box">
-    <p>
-      <strong>JobLink Kenya</strong> is an online employment platform designed to help
-      job seekers discover career opportunities and connect with verified employers.
-      Users can create profiles, apply for jobs, manage applications, and communicate
-      securely within the platform.
-    </p>
-
-    <p>
-      To provide a fast and secure experience, JobLink Kenya allows users to sign in
-      using Google. Google Sign-In helps verify user identity and prevents unauthorized
-      access while eliminating the need to create a separate password.
-    </p>
-  </div>
-
+  <h1 id="hero-title" class="glow-title typing"></h1>
+  <p id="subtitle" class="subtitle typing"></p>
+  <div id="purpose-box" class="purpose-box typing"></div>
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
-
-  <!-- ✅ Visible privacy policy link -->
-  <p class="visible-privacy">
-    By using JobLink Kenya, you agree to our
-    <a href="/privacy/">Privacy Policy</a>.
-  </p>
+  <p id="privacy" class="visible-privacy typing"></p>
 </div>
 
-<!-- ✅ Footer for Google review -->
+<!-- Footer -->
 <footer class="oauth-footer">
   <a href="/privacy/">Privacy Policy</a>
   <a href="/terms/">Terms of Service</a>
@@ -200,4 +172,36 @@
   <a href="/learn-more/">Learn More</a>
 </footer>
 
+<script>
+// Typing animation
+const typingTexts = {
+  "hero-title": "Welcome to JobLink Kenya",
+  "subtitle": "Connecting job seekers with trusted employers across Kenya.",
+  "purpose-box": "JobLink Kenya is an online employment platform designed to help job seekers discover career opportunities and connect with verified employers. Users can create profiles, apply for jobs, manage applications, and communicate securely within the platform.\n\nTo provide a fast and secure experience, JobLink Kenya allows users to sign in using Google. Google Sign-In helps verify user identity and prevents unauthorized access while eliminating the need to create a separate password.",
+  "privacy": "By using JobLink Kenya, you agree to our Privacy Policy."
+};
+
+function typeText(elementId, text, delay=50) {
+  const el = document.getElementById(elementId);
+  let i = 0;
+  function typeChar() {
+    if(i < text.length){
+      el.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(typeChar, delay);
+    }
+  }
+  typeChar();
+}
+
+// Sequential typing
+function startTyping() {
+  typeText("hero-title", typingTexts["hero-title"], 60);
+  setTimeout(() => typeText("subtitle", typingTexts["subtitle"], 40), 1500);
+  setTimeout(() => typeText("purpose-box", typingTexts["purpose-box"], 20), 3500);
+  setTimeout(() => typeText("privacy", typingTexts["privacy"], 20), 9000);
+}
+
+window.onload = startTyping;
+</script>
 {% endblock %}
