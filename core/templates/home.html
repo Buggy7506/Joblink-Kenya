@@ -10,6 +10,7 @@ body {
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
   overflow-x: hidden;
+  background: #000;
 }
 
 .bg-slideshow {
@@ -18,80 +19,113 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
-  background-size: cover;
-  background-position: center;
-  animation: slideshow 60s infinite;
+  z-index: -2;
+  overflow: hidden;
 }
 
-@keyframes slideshow {
-  0%   { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg'); }
-  10%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg'); }
-  20%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/main-sample.png'); }
-  30%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-3.jpg'); }
-  40%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-2.jpg'); }
-  50%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1765282520/samples/cup-on-a-table.jpg'); }
-  60%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/upscale-face-1.jpg'); }
-  70%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/dessert-on-a-plate.jpg'); }
-  80%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/coffee.jpg'); }
-  90%  { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/woman-on-a-football-field.jpg'); }
-  100% { background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg'); }
+.bg-slide {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  animation: fadeZoom 60s infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.bg-slide:nth-child(1) { animation-delay: 0s; }
+.bg-slide:nth-child(2) { animation-delay: 6s; }
+.bg-slide:nth-child(3) { animation-delay: 12s; }
+.bg-slide:nth-child(4) { animation-delay: 18s; }
+.bg-slide:nth-child(5) { animation-delay: 24s; }
+.bg-slide:nth-child(6) { animation-delay: 30s; }
+.bg-slide:nth-child(7) { animation-delay: 36s; }
+.bg-slide:nth-child(8) { animation-delay: 42s; }
+.bg-slide:nth-child(9) { animation-delay: 48s; }
+.bg-slide:nth-child(10){ animation-delay: 54s; }
+
+@keyframes fadeZoom {
+  0% { opacity: 0; transform: scale(1); }
+  5% { opacity: 1; transform: scale(1.05); }
+  20% { opacity: 1; transform: scale(1.1); }
+  25% { opacity: 0; transform: scale(1.15); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* Dark overlay for readability */
+.overlay {
+  position: fixed;
+  top: 0;
+  left:0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  z-index: -1;
 }
 
 /* ================= Home Container ================= */
 .home-container {
   position: relative;
-  text-align: center;
-  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   padding: 0 20px;
-  color: var(--text-main);
-  transition: color 0.4s ease;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+  color: #fff;
+  text-align: center;
+  z-index: 1;
 }
 
 /* Hero text */
 .glow-title {
-  font-size: 3rem;
-  font-weight: bold;
-  color: var(--text-accent);
-  text-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--glow-accent), 0 0 30px var(--glow-accent);
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #00ffff;
+  text-shadow:
+    0 0 10px #00ffff,
+    0 0 20px #00ffff,
+    0 0 30px #00ffff,
+    0 0 40px #0ff,
+    0 0 50px #0ff;
   white-space: pre-wrap;
 }
 
-/* Subtitle and other texts */
+/* Subtitle and purpose */
 .subtitle, .purpose-box, .visible-privacy {
-  font-size: 18px;
-  color: var(--text-muted);
-  margin-top: 15px;
-  white-space: pre-wrap;
+  font-size: 1.25rem;
+  line-height: 1.8;
+  max-width: 850px;
+  margin-top: 20px;
+  color: #e0f7fa;
+  text-shadow: 0 0 10px rgba(0,255,255,0.4);
 }
 
 /* Browse button */
 .browse-btn {
-  margin-top: 35px;
-  display: inline-block;
-  background: var(--text-accent);
-  color: var(--text-main);
-  padding: 14px 28px;
-  font-size: 16px;
+  margin-top: 40px;
+  padding: 16px 36px;
+  font-size: 18px;
+  font-weight: bold;
   text-decoration: none;
-  border-radius: 30px;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0 4px 10px var(--glow-accent);
-  opacity: 0; /* initially hidden for bubble animation */
+  color: #000;
+  background: linear-gradient(135deg, #00ffff, #007fff);
+  border-radius: 50px;
+  box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff, 0 0 75px #007fff inset;
+  opacity: 0;
   transform: scale(0);
-  animation: bubbleIn 0.8s forwards;
-  animation-delay: 10s; /* starts after text typing finishes */
+  animation: bubbleIn 1s forwards;
+  animation-delay: 12s; /* after typing animation */
+  transition: all 0.3s ease-in-out;
 }
 
 .browse-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px var(--glow-accent);
+  transform: scale(1.1);
+  box-shadow: 0 0 35px #00ffff, 0 0 60px #00ffff, 0 0 90px #007fff inset;
 }
 
-/* Bubble-in animation for button */
+/* Bubble-in animation */
 @keyframes bubbleIn {
   to {
     opacity: 1;
@@ -99,75 +133,62 @@ body {
   }
 }
 
-/* Top links and footer styling */
-.top-links, .oauth-footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin: 10px 20px;
-  font-size: 14px;
-}
-
-.top-links a, .oauth-footer a {
-  margin: 0 12px;
-  color: var(--text-accent, #4da3ff);
-  text-decoration: underline;
-  font-weight: 500;
-}
-
-.top-links a:hover, .oauth-footer a:hover {
-  text-decoration: none;
-  text-shadow: 0 0 5px var(--glow-accent);
-}
-
-@media (max-width: 600px) {
-  .top-links, .oauth-footer {
-    justify-content: center;
-    text-align: center;
-  }
-
-  .top-links a, .oauth-footer a {
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-}
-
-/* Fade-in animation */
-.home-container {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 1s forwards 0.2s;
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Typing animation */
 .typing {
   display: inline-block;
-  border-right: 2px solid var(--text-accent);
+  border-right: 3px solid #00ffff;
   white-space: pre-wrap;
   overflow: hidden;
+}
+
+/* Footer */
+.oauth-footer {
+  margin-top: 100px;
+  padding: 25px 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #00ffff;
+  border-top: 1px solid rgba(0,255,255,0.3);
+}
+
+.oauth-footer a {
+  margin: 0 10px;
+  color: #00ffff;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.oauth-footer a:hover {
+  color: #0ff;
+  text-shadow: 0 0 8px #00ffff;
+}
+
+@media (max-width: 768px){
+  .glow-title { font-size: 2.5rem; }
+  .subtitle, .purpose-box, .visible-privacy { font-size: 1rem; }
+  .browse-btn { font-size: 16px; padding: 14px 28px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <!-- Background slideshow -->
-<div class="bg-slideshow"></div>
-
-<!-- Top links -->
-<div class="top-links">
-  <a href="/privacy/">Privacy Policy</a>
-  <a href="/terms/">Terms of Service</a>
-  <a href="/cookies/">Cookies Policy</a>
-  <a href="/learn-more/">Learn More</a>
+<div class="bg-slideshow">
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/main-sample.png')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-3.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-2.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1765282520/samples/cup-on-a-table.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/upscale-face-1.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/dessert-on-a-plate.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/coffee.jpg')"></div>
+  <div class="bg-slide" style="background-image: url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/woman-on-a-football-field.jpg')"></div>
 </div>
+<div class="overlay"></div>
 
+<!-- Home container -->
 <div class="home-container">
   <h1 id="hero-title" class="glow-title typing"></h1>
   <p id="subtitle" class="subtitle typing"></p>
