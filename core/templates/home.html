@@ -62,14 +62,13 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* Top links (desktop) */
+/* Top links (desktop) - spread links evenly */
 .top-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: space-between; /* <-- spread across width */
   margin: 10px 20px;
   font-size: 14px;
-  gap: 10px;
 }
 
 .top-links a {
