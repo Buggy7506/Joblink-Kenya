@@ -62,20 +62,20 @@
   box-shadow: 0 0 15px var(--glow-accent);
 }
 
-/* Top links (desktop) - spread links evenly and match footer styling */
+/* Top links - match footer styling and spread evenly */
 .top-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between; /* spread across width */
+  justify-content: space-between;
   margin: 10px 20px;
   font-size: 14px;
 }
 
 .top-links a {
-  margin: 0 12px; /* same as footer links */
+  margin: 0 12px;
   color: var(--text-accent, #4da3ff);
   text-decoration: underline;
-  font-weight: 500; /* same as footer */
+  font-weight: 500;
 }
 
 .top-links a:hover {
@@ -96,7 +96,6 @@
     font-size: 13px;
   }
 }
-
 
 /* Fade-in animation */
 .home-container {
@@ -129,6 +128,22 @@
 }
 
 .oauth-footer a:hover {
+  text-decoration: none;
+}
+
+/* Visible privacy policy for Google reviewers */
+.visible-privacy {
+  margin-top: 25px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.visible-privacy a {
+  color: var(--text-accent, #4da3ff);
+  text-decoration: underline;
+}
+
+.visible-privacy a:hover {
   text-decoration: none;
 }
 </style>
@@ -169,6 +184,12 @@
   </div>
 
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
+
+  <!-- ✅ Visible privacy policy link -->
+  <p class="visible-privacy">
+    By using JobLink Kenya, you agree to our
+    <a href="/privacy/">Privacy Policy</a>.
+  </p>
 </div>
 
 <!-- ✅ Footer for Google review -->
