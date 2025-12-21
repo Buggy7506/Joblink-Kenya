@@ -4,30 +4,28 @@
 
 {% block extra_css %}
 <style>
-/* Role Selection Page Wrapper */
+/* ================================
+   Role Selection Wrapper (NO BG)
+================================ */
 .role-selection-wrapper {
     font-family: 'Inter', sans-serif;
-    background: var(--bg-main);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    margin: 0;
     padding: 20px;
     box-sizing: border-box;
     flex-direction: column;
     color: var(--text-main);
-    transition: background 0.4s ease, color 0.4s ease;
 }
 
+/* Heading */
 .role-selection-wrapper h2 {
     text-align: center;
     font-size: 32px;
     font-weight: 700;
-    color: var(--text-main);
     margin-bottom: 20px;
     position: relative;
-    transition: color 0.4s ease;
 }
 
 .role-selection-wrapper h2::after {
@@ -41,7 +39,7 @@
 }
 
 /* Profile picture */
-.role-selection-wrapper .profile-pic {
+.profile-pic {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -49,73 +47,74 @@
     margin-bottom: 15px;
     border: 3px solid var(--text-accent);
     box-shadow: 0 0 15px var(--glow-accent);
-    transition: border 0.4s, box-shadow 0.4s;
 }
 
 /* User info */
-.role-selection-wrapper .user-info {
+.user-info {
     text-align: center;
     font-size: 18px;
     color: var(--text-muted);
     margin-bottom: 30px;
-    transition: color 0.4s ease;
 }
 
-/* Form container */
+/* ================================
+   Card Container
+================================ */
 .role-selection-wrapper form {
-    background: var(--bg-card);
+    background: rgba(0,0,0,0.45); /* translucent */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 50px 35px;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.35);
     width: 100%;
     max-width: 450px;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.4s ease;
 }
 
-/* Role cards */
+/* ================================
+   Role Cards
+================================ */
 .role-selection-wrapper label {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background: var(--bg-card);
-    border: 2px solid var(--text-muted);
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.2);
     border-radius: 18px;
     padding: 22px 30px;
     margin-bottom: 22px;
     cursor: pointer;
-    transition: all 0.4s ease;
     font-weight: 600;
     font-size: 17px;
     color: var(--text-main);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    transition: all 0.35s ease;
 }
 
 .role-selection-wrapper label:hover {
-    background: var(--text-accent);
-    color: var(--text-main);
+    background: rgba(0,255,200,0.12);
     border-color: var(--text-accent);
-    transform: translateY(-5px) scale(1.02);
+    transform: translateY(-4px) scale(1.02);
 }
 
+/* Hide radios */
 .role-selection-wrapper input[type="radio"] {
     display: none;
 }
 
+/* Selected */
 .role-selection-wrapper input[type="radio"]:checked + span {
-    background: var(--text-accent);
-    color: var(--text-main);
+    background: rgba(0,255,200,0.18);
     border-radius: 18px;
-    box-shadow: 0 12px 25px var(--glow-accent);
-    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 25px var(--glow-accent);
 }
 
 .role-selection-wrapper label span {
     display: flex;
     align-items: center;
-    gap: 15px;
-    transition: all 0.3s ease;
+    gap: 14px;
 }
 
 .role-selection-wrapper label span i {
@@ -124,42 +123,40 @@
 }
 
 .role-selection-wrapper input[type="radio"]:checked + span i {
-    transform: scale(1.2) rotate(10deg);
+    transform: scale(1.25) rotate(8deg);
 }
 
-/* Continue button */
-.role-selection-wrapper button.continue-btn {
+/* ================================
+   Continue Button
+================================ */
+.continue-btn {
     width: 100%;
-    background: var(--text-accent);
+    background: linear-gradient(135deg, var(--text-accent), var(--accent-alt));
     border: none;
     padding: 16px 0;
     border-radius: 20px;
-    color: var(--text-main);
+    color: var(--bg-main);
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 25px var(--glow-accent);
+    box-shadow: 0 0 25px var(--glow-accent);
 }
 
-.role-selection-wrapper button.continue-btn:hover {
+.continue-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 30px var(--glow-accent);
+    box-shadow: 0 0 35px var(--glow-accent);
 }
 
-/* Responsive */
+/* Mobile */
 @media (max-width: 480px) {
     .role-selection-wrapper form {
         padding: 35px 20px;
     }
     .role-selection-wrapper h2 {
         font-size: 26px;
-        margin-bottom: 18px;
     }
-    .role-selection-wrapper label span i {
-        font-size: 22px;
-    }
-    .role-selection-wrapper .user-info {
+    .user-info {
         font-size: 16px;
     }
 }
@@ -168,7 +165,7 @@
 
 {% block content %}
 <div class="role-selection-wrapper">
-    <h2>Welcome!</h2>
+    <h2>Welcome to JobLink</h2>
 
     {% if profile_picture %}
         <img src="{{ profile_picture }}" alt="Profile Picture" class="profile-pic">
@@ -199,7 +196,6 @@
       <button type="submit" class="continue-btn">Continue</button>
     </form>
 
-    <!-- FontAwesome for icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </div>
 {% endblock %}
