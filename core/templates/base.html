@@ -233,46 +233,67 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   .footer { font-size: 0.8rem; padding: 0.5rem 0; }
 }
 
-
 /* =========================================================
-   BACKGROUND SLIDESHOW (FADE EFFECT + READABILITY)
+   BACKGROUND SLIDESHOW (FADE + READABILITY + THEME AWARE)
 ========================================================= */
 
 .bg-slideshow {
-  position: fixed;        /* Stay behind content */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;            /* Behind everything */
-  overflow: hidden;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;               /* Always behind content */
+    overflow: hidden;
 }
 
-/* Optional semi-transparent overlay for better readability */
+/* THEME-AWARE READABILITY OVERLAY */
 .bg-slideshow::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.35); /* dark overlay */
-  pointer-events: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    /* Dark mode default */
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.65),
+        rgba(0, 0, 0, 0.45)
+    );
+
+    pointer-events: none;
+    z-index: 1;
 }
 
+/* Light mode overlay */
+.light-mode .bg-slideshow::after {
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.65),
+        rgba(255, 255, 255, 0.45)
+    );
+}
+
+/* SLIDES */
 .bg-slide {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  opacity: 0;                       /* Start invisible */
-  transition: opacity 1.5s ease-in-out;  /* Smooth fade */
+    position: absolute;
+    inset: 0;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    opacity: 0;
+    transform: scale(1.05); /* subtle cinematic zoom */
+    transition:
+        opacity 1.8s ease-in-out,
+        transform 6s ease-in-out;
+
+    z-index: 0;
 }
 
+/* ACTIVE SLIDE */
 .bg-slide.active {
-  opacity: 1;                       /* Fade in when active */
+    opacity: 1;
+    transform: scale(1);
 }
 
 </style>
