@@ -163,27 +163,17 @@ nav a { margin: 0 0.8rem; font-weight: 600; }
 
 
 /* =========================================================
-   FOOTER
+   FOOTER (TEXT ONLY, THEME-AWARE)
 ========================================================= */
 
 .footer {
   text-align: center;
   font-size: 0.9rem;
+  color: var(--text-main);   /* adapts to dark/light mode */
   margin-top: 1rem;
-}
-
-/*
-.footer {
-  background: var(--bg-footer);
-  padding: 0.7rem 0;
-  text-align: center;
-  color: var(--text-muted);
-  width: 100%;
-  z-index: 40;
-}
-
-@media (min-width: 900px) {
-  .footer { position: relative; bottom: 0; left: 0; }
+  background: transparent;    /* remove background */
+  padding: 0;                 /* remove padding */
+  box-shadow: none;           /* remove shadow */
 }
       
 /* =========================================================
@@ -296,6 +286,46 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
     transform: scale(1);
 }
 
+/* =========================================================
+   ACTIVE NAV LINK (ORANGE HIGHLIGHT • NO UNDERLINE)
+========================================================= */
+
+.active-link {
+  position: relative;
+  color: #f97316 !important;   /* ORANGE */
+  font-weight: 700;
+
+  /* subtle background for readability */
+  background: rgba(249, 115, 22, 0.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.45rem;
+
+  text-shadow:
+    0 0 6px rgba(249, 115, 22, 0.8),
+    0 0 12px rgba(249, 115, 22, 0.4);
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* LIGHT MODE TUNING */
+body.light-mode .active-link {
+  color: #ea580c !important; /* deeper orange */
+  background: rgba(234, 88, 12, 0.15);
+  text-shadow: none;
+}
+
+/* MOBILE NAV */
+.mobile-menu .active-link {
+  display: block;
+  text-align: center;
+  margin: 0.25rem 0;
+}
 </style>
 
 </head>
@@ -477,6 +507,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     showSlide(current);
   }, 4000); // Change every 4 seconds
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPath = window.location.pathname;
+
+  // Select all internal nav links
+  const navLinks = document.querySelectorAll('nav a, .mobile-menu a');
+
+  navLinks.forEach(link => {
+    try {
+      const url = new URL(link.href, window.location.origin);
+      const linkPath = url.pathname;
+
+      // Add active-link if:
+      // 1) Exact match
+      // 2) Current path starts with link path (but not root "/")
+      if (
+        currentPath === linkPath ||
+        (linkPath !== "/" && currentPath.startsWith(linkPath))
+      ) {
+        link.classList.add('active-link');
+      } else {
+        link.classList.remove('active-link');
+      }
+
+    } catch (e) {
+      // Ignore invalid URLs (e.g., external links)
+      console.warn('Skipping invalid link:', link.href);
+    }
+  });
 });
 </script>
 
