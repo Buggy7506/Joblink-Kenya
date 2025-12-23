@@ -5,9 +5,30 @@ import secrets
 import requests
 from twilio.rest import Client
 from django.conf import settings
+from django.core.files.base import ContentFile
 import time
 
 logger = logging.getLogger(__name__)
+
+
+def save_google_profile_picture(backend, user, response, *args, **kwargs):
+    """
+    Save the Google profile picture to user's profile on signup/login
+    """
+    if backend.name == 'google-oauth2':
+        picture_url = response.get('picture')
+        if picture_url and not user.profile_pic:  # avoid overwriting if user already has one
+            try:
+                resp = requests.get(picture_url)
+                if resp.status_code == 200:
+                    user.profile_pic.save(
+                        f"{user.username}_google.jpg",
+                        ContentFile(resp.content),
+                        save=True
+                    )
+            except Exception as e:
+                print("Error saving Google profile picture:", e)
+
 
 # ---------------------------
 # Device Fingerprint & IP
