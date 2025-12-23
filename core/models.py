@@ -152,8 +152,8 @@ class Job(models.Model):
     )
     posted_on = models.DateTimeField(auto_now_add=True)
     company = models.CharField(max_length=200, blank=True)
-
-    salary = models.PositiveIntegerField(default=0, help_text="Enter salary in KES")
+    
+    salary = models.PositiveIntegerField(null=True, blank=True, help_text="Enter salary in KES")
     is_premium = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     premium_expiry = models.DateTimeField(null=True, blank=True)
