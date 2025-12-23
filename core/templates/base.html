@@ -356,12 +356,15 @@ body.light-mode .active-link {
       <nav class="desktop-nav">
         {% if user.is_authenticated and not pending_verification %}
           {% if user.is_superuser or user.role == 'admin' %}
+            <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
           {% elif user.role == 'employer' %}
+            <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
           {% else %}
+            <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
           {% endif %}
@@ -388,12 +391,15 @@ body.light-mode .active-link {
   <div id="mobileMenu" class="mobile-menu">
     {% if user.is_authenticated and not pending_verification %}
       {% if user.is_superuser or user.role == 'admin' %}
+        <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
         <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
         <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
       {% elif user.role == 'employer' %}
+        <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
         <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
         <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
       {% else %}
+        <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
         <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
         <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
       {% endif %}
