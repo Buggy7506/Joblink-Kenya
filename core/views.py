@@ -304,6 +304,7 @@ def cookies_policy(request):
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
 
+
 @login_required
 def quick_profile_update(request):
     user = request.user
@@ -312,40 +313,45 @@ def quick_profile_update(request):
         'skills': user.skills.split(',') if user.skills else [],
         'user_cv': user.cvupload_set.last() if user.cvupload_set.exists() else None,
         'form_errors': {},
-        'modal_type': None,
+        'modal_type': None,  # Which modal to open if errors occur
     }
 
     if request.method == "POST":
         data = request.POST.copy()
+
+        # Remove password fields if empty
         if not data.get('password'):
             data.pop('password', None)
             data.pop('confirm_password', None)
 
         form = EditProfileForm(data, request.FILES, instance=user, user=user)
 
-        # Determine which field modal was submitted
+        # Detect which modal was submitted
         for field in ['phone', 'location', 'skills', 'upload_cv', 'profile_pic']:
             if field in request.POST or field in request.FILES:
                 context['modal_type'] = field
+                break
 
         if form.is_valid():
             user = form.save(commit=False)
 
+            # Update profile picture
             if 'profile_pic' in request.FILES:
                 user.profile_pic = request.FILES['profile_pic']
 
             user.save()
 
+            # Update CV
             if 'upload_cv' in request.FILES:
                 cv_file = request.FILES['upload_cv']
                 cv_obj, created = CVUpload.objects.get_or_create(applicant=user)
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-            return redirect('profile')
+            return redirect('profile')  # Page reloads and shows updated data
 
         else:
-            # Pass form errors to template to show inside modal
+            # Pass errors and reopen the correct modal
             context['form_errors'] = form.errors
 
     return render(request, 'profile.html', context)
