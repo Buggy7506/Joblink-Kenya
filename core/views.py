@@ -317,18 +317,28 @@ def quick_profile_update(request):
         if form.is_valid():
             user = form.save()
 
-            # Return updated values
-            return JsonResponse({
+            # Handle CV upload if provided
+            if 'upload_cv' in request.FILES:
+                cv_file = request.FILES['upload_cv']
+                cv_obj, created = CVUpload.objects.get_or_create(applicant=user)
+                cv_obj.cv = cv_file
+                cv_obj.save()
+
+            # Prepare JSON response
+            data = {
                 "success": True,
                 "phone": user.phone,
                 "location": user.location,
                 "skills": user.skills,
-                "cv": request.user.cvuploadd_set.last().cv.url if request.user.cvuploadd_set.exists() else None
-            })
+                "profile_pic": user.profile_pic.url if user.profile_pic else None,
+                "cv": user.cvupload_set.last().cv.url if user.cvupload_set.exists() else None,
+            }
+            return JsonResponse(data)
 
+        # Return form errors if invalid
         return JsonResponse({"success": False, "errors": form.errors})
 
-    return JsonResponse({"success": False})
+    return JsonResponse({"success": False, "errors": "Invalid request"})
 
     
 @login_required
