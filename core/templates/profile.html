@@ -280,15 +280,21 @@
     <h2 id="modalTitle"></h2>
 
     <form id="quickForm" method="POST" enctype="multipart/form-data">
-     {% csrf_token %}
-     <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
-     <input id="locationInput" name="location" placeholder="Search location" style="display:none">
-     <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
-     <input id="cvInput" type="file" name="cv" style="display:none">
-     <input id="profilePicInput" type="file" name="profile_pic" style="display:none">
-     <button type="submit">Save</button>
-   </form>
-
+      {% csrf_token %}
+      
+      <!-- Inputs for quick update -->
+      <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
+      <input id="locationInput" name="location" placeholder="Search location" style="display:none">
+      <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
+      
+      <!-- Updated to match form field for CV -->
+      <input id="cvInput" type="file" name="upload_cv" style="display:none">
+      
+      <!-- Hidden profile pic input -->
+      <input id="profilePicInput" type="file" name="profile_pic" style="display:none">
+      
+      <button type="submit">Save</button>
+    </form>
   </div>
 </div>
 
@@ -297,11 +303,10 @@
   <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
   <img id="imgPreview">
 </div>
-
 <script>
 const profilePic = document.getElementById('profile-pic');
 
-// Profile modal elements
+// Modal elements
 const modalBox = document.getElementById("addModal");
 const title = document.getElementById("modalTitle");
 const phoneInput = document.getElementById("phoneInput");
@@ -309,7 +314,7 @@ const locationInput = document.getElementById("locationInput");
 const skillsInput = document.getElementById("skillsInput");
 const cvInput = document.getElementById("cvInput");
 
-// Hidden input for profile picture
+// Hidden profile picture input
 let profilePicInput = document.createElement("input");
 profilePicInput.type = "file";
 profilePicInput.accept = "image/*";
@@ -348,7 +353,7 @@ const newPreview = document.getElementById("newPreview");
 const closePreview = document.getElementById("closePreview");
 const confirmUpload = document.getElementById("confirmUpload");
 
-// Click profile picture to select new image
+// Profile picture click → select file
 profilePic.onclick = () => profilePicInput.click();
 
 // Preview selected image
@@ -364,7 +369,6 @@ profilePicInput.addEventListener("change", function() {
       previewBox.style.top = "50%";
       previewBox.style.transform = "translate(-50%, -50%)";
 
-      // Adjust modal for small screens
       if(window.innerWidth < 500){
         previewBox.style.maxWidth = "95%";
         previewBox.style.maxHeight = "80%";
@@ -385,7 +389,7 @@ closePreview.onclick = () => {
   profilePicInput.value = "";
 };
 
-// Upload profile picture via AJAX
+// Upload profile picture
 confirmUpload.onclick = () => {
   if(profilePicInput.files && profilePicInput.files[0]){
     const formData = new FormData();
@@ -403,6 +407,7 @@ confirmUpload.onclick = () => {
         previewModal.style.display = "none";
       } else {
         alert("Failed to update profile picture.");
+        console.error(data.errors);
       }
     })
     .catch(err => {
@@ -412,12 +417,10 @@ confirmUpload.onclick = () => {
   }
 };
 
-// Draggable for desktop & touch for mobile
+// Draggable modal
 let isDragging = false, startX, startY, startLeft, startTop;
-
 previewBox.addEventListener("mousedown", startDrag);
 previewBox.addEventListener("touchstart", startDrag);
-
 function startDrag(e){
   e.preventDefault();
   isDragging = true;
@@ -431,7 +434,6 @@ function startDrag(e){
   document.addEventListener("touchmove", drag);
   document.addEventListener("touchend", stopDrag);
 }
-
 function drag(e){
   if(!isDragging) return;
   const x = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
@@ -440,7 +442,6 @@ function drag(e){
   previewBox.style.top = `${startTop + (y - startY)}px`;
   previewBox.style.transform = "translate(0,0)";
 }
-
 function stopDrag(){
   isDragging = false;
   document.removeEventListener("mousemove", drag);
@@ -449,11 +450,10 @@ function stopDrag(){
   document.removeEventListener("touchend", stopDrag);
 }
 
-// Open modal for other fields
+// Open modal for fields
 function openModal(type){
   modalBox.style.display = "flex";
   phoneInput.style.display = locationInput.style.display = skillsInput.style.display = cvInput.style.display = "none";
-
   switch(type){
     case "phone": phoneInput.style.display="block"; title.innerText="Add Phone"; break;
     case "location": locationInput.style.display="block"; title.innerText="Add Location"; break;
@@ -461,8 +461,6 @@ function openModal(type){
     case "cv": cvInput.style.display="block"; title.innerText="Upload CV"; break;
   }
 }
-
-// Close modal
 function closeModal(){ modalBox.style.display = "none"; }
 
 // Google Maps autocomplete
@@ -473,10 +471,15 @@ function initAutocomplete(){
 }
 setTimeout(initAutocomplete, 600);
 
-// Quick form AJAX submit for phone, location, skills, CV
+// Quick form AJAX submit
 document.getElementById("quickForm").addEventListener("submit", function(e){
   e.preventDefault();
-  const formData = new FormData(this);
+  const formData = new FormData();
+
+  if(phoneInput.value.trim() !== "") formData.append("phone", phoneInput.value.trim());
+  if(locationInput.value.trim() !== "") formData.append("location", locationInput.value.trim());
+  if(skillsInput.value.trim() !== "") formData.append("skills", skillsInput.value.trim());
+  if(cvInput.files[0]) formData.append("upload_cv", cvInput.files[0]);
 
   fetch("{% url 'quick_profile_update' %}", {
     method: "POST",
@@ -487,20 +490,20 @@ document.getElementById("quickForm").addEventListener("submit", function(e){
   .then(data => {
     if(data.success){
       if(data.phone){
-        const phoneEl = document.querySelector("[onclick=\"openModal('phone')\"]");
-        if(phoneEl) phoneEl.parentElement.innerHTML = `<p>${data.phone}</p>`;
+        const el = document.querySelector("[onclick=\"openModal('phone')\"]");
+        if(el) el.parentElement.innerHTML = `<p>${data.phone}</p>`;
       }
       if(data.location){
-        const locEl = document.querySelector("[onclick=\"openModal('location')\"]");
-        if(locEl) locEl.parentElement.innerHTML = `<p>${data.location}</p>`;
+        const el = document.querySelector("[onclick=\"openModal('location')\"]");
+        if(el) el.parentElement.innerHTML = `<p>${data.location}</p>`;
       }
       if(data.skills){
-        const skillsEl = document.querySelector("[onclick=\"openModal('skills')\"]");
-        if(skillsEl) skillsEl.parentElement.innerHTML = `<p>${data.skills}</p>`;
+        const el = document.querySelector("[onclick=\"openModal('skills')\"]");
+        if(el) el.parentElement.innerHTML = `<p>${data.skills}</p>`;
       }
       if(data.cv){
-        const cvEl = document.querySelector("[onclick=\"openModal('cv')\"]");
-        if(cvEl) cvEl.parentElement.innerHTML = `<a href="${data.cv}" target="_blank" style="color:#34d399">📄 View CV</a>`;
+        const el = document.querySelector("[onclick=\"openModal('cv')\"]");
+        if(el) el.parentElement.innerHTML = `<a href="${data.cv}" target="_blank" style="color:#34d399">📄 View CV</a>`;
       }
       closeModal();
     } else {
