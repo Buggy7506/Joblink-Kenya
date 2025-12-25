@@ -279,20 +279,20 @@
     <span class="close-add" onclick="closeModal()">×</span>
     <h2 id="modalTitle"></h2>
 
-    <!-- Standard form submission (no AJAX) -->
-    <form method="POST" enctype="multipart/form-data">
+    <!-- Standard form submission -->
+    <form method="POST" enctype="multipart/form-data" action="{% url 'quick_profile_update' %}">
       {% csrf_token %}
        
-        <!-- Errors -->
-           {% if form_errors %}
-             <div class="form-errors" style="color:#f87171; margin-bottom:10px;">
-               {% for field, errors in form_errors.items %}
-                 {% for error in errors %}
-                   <p>{{ error }}</p>
-                 {% endfor %}
-               {% endfor %}
-             </div>
-           {% endif %}
+      <!-- Display errors -->
+      {% if form_errors %}
+        <div class="form-errors" style="color:#f87171; margin-bottom:10px;">
+          {% for field, errors in form_errors.items %}
+            {% for error in errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
       
       <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
       <input id="locationInput" name="location" placeholder="Search location" style="display:none">
@@ -370,6 +370,17 @@ profilePicInput.addEventListener("change", function() {
 });
 
 // =======================
+// Google Maps autocomplete for location input
+// =======================
+function initAutocomplete() {
+  const locationInput = document.getElementById('locationInput');
+  if(locationInput && window.google){
+    new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
+  }
+}
+document.addEventListener('DOMContentLoaded', initAutocomplete);
+
+// =======================
 // Show modal automatically on page reload if errors exist
 // =======================
 document.addEventListener("DOMContentLoaded", () => {
@@ -378,4 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
   {% endif %}
 });
 </script>
+
+<!-- Google Maps API (replace YOUR_API_KEY with your actual API key) -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 {% endblock %}
