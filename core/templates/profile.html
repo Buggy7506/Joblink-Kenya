@@ -282,6 +282,17 @@
     <!-- Standard form submission (no AJAX) -->
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
+       
+        <!-- Errors -->
+           {% if form_errors %}
+             <div class="form-errors" style="color:#f87171; margin-bottom:10px;">
+               {% for field, errors in form_errors.items %}
+                 {% for error in errors %}
+                   <p>{{ error }}</p>
+                 {% endfor %}
+               {% endfor %}
+             </div>
+           {% endif %}
       
       <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
       <input id="locationInput" name="location" placeholder="Search location" style="display:none">
@@ -301,33 +312,70 @@
 </div>
 
 <script>
+// =======================
 // Modal functions
-function openModal(type){
-  document.getElementById('addModal').style.display='flex';
-  ['phoneInput','locationInput','skillsInput','cvInput'].forEach(id => document.getElementById(id).style.display='none');
+// =======================
+function openModal(type) {
+  const modal = document.getElementById('addModal');
+  modal.style.display = 'flex';
+
+  // Hide all inputs first
+  ['phoneInput', 'locationInput', 'skillsInput', 'cvInput'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
   const title = document.getElementById('modalTitle');
 
-  switch(type){
-    case "phone": document.getElementById('phoneInput').style.display='block'; title.innerText="Add Phone"; break;
-    case "location": document.getElementById('locationInput').style.display='block'; title.innerText="Add Location"; break;
-    case "skills": document.getElementById('skillsInput').style.display='block'; title.innerText="Add Skills"; break;
-    case "cv": document.getElementById('cvInput').style.display='block'; title.innerText="Upload CV"; break;
+  // Show the input corresponding to type
+  switch(type) {
+    case "phone":
+      document.getElementById('phoneInput').style.display = 'block';
+      title.innerText = "Add Phone";
+      break;
+    case "location":
+      document.getElementById('locationInput').style.display = 'block';
+      title.innerText = "Add Location";
+      break;
+    case "skills":
+      document.getElementById('skillsInput').style.display = 'block';
+      title.innerText = "Add Skills";
+      break;
+    case "cv":
+      document.getElementById('cvInput').style.display = 'block';
+      title.innerText = "Upload CV";
+      break;
   }
 }
 
-function closeModal(){ document.getElementById('addModal').style.display='none'; }
+function closeModal() {
+  document.getElementById('addModal').style.display = 'none';
+}
 
+// =======================
 // Profile picture preview
+// =======================
 const profilePic = document.getElementById('profile-pic');
 const profilePicInput = document.getElementById('profilePicInput');
 
 profilePic.onclick = () => profilePicInput.click();
-profilePicInput.addEventListener("change", function(){
-  if(this.files && this.files[0]){
+
+profilePicInput.addEventListener("change", function() {
+  if (this.files && this.files[0]) {
     const reader = new FileReader();
-    reader.onload = e => profilePic.src = e.target.result;
+    reader.onload = e => {
+      profilePic.src = e.target.result; // show preview immediately
+    };
     reader.readAsDataURL(this.files[0]);
   }
+});
+
+// =======================
+// Show modal automatically on page reload if errors exist
+// =======================
+document.addEventListener("DOMContentLoaded", () => {
+  {% if form_errors and modal_type %}
+    openModal("{{ modal_type }}");
+  {% endif %}
 });
 </script>
 {% endblock %}
