@@ -151,6 +151,66 @@
   font-weight: bold;
   cursor: pointer;
 }
+
+.add-link {
+  color: #22d3ee;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-link:hover {
+  text-shadow: 0 0 12px #22d3ee;
+}
+
+.add-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 3000;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-box {
+  background: var(--bg-card);
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 40px var(--glow-accent);
+}
+
+.add-box h2 {
+  color: var(--text-accent);
+  text-align: center;
+}
+
+.add-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  background: var(--bg-main);
+  border: none;
+  border-radius: 10px;
+  color: white;
+}
+
+.add-box button {
+  width: 100%;
+  padding: 12px;
+  background: var(--text-accent);
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-add {
+  float: right;
+  cursor: pointer;
+  font-size: 25px;
+}
 </style>
 
 <div class="profile-container">
@@ -160,6 +220,22 @@
     {% else %}
       <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
     {% endif %}
+     <div id="addModal" class="add-modal">
+        <div class="add-box">
+          <span class="close-add" onclick="closeModal()">×</span>
+          <h2 id="modalTitle"></h2>
+      
+          <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
+            <input id="locationInput" name="location" placeholder="Search location" style="display:none">
+            <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
+            <input id="cvInput" type="file" name="cv" style="display:none">
+      
+            <button type="submit">Save</button>
+          </form>
+        </div>
+   </div>
   </div>
 
   <div class="profile-info">
@@ -172,39 +248,48 @@
       <p>{{ user.email }}</p>
     </div>
     <div>
-      <p>Phone</p>
-      <p>{{ user.phone }}</p>
-    </div>
+     <p>Phone</p>
+     {% if user.phone %}
+       <p>{{ user.phone }}</p>
+     {% else %}
+       <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
+     {% endif %}
+   </div>
     <div>
-      <p>Location</p>
-      <p>{{ user.location }}</p>
-    </div>
+        <p>Location</p>
+        {% if user.location %}
+          <p>{{ user.location }}</p>
+        {% else %}
+          <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
+        {% endif %}
+      </div>
+
     <div>
       <p>Role</p>
       <p>{{ user.role|capfirst }}</p>
     </div>
     <div>
-      <p>Skills</p>
-      {% if skills %}
-        <ul>
-          {% for skill in skills %}
-            <li>{{ skill }}</li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>No skills added yet</p>
-      {% endif %}
-    </div>
-    <div>
-      <p>CV</p>
-      <p>
-        {% if user_cv %}
-          <a href="{{ user_cv.cv.url }}" style="color: #34d399;" target="_blank">📄 View CV</a>
+        <p>Skills</p>
+        {% if skills %}
+          <ul>
+            {% for skill in skills %}
+              <li>{{ skill }}</li>
+            {% endfor %}
+          </ul>
         {% else %}
-          <span style="color: #f87171;">No CV uploaded yet</span>
+          <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
         {% endif %}
-      </p>
-    </div>
+      </div>
+
+    <div>
+     <p>CV</p>
+     {% if user_cv %}
+       <a href="{{ user_cv.cv.url }}" style="color:#34d399" target="_blank">📄 View CV</a>
+     {% else %}
+       <span class="add-link" onclick="openModal('cv')">➕ Upload CV</span>
+     {% endif %}
+   </div>
+
   </div>
 
   <!-- Resume Access -->
@@ -236,5 +321,30 @@
       modal.style.display = "none";
     }
   }
+const modalBox = document.getElementById("addModal");
+const title = document.getElementById("modalTitle");
+
+function openModal(type){
+  modalBox.style.display = "flex";
+
+  phoneInput.style.display = "none";
+  locationInput.style.display = "none";
+  skillsInput.style.display = "none";
+  cvInput.style.display = "none";
+
+  if(type=="phone"){ phoneInput.style.display="block"; title.innerText="Add Phone"; }
+  if(type=="location"){ locationInput.style.display="block"; title.innerText="Add Location"; }
+  if(type=="skills"){ skillsInput.style.display="block"; title.innerText="Add Skills"; }
+  if(type=="cv"){ cvInput.style.display="block"; title.innerText="Upload CV"; }
+}
+
+function closeModal(){
+  modalBox.style.display="none";
+}
+
+const autocomplete = new google.maps.places.Autocomplete(
+  document.getElementById("locationInput"),
+  { types: ["geocode"] }
+);
 </script>
 {% endblock %}
