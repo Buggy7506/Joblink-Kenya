@@ -309,14 +309,14 @@ const locationInput = document.getElementById("locationInput");
 const skillsInput = document.getElementById("skillsInput");
 const cvInput = document.getElementById("cvInput");
 
-// Hidden input for profile picture change
+// Hidden input for profile picture
 let profilePicInput = document.createElement("input");
 profilePicInput.type = "file";
 profilePicInput.accept = "image/*";
 profilePicInput.style.display = "none";
 document.body.appendChild(profilePicInput);
 
-// Create modal preview for new profile pic
+// Profile picture preview modal
 let previewModal = document.createElement("div");
 previewModal.style.cssText = `
   display:none; position:fixed; top:0; left:0; width:100%; height:100%;
@@ -336,7 +336,7 @@ const newPreview = document.getElementById("newPreview");
 const closePreview = document.getElementById("closePreview");
 const confirmUpload = document.getElementById("confirmUpload");
 
-// Click profile picture to select new image
+// Profile pic click -> file select
 profilePic.onclick = () => profilePicInput.click();
 
 // Preview selected image
@@ -354,13 +354,13 @@ profilePicInput.addEventListener("change", function() {
   }
 });
 
-// Close preview
+// Close preview modal
 closePreview.onclick = () => {
   previewModal.style.display = "none";
   profilePicInput.value = "";
 };
 
-// Confirm and upload new profile pic via AJAX
+// Upload profile picture via AJAX
 confirmUpload.onclick = () => {
   if(profilePicInput.files && profilePicInput.files[0]){
     const formData = new FormData();
@@ -387,9 +387,8 @@ confirmUpload.onclick = () => {
   }
 };
 
-// Draggable functionality
+// Make preview modal draggable
 let isDragging = false, startX, startY, startLeft, startTop;
-
 previewBox.addEventListener("mousedown", startDrag);
 previewBox.addEventListener("touchstart", startDrag);
 
@@ -411,10 +410,8 @@ function drag(e){
   if(!isDragging) return;
   const x = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
   const y = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-  const dx = x - startX;
-  const dy = y - startY;
-  previewBox.style.left = `${startLeft + dx}px`;
-  previewBox.style.top = `${startTop + dy}px`;
+  previewBox.style.left = `${startLeft + (x - startX)}px`;
+  previewBox.style.top = `${startTop + (y - startY)}px`;
   previewBox.style.transform = "translate(0,0)";
 }
 
@@ -428,7 +425,7 @@ function stopDrag(){
 
 // Open modal for other fields
 function openModal(type){
-  modalBox.style.display="flex";
+  modalBox.style.display = "flex";
   phoneInput.style.display = locationInput.style.display = skillsInput.style.display = cvInput.style.display = "none";
 
   switch(type){
@@ -440,19 +437,17 @@ function openModal(type){
 }
 
 // Close modal
-function closeModal(){
-  modalBox.style.display="none";
-}
+function closeModal(){ modalBox.style.display = "none"; }
 
-// Google Maps Autocomplete
+// Google Maps autocomplete
 function initAutocomplete(){
   if(window.google && locationInput){
     new google.maps.places.Autocomplete(locationInput,{types:["geocode"]});
   }
 }
-setTimeout(initAutocomplete,600);
+setTimeout(initAutocomplete, 600);
 
-// AJAX form submission for phone, location, skills, CV
+// Quick form AJAX submit for phone, location, skills, CV
 document.getElementById("quickForm").addEventListener("submit", function(e){
   e.preventDefault();
   const formData = new FormData(this);
@@ -465,6 +460,7 @@ document.getElementById("quickForm").addEventListener("submit", function(e){
   .then(res => res.json())
   .then(data => {
     if(data.success){
+      // Live update each field
       if(data.phone){
         const phoneEl = document.querySelector("[onclick=\"openModal('phone')\"]");
         if(phoneEl) phoneEl.parentElement.innerHTML = `<p>${data.phone}</p>`;
