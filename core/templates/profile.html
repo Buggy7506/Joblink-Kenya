@@ -279,7 +279,7 @@
     <span class="close-add" onclick="closeModal()">×</span>
     <h2 id="modalTitle"></h2>
 
-    <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+    <form id="quickForm" enctype="multipart/form-data">
       {% csrf_token %}
       <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
       <input id="locationInput" name="location" placeholder="Search location" style="display:none">
@@ -306,6 +306,7 @@ profilePic.onclick = () => {
   imgModal.style.display = "block";
 };
 
+// Profile modal elements
 const modalBox = document.getElementById("addModal");
 const title = document.getElementById("modalTitle");
 const phoneInput = document.getElementById("phoneInput");
@@ -313,6 +314,7 @@ const locationInput = document.getElementById("locationInput");
 const skillsInput = document.getElementById("skillsInput");
 const cvInput = document.getElementById("cvInput");
 
+// Open modal
 function openModal(type){
   modalBox.style.display="flex";
   phoneInput.style.display=locationInput.style.display=skillsInput.style.display=cvInput.style.display="none";
@@ -323,16 +325,69 @@ function openModal(type){
   if(type=="cv"){ cvInput.style.display="block"; title.innerText="Upload CV"; }
 }
 
+// Close modal
 function closeModal(){
   modalBox.style.display="none";
 }
 
+// Google Maps Autocomplete
 function initAutocomplete(){
   if(window.google && locationInput){
     new google.maps.places.Autocomplete(locationInput,{types:["geocode"]});
   }
 }
 setTimeout(initAutocomplete,600);
-</script>
 
+// AJAX form submission for quick profile update
+document.getElementById("quickForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const formData = new FormData(this);
+
+  fetch("{% url 'quick_profile_update' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success){
+
+      // Update phone
+      if(data.phone){
+        const phoneEl = document.querySelector("[onclick=\"openModal('phone')\"]");
+        if(phoneEl) phoneEl.parentElement.innerHTML = `<p>${data.phone}</p>`;
+      }
+
+      // Update location
+      if(data.location){
+        const locEl = document.querySelector("[onclick=\"openModal('location')\"]");
+        if(locEl) locEl.parentElement.innerHTML = `<p>${data.location}</p>`;
+      }
+
+      // Update skills
+      if(data.skills){
+        const skillsEl = document.querySelector("[onclick=\"openModal('skills')\"]");
+        if(skillsEl) skillsEl.parentElement.innerHTML = `<p>${data.skills}</p>`;
+      }
+
+      // Update CV
+      if(data.cv){
+        const cvEl = document.querySelector("[onclick=\"openModal('cv')\"]");
+        if(cvEl) cvEl.parentElement.innerHTML = `<a href="${data.cv}" target="_blank" style="color:#34d399">📄 View CV</a>`;
+      }
+
+      closeModal();
+    } else {
+      console.error("Error saving profile:", data.errors);
+      alert("Failed to save. Check input values.");
+    }
+  })
+  .catch(err => {
+    console.error("AJAX error:", err);
+    alert("An error occurred while saving.");
+  });
+});
+</script>
 {% endblock %}
