@@ -307,35 +307,49 @@ def cookies_policy(request):
 @login_required
 def quick_profile_update(request):
     if request.method == "POST":
+        user = request.user
+        data = request.POST.copy()  # Make a mutable copy
+
+        # Ensure password fields are ignored if not provided
+        if not data.get('password'):
+            data.pop('password', None)
+            data.pop('confirm_password', None)
+
+        # Create form instance
         form = EditProfileForm(
-            request.POST,
+            data,
             request.FILES,
-            instance=request.user,
-            user=request.user
+            instance=user,
+            user=user
         )
 
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
 
-            # Handle CV upload if provided
+            # Handle profile_pic update
+            if 'profile_pic' in request.FILES:
+                user.profile_pic = request.FILES['profile_pic']
+
+            user.save()
+
+            # Handle CV upload
             if 'upload_cv' in request.FILES:
                 cv_file = request.FILES['upload_cv']
                 cv_obj, created = CVUpload.objects.get_or_create(applicant=user)
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-            # Prepare JSON response
-            data = {
+            # Return JSON response
+            return JsonResponse({
                 "success": True,
                 "phone": user.phone,
                 "location": user.location,
                 "skills": user.skills,
                 "profile_pic": user.profile_pic.url if user.profile_pic else None,
                 "cv": user.cvupload_set.last().cv.url if user.cvupload_set.exists() else None,
-            }
-            return JsonResponse(data)
+            })
 
-        # Return form errors if invalid
+        # Return validation errors
         return JsonResponse({"success": False, "errors": form.errors})
 
     return JsonResponse({"success": False, "errors": "Invalid request"})
