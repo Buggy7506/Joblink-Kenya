@@ -214,123 +214,108 @@
 </style>
 
 <div class="profile-container">
+
   <div class="profile-pic">
     {% if user.profile_pic %}
       <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
     {% else %}
       <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
     {% endif %}
-     <div id="addModal" class="add-modal">
-        <div class="add-box">
-          <span class="close-add" onclick="closeModal()">×</span>
-          <h2 id="modalTitle"></h2>
-      
-          <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
-            <input id="locationInput" name="location" placeholder="Search location" style="display:none">
-            <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
-            <input id="cvInput" type="file" name="cv" style="display:none">
-      
-            <button type="submit">Save</button>
-          </form>
-        </div>
-   </div>
   </div>
 
   <div class="profile-info">
+
+    <div><p>Username</p><p>{{ user.username }}</p></div>
+    <div><p>Email</p><p>{{ user.email }}</p></div>
+
     <div>
-      <p>Username</p>
-      <p>{{ user.username }}</p>
+      <p>Phone</p>
+      {% if user.phone %}<p>{{ user.phone }}</p>
+      {% else %}<p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>{% endif %}
     </div>
+
     <div>
-      <p>Email</p>
-      <p>{{ user.email }}</p>
+      <p>Location</p>
+      {% if user.location %}<p>{{ user.location }}</p>
+      {% else %}<p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>{% endif %}
     </div>
-    <div>
-     <p>Phone</p>
-     {% if user.phone %}
-       <p>{{ user.phone }}</p>
-     {% else %}
-       <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
-     {% endif %}
-   </div>
-    <div>
-        <p>Location</p>
-        {% if user.location %}
-          <p>{{ user.location }}</p>
-        {% else %}
-          <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
-        {% endif %}
-      </div>
 
     <div>
       <p>Role</p>
       <p>{{ user.role|capfirst }}</p>
     </div>
-    <div>
-        <p>Skills</p>
-        {% if skills %}
-          <ul>
-            {% for skill in skills %}
-              <li>{{ skill }}</li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
-        {% endif %}
-      </div>
 
     <div>
-     <p>CV</p>
-     {% if user_cv %}
-       <a href="{{ user_cv.cv.url }}" style="color:#34d399" target="_blank">📄 View CV</a>
-     {% else %}
-       <span class="add-link" onclick="openModal('cv')">➕ Upload CV</span>
-     {% endif %}
-   </div>
+      <p>Skills</p>
+      {% if skills %}
+        <ul>{% for skill in skills %}<li>{{ skill }}</li>{% endfor %}</ul>
+      {% else %}
+        <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
+      {% endif %}
+    </div>
+
+    <div>
+      <p>CV</p>
+      {% if user_cv %}
+        <a href="{{ user_cv.cv.url }}" style="color:#34d399" target="_blank">📄 View CV</a>
+      {% else %}
+        <span class="add-link" onclick="openModal('cv')">➕ Upload CV</span>
+      {% endif %}
+    </div>
 
   </div>
 
-  <!-- Resume Access -->
   <a href="{% url 'view_resume' %}" class="resume-card">📄 View My Resume</a>
 
   <div class="edit-button">
     <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
   </div>
+
 </div>
 
-<!-- Modal for image preview -->
+<!-- ADD MODAL (FIXED POSITION) -->
+<div id="addModal" class="add-modal">
+  <div class="add-box">
+    <span class="close-add" onclick="closeModal()">×</span>
+    <h2 id="modalTitle"></h2>
+
+    <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
+      <input id="locationInput" name="location" placeholder="Search location" style="display:none">
+      <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
+      <input id="cvInput" type="file" name="cv" style="display:none">
+      <button type="submit">Save</button>
+    </form>
+  </div>
+</div>
+
+<!-- IMAGE MODAL -->
 <div id="imgModal">
   <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
-  <img id="imgPreview" src="">
+  <img id="imgPreview">
 </div>
 
 <script>
-  const profilePic = document.getElementById('profile-pic');
-  const modal = document.getElementById('imgModal');
-  const imgPreview = document.getElementById('imgPreview');
+const profilePic = document.getElementById('profile-pic');
+const imgModal = document.getElementById('imgModal');
+const imgPreview = document.getElementById('imgPreview');
 
-  profilePic.addEventListener('click', () => {
-    imgPreview.src = profilePic.src;
-    modal.style.display = 'block';
-  });
+profilePic.onclick = () => {
+  imgPreview.src = profilePic.src;
+  imgModal.style.display = "block";
+};
 
-  window.onclick = function(event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  }
 const modalBox = document.getElementById("addModal");
 const title = document.getElementById("modalTitle");
+const phoneInput = document.getElementById("phoneInput");
+const locationInput = document.getElementById("locationInput");
+const skillsInput = document.getElementById("skillsInput");
+const cvInput = document.getElementById("cvInput");
 
 function openModal(type){
-  modalBox.style.display = "flex";
-
-  phoneInput.style.display = "none";
-  locationInput.style.display = "none";
-  skillsInput.style.display = "none";
-  cvInput.style.display = "none";
+  modalBox.style.display="flex";
+  phoneInput.style.display=locationInput.style.display=skillsInput.style.display=cvInput.style.display="none";
 
   if(type=="phone"){ phoneInput.style.display="block"; title.innerText="Add Phone"; }
   if(type=="location"){ locationInput.style.display="block"; title.innerText="Add Location"; }
@@ -342,9 +327,12 @@ function closeModal(){
   modalBox.style.display="none";
 }
 
-const autocomplete = new google.maps.places.Autocomplete(
-  document.getElementById("locationInput"),
-  { types: ["geocode"] }
-);
+function initAutocomplete(){
+  if(window.google && locationInput){
+    new google.maps.places.Autocomplete(locationInput,{types:["geocode"]});
+  }
+}
+setTimeout(initAutocomplete,600);
 </script>
+
 {% endblock %}
