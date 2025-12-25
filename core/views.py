@@ -2,6 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse, JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 # Django auth
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash, get_user_model
@@ -302,6 +303,32 @@ def cookies_policy(request):
 #         "profile": profile,
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
+
+@login_required
+def quick_profile_update(request):
+    if request.method == "POST":
+        form = EditProfileForm(
+            request.POST,
+            request.FILES,
+            instance=request.user,
+            user=request.user
+        )
+
+        if form.is_valid():
+            user = form.save()
+
+            # Return updated values
+            return JsonResponse({
+                "success": True,
+                "phone": user.phone,
+                "location": user.location,
+                "skills": user.skills,
+                "cv": request.user.cvuploadd_set.last().cv.url if request.user.cvuploadd_set.exists() else None
+            })
+
+        return JsonResponse({"success": False, "errors": form.errors})
+
+    return JsonResponse({"success": False})
 
     
 @login_required
