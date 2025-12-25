@@ -306,8 +306,9 @@ def cookies_policy(request):
 
 @login_required
 def quick_profile_update(request):
+    user = request.user
+
     if request.method == "POST":
-        user = request.user
         data = request.POST.copy()  # Make a mutable copy
 
         # Ensure password fields are ignored if not provided
@@ -316,12 +317,7 @@ def quick_profile_update(request):
             data.pop('confirm_password', None)
 
         # Create form instance
-        form = EditProfileForm(
-            data,
-            request.FILES,
-            instance=user,
-            user=user
-        )
+        form = EditProfileForm(data, request.FILES, instance=user, user=user)
 
         if form.is_valid():
             user = form.save(commit=False)
@@ -339,21 +335,15 @@ def quick_profile_update(request):
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-            # Return JSON response
-            return JsonResponse({
-                "success": True,
-                "phone": user.phone,
-                "location": user.location,
-                "skills": user.skills,
-                "profile_pic": user.profile_pic.url if user.profile_pic else None,
-                "cv": user.cvupload_set.last().cv.url if user.cvupload_set.exists() else None,
-            })
+            # After successful save, redirect to profile page
+            return redirect('profile')  # replace 'profile' with your profile URL name
 
-        # Return validation errors
-        return JsonResponse({"success": False, "errors": form.errors})
+        # If form invalid, render profile page with errors
+        # You can pass errors to the template if needed
+        return redirect('profile')
 
-    return JsonResponse({"success": False, "errors": "Invalid request"})
-
+    # If GET or invalid method, redirect to profile
+    return redirect('profile')
     
 @login_required
 def account_settings(request):
