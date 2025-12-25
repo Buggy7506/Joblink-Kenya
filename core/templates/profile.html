@@ -279,14 +279,16 @@
     <span class="close-add" onclick="closeModal()">×</span>
     <h2 id="modalTitle"></h2>
 
-    <form id="quickForm" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
-      <input id="locationInput" name="location" placeholder="Search location" style="display:none">
-      <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
-      <input id="cvInput" type="file" name="cv" style="display:none">
-      <button type="submit">Save</button>
-    </form>
+    <form id="quickForm" method="POST" enctype="multipart/form-data">
+     {% csrf_token %}
+     <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
+     <input id="locationInput" name="location" placeholder="Search location" style="display:none">
+     <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
+     <input id="cvInput" type="file" name="cv" style="display:none">
+     <input id="profilePicInput" type="file" name="profile_pic" style="display:none">
+     <button type="submit">Save</button>
+   </form>
+
   </div>
 </div>
 
@@ -301,11 +303,6 @@ const profilePic = document.getElementById('profile-pic');
 const imgModal = document.getElementById('imgModal');
 const imgPreview = document.getElementById('imgPreview');
 
-profilePic.onclick = () => {
-  imgPreview.src = profilePic.src;
-  imgModal.style.display = "block";
-};
-
 // Profile modal elements
 const modalBox = document.getElementById("addModal");
 const title = document.getElementById("modalTitle");
@@ -313,22 +310,37 @@ const phoneInput = document.getElementById("phoneInput");
 const locationInput = document.getElementById("locationInput");
 const skillsInput = document.getElementById("skillsInput");
 const cvInput = document.getElementById("cvInput");
+const profilePicInput = document.getElementById("profilePicInput"); // add this input in your modal
 
 // Open modal
 function openModal(type){
-  modalBox.style.display="flex";
-  phoneInput.style.display=locationInput.style.display=skillsInput.style.display=cvInput.style.display="none";
+  modalBox.style.display = "flex";
+  phoneInput.style.display = locationInput.style.display = skillsInput.style.display = cvInput.style.display = profilePicInput.style.display = "none";
 
-  if(type=="phone"){ phoneInput.style.display="block"; title.innerText="Add Phone"; }
-  if(type=="location"){ locationInput.style.display="block"; title.innerText="Add Location"; }
-  if(type=="skills"){ skillsInput.style.display="block"; title.innerText="Add Skills"; }
-  if(type=="cv"){ cvInput.style.display="block"; title.innerText="Upload CV"; }
+  switch(type){
+    case "phone": phoneInput.style.display="block"; title.innerText="Add Phone"; break;
+    case "location": locationInput.style.display="block"; title.innerText="Add Location"; break;
+    case "skills": skillsInput.style.display="block"; title.innerText="Add Skills"; break;
+    case "cv": cvInput.style.display="block"; title.innerText="Upload CV"; break;
+    case "profile_pic": profilePicInput.style.display="block"; title.innerText="Change Profile Picture"; break;
+  }
 }
 
 // Close modal
 function closeModal(){
-  modalBox.style.display="none";
+  modalBox.style.display = "none";
 }
+
+// Image preview modal
+profilePic.onclick = () => {
+  // If user clicked with shift key (optional: to change profile pic)
+  if(event.shiftKey && profilePicInput){
+    openModal("profile_pic");
+  } else {
+    imgPreview.src = profilePic.src;
+    imgModal.style.display = "block";
+  }
+};
 
 // Google Maps Autocomplete
 function initAutocomplete(){
@@ -345,9 +357,7 @@ document.getElementById("quickForm").addEventListener("submit", function(e){
 
   fetch("{% url 'quick_profile_update' %}", {
     method: "POST",
-    headers: {
-      "X-CSRFToken": "{{ csrf_token }}"
-    },
+    headers: {"X-CSRFToken": "{{ csrf_token }}"},
     body: formData
   })
   .then(res => res.json())
@@ -376,6 +386,11 @@ document.getElementById("quickForm").addEventListener("submit", function(e){
       if(data.cv){
         const cvEl = document.querySelector("[onclick=\"openModal('cv')\"]");
         if(cvEl) cvEl.parentElement.innerHTML = `<a href="${data.cv}" target="_blank" style="color:#34d399">📄 View CV</a>`;
+      }
+
+      // Update profile picture instantly
+      if(data.profile_pic){
+        profilePic.src = data.profile_pic;
       }
 
       closeModal();
