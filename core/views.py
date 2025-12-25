@@ -307,43 +307,48 @@ def cookies_policy(request):
 @login_required
 def quick_profile_update(request):
     user = request.user
+    context = {
+        'user': user,
+        'skills': user.skills.split(',') if user.skills else [],
+        'user_cv': user.cvupload_set.last() if user.cvupload_set.exists() else None,
+        'form_errors': {},
+        'modal_type': None,
+    }
 
     if request.method == "POST":
-        data = request.POST.copy()  # Make a mutable copy
-
-        # Ensure password fields are ignored if not provided
+        data = request.POST.copy()
         if not data.get('password'):
             data.pop('password', None)
             data.pop('confirm_password', None)
 
-        # Create form instance
         form = EditProfileForm(data, request.FILES, instance=user, user=user)
+
+        # Determine which field modal was submitted
+        for field in ['phone', 'location', 'skills', 'upload_cv', 'profile_pic']:
+            if field in request.POST or field in request.FILES:
+                context['modal_type'] = field
 
         if form.is_valid():
             user = form.save(commit=False)
 
-            # Handle profile_pic update
             if 'profile_pic' in request.FILES:
                 user.profile_pic = request.FILES['profile_pic']
 
             user.save()
 
-            # Handle CV upload
             if 'upload_cv' in request.FILES:
                 cv_file = request.FILES['upload_cv']
                 cv_obj, created = CVUpload.objects.get_or_create(applicant=user)
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-            # After successful save, redirect to profile page
-            return redirect('profile')  # replace 'profile' with your profile URL name
+            return redirect('profile')
 
-        # If form invalid, render profile page with errors
-        # You can pass errors to the template if needed
-        return redirect('profile')
+        else:
+            # Pass form errors to template to show inside modal
+            context['form_errors'] = form.errors
 
-    # If GET or invalid method, redirect to profile
-    return redirect('profile')
+    return render(request, 'profile.html', context)
     
 @login_required
 def account_settings(request):
