@@ -300,8 +300,6 @@
 
 <script>
 const profilePic = document.getElementById('profile-pic');
-const imgModal = document.getElementById('imgModal');
-const imgPreview = document.getElementById('imgPreview');
 
 // Profile modal elements
 const modalBox = document.getElementById("addModal");
@@ -310,37 +308,141 @@ const phoneInput = document.getElementById("phoneInput");
 const locationInput = document.getElementById("locationInput");
 const skillsInput = document.getElementById("skillsInput");
 const cvInput = document.getElementById("cvInput");
-const profilePicInput = document.getElementById("profilePicInput"); // add this input in your modal
 
-// Open modal
+// Hidden input for profile picture change
+let profilePicInput = document.createElement("input");
+profilePicInput.type = "file";
+profilePicInput.accept = "image/*";
+profilePicInput.style.display = "none";
+document.body.appendChild(profilePicInput);
+
+// Create modal preview for new profile pic
+let previewModal = document.createElement("div");
+previewModal.style.cssText = `
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:5000;
+`;
+previewModal.innerHTML = `
+  <div id="previewBox" style="position:relative; background:#000; border-radius:10px; max-width:80%; max-height:80%; padding:10px; display:flex; flex-direction:column; align-items:center; resize:both; overflow:auto; touch-action:none;">
+    <span id="closePreview" style="position:absolute; top:5px; right:10px; font-size:35px; color:white; cursor:pointer;">&times;</span>
+    <img id="newPreview" style="max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 0 20px #fff;">
+    <button id="confirmUpload" style="margin-top:15px; padding:8px 20px; font-size:14px; border:none; border-radius:6px; cursor:pointer; background:#22d3ee; color:#000; font-weight:bold;">Confirm Upload</button>
+  </div>
+`;
+document.body.appendChild(previewModal);
+
+const previewBox = document.getElementById("previewBox");
+const newPreview = document.getElementById("newPreview");
+const closePreview = document.getElementById("closePreview");
+const confirmUpload = document.getElementById("confirmUpload");
+
+// Click profile picture to select new image
+profilePic.onclick = () => profilePicInput.click();
+
+// Preview selected image
+profilePicInput.addEventListener("change", function() {
+  if(this.files && this.files[0]){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      newPreview.src = e.target.result;
+      previewModal.style.display = "flex";
+      previewBox.style.left = "50%";
+      previewBox.style.top = "50%";
+      previewBox.style.transform = "translate(-50%, -50%)";
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+// Close preview
+closePreview.onclick = () => {
+  previewModal.style.display = "none";
+  profilePicInput.value = "";
+};
+
+// Confirm and upload new profile pic via AJAX
+confirmUpload.onclick = () => {
+  if(profilePicInput.files && profilePicInput.files[0]){
+    const formData = new FormData();
+    formData.append("profile_pic", profilePicInput.files[0]);
+
+    fetch("{% url 'quick_profile_update' %}", {
+      method: "POST",
+      headers: {"X-CSRFToken": "{{ csrf_token }}"},
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success && data.profile_pic){
+        profilePic.src = data.profile_pic;
+        previewModal.style.display = "none";
+      } else {
+        alert("Failed to update profile picture.");
+      }
+    })
+    .catch(err => {
+      console.error("AJAX error:", err);
+      alert("An error occurred while updating the profile picture.");
+    });
+  }
+};
+
+// Draggable functionality
+let isDragging = false, startX, startY, startLeft, startTop;
+
+previewBox.addEventListener("mousedown", startDrag);
+previewBox.addEventListener("touchstart", startDrag);
+
+function startDrag(e){
+  e.preventDefault();
+  isDragging = true;
+  const rect = previewBox.getBoundingClientRect();
+  startLeft = rect.left;
+  startTop = rect.top;
+  startX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+  startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+  document.addEventListener("mousemove", drag);
+  document.addEventListener("mouseup", stopDrag);
+  document.addEventListener("touchmove", drag);
+  document.addEventListener("touchend", stopDrag);
+}
+
+function drag(e){
+  if(!isDragging) return;
+  const x = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+  const y = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+  const dx = x - startX;
+  const dy = y - startY;
+  previewBox.style.left = `${startLeft + dx}px`;
+  previewBox.style.top = `${startTop + dy}px`;
+  previewBox.style.transform = "translate(0,0)";
+}
+
+function stopDrag(){
+  isDragging = false;
+  document.removeEventListener("mousemove", drag);
+  document.removeEventListener("mouseup", stopDrag);
+  document.removeEventListener("touchmove", drag);
+  document.removeEventListener("touchend", stopDrag);
+}
+
+// Open modal for other fields
 function openModal(type){
-  modalBox.style.display = "flex";
-  phoneInput.style.display = locationInput.style.display = skillsInput.style.display = cvInput.style.display = profilePicInput.style.display = "none";
+  modalBox.style.display="flex";
+  phoneInput.style.display = locationInput.style.display = skillsInput.style.display = cvInput.style.display = "none";
 
   switch(type){
     case "phone": phoneInput.style.display="block"; title.innerText="Add Phone"; break;
     case "location": locationInput.style.display="block"; title.innerText="Add Location"; break;
     case "skills": skillsInput.style.display="block"; title.innerText="Add Skills"; break;
     case "cv": cvInput.style.display="block"; title.innerText="Upload CV"; break;
-    case "profile_pic": profilePicInput.style.display="block"; title.innerText="Change Profile Picture"; break;
   }
 }
 
 // Close modal
 function closeModal(){
-  modalBox.style.display = "none";
+  modalBox.style.display="none";
 }
-
-// Image preview modal
-profilePic.onclick = () => {
-  // If user clicked with shift key (optional: to change profile pic)
-  if(event.shiftKey && profilePicInput){
-    openModal("profile_pic");
-  } else {
-    imgPreview.src = profilePic.src;
-    imgModal.style.display = "block";
-  }
-};
 
 // Google Maps Autocomplete
 function initAutocomplete(){
@@ -350,7 +452,7 @@ function initAutocomplete(){
 }
 setTimeout(initAutocomplete,600);
 
-// AJAX form submission for quick profile update
+// AJAX form submission for phone, location, skills, CV
 document.getElementById("quickForm").addEventListener("submit", function(e){
   e.preventDefault();
   const formData = new FormData(this);
@@ -363,40 +465,26 @@ document.getElementById("quickForm").addEventListener("submit", function(e){
   .then(res => res.json())
   .then(data => {
     if(data.success){
-
-      // Update phone
       if(data.phone){
         const phoneEl = document.querySelector("[onclick=\"openModal('phone')\"]");
         if(phoneEl) phoneEl.parentElement.innerHTML = `<p>${data.phone}</p>`;
       }
-
-      // Update location
       if(data.location){
         const locEl = document.querySelector("[onclick=\"openModal('location')\"]");
         if(locEl) locEl.parentElement.innerHTML = `<p>${data.location}</p>`;
       }
-
-      // Update skills
       if(data.skills){
         const skillsEl = document.querySelector("[onclick=\"openModal('skills')\"]");
         if(skillsEl) skillsEl.parentElement.innerHTML = `<p>${data.skills}</p>`;
       }
-
-      // Update CV
       if(data.cv){
         const cvEl = document.querySelector("[onclick=\"openModal('cv')\"]");
         if(cvEl) cvEl.parentElement.innerHTML = `<a href="${data.cv}" target="_blank" style="color:#34d399">📄 View CV</a>`;
       }
-
-      // Update profile picture instantly
-      if(data.profile_pic){
-        profilePic.src = data.profile_pic;
-      }
-
       closeModal();
     } else {
-      console.error("Error saving profile:", data.errors);
       alert("Failed to save. Check input values.");
+      console.error(data.errors);
     }
   })
   .catch(err => {
