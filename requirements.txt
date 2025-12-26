@@ -17,6 +17,7 @@ daphne==4.1.2
 distlib==0.3.9
 dj-database-url==2.3.0
 Django==5.1.7
+django-cors-headers==4.4.0
 django-cloudinary-storage
 django-allauth==65.7.0
 django-crispy-forms==2.4
