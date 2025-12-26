@@ -40,6 +40,7 @@ ALLOWED_HOSTS = [
     "joblink-kenya-6vrl.onrender.com",
     "localhost",
     "127.0.0.1",
+    ".vercel.app",
 ]
 
 
@@ -264,6 +265,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://joblink-kenya-6vrl.onrender.com",
     "https://*.onrender.com",
     "https://*.dpdns.org",
+    "https://*.vercel.app"
 ]
 
 
