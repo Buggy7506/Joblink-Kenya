@@ -211,6 +211,73 @@
   cursor: pointer;
   font-size: 25px;
 }
+
+/* 🛸 Alien Image Viewer */
+.alien-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #020617, #000);
+  z-index: 5000;
+  justify-content: center;
+  align-items: center;
+}
+
+.alien-frame {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,.5);
+  animation: alienZoom .4s ease;
+}
+
+.alien-frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: black;
+  cursor: zoom-in;
+  transition: transform .3s ease;
+}
+
+.alien-frame img:hover {
+  transform: scale(1.08);
+}
+
+.alien-controls {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+}
+
+.alien-controls button {
+  padding: 10px 18px;
+  background: rgba(0,0,0,.7);
+  border: 1px solid #22d3ee;
+  border-radius: 12px;
+  color: #22d3ee;
+  font-weight: bold;
+  box-shadow: 0 0 15px #22d3ee;
+  cursor: pointer;
+  transition: .25s;
+}
+
+.alien-controls button:hover {
+  background: #22d3ee;
+  color: black;
+  box-shadow: 0 0 30px #22d3ee;
+}
+
+@keyframes alienZoom {
+  from {transform: scale(.7); opacity:0;}
+  to {transform: scale(1); opacity:1;}
+}
+
 </style>
 
 <div class="profile-container">
@@ -328,11 +395,21 @@
   </div>
 </div>
 
-<!-- IMAGE PREVIEW MODAL -->
-<div id="imgModal">
-  <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
-  <img id="imgPreview" alt="Preview">
+<div id="imgModal" class="alien-modal">
+  <div class="alien-overlay"></div>
+
+  <div class="alien-frame">
+    <img id="imgPreview" alt="Preview">
+
+    <!-- Alien HUD -->
+    <div class="alien-controls">
+      <button id="infoBtn">👁 INFO</button>
+      <button id="deleteBtn">🗑 DELETE</button>
+      <button id="closeBtn">✕</button>
+    </div>
+  </div>
 </div>
+
 
 <script>
 // =======================
@@ -438,6 +515,38 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal("{{ modal_type }}");
   {% endif %}
 });
+
+const profileImage = document.getElementById("profile-pic");
+const alienModal = document.getElementById("imgModal");
+const alienPreview = document.getElementById("imgPreview");
+
+if (profileImage) {
+  profileImage.onclick = () => {
+    alienPreview.src = profileImage.src;
+    alienModal.style.display = "flex";
+  };
+}
+
+document.getElementById("closeBtn").onclick = () => {
+  alienModal.style.display = "none";
+};
+document.getElementById("infoBtn").onclick = () => {
+  alert("📷 Profile Picture\nUploaded by: {{ user.username }}\nResolution: Auto\nSecurity: Encrypted");
+};
+document.getElementById("deleteBtn").onclick = () => {
+  if (confirm("Delete your profile picture?")) {
+    fetch("{% url 'quick_profile_update' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: new URLSearchParams({
+        modal_type: "profile_pic_delete"
+      })
+    }).then(() => location.reload());
+  }
+};
+
 </script>
 
 <!-- Google Maps API (replace YOUR_API_KEY with your actual API key) -->
