@@ -308,10 +308,11 @@ def cookies_policy(request):
 def quick_profile_update(request):
     user = request.user
 
+    # Prepare context for errors or modal reopen
     context = {
         "user": user,
         "skills": user.skills.split(",") if user.skills else [],
-        "user_cv": CVUpload.objects.filter(applicant=user).last(),
+        "user_cv": CVUpload.objects.filter(applicant=user).order_by('-id').first(),  # latest CV
         "form_errors": {},
         "modal_type": None,
     }
@@ -345,28 +346,24 @@ def quick_profile_update(request):
             else:
                 user.skills = skills
 
-        # ---------- CV ----------
+        # ---------- CV UPLOAD ----------
         elif modal_type == "upload_cv":
             cv_file = request.FILES.get("upload_cv")
             if not cv_file:
                 errors["upload_cv"] = ["Please upload a CV."]
             else:
-                cv_obj, _ = CVUpload.objects.get_or_create(applicant=user)
-                cv_obj.cv = cv_file
-                cv_obj.save()
+                # Create a new CV record for the user
+                CVUpload.objects.create(applicant=user, cv=cv_file)
 
-        # ---------- PROFILE PIC DELETE (Cloudinary-safe) ----------
+        # ---------- PROFILE PIC DELETE ----------
         elif modal_type == "profile_pic_delete":
             if user.profile_pic:
                 try:
-                    # Delete from Cloudinary
                     cloudinary.uploader.destroy(user.profile_pic.public_id)
                 except Exception:
                     pass
                 user.profile_pic = None
-
-                # Return JSON for AJAX call
-                return JsonResponse({"status": "deleted"})
+            return JsonResponse({"status": "deleted"})
 
         # ---------- PROFILE PIC UPLOAD ----------
         elif modal_type == "profile_pic":
@@ -376,15 +373,16 @@ def quick_profile_update(request):
             else:
                 user.profile_pic = pic
 
-        # ❌ Validation failed → reopen modal ONCE
+        # ---------- VALIDATION ERRORS ----------
         if errors:
             context["form_errors"] = errors
             return render(request, "profile.html", context)
 
-        # ✅ Save everything
+        # ---------- SAVE USER AND REDIRECT ----------
         user.save()
         return redirect("profile")
 
+    # Fallback if GET request
     return redirect("profile")
     
 @login_required
