@@ -440,76 +440,67 @@
 
 <script>
 // =======================
-// Element references
-// =======================
-const profilePic = document.getElementById('profile-pic');
-const profilePicInput = document.getElementById('profilePicInput');
-const alienModal = document.getElementById('imgModal');
-const alienPreview = document.getElementById('imgPreview');
-const uploadRing = document.getElementById('uploadRing');
-const addModal = document.getElementById('addModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalTypeInput = document.getElementById('modalTypeInput');
-
-// =======================
-// Open / Close Add/Edit Modal
+// Modal functions
 // =======================
 function openModal(type) {
-  if (!addModal) return;
-  addModal.style.display = 'flex';
+  const modal = document.getElementById('addModal');
+  const title = document.getElementById('modalTitle');
+  const inputs = {
+    phone: document.getElementById('phoneInput'),
+    location: document.getElementById('locationInput'),
+    skills: document.getElementById('skillsInput'),
+    upload_cv: document.getElementById('cvInput'),
+    profile_pic: document.getElementById('profilePicInput')
+  };
 
+  if (!modal || !title) return;
+
+  modal.style.display = 'flex';
+
+  // Set modal type to backend input
+  const modalTypeInput = document.getElementById('modalTypeInput');
   if (modalTypeInput) modalTypeInput.value = type;
 
-  // Hide all inputs first
-  ['phoneInput','locationInput','skillsInput','cvInput','profilePicInput'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.style.display = 'none';
+  // Hide all inputs
+  Object.values(inputs).forEach(input => {
+    if (input) input.style.display = 'none';
   });
 
-  // Show the relevant input
-  switch(type){
-    case "phone":
-      document.getElementById('phoneInput')?.style.display = 'block';
-      modalTitle.innerText = "Add Phone"; break;
-    case "location":
-      document.getElementById('locationInput')?.style.display = 'block';
-      modalTitle.innerText = "Add Location"; break;
-    case "skills":
-      document.getElementById('skillsInput')?.style.display = 'block';
-      modalTitle.innerText = "Add Skills"; break;
-    case "upload_cv":
-      document.getElementById('cvInput')?.style.display = 'block';
-      modalTitle.innerText = "Upload CV"; break;
-    case "profile_pic":
-      document.getElementById('profilePicInput')?.style.display = 'block';
-      modalTitle.innerText = "Update Profile Picture"; break;
+  // Show the selected input
+  if (inputs[type]) {
+    inputs[type].style.display = 'block';
+    title.innerText = {
+      phone: "Add Phone",
+      location: "Add Location",
+      skills: "Add Skills",
+      upload_cv: "Upload CV",
+      profile_pic: "Update Profile Picture"
+    }[type];
   }
 }
 
 function closeModal() {
-  if(addModal) addModal.style.display = 'none';
+  const modal = document.getElementById('addModal');
+  if (modal) modal.style.display = 'none';
 }
 
 // =======================
-// Profile picture preview + auto-upload
+// Profile picture preview + auto-submit
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
+  const profilePic = document.getElementById('profile-pic');
+  const profilePicInput = document.getElementById('profilePicInput');
+  const uploadRing = document.getElementById('uploadRing');
 
-  if(profilePic && profilePicInput && alienModal && alienPreview && uploadRing){
+  if (profilePic && profilePicInput) {
+    profilePic.addEventListener('click', () => profilePicInput.click());
 
-    // Click profile picture: open preview modal
-    profilePic.addEventListener('click', () => {
-      alienPreview.src = profilePic.src;
-      alienModal.style.display = 'flex';
-    });
-
-    // File input change -> compress + upload
-    profilePicInput.addEventListener("change", async function(){
-      if(!this.files.length) return;
-
-      uploadRing.style.display = "flex";
+    profilePicInput.addEventListener('change', async function () {
+      if (!this.files.length) return;
+      if (uploadRing) uploadRing.style.display = "flex";
 
       const compressed = await compressImage(this.files[0]);
+
       const form = this.closest("form");
       const data = new FormData(form);
       data.set("profile_pic", compressed);
@@ -517,55 +508,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const xhr = new XMLHttpRequest();
       xhr.open("POST", form.action);
-
       xhr.upload.onprogress = e => {
-        const percent = Math.round((e.loaded / e.total)*100);
-        uploadRing.textContent = percent + "%";
+        if (uploadRing && e.total > 0) {
+          uploadRing.textContent = Math.round((e.loaded / e.total) * 100) + "%";
+        }
       };
-
       xhr.onload = () => location.reload();
       xhr.send(data);
     });
+  }
 
-    // Touch swipe to close modal on mobile
-    let startY = 0;
-    alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
-    alienPreview.addEventListener("touchmove", e => {
-      if(e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
+  // =======================
+  // Profile picture full preview modal
+  // =======================
+  const alienModal = document.getElementById("imgModal");
+  const alienPreview = document.getElementById("imgPreview");
+  const closeBtn = document.getElementById("closeBtn");
+  const infoBtn = document.getElementById("infoBtn");
+  const deleteBtn = document.getElementById("deleteBtn");
+
+  if (profilePic && alienModal && alienPreview) {
+    profilePic.addEventListener("click", () => {
+      alienPreview.src = profilePic.src;
+      alienModal.style.display = "flex";
     });
   }
 
-  // Alien modal buttons
-  document.getElementById("closeBtn")?.addEventListener("click", () => { alienModal.style.display = "none"; });
-  document.getElementById("infoBtn")?.addEventListener("click", () => {
+  if (closeBtn) closeBtn.addEventListener("click", () => alienModal.style.display = "none");
+
+  if (infoBtn) infoBtn.addEventListener("click", () => {
     alert(`📷 Profile Picture\nUploaded by: {{ user.username }}\nResolution: Auto\nSecurity: Encrypted`);
   });
-  document.getElementById("deleteBtn")?.addEventListener("click", () => {
-    if(confirm("Delete your profile picture?")){
-      fetch("{% url 'quick_profile_update' %}",{
+
+  if (deleteBtn) deleteBtn.addEventListener("click", () => {
+    if (confirm("Delete your profile picture?")) {
+      fetch("{% url 'quick_profile_update' %}", {
         method: "POST",
         headers: { "X-CSRFToken": "{{ csrf_token }}" },
-        body: new URLSearchParams({ modal_type:"profile_pic_delete" })
-      }).then(()=>location.reload());
+        body: new URLSearchParams({ modal_type: "profile_pic_delete" })
+      }).then(() => location.reload());
     }
   });
 
-  // Google Maps Autocomplete
-  const locationInput = document.getElementById('locationInput');
-  if(locationInput && window.google){
-    new google.maps.places.Autocomplete(locationInput, { types:["geocode"] });
+  // Touch swipe to close modal
+  if (alienPreview && alienModal) {
+    let startY = 0;
+    alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
+    alienPreview.addEventListener("touchmove", e => {
+      if (e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
+    });
   }
 
+  // =======================
+  // Google Maps autocomplete
+  // =======================
+  const locationInput = document.getElementById('locationInput');
+  if (locationInput && window.google) {
+    new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
+  }
+
+  // =======================
   // Reopen modal if form errors exist
+  // =======================
   {% if form_errors %}
     openModal("{{ modal_type }}");
   {% endif %}
 });
 
 // =======================
-// Compress image before upload
+// Image compression
 // =======================
-async function compressImage(file){
+async function compressImage(file) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
