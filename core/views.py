@@ -304,11 +304,6 @@ def cookies_policy(request):
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from .models import CVUpload
-import cloudinary
 
 @login_required
 def quick_profile_update(request):
