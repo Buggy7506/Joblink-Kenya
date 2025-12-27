@@ -338,6 +338,7 @@ def quick_profile_update(request):
         "user_cv": CVUpload.objects.filter(applicant=user).order_by('-id').first(),
         "form_errors": {},
         "modal_type": None,
+        "profile_picture_url": user.profile_pic.url if user.profile_pic else None,
     }
 
     if request.method == "POST":
@@ -375,9 +376,8 @@ def quick_profile_update(request):
             if not cv_file:
                 errors["upload_cv"] = ["Please upload a CV."]
             else:
-                # Create a new CV record every time
                 CVUpload.objects.create(applicant=user, cv=cv_file)
-                # Update latest CV in context
+                # Refresh latest CV in context
                 context["user_cv"] = CVUpload.objects.filter(applicant=user).order_by('-id').first()
 
         # ---------- PROFILE PIC DELETE ----------
@@ -1167,7 +1167,7 @@ def edit_profile(request):
 
     # Get the latest CV for this user
     latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
-    cv_filename = os.path.basename(latest_cv.cv.url) if latest_cv and latest_cv.cv else None  # Cloudinary-safe
+    cv_filename = os.path.basename(latest_cv.cv.url) if latest_cv and latest_cv.cv else None
 
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=user, user=user)
@@ -1175,9 +1175,9 @@ def edit_profile(request):
             user = form.save(commit=False)
 
             # Update profile picture if uploaded
-            profile_pic = request.FILES.get('profile_pic')
-            if profile_pic:
-                profile.profile_pic = profile_pic
+            uploaded_pic = request.FILES.get('profile_pic')
+            if uploaded_pic:
+                profile.profile_pic = uploaded_pic
                 profile.save()
 
             # Save user fields
