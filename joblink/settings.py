@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'channels',
+    'widget_tweaks',
 ]
 
 # -----------------------------------------------
