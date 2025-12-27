@@ -1036,7 +1036,6 @@ def profile_view(request):
     user = request.user  # CustomUser instance
 
     if request.method == "POST":
-        # Handle profile updates
         form = ProfileForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
@@ -1051,6 +1050,7 @@ def profile_view(request):
 
     # Get the latest CV
     user_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
+    cv_filename = os.path.basename(user_cv.cv.url) if user_cv and user_cv.cv else None
 
     # Convert skills string from CustomUser to a list (comma-separated)
     skills_list = [skill.strip() for skill in user.skills.split(',')] if user.skills else []
@@ -1058,6 +1058,7 @@ def profile_view(request):
     context = {
         'user': user,
         'user_cv': user_cv,
+        'cv_filename': cv_filename,  # pass the filename for template display
         'skills': skills_list,
         'profile_picture_url': user.profile_pic.url if user.profile_pic else None,
         'form': form,
