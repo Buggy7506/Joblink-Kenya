@@ -36,7 +36,7 @@ import os
 import re
 from collections import namedtuple
 from datetime import datetime, timedelta
-
+import cloudinary.uploader
 
 # Local apps
 from .models import (
@@ -304,7 +304,6 @@ def cookies_policy(request):
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
 
-
 @login_required
 def quick_profile_update(request):
     user = request.user
@@ -356,11 +355,18 @@ def quick_profile_update(request):
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-        # ---------- PROFILE PIC DELETE ----------
+        # ---------- PROFILE PIC DELETE (Cloudinary-safe) ----------
         elif modal_type == "profile_pic_delete":
             if user.profile_pic:
-                user.profile_pic.delete(save=False)
+                try:
+                    # Delete from Cloudinary
+                    cloudinary.uploader.destroy(user.profile_pic.public_id)
+                except Exception:
+                    pass
                 user.profile_pic = None
+
+                # Return JSON for AJAX call
+                return JsonResponse({"status": "deleted"})
 
         # ---------- PROFILE PIC UPLOAD ----------
         elif modal_type == "profile_pic":
