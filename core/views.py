@@ -1041,24 +1041,25 @@ def profile_view(request):
             form.save()
 
             # Handle CV upload if a new file is provided
-            if 'upload_cv' in request.FILES:
-                CVUpload.objects.create(applicant=user, cv=request.FILES['upload_cv'])
+            uploaded_cv = request.FILES.get('upload_cv')
+            if uploaded_cv:
+                CVUpload.objects.create(applicant=user, cv=uploaded_cv)
 
             return redirect('profile')  # Reload page to reflect updates
     else:
         form = ProfileForm(instance=user)
 
     # Get the latest CV for this user
-    user_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
-    cv_filename = os.path.basename(user_cv.cv.url) if user_cv and user_cv.cv else None
+    latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
+    cv_filename = os.path.basename(latest_cv.cv.url) if latest_cv and latest_cv.cv else None
 
     # Convert skills string to a list (comma-separated)
     skills_list = [skill.strip() for skill in user.skills.split(',')] if user.skills else []
 
     context = {
         'user': user,
-        'user_cv': user_cv,
-        'cv_filename': cv_filename,          # Pass filename for template display
+        'user_cv': latest_cv,
+        'cv_filename': cv_filename,                  # Pass filename for template display
         'skills': skills_list,
         'profile_picture_url': user.profile_pic.url if user.profile_pic else None,
         'form': form,
@@ -1164,9 +1165,9 @@ def edit_profile(request):
     # Ensure the Profile object exists
     profile, _ = Profile.objects.get_or_create(user=user)
 
-    # Get the latest CV for this user (if any)
+    # Get the latest CV for this user
     latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
-    cv_filename = latest_cv.cv.filename if latest_cv and latest_cv.cv else None  # Cloudinary filename
+    cv_filename = os.path.basename(latest_cv.cv.url) if latest_cv and latest_cv.cv else None  # Cloudinary-safe
 
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=user, user=user)
@@ -1174,19 +1175,21 @@ def edit_profile(request):
             user = form.save(commit=False)
 
             # Update profile picture if uploaded
-            if 'profile_pic' in request.FILES:
-                profile.profile_pic = request.FILES['profile_pic']
+            profile_pic = request.FILES.get('profile_pic')
+            if profile_pic:
+                profile.profile_pic = profile_pic
                 profile.save()
 
             # Save user fields
             user.save()
 
             # Handle CV upload if a new file is provided
-            if 'upload_cv' in request.FILES:
-                CVUpload.objects.create(applicant=user, cv=request.FILES['upload_cv'])
+            uploaded_cv = request.FILES.get('upload_cv')
+            if uploaded_cv:
+                CVUpload.objects.create(applicant=user, cv=uploaded_cv)
                 # Refresh latest CV and filename after upload
                 latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
-                cv_filename = latest_cv.cv.filename if latest_cv and latest_cv.cv else None
+                cv_filename = os.path.basename(latest_cv.cv.url) if latest_cv and latest_cv.cv else None
 
             # Redirect based on user role
             if user.is_superuser or user.role == 'admin':
@@ -1206,7 +1209,6 @@ def edit_profile(request):
     }
 
     return render(request, 'change_credentials.html', context)
-
     
 #Job Posting
 @login_required
