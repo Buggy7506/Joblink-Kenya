@@ -1107,23 +1107,29 @@ def admin_profile(request):
     })
 
 def edit_profile(request):
+    # Ensure the Profile object exists
     profile, created = Profile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
 
         if form.is_valid():
+            # Save user (including profile_pic and password)
             user = form.save()
-            profile.profile_pic = form.cleaned_data.get('profile_pic') or profile.profile_pic
-            profile.save()
 
-            # Redirect to correct profile automatically
+            # Ensure Profile model stays in sync with User profile_pic
+            if 'profile_pic' in form.cleaned_data and form.cleaned_data['profile_pic']:
+                profile.profile_pic = form.cleaned_data['profile_pic']
+                profile.save()
+
+            # Redirect to correct profile page
             if user.is_superuser or user.role == 'admin':
                 return redirect('admin_profile')
             elif user.role == 'employer':
                 return redirect('employer_profile')
             else:
                 return redirect('profile')
+
     else:
         form = EditProfileForm(instance=request.user, user=request.user)
 
