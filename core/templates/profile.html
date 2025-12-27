@@ -300,6 +300,12 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Dim default profile preview */
+.alien-frame.default img {
+  filter: brightness(0.6);
+  cursor: default;
+  transform: scale(1) !important;
+}
 </style>
 
 <div class="profile-container">
@@ -434,6 +440,8 @@
 </div>
 
 <script>
+const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
+
 // =======================
 // Modal functions
 // =======================
@@ -452,16 +460,11 @@ function openModal(type) {
 
   modal.style.display = 'flex';
 
-  // Set modal type for backend
   const modalTypeInput = document.getElementById('modalTypeInput');
   if (modalTypeInput) modalTypeInput.value = type;
 
-  // Hide all inputs
-  Object.values(inputs).forEach(input => {
-    if (input) input.style.display = 'none';
-  });
+  Object.values(inputs).forEach(input => input && (input.style.display = 'none'));
 
-  // Show the relevant input
   if (inputs[type]) {
     inputs[type].style.display = 'block';
     title.innerText = {
@@ -489,12 +492,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('closeBtn');
   const infoBtn = document.getElementById('infoBtn');
   const deleteBtn = document.getElementById('deleteBtn');
+  const uploadRing = document.getElementById('uploadRing');
 
-  // Click on profile picture opens preview modal only
+  // Helper: show default profile preview
+  function setPreviewForDefault() {
+    alienPreview.src = DEFAULT_PIC;
+    alienModal.classList.add('default');
+
+    infoBtn.style.opacity = 0.3;
+    infoBtn.style.pointerEvents = "none";
+    deleteBtn.style.opacity = 0.3;
+    deleteBtn.style.pointerEvents = "none";
+
+    if (!document.getElementById('defaultMsg')) {
+      const msg = document.createElement('div');
+      msg.id = 'defaultMsg';
+      msg.style.position = 'absolute';
+      msg.style.top = '50%';
+      msg.style.left = '50%';
+      msg.style.transform = 'translate(-50%, -50%)';
+      msg.style.color = '#22d3ee';
+      msg.style.fontWeight = 'bold';
+      msg.style.fontSize = '18px';
+      msg.textContent = 'No profile picture uploaded';
+      alienPreview.parentElement.appendChild(msg);
+    }
+  }
+
+  function resetPreviewButtons() {
+    alienModal.classList.remove('default');
+    infoBtn.style.opacity = 1;
+    infoBtn.style.pointerEvents = "auto";
+    deleteBtn.style.opacity = 1;
+    deleteBtn.style.pointerEvents = "auto";
+
+    const msg = document.getElementById('defaultMsg');
+    if (msg) msg.remove();
+  }
+
+  // Click profile picture: preview only
   if (profilePic && alienModal && alienPreview) {
     profilePic.addEventListener("click", () => {
-      alienPreview.src = profilePic.src;
       alienModal.style.display = "flex";
+      if (profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
+        setPreviewForDefault();
+      } else {
+        alienPreview.src = profilePic.src;
+        resetPreviewButtons();
+      }
     });
   }
 
@@ -503,17 +548,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Info button
   if (infoBtn) infoBtn.addEventListener("click", () => {
+    if (infoBtn.style.pointerEvents === "none") return;
     alert(`📷 Profile Picture\nUploaded by: {{ user.username }}\nResolution: Auto\nSecurity: Encrypted`);
   });
 
   // Delete button
   if (deleteBtn) deleteBtn.addEventListener("click", () => {
+    if (deleteBtn.style.pointerEvents === "none") return;
     if (confirm("Delete your profile picture?")) {
       fetch("{% url 'quick_profile_update' %}", {
         method: "POST",
         headers: { "X-CSRFToken": "{{ csrf_token }}" },
         body: new URLSearchParams({ modal_type: "profile_pic_delete" })
-      }).then(() => location.reload());
+      }).then(() => {
+        profilePic.src = DEFAULT_PIC;
+        setPreviewForDefault();
+      });
     }
   });
 
@@ -526,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Google Maps autocomplete for location
+  // Google Maps autocomplete
   const locationInput = document.getElementById('locationInput');
   if (locationInput && window.google) {
     new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
@@ -539,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =======================
-// Image compression helper (used for uploads elsewhere, not triggered by profile click)
+// Image compression helper
 // =======================
 async function compressImage(file) {
   return new Promise(resolve => {
