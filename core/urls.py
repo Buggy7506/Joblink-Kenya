@@ -6,6 +6,7 @@ urlpatterns = [
     #path('security/resend-device-code/', views.resend_device_code, name='resend_device_code'),
     #path("security/choose-method/", views.choose_verification_method, name="choose-verification-method"),
     #path("security/verify-device/", views.verify_device, name="verify-device"),
+    path('delete-cv/', views.delete_cv, name='delete_cv'),
     path("profile/quick-update/", views.quick_profile_update, name="quick_profile_update"),
     path("privacy/", views.privacy_policy, name="privacy_policy"),
     path("terms/", views.terms_of_service, name="terms_of_service"),
