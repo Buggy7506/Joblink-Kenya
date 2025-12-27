@@ -459,7 +459,6 @@ function openModal(type) {
   if (!modal || !title) return;
 
   modal.style.display = 'flex';
-
   const modalTypeInput = document.getElementById('modalTypeInput');
   if (modalTypeInput) modalTypeInput.value = type;
 
@@ -492,9 +491,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('closeBtn');
   const infoBtn = document.getElementById('infoBtn');
   const deleteBtn = document.getElementById('deleteBtn');
-  const uploadRing = document.getElementById('uploadRing');
 
-  // Helper: show default profile preview
+  // Show default profile preview
   function setPreviewForDefault() {
     alienPreview.src = DEFAULT_PIC;
     alienModal.classList.add('default');
@@ -519,6 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Restore normal preview for real images
   function resetPreviewButtons() {
     alienModal.classList.remove('default');
     infoBtn.style.opacity = 1;
