@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse, JsonResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 # Django auth
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash, get_user_model
@@ -304,6 +305,29 @@ def cookies_policy(request):
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
 
+@login_required
+@require_POST
+def delete_cv(request):
+    user = request.user
+    # Get the latest CV
+    latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
+
+    if latest_cv:
+        # Delete from Cloudinary if public_id exists
+        public_id = getattr(latest_cv.cv, 'public_id', None)
+        if public_id:
+            try:
+                cloudinary.uploader.destroy(public_id)
+            except Exception:
+                pass  # optionally log the error
+
+        # Delete from Django storage
+        latest_cv.cv.delete(save=False)
+        # Delete the CV record
+        latest_cv.delete()
+
+    return JsonResponse({'status': 'deleted'})
+    
 
 @login_required
 def quick_profile_update(request):
