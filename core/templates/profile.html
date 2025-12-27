@@ -217,51 +217,51 @@
 
   <!-- PROFILE PICTURE -->
   <div class="profile-pic">
-    <img id="profile-pic" 
-         src="{{ profile_picture_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}" 
+    <img id="profile-pic"
+         src="{{ profile_picture_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}"
          alt="Profile Picture">
   </div>
 
-  <!-- PROFILE INFO -->
+  <!-- PROFILE INFORMATION -->
   <div class="profile-info">
 
-    <div>
-      <p>Username</p>
-      <p>{{ user.username }}</p>
+    <div class="info-item">
+      <p class="label">Username</p>
+      <p class="value">{{ user.username }}</p>
     </div>
 
-    <div>
-      <p>Email</p>
-      <p>{{ user.email }}</p>
+    <div class="info-item">
+      <p class="label">Email</p>
+      <p class="value">{{ user.email }}</p>
     </div>
 
-    <div>
-      <p>Phone</p>
+    <div class="info-item">
+      <p class="label">Phone</p>
       {% if user.phone %}
-        <p>{{ user.phone }}</p>
+        <p class="value">{{ user.phone }}</p>
       {% else %}
         <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
       {% endif %}
     </div>
 
-    <div>
-      <p>Location</p>
+    <div class="info-item">
+      <p class="label">Location</p>
       {% if user.location %}
-        <p>{{ user.location }}</p>
+        <p class="value">{{ user.location }}</p>
       {% else %}
         <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
       {% endif %}
     </div>
 
-    <div>
-      <p>Role</p>
-      <p>{{ user.role|capfirst }}</p>
+    <div class="info-item">
+      <p class="label">Role</p>
+      <p class="value">{{ user.role|capfirst }}</p>
     </div>
 
-    <div>
-      <p>Skills</p>
+    <div class="info-item">
+      <p class="label">Skills</p>
       {% if skills %}
-        <ul>
+        <ul class="skills-list">
           {% for skill in skills %}
             <li>{{ skill }}</li>
           {% endfor %}
@@ -271,12 +271,10 @@
       {% endif %}
     </div>
 
-    <div>
-      <p>CV</p>
+    <div class="info-item">
+      <p class="label">CV</p>
       {% if user_cv %}
-        <a href="{{ user_cv.cv.url }}" target="_blank" style="color:#34d399">
-          📄 View CV
-        </a>
+        <a href="{{ user_cv.cv.url }}" target="_blank" class="cv-link">📄 View CV</a>
       {% else %}
         <p><span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span></p>
       {% endif %}
@@ -284,32 +282,30 @@
 
   </div>
 
-  <!-- RESUME -->
+  <!-- RESUME LINK -->
   <a href="{% url 'view_resume' %}" class="resume-card">
     📄 View My Resume
   </a>
 
-  <!-- EDIT PROFILE -->
+  <!-- EDIT PROFILE BUTTON -->
   <div class="edit-button">
     <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
   </div>
 
 </div>
 
-<!-- ADD / EDIT MODAL -->
+<!-- MODAL FOR ADD / EDIT INFO -->
 <div id="addModal" class="add-modal">
   <div class="add-box">
     <span class="close-add" onclick="closeModal()">×</span>
     <h2 id="modalTitle"></h2>
 
-    <form method="POST" enctype="multipart/form-data"
-          action="{% url 'quick_profile_update' %}">
+    <form method="POST" enctype="multipart/form-data" action="{% url 'quick_profile_update' %}">
       {% csrf_token %}
 
-      <!-- IMPORTANT: modal type -->
       <input type="hidden" name="modal_type" id="modalTypeInput">
 
-      <!-- Errors -->
+      <!-- Display form errors -->
       {% if form_errors %}
         <div class="form-errors" style="color:#f87171; margin-bottom:10px;">
           {% for field, errors in form_errors.items %}
@@ -320,7 +316,7 @@
         </div>
       {% endif %}
 
-      <!-- Inputs -->
+      <!-- Conditional Inputs -->
       <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
       <input id="locationInput" name="location" placeholder="Search location" style="display:none">
       <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
@@ -335,7 +331,7 @@
 <!-- IMAGE PREVIEW MODAL -->
 <div id="imgModal">
   <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
-  <img id="imgPreview">
+  <img id="imgPreview" alt="Preview">
 </div>
 
 <script>
