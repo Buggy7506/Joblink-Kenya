@@ -217,13 +217,9 @@
 
   <!-- PROFILE PICTURE -->
   <div class="profile-pic">
-    {% if user.profile_pic %}
-      <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
-    {% else %}
-      <img id="profile-pic"
-           src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
-           alt="Default Picture">
-    {% endif %}
+    <img id="profile-pic" 
+         src="{{ profile_picture_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}" 
+         alt="Profile Picture">
   </div>
 
   <!-- PROFILE INFO -->
