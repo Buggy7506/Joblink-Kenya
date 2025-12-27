@@ -308,11 +308,11 @@ def cookies_policy(request):
 def quick_profile_update(request):
     user = request.user
 
-    # Prepare context for errors or modal reopen
+    # Base context for modal reopening and errors
     context = {
         "user": user,
         "skills": user.skills.split(",") if user.skills else [],
-        "user_cv": CVUpload.objects.filter(applicant=user).order_by('-id').first(),  # latest CV
+        "user_cv": CVUpload.objects.filter(applicant=user).order_by('-id').first(),
         "form_errors": {},
         "modal_type": None,
     }
@@ -352,7 +352,6 @@ def quick_profile_update(request):
             if not cv_file:
                 errors["upload_cv"] = ["Please upload a CV."]
             else:
-                # Create a new CV record for the user
                 CVUpload.objects.create(applicant=user, cv=cv_file)
 
         # ---------- PROFILE PIC DELETE ----------
@@ -363,6 +362,7 @@ def quick_profile_update(request):
                 except Exception:
                     pass
                 user.profile_pic = None
+                user.save()
             return JsonResponse({"status": "deleted"})
 
         # ---------- PROFILE PIC UPLOAD ----------
@@ -373,7 +373,7 @@ def quick_profile_update(request):
             else:
                 user.profile_pic = pic
 
-        # ---------- VALIDATION ERRORS ----------
+        # ---------- HANDLE VALIDATION ERRORS ----------
         if errors:
             context["form_errors"] = errors
             return render(request, "profile.html", context)
@@ -382,7 +382,7 @@ def quick_profile_update(request):
         user.save()
         return redirect("profile")
 
-    # Fallback if GET request
+    # Fallback for GET requests
     return redirect("profile")
     
 @login_required
