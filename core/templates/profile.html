@@ -215,29 +215,46 @@
 
 <div class="profile-container">
 
+  <!-- PROFILE PICTURE -->
   <div class="profile-pic">
     {% if user.profile_pic %}
       <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
     {% else %}
-      <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+      <img id="profile-pic"
+           src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
+           alt="Default Picture">
     {% endif %}
   </div>
 
+  <!-- PROFILE INFO -->
   <div class="profile-info">
 
-    <div><p>Username</p><p>{{ user.username }}</p></div>
-    <div><p>Email</p><p>{{ user.email }}</p></div>
+    <div>
+      <p>Username</p>
+      <p>{{ user.username }}</p>
+    </div>
+
+    <div>
+      <p>Email</p>
+      <p>{{ user.email }}</p>
+    </div>
 
     <div>
       <p>Phone</p>
-      {% if user.phone %}<p>{{ user.phone }}</p>
-      {% else %}<p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>{% endif %}
+      {% if user.phone %}
+        <p>{{ user.phone }}</p>
+      {% else %}
+        <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
+      {% endif %}
     </div>
 
     <div>
       <p>Location</p>
-      {% if user.location %}<p>{{ user.location }}</p>
-      {% else %}<p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>{% endif %}
+      {% if user.location %}
+        <p>{{ user.location }}</p>
+      {% else %}
+        <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
+      {% endif %}
     </div>
 
     <div>
@@ -248,7 +265,11 @@
     <div>
       <p>Skills</p>
       {% if skills %}
-        <ul>{% for skill in skills %}<li>{{ skill }}</li>{% endfor %}</ul>
+        <ul>
+          {% for skill in skills %}
+            <li>{{ skill }}</li>
+          {% endfor %}
+        </ul>
       {% else %}
         <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
       {% endif %}
@@ -257,33 +278,42 @@
     <div>
       <p>CV</p>
       {% if user_cv %}
-        <a href="{{ user_cv.cv.url }}" style="color:#34d399" target="_blank">📄 View CV</a>
+        <a href="{{ user_cv.cv.url }}" target="_blank" style="color:#34d399">
+          📄 View CV
+        </a>
       {% else %}
-        <span class="add-link" onclick="openModal('cv')">➕ Upload CV</span>
+        <p><span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span></p>
       {% endif %}
     </div>
 
   </div>
 
-  <a href="{% url 'view_resume' %}" class="resume-card">📄 View My Resume</a>
+  <!-- RESUME -->
+  <a href="{% url 'view_resume' %}" class="resume-card">
+    📄 View My Resume
+  </a>
 
+  <!-- EDIT PROFILE -->
   <div class="edit-button">
     <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
   </div>
 
 </div>
 
-<!-- ADD MODAL -->
+<!-- ADD / EDIT MODAL -->
 <div id="addModal" class="add-modal">
   <div class="add-box">
     <span class="close-add" onclick="closeModal()">×</span>
     <h2 id="modalTitle"></h2>
 
-    <!-- Standard form submission -->
-    <form method="POST" enctype="multipart/form-data" action="{% url 'quick_profile_update' %}">
+    <form method="POST" enctype="multipart/form-data"
+          action="{% url 'quick_profile_update' %}">
       {% csrf_token %}
-       
-      <!-- Display errors -->
+
+      <!-- IMPORTANT: modal type -->
+      <input type="hidden" name="modal_type" id="modalTypeInput">
+
+      <!-- Errors -->
       {% if form_errors %}
         <div class="form-errors" style="color:#f87171; margin-bottom:10px;">
           {% for field, errors in form_errors.items %}
@@ -293,19 +323,20 @@
           {% endfor %}
         </div>
       {% endif %}
-      
+
+      <!-- Inputs -->
       <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
       <input id="locationInput" name="location" placeholder="Search location" style="display:none">
       <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
       <input id="cvInput" type="file" name="upload_cv" style="display:none">
       <input id="profilePicInput" type="file" name="profile_pic" style="display:none">
-      
+
       <button type="submit">Save</button>
     </form>
   </div>
 </div>
 
-<!-- IMAGE MODAL -->
+<!-- IMAGE PREVIEW MODAL -->
 <div id="imgModal">
   <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
   <img id="imgPreview">
@@ -319,31 +350,50 @@ function openModal(type) {
   const modal = document.getElementById('addModal');
   modal.style.display = 'flex';
 
+  // ✅ Send modal type to backend
+  const modalTypeInput = document.getElementById('modalTypeInput');
+  if (modalTypeInput) {
+    modalTypeInput.value = type;
+  }
+
   // Hide all inputs first
-  ['phoneInput', 'locationInput', 'skillsInput', 'cvInput'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
+  [
+    'phoneInput',
+    'locationInput',
+    'skillsInput',
+    'cvInput',
+    'profilePicInput'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
   });
 
   const title = document.getElementById('modalTitle');
 
   // Show the input corresponding to type
-  switch(type) {
-    case "phone":
-      document.getElementById('phoneInput').style.display = 'block';
-      title.innerText = "Add Phone";
-      break;
-    case "location":
-      document.getElementById('locationInput').style.display = 'block';
-      title.innerText = "Add Location";
-      break;
-    case "skills":
-      document.getElementById('skillsInput').style.display = 'block';
-      title.innerText = "Add Skills";
-      break;
-    case "cv":
-      document.getElementById('cvInput').style.display = 'block';
-      title.innerText = "Upload CV";
-      break;
+  if (type === "phone") {
+    phoneInput.style.display = 'block';
+    title.innerText = "Add Phone";
+  }
+
+  if (type === "location") {
+    locationInput.style.display = 'block';
+    title.innerText = "Add Location";
+  }
+
+  if (type === "skills") {
+    skillsInput.style.display = 'block';
+    title.innerText = "Add Skills";
+  }
+
+  if (type === "upload_cv") {
+    cvInput.style.display = 'block';
+    title.innerText = "Upload CV";
+  }
+
+  if (type === "profile_pic") {
+    profilePicInput.style.display = 'block';
+    title.innerText = "Update Profile Picture";
   }
 }
 
@@ -352,39 +402,47 @@ function closeModal() {
 }
 
 // =======================
-// Profile picture preview
+// Profile picture preview + auto submit
 // =======================
 const profilePic = document.getElementById('profile-pic');
 const profilePicInput = document.getElementById('profilePicInput');
 
-profilePic.onclick = () => profilePicInput.click();
+if (profilePic && profilePicInput) {
+  profilePic.onclick = () => profilePicInput.click();
 
-profilePicInput.addEventListener("change", function() {
-  if (this.files && this.files[0]) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      profilePic.src = e.target.result; // show preview immediately
-    };
-    reader.readAsDataURL(this.files[0]);
-  }
-});
+  profilePicInput.addEventListener("change", function () {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        profilePic.src = e.target.result; // preview instantly
+      };
+      reader.readAsDataURL(this.files[0]);
+
+      // ✅ auto submit profile picture
+      document.getElementById("modalTypeInput").value = "profile_pic";
+      this.closest("form").submit();
+    }
+  });
+}
 
 // =======================
 // Google Maps autocomplete for location input
 // =======================
 function initAutocomplete() {
   const locationInput = document.getElementById('locationInput');
-  if(locationInput && window.google){
-    new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
+  if (locationInput && window.google) {
+    new google.maps.places.Autocomplete(locationInput, {
+      types: ["geocode"]
+    });
   }
 }
 document.addEventListener('DOMContentLoaded', initAutocomplete);
 
 // =======================
-// Show modal automatically on page reload if errors exist
+// Reopen modal if form errors exist
 // =======================
 document.addEventListener("DOMContentLoaded", () => {
-  {% if form_errors and modal_type %}
+  {% if form_errors %}
     openModal("{{ modal_type }}");
   {% endif %}
 });
