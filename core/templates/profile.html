@@ -452,7 +452,6 @@ function openModal(type) {
 
   modal.style.display = 'flex';
 
-  // Set modal type to backend input
   const modalTypeInput = document.getElementById('modalTypeInput');
   if (modalTypeInput) modalTypeInput.value = type;
 
@@ -480,41 +479,7 @@ function closeModal() {
 }
 
 // =======================
-// Profile picture preview + auto-submit
-// =======================
-document.addEventListener('DOMContentLoaded', () => {
-  const profilePic = document.getElementById('profile-pic');
-  const profilePicInput = document.getElementById('profilePicInput');
-  const uploadRing = document.getElementById('uploadRing');
-
-  if (profilePic && profilePicInput) {
-    profilePic.addEventListener('click', () => profilePicInput.click());
-
-    profilePicInput.addEventListener('change', async function () {
-      if (!this.files.length) return;
-      if (uploadRing) uploadRing.style.display = "flex";
-
-      const compressed = await compressImage(this.files[0]);
-
-      const form = this.closest("form");
-      const data = new FormData(form);
-      data.set("profile_pic", compressed);
-      data.set("modal_type", "profile_pic");
-
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", form.action);
-      xhr.upload.onprogress = e => {
-        if (uploadRing && e.total > 0) {
-          uploadRing.textContent = Math.round((e.loaded / e.total) * 100) + "%";
-        }
-      };
-      xhr.onload = () => location.reload();
-      xhr.send(data);
-    });
-  }
-
-  // =======================
-// Profile picture preview only
+// Profile picture preview modal
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
   const profilePic = document.getElementById('profile-pic');
@@ -531,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (closeBtn) closeBtn.addEventListener("click", () => alienModal.style.display = "none"));
+  if (closeBtn) closeBtn.addEventListener("click", () => alienModal.style.display = "none");
 
   if (infoBtn) infoBtn.addEventListener("click", () => {
     alert(`📷 Profile Picture\nUploaded by: {{ user.username }}\nResolution: Auto\nSecurity: Encrypted`);
@@ -555,7 +520,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
     });
   }
-});
 
   // =======================
   // Google Maps autocomplete
@@ -574,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =======================
-// Image compression
+// Image compression helper
 // =======================
 async function compressImage(file) {
   return new Promise(resolve => {
@@ -593,6 +557,7 @@ async function compressImage(file) {
   });
 }
 </script>
+
 
 <!-- Google Maps API (replace YOUR_API_KEY with your actual API key) -->
 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
