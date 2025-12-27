@@ -356,21 +356,30 @@ def quick_profile_update(request):
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-        # ---------- PROFILE PIC ----------
-        if "profile_pic" in request.FILES:
-            user.profile_pic = request.FILES["profile_pic"]
+        # ---------- PROFILE PIC DELETE ----------
+        elif modal_type == "profile_pic_delete":
+            if user.profile_pic:
+                user.profile_pic.delete(save=False)
+                user.profile_pic = None
+
+        # ---------- PROFILE PIC UPLOAD ----------
+        elif modal_type == "profile_pic":
+            pic = request.FILES.get("profile_pic")
+            if not pic:
+                errors["profile_pic"] = ["No image selected."]
+            else:
+                user.profile_pic = pic
 
         # ❌ Validation failed → reopen modal ONCE
         if errors:
             context["form_errors"] = errors
             return render(request, "profile.html", context)
 
-        # ✅ Save & redirect (CRITICAL)
+        # ✅ Save everything
         user.save()
         return redirect("profile")
 
     return redirect("profile")
-
     
 @login_required
 def account_settings(request):
