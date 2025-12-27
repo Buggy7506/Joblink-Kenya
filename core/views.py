@@ -1162,15 +1162,10 @@ def edit_profile(request):
 
     # Get the latest CV for this user (if any)
     latest_cv = CVUpload.objects.filter(applicant=request.user).order_by('-id').first()
-    if latest_cv and latest_cv.cv:
-        # Extract filename from Cloudinary URL
-        cv_filename = os.path.basename(latest_cv.cv.url)
-    else:
-        cv_filename = None
+    cv_filename = latest_cv.cv.filename if latest_cv and latest_cv.cv else None  # Use Cloudinary's filename
 
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
-
         if form.is_valid():
             user = form.save(commit=False)
 
@@ -1197,6 +1192,7 @@ def edit_profile(request):
         'user_cv': latest_cv,
         'cv_filename': cv_filename,
     })
+
     
 #Job Posting
 @login_required
