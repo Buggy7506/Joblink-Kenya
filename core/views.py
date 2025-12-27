@@ -309,25 +309,23 @@ def cookies_policy(request):
 @require_POST
 def delete_cv(request):
     user = request.user
-    # Get the latest CV
+    # Get the latest CV for this user
     latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
 
-    if latest_cv:
-        # Delete from Cloudinary if public_id exists
+    if latest_cv and latest_cv.cv:
+        # Delete from Cloudinary using public_id
         public_id = getattr(latest_cv.cv, 'public_id', None)
         if public_id:
             try:
                 cloudinary.uploader.destroy(public_id)
-            except Exception:
-                pass  # optionally log the error
+            except Exception as e:
+                # Optional: log the error
+                print(f"Error deleting CV from Cloudinary: {e}")
 
-        # Delete from Django storage
-        latest_cv.cv.delete(save=False)
-        # Delete the CV record
+        # Delete the model instance
         latest_cv.delete()
 
     return JsonResponse({'status': 'deleted'})
-    
 
 @login_required
 def quick_profile_update(request):
