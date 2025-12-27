@@ -1114,13 +1114,14 @@ def edit_profile(request):
         form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
 
         if form.is_valid():
-            # Save user (including profile_pic and password)
-            user = form.save()
+            user = form.save(commit=False)
 
-            # Ensure Profile model stays in sync with User profile_pic
-            if 'profile_pic' in form.cleaned_data and form.cleaned_data['profile_pic']:
-                profile.profile_pic = form.cleaned_data['profile_pic']
+            # Update profile picture
+            if 'profile_pic' in request.FILES:
+                profile.profile_pic = request.FILES['profile_pic']
                 profile.save()
+
+            user.save()  # Save other user fields
 
             # Redirect to correct profile page
             if user.is_superuser or user.role == 'admin':
