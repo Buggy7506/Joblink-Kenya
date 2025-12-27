@@ -27,9 +27,21 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    @property
+    def profile_picture_url(self):
+        """
+        Returns the profile picture URL. Falls back to default if none exists.
+        """
+        if self.profile_pic:
+            return self.profile_pic.url
+        # If a related profile exists with a picture
+        if hasattr(self, 'profile') and self.profile.profile_pic:
+            return self.profile.profile_pic.url
+        return "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
+
 
 # ======================================================
-# PROFILE (Updated with verification method)
+# PROFILE
 # ======================================================
 class Profile(models.Model):
     VERIFICATION_CHOICES = (
@@ -46,8 +58,8 @@ class Profile(models.Model):
     experience = models.TextField(blank=True)
     education = models.TextField(blank=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
-
-    # NEW FIELD → Preferred method for device verification
+    
+    # Preferred method for device verification
     verification_method = models.CharField(
         max_length=10,
         choices=VERIFICATION_CHOICES,
@@ -57,6 +69,17 @@ class Profile(models.Model):
     def __str__(self):
         return self.full_name
 
+    @property
+    def profile_picture_url(self):
+        """
+        Returns profile picture URL. Falls back to user's profile_pic or default image.
+        """
+        if self.profile_pic:
+            return self.profile_pic.url
+        if self.user.profile_pic:
+            return self.user.profile_pic.url
+        return "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
+        
 
 # ======================================================
 # DEVICE SECURITY MODELS
