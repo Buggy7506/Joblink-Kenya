@@ -308,53 +308,69 @@ def cookies_policy(request):
 @login_required
 def quick_profile_update(request):
     user = request.user
+
     context = {
-        'user': user,
-        'skills': user.skills.split(',') if user.skills else [],
-        'user_cv': user.cvupload_set.last() if user.cvupload_set.exists() else None,
-        'form_errors': {},
-        'modal_type': None,  # Which modal to open if errors occur
+        "user": user,
+        "skills": user.skills.split(",") if user.skills else [],
+        "user_cv": CVUpload.objects.filter(applicant=user).last(),
+        "form_errors": {},
+        "modal_type": None,
     }
 
     if request.method == "POST":
-        data = request.POST.copy()
+        modal_type = request.POST.get("modal_type")
+        context["modal_type"] = modal_type
+        errors = {}
 
-        # Remove password fields if empty
-        if not data.get('password'):
-            data.pop('password', None)
-            data.pop('confirm_password', None)
+        # ---------- PHONE ----------
+        if modal_type == "phone":
+            phone = request.POST.get("phone", "").strip()
+            if not phone:
+                errors["phone"] = ["Phone number is required."]
+            else:
+                user.phone = phone
 
-        form = EditProfileForm(data, request.FILES, instance=user, user=user)
+        # ---------- LOCATION ----------
+        elif modal_type == "location":
+            location = request.POST.get("location", "").strip()
+            if not location:
+                errors["location"] = ["Location is required."]
+            else:
+                user.location = location
 
-        # Detect which modal was submitted
-        for field in ['phone', 'location', 'skills', 'upload_cv', 'profile_pic']:
-            if field in request.POST or field in request.FILES:
-                context['modal_type'] = field
-                break
+        # ---------- SKILLS ----------
+        elif modal_type == "skills":
+            skills = request.POST.get("skills", "").strip()
+            if not skills:
+                errors["skills"] = ["Please add at least one skill."]
+            else:
+                user.skills = skills
 
-        if form.is_valid():
-            user = form.save(commit=False)
-
-            # Update profile picture
-            if 'profile_pic' in request.FILES:
-                user.profile_pic = request.FILES['profile_pic']
-
-            user.save()
-
-            # Update CV
-            if 'upload_cv' in request.FILES:
-                cv_file = request.FILES['upload_cv']
-                cv_obj, created = CVUpload.objects.get_or_create(applicant=user)
+        # ---------- CV ----------
+        elif modal_type == "upload_cv":
+            cv_file = request.FILES.get("upload_cv")
+            if not cv_file:
+                errors["upload_cv"] = ["Please upload a CV."]
+            else:
+                cv_obj, _ = CVUpload.objects.get_or_create(applicant=user)
                 cv_obj.cv = cv_file
                 cv_obj.save()
 
-            return redirect('profile')  # Page reloads and shows updated data
+        # ---------- PROFILE PIC ----------
+        if "profile_pic" in request.FILES:
+            user.profile_pic = request.FILES["profile_pic"]
 
-        else:
-            # Pass errors and reopen the correct modal
-            context['form_errors'] = form.errors
+        # ❌ Validation failed → reopen modal ONCE
+        if errors:
+            context["form_errors"] = errors
+            return render(request, "profile.html", context)
 
-    return render(request, 'profile.html', context)
+        # ✅ Save & redirect (CRITICAL)
+        user.save()
+        return redirect("profile")
+
+    return redirect("profile")
+
     
 @login_required
 def account_settings(request):
