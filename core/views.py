@@ -304,6 +304,12 @@ def cookies_policy(request):
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import CVUpload
+import cloudinary
+
 @login_required
 def quick_profile_update(request):
     user = request.user
@@ -352,7 +358,10 @@ def quick_profile_update(request):
             if not cv_file:
                 errors["upload_cv"] = ["Please upload a CV."]
             else:
+                # Create a new CV record every time
                 CVUpload.objects.create(applicant=user, cv=cv_file)
+                # Update latest CV in context
+                context["user_cv"] = CVUpload.objects.filter(applicant=user).order_by('-id').first()
 
         # ---------- PROFILE PIC DELETE ----------
         elif modal_type == "profile_pic_delete":
@@ -378,13 +387,13 @@ def quick_profile_update(request):
             context["form_errors"] = errors
             return render(request, "profile.html", context)
 
-        # ---------- SAVE USER AND REDIRECT ----------
+        # ---------- SAVE USER ----------
         user.save()
         return redirect("profile")
 
     # Fallback for GET requests
     return redirect("profile")
-    
+
 @login_required
 def account_settings(request):
     """
