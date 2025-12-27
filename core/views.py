@@ -1011,22 +1011,32 @@ def dashboard(request):
 def profile_view(request):
     user = request.user  # CustomUser instance
 
-    # Latest CV
-    try:
-        user_cv = CVUpload.objects.filter(applicant=user).latest('id')
-    except CVUpload.DoesNotExist:
-        user_cv = None
+    if request.method == "POST":
+        # Handle profile updates
+        form = ProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+
+            # Handle CV upload
+            if 'upload_cv' in request.FILES:
+                CVUpload.objects.create(applicant=user, cv=request.FILES['upload_cv'])
+
+            return redirect('profile')  # reload page to reflect updates
+    else:
+        form = ProfileForm(instance=user)
+
+    # Get the latest CV
+    user_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
 
     # Convert skills string from CustomUser to a list (comma-separated)
-    skills_list = []
-    if user.skills:
-        skills_list = [skill.strip() for skill in user.skills.split(',')]
+    skills_list = [skill.strip() for skill in user.skills.split(',')] if user.skills else []
 
     context = {
         'user': user,
         'user_cv': user_cv,
-        'skills': skills_list,  # Pass skills list directly
+        'skills': skills_list,
         'profile_picture_url': user.profile_pic.url if user.profile_pic else None,
+        'form': form,
     }
 
     template_name = 'employer_profile.html' if user.role == 'employer' else 'profile.html'
