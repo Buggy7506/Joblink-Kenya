@@ -1157,9 +1157,14 @@ def admin_profile(request):
         'admin': request.user,
     })
 
+@login_required
 def edit_profile(request):
     # Ensure the Profile object exists
-    profile, created = Profile.objects.get_or_create(user=request.user)
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    # Get the latest CV for this user (if any)
+    latest_cv = CVUpload.objects.filter(applicant=request.user).order_by('-id').first()
+    cv_filename = os.path.basename(latest_cv.cv.name) if latest_cv else None
 
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
@@ -1174,7 +1179,7 @@ def edit_profile(request):
 
             user.save()  # Save other user fields
 
-            # Redirect to correct profile page
+            # Redirect based on user role
             if user.is_superuser or user.role == 'admin':
                 return redirect('admin_profile')
             elif user.role == 'employer':
@@ -1187,9 +1192,11 @@ def edit_profile(request):
 
     return render(request, 'change_credentials.html', {
         'form': form,
-        'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None
+        'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
+        'user_cv': latest_cv,
+        'cv_filename': cv_filename,
     })
-
+    
 #Job Posting
 @login_required
 def post_job(request):
