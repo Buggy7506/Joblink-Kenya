@@ -1164,7 +1164,11 @@ def edit_profile(request):
 
     # Get the latest CV for this user (if any)
     latest_cv = CVUpload.objects.filter(applicant=request.user).order_by('-id').first()
-    cv_filename = os.path.basename(latest_cv.cv.name) if latest_cv else None
+    if latest_cv and latest_cv.cv:
+        # Extract filename from Cloudinary URL
+        cv_filename = os.path.basename(latest_cv.cv.url)
+    else:
+        cv_filename = None
 
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
@@ -1186,7 +1190,6 @@ def edit_profile(request):
                 return redirect('employer_profile')
             else:
                 return redirect('profile')
-
     else:
         form = EditProfileForm(instance=request.user, user=request.user)
 
