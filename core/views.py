@@ -1040,30 +1040,31 @@ def profile_view(request):
         if form.is_valid():
             form.save()
 
-            # Handle CV upload
+            # Handle CV upload if a new file is provided
             if 'upload_cv' in request.FILES:
                 CVUpload.objects.create(applicant=user, cv=request.FILES['upload_cv'])
 
-            return redirect('profile')  # reload page to reflect updates
+            return redirect('profile')  # Reload page to reflect updates
     else:
         form = ProfileForm(instance=user)
 
-    # Get the latest CV
+    # Get the latest CV for this user
     user_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
     cv_filename = os.path.basename(user_cv.cv.url) if user_cv and user_cv.cv else None
 
-    # Convert skills string from CustomUser to a list (comma-separated)
+    # Convert skills string to a list (comma-separated)
     skills_list = [skill.strip() for skill in user.skills.split(',')] if user.skills else []
 
     context = {
         'user': user,
         'user_cv': user_cv,
-        'cv_filename': cv_filename,  # pass the filename for template display
+        'cv_filename': cv_filename,          # Pass filename for template display
         'skills': skills_list,
         'profile_picture_url': user.profile_pic.url if user.profile_pic else None,
         'form': form,
     }
 
+    # Choose template based on user role
     template_name = 'employer_profile.html' if user.role == 'employer' else 'profile.html'
     return render(request, template_name, context)
 
@@ -1158,24 +1159,34 @@ def admin_profile(request):
 
 @login_required
 def edit_profile(request):
+    user = request.user
+
     # Ensure the Profile object exists
-    profile, _ = Profile.objects.get_or_create(user=request.user)
+    profile, _ = Profile.objects.get_or_create(user=user)
 
     # Get the latest CV for this user (if any)
-    latest_cv = CVUpload.objects.filter(applicant=request.user).order_by('-id').first()
-    cv_filename = latest_cv.cv.filename if latest_cv and latest_cv.cv else None  # Use Cloudinary's filename
+    latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
+    cv_filename = latest_cv.cv.filename if latest_cv and latest_cv.cv else None  # Cloudinary filename
 
     if request.method == 'POST':
-        form = EditProfileForm(request.POST, request.FILES, instance=request.user, user=request.user)
+        form = EditProfileForm(request.POST, request.FILES, instance=user, user=user)
         if form.is_valid():
             user = form.save(commit=False)
 
-            # Update profile picture
+            # Update profile picture if uploaded
             if 'profile_pic' in request.FILES:
                 profile.profile_pic = request.FILES['profile_pic']
                 profile.save()
 
-            user.save()  # Save other user fields
+            # Save user fields
+            user.save()
+
+            # Handle CV upload if a new file is provided
+            if 'upload_cv' in request.FILES:
+                CVUpload.objects.create(applicant=user, cv=request.FILES['upload_cv'])
+                # Refresh latest CV and filename after upload
+                latest_cv = CVUpload.objects.filter(applicant=user).order_by('-id').first()
+                cv_filename = latest_cv.cv.filename if latest_cv and latest_cv.cv else None
 
             # Redirect based on user role
             if user.is_superuser or user.role == 'admin':
@@ -1185,14 +1196,16 @@ def edit_profile(request):
             else:
                 return redirect('profile')
     else:
-        form = EditProfileForm(instance=request.user, user=request.user)
+        form = EditProfileForm(instance=user, user=user)
 
-    return render(request, 'change_credentials.html', {
+    context = {
         'form': form,
         'profile_picture_url': profile.profile_pic.url if profile.profile_pic else None,
         'user_cv': latest_cv,
         'cv_filename': cv_filename,
-    })
+    }
+
+    return render(request, 'change_credentials.html', context)
 
     
 #Job Posting
