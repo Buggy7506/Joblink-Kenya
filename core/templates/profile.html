@@ -452,6 +452,7 @@ function openModal(type) {
 
   modal.style.display = 'flex';
 
+  // Set modal type to backend input
   const modalTypeInput = document.getElementById('modalTypeInput');
   if (modalTypeInput) modalTypeInput.value = type;
 
@@ -479,10 +480,42 @@ function closeModal() {
 }
 
 // =======================
-// Profile picture preview modal
+// Main DOMContentLoaded
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Profile picture upload + auto-submit
   const profilePic = document.getElementById('profile-pic');
+  const profilePicInput = document.getElementById('profilePicInput');
+  const uploadRing = document.getElementById('uploadRing');
+
+  if (profilePic && profilePicInput) {
+    profilePic.addEventListener('click', () => profilePicInput.click());
+
+    profilePicInput.addEventListener('change', async function () {
+      if (!this.files.length) return;
+      if (uploadRing) uploadRing.style.display = "flex";
+
+      const compressed = await compressImage(this.files[0]);
+
+      const form = this.closest("form");
+      const data = new FormData(form);
+      data.set("profile_pic", compressed);
+      data.set("modal_type", "profile_pic");
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", form.action);
+      xhr.upload.onprogress = e => {
+        if (uploadRing && e.total > 0) {
+          uploadRing.textContent = Math.round((e.loaded / e.total) * 100) + "%";
+        }
+      };
+      xhr.onload = () => location.reload();
+      xhr.send(data);
+    });
+  }
+
+  // Profile picture preview modal
   const alienModal = document.getElementById('imgModal');
   const alienPreview = document.getElementById('imgPreview');
   const closeBtn = document.getElementById('closeBtn');
@@ -512,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Touch swipe to close modal
+  // Touch swipe to close profile picture modal
   if (alienPreview && alienModal) {
     let startY = 0;
     alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
@@ -521,17 +554,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =======================
-  // Google Maps autocomplete
-  // =======================
+  // Google Maps autocomplete for location input
   const locationInput = document.getElementById('locationInput');
   if (locationInput && window.google) {
     new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
   }
 
-  // =======================
   // Reopen modal if form errors exist
-  // =======================
   {% if form_errors %}
     openModal("{{ modal_type }}");
   {% endif %}
@@ -557,7 +586,6 @@ async function compressImage(file) {
   });
 }
 </script>
-
 
 <!-- Google Maps API (replace YOUR_API_KEY with your actual API key) -->
 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
