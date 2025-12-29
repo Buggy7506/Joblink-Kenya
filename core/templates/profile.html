@@ -444,28 +444,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteBtn = document.getElementById('deleteBtn');
   const profilePicInputModal = document.getElementById('profilePicInputModal');
 
-  profilePic.onclick = () => {
-    alienModal.style.display = 'flex';
-    if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
-      alienPreview.src = DEFAULT_PIC;
-      alienModal.classList.add('default');
-      infoBtn.style.opacity = 0.3;
-      infoBtn.style.pointerEvents = "none";
-      editBtn.style.opacity = 0.3;
-      editBtn.style.pointerEvents = "none";
-      deleteBtn.style.opacity = 0.3;
-      deleteBtn.style.pointerEvents = "none";
-    } else {
-      alienPreview.src = profilePic.src;
-      alienModal.classList.remove('default');
-      infoBtn.style.opacity = 1;
-      infoBtn.style.pointerEvents = "auto";
-      editBtn.style.opacity = 1;
-      editBtn.style.pointerEvents = "auto";
-      deleteBtn.style.opacity = 1;
-      deleteBtn.style.pointerEvents = "auto";
-    }
-  };
+  if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
+     alienPreview.src = DEFAULT_PIC;
+     alienModal.classList.add('default');
+   
+     // Only disable info & delete
+     infoBtn.style.opacity = 0.3;
+     infoBtn.style.pointerEvents = "none";
+     deleteBtn.style.opacity = 0.3;
+     deleteBtn.style.pointerEvents = "none";
+   
+     // Keep edit button active
+     editBtn.style.opacity = 1;
+     editBtn.style.pointerEvents = "auto";
+   } else {
+     alienPreview.src = profilePic.src;
+     alienModal.classList.remove('default');
+     infoBtn.style.opacity = 1;
+     infoBtn.style.pointerEvents = "auto";
+     editBtn.style.opacity = 1;
+     editBtn.style.pointerEvents = "auto";
+     deleteBtn.style.opacity = 1;
+     deleteBtn.style.pointerEvents = "auto";
+   };
 
   closeBtn.onclick = () => alienModal.style.display = 'none';
 
@@ -555,6 +556,5 @@ async function compressImage(file) {
   });
 }
 </script>
-
 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 {% endblock %}
