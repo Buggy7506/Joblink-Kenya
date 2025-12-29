@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Employer Profile{% endblock %}
 {% block content %}
- <style>
+<style>
 .employer-profile-container {
   padding: 30px;
   display: flex;
@@ -39,7 +39,6 @@
   transition: border 0.4s, box-shadow 0.4s;
 }
 
-/* Left-align user details only */
 .employer-profile-container .user-details {
   text-align: left;
   margin-top: 20px;
@@ -50,16 +49,6 @@
   color: var(--text-main);
 }
 
-.employer-profile-container h2 a {
-  color: var(--text-accent);
-  text-decoration: none;
-}
-
-.employer-profile-container h2 a:hover {
-  text-decoration: underline;
-}
-
-/* Edit button */
 .employer-profile-container .edit-button {
   margin-top: 40px;
   text-align: center;
@@ -82,80 +71,254 @@
   box-shadow: 0 0 20px var(--glow-accent);
 }
 
-/* Modal styles */
-#imgModal {
+/* 🛸 Alien Image Viewer for Employer */
+.alien-modal {
   display: none;
   position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.9);
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 5000;
+  justify-content: center;
+  align-items: center;
 }
 
-#imgModal img {
-  margin: auto;
-  display: block;
-  max-width: 90%;
+.alien-frame {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
   max-height: 90%;
+  border-radius: 20px;
+  overflow: hidden;
+  background: black;
+  box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,.4);
 }
 
-#imgModal span {
+.alien-frame img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+}
+
+.alien-frame img:hover {
+  transform: scale(1.05);
+}
+
+.alien-controls {
   position: absolute;
-  top: 20px;
-  right: 35px;
-  color: var(--text-main);
-  font-size: 40px;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+}
+
+.alien-controls button {
+  padding: 10px 18px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid #22d3ee;
+  border-radius: 12px;
+  color: #22d3ee;
   font-weight: bold;
+  box-shadow: 0 0 15px #22d3ee;
   cursor: pointer;
+  transition: 0.25s;
+}
+
+.alien-controls button:hover {
+  background: #22d3ee;
+  color: black;
+  box-shadow: 0 0 30px #22d3ee;
+}
+
+.upload-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 6px solid rgba(34,211,238,.2);
+  border-top: 6px solid #22d3ee;
+  transform: translate(-50%, -50%);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  color: #22d3ee;
+  font-weight: bold;
+  animation: spin 1s linear infinite;
+  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.4);
+  z-index: 6000;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Mobile horizontal alignment */
+@media (max-width: 768px) {
+  .alien-controls {
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+}
+
+.alien-frame.default img {
+  filter: brightness(0.6);
+  cursor: default;
 }
 </style>
 
-  <div class="employer-profile-container">
-    <div class="profile-box">
-      <div class="profile-pic">
-        {% if user.profile_pic %}
-          <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
-        {% else %}
-          <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
-        {% endif %}
-      </div>
+<div class="employer-profile-container">
+  <div class="profile-box">
+    <div class="profile-pic">
+      {% if user.profile_pic %}
+        <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
+      {% else %}
+        <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+      {% endif %}
+    </div>
 
-      <!-- Left-aligned user details -->
-      <div class="user-details">
-        <p><strong>Username:</strong> {{ request.user.username }}</p>
-        <p><strong>Email:</strong> {{ request.user.email }}</p>
-        <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
-      </div>
+    <div class="user-details">
+      <p><strong>Username:</strong> {{ request.user.username }}</p>
+      <p><strong>Email:</strong> {{ request.user.email }}</p>
+      <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
+    </div>
 
-      <div class="edit-button">
-        <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
-      </div>
+    <div class="edit-button">
+      <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
     </div>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div id="imgModal">
-    <span onclick="document.getElementById('imgModal').style.display='none'">&times;</span>
-    <img id="imgPreview" src="">
+<!-- Profile Picture Modal -->
+<div id="imgModal" class="alien-modal">
+  <div class="alien-frame">
+    <img id="imgPreview" alt="Preview">
+    <div id="uploadRing" class="upload-ring">0%</div>
+    <div class="alien-controls">
+      <button id="infoBtn">👁 INFO</button>
+      <button id="editBtn">✏️ EDIT</button>
+      <button id="deleteBtn">🗑 DELETE</button>
+      <button id="closeBtn">✕</button>
+    </div>
+    <input type="file" id="profilePicInputModal" style="display:none" accept="image/*">
   </div>
+</div>
 
-  <script>
-    const profilePic = document.getElementById('profile-pic');
-    const modal = document.getElementById('imgModal');
-    const imgPreview = document.getElementById('imgPreview');
+<script>
+const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
+const profilePic = document.getElementById('profile-pic');
+const alienModal = document.getElementById('imgModal');
+const alienPreview = document.getElementById('imgPreview');
+const closeBtn = document.getElementById('closeBtn');
+const infoBtn = document.getElementById('infoBtn');
+const editBtn = document.getElementById('editBtn');
+const deleteBtn = document.getElementById('deleteBtn');
+const profilePicInputModal = document.getElementById('profilePicInputModal');
+const uploadRing = document.getElementById('uploadRing');
 
-    profilePic.addEventListener('click', () => {
-      imgPreview.src = profilePic.src;
-      modal.style.display = 'block';
+function updateModalButtons() {
+  if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
+    alienPreview.src = DEFAULT_PIC;
+    alienModal.classList.add('default');
+    infoBtn.style.opacity = 0.3;
+    infoBtn.style.pointerEvents = "none";
+    deleteBtn.style.opacity = 0.3;
+    deleteBtn.style.pointerEvents = "none";
+    editBtn.style.opacity = 1;
+    editBtn.style.pointerEvents = "auto";
+  } else {
+    alienPreview.src = profilePic.src;
+    alienModal.classList.remove('default');
+    infoBtn.style.opacity = 1;
+    infoBtn.style.pointerEvents = "auto";
+    editBtn.style.opacity = 1;
+    editBtn.style.pointerEvents = "auto";
+    deleteBtn.style.opacity = 1;
+    deleteBtn.style.pointerEvents = "auto";
+  }
+}
+
+profilePic.addEventListener('click', () => {
+  alienModal.style.display = 'flex';
+  updateModalButtons();
+});
+
+closeBtn.onclick = () => alienModal.style.display = 'none';
+infoBtn.onclick = () => { if(infoBtn.style.pointerEvents === "none") return; alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`); };
+deleteBtn.onclick = () => {
+  if(deleteBtn.style.pointerEvents === "none") return;
+  if(confirm("Delete your profile picture?")) {
+    fetch("{% url 'quick_profile_update' %}", {
+      method:'POST',
+      headers:{'X-CSRFToken':'{{ csrf_token }}'},
+      body:new URLSearchParams({modal_type:'profile_pic_delete'})
+    }).then(() => {
+      profilePic.src = DEFAULT_PIC;
+      alienPreview.src = DEFAULT_PIC;
+      alienModal.classList.add('default');
+      updateModalButtons();
     });
+  }
+};
+editBtn.onclick = () => { if(editBtn.style.pointerEvents === "none") return; profilePicInputModal.click(); };
 
-    window.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        modal.style.display = 'none';
-      }
-    });
-  </script>
+profilePicInputModal.onchange = async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const compressedFile = await compressImage(file);
+  const formData = new FormData();
+  formData.append('modal_type', 'profile_pic');
+  formData.append('profile_pic', compressedFile);
+
+  uploadRing.style.display = 'flex';
+  uploadRing.innerText = '0%';
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', "{% url 'quick_profile_update' %}");
+  xhr.upload.onprogress = (event) => {
+    if(event.lengthComputable){
+      const percent = Math.round((event.loaded / event.total) * 100);
+      uploadRing.innerText = `${percent}%`;
+    }
+  };
+  xhr.onload = () => {
+    uploadRing.style.display = 'none';
+    if(xhr.status === 200){
+      const data = JSON.parse(xhr.responseText);
+      if(data.success){
+        profilePic.src = data.url;
+        alienPreview.src = data.url;
+        updateModalButtons();
+      } else alert('Upload failed.');
+    } else alert('Upload failed.');
+  };
+  xhr.send(formData);
+};
+
+// Swipe down to close modal (mobile)
+let startY = 0;
+alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+alienPreview.addEventListener('touchmove', e => { if(e.touches[0].clientY - startY > 120) alienModal.style.display = 'none'; });
+
+// Compress image before upload
+async function compressImage(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 800 / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(new File([blob], file.name, {type:'image/jpeg'})), 'image/jpeg', 0.7);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+</script>
 {% endblock %}
