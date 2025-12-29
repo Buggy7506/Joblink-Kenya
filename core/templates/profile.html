@@ -164,21 +164,19 @@
 
 .add-modal {
   display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.85);
-  z-index: 3000;
-  justify-content: center;
-  align-items: center;
+  position: absolute;
+  z-index: 4000;
+  background: none;
 }
 
 .add-box {
+  position: absolute;
   background: var(--bg-card);
-  padding: 30px;
+  padding: 25px;
   border-radius: 15px;
-  width: 90%;
-  max-width: 400px;
+  width: 320px;
   box-shadow: 0 0 40px var(--glow-accent);
+  animation: alienZoom .25s ease;
 }
 
 .add-box h2 {
@@ -214,13 +212,9 @@
 
 /* 🛸 Alien Image Viewer */
 .alien-modal {
+  position: absolute;
   display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
   z-index: 5000;
-  justify-content: center;
-  align-items: center;
 }
 
 .alien-frame {
@@ -335,7 +329,7 @@
       {% if user.phone %}
         <p class="value">{{ user.phone }}</p>
       {% else %}
-        <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
+        <p><span class="add-link" onclick="openModal('phone', this)">➕ Add phone</span></p>
       {% endif %}
     </div>
 
@@ -344,7 +338,7 @@
       {% if user.location %}
         <p class="value">{{ user.location }}</p>
       {% else %}
-        <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
+        <p><span class="add-link" onclick="openModal('location', this)">➕ Add location</span></p>
       {% endif %}
     </div>
 
@@ -362,7 +356,7 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
+        <p><span class="add-link" onclick="openModal('skills', this)">➕ Add skills</span></p>
       {% endif %}
     </div>
 
@@ -371,7 +365,7 @@
       {% if user_cv %}
         <a href="{{ user_cv.cv.url }}" target="_blank" class="cv-link">📄 View CV</a>
       {% else %}
-        <p><span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span></p>
+        <p><span class="add-link" onclick="openModal('upload_cv', this)">➕ Upload CV</span></p>
       {% endif %}
     </div>
 
@@ -433,6 +427,7 @@
     <!-- Alien HUD -->
     <div class="alien-controls">
       <button id="infoBtn">👁 INFO</button>
+      <button id="editBtn">✏️ EDIT</button>
       <button id="deleteBtn">🗑 DELETE</button>
       <button id="closeBtn">✕</button>
     </div>
@@ -445,36 +440,40 @@ const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v17545780
 // =======================
 // Modal functions
 // =======================
-function openModal(type) {
+function openModal(type, el=null) {
   const modal = document.getElementById('addModal');
+  const box = modal.querySelector('.add-box');
   const title = document.getElementById('modalTitle');
+
+  const rect = el.getBoundingClientRect();
+
+  modal.style.display = 'block';
+
+  box.style.top  = (rect.top + window.scrollY - 10) + "px";
+  box.style.left = (rect.right + 15) + "px";
+
+  document.getElementById("modalTypeInput").value = type;
+
   const inputs = {
-    phone: document.getElementById('phoneInput'),
-    location: document.getElementById('locationInput'),
-    skills: document.getElementById('skillsInput'),
-    upload_cv: document.getElementById('cvInput'),
-    profile_pic: document.getElementById('profilePicInput')
+    phone: phoneInput,
+    location: locationInput,
+    skills: skillsInput,
+    upload_cv: cvInput,
+    profile_pic: profilePicInput
   };
 
-  if (!modal || !title) return;
+  Object.values(inputs).forEach(i => i.style.display = "none");
+  inputs[type].style.display = "block";
 
-  modal.style.display = 'flex';
-  const modalTypeInput = document.getElementById('modalTypeInput');
-  if (modalTypeInput) modalTypeInput.value = type;
-
-  Object.values(inputs).forEach(input => input && (input.style.display = 'none'));
-
-  if (inputs[type]) {
-    inputs[type].style.display = 'block';
-    title.innerText = {
-      phone: "Add Phone",
-      location: "Add Location",
-      skills: "Add Skills",
-      upload_cv: "Upload CV",
-      profile_pic: "Update Profile Picture"
-    }[type];
-  }
+  title.innerText = {
+    phone: "📞 Phone",
+    location: "📍 Location",
+    skills: "🧠 Skills",
+    upload_cv: "📄 Upload CV",
+    profile_pic: "🖼 Update Picture"
+  }[type];
 }
+
 
 function closeModal() {
   const modal = document.getElementById('addModal');
@@ -491,6 +490,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('closeBtn');
   const infoBtn = document.getElementById('infoBtn');
   const deleteBtn = document.getElementById('deleteBtn');
+  const editBtn = document.getElementById("editBtn");
+
+editBtn.addEventListener("click", () => {
+  alienModal.style.display = "none";
+  openModal("profile_pic", profilePic);
+});
+
 
   // Show default profile preview
   function setPreviewForDefault() {
@@ -532,15 +538,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Click profile picture: preview only
   if (profilePic && alienModal && alienPreview) {
     profilePic.addEventListener("click", () => {
-      alienModal.style.display = "flex";
-      if (profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
-        setPreviewForDefault();
-      } else {
-        alienPreview.src = profilePic.src;
-        resetPreviewButtons();
-      }
-    });
-  }
+  const rect = profilePic.getBoundingClientRect();
+
+  alienModal.style.display = "block";
+  alienModal.style.top = (rect.top + window.scrollY - 30) + "px";
+  alienModal.style.left = (rect.right + 25) + "px";
+
 
   // Close modal
   if (closeBtn) closeBtn.addEventListener("click", () => alienModal.style.display = "none");
