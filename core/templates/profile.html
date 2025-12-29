@@ -444,37 +444,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteBtn = document.getElementById('deleteBtn');
   const profilePicInputModal = document.getElementById('profilePicInputModal');
 
-  if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
-     alienPreview.src = DEFAULT_PIC;
-     alienModal.classList.add('default');
-   
-     // Only disable info & delete
-     infoBtn.style.opacity = 0.3;
-     infoBtn.style.pointerEvents = "none";
-     deleteBtn.style.opacity = 0.3;
-     deleteBtn.style.pointerEvents = "none";
-   
-     // Keep edit button active
-     editBtn.style.opacity = 1;
-     editBtn.style.pointerEvents = "auto";
-   } else {
-     alienPreview.src = profilePic.src;
-     alienModal.classList.remove('default');
-     infoBtn.style.opacity = 1;
-     infoBtn.style.pointerEvents = "auto";
-     editBtn.style.opacity = 1;
-     editBtn.style.pointerEvents = "auto";
-     deleteBtn.style.opacity = 1;
-     deleteBtn.style.pointerEvents = "auto";
-   };
+  // Open modal when clicking profile picture
+  profilePic.addEventListener('click', () => {
+    alienModal.style.display = 'flex';
+    updateModalButtons();
+  });
+
+  function updateModalButtons() {
+    if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
+      alienPreview.src = DEFAULT_PIC;
+      alienModal.classList.add('default');
+      infoBtn.style.opacity = 0.3;
+      infoBtn.style.pointerEvents = "none";
+      deleteBtn.style.opacity = 0.3;
+      deleteBtn.style.pointerEvents = "none";
+      editBtn.style.opacity = 1;
+      editBtn.style.pointerEvents = "auto";
+    } else {
+      alienPreview.src = profilePic.src;
+      alienModal.classList.remove('default');
+      infoBtn.style.opacity = 1;
+      infoBtn.style.pointerEvents = "auto";
+      editBtn.style.opacity = 1;
+      editBtn.style.pointerEvents = "auto";
+      deleteBtn.style.opacity = 1;
+      deleteBtn.style.pointerEvents = "auto";
+    }
+  }
 
   closeBtn.onclick = () => alienModal.style.display = 'none';
-
-  infoBtn.onclick = () => {
-    if(infoBtn.style.pointerEvents === "none") return;
-    alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`);
-  };
-
+  infoBtn.onclick = () => { if(infoBtn.style.pointerEvents === "none") return; alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`); };
   deleteBtn.onclick = () => {
     if(deleteBtn.style.pointerEvents === "none") return;
     if(confirm("Delete your profile picture?")) {
@@ -486,29 +485,23 @@ document.addEventListener('DOMContentLoaded', () => {
         profilePic.src = DEFAULT_PIC;
         alienPreview.src = DEFAULT_PIC;
         alienModal.classList.add('default');
+        updateModalButtons();
       });
     }
   };
 
-  // Edit / Update profile pic
-  editBtn.onclick = () => {
-    if(editBtn.style.pointerEvents === "none") return;
-    profilePicInputModal.click();
-  };
+  editBtn.onclick = () => { if(editBtn.style.pointerEvents === "none") return; profilePicInputModal.click(); };
 
   profilePicInputModal.onchange = async (e) => {
     const file = e.target.files[0];
     if(!file) return;
-
     const compressedFile = await compressImage(file);
     const formData = new FormData();
     formData.append('modal_type', 'profile_pic');
     formData.append('profile_pic', compressedFile);
-
     const uploadRing = document.getElementById('uploadRing');
     uploadRing.style.display = 'flex';
     uploadRing.innerText = 'Uploading...';
-
     fetch("{% url 'quick_profile_update' %}", {
       method: 'POST',
       headers: {'X-CSRFToken': '{{ csrf_token }}'},
@@ -519,16 +512,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if(data.success) {
         profilePic.src = data.url;
         alienPreview.src = data.url;
-      } else {
-        alert('Upload failed.');
-      }
+        updateModalButtons();
+      } else alert('Upload failed.');
     })
-    .finally(() => {
-      uploadRing.style.display = 'none';
-    });
+    .finally(() => { uploadRing.style.display = 'none'; });
   };
 
-  // Touch swipe close
+  // Swipe down to close modal
   let startY = 0;
   alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
   alienPreview.addEventListener('touchmove', e => { if(e.touches[0].clientY - startY > 120) alienModal.style.display = 'none'; });
