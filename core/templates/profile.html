@@ -430,7 +430,6 @@
 </div>
 
 <script>
-// JS handling remains exactly as in employer profile template
 const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
 function openModal(type) {
@@ -466,10 +465,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const alienModal = document.getElementById('imgModal');
   const alienPreview = document.getElementById('imgPreview');
   const closeBtn = document.getElementById('closeBtn');
-  const infoBtn = document.getElementById('infoBtn');
   const editBtn = document.getElementById('editBtn');
   const deleteBtn = document.getElementById('deleteBtn');
   const profilePicInputModal = document.getElementById('profilePicInputModal');
+  const infoBtn = document.getElementById('infoBtn');
 
   profilePic.addEventListener('click', () => {
     alienModal.style.display = 'flex';
@@ -494,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   closeBtn.onclick = () => alienModal.style.display = 'none';
   infoBtn.onclick = () => { if(infoBtn.style.pointerEvents === "none") return; alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`); };
+
   deleteBtn.onclick = () => {
     if(deleteBtn.style.pointerEvents === "none") return;
     if(confirm("Delete your profile picture?")) {
@@ -516,27 +516,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const file = e.target.files[0];
     if(!file) return;
     const compressedFile = await compressImage(file);
+
     const formData = new FormData();
     formData.append('modal_type', 'profile_pic');
     formData.append('profile_pic', compressedFile);
 
     const uploadRing = document.getElementById('uploadRing');
-    uploadRing.style.display = 'flex'; uploadRing.innerText = '0%';
+    uploadRing.style.display = 'flex'; 
+    uploadRing.innerText = '0%';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', "{% url 'quick_profile_update' %}");
-    xhr.upload.onprogress = (event) => { if(event.lengthComputable){ const percent = Math.round((event.loaded / event.total) * 100); uploadRing.innerText = `${percent}%`; } };
+    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');  // ✅ CSRF fix
+    xhr.upload.onprogress = (event) => {
+      if(event.lengthComputable){
+        const percent = Math.round((event.loaded / event.total) * 100);
+        uploadRing.innerText = `${percent}%`;
+      }
+    };
     xhr.onload = () => {
       uploadRing.style.display = 'none';
       if(xhr.status === 200){
         const data = JSON.parse(xhr.responseText);
-        if(data.success){ profilePic.src = data.url; alienPreview.src = data.url; updateModalButtons(); } 
-        else alert('Upload failed.');
+        if(data.success){
+          profilePic.src = data.url;
+          alienPreview.src = data.url;
+          updateModalButtons();
+        } else {
+          alert('Upload failed.');
+        }
       } else alert('Upload failed.');
     };
     xhr.send(formData);
   };
 
+  // Mobile swipe down to close modal
   let startY = 0;
   alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
   alienPreview.addEventListener('touchmove', e => { if(e.touches[0].clientY - startY > 120) alienModal.style.display = 'none'; });
