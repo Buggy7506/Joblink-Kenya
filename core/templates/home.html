@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Joblink Kenya{% endblock %}
+{% block title %}JobLink Kenya{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -91,8 +91,18 @@ html, body {
   font-size: 1.15rem;
   line-height: 1.6;
   margin-top: 15px;
+  color: #e0f7fa;
 }
 
+.purpose-box {
+  background: rgba(0,0,0,0.6);
+  padding: 25px;
+  border-radius: 16px;
+  margin-top: 15px;
+  box-shadow: 0 0 25px rgba(0,255,255,0.2);
+}
+
+/* Browse button */
 .browse-btn {
   margin-top: 35px;
   padding: 14px 32px;
@@ -146,30 +156,25 @@ html, body {
 
 <div class="overlay"></div>
 
-<!-- ================= STATIC GOOGLE-READABLE CONTENT ================= -->
+<!-- ================= HOME CONTENT ================= -->
 <div class="home-container">
-  <h1 class="glow-title">Joblink Kenya</h1>
+  <h1 class="glow-title">JobLink Kenya</h1>
 
   <p class="subtitle">
-    Joblink Kenya is an online employment platform that connects job seekers
-    across Kenya with verified employers.
+    JobLink Kenya is an online employment platform connecting job seekers across Kenya
+    with verified employers.
   </p>
 
   <div class="purpose-box">
-    Users can browse job opportunities, create professional profiles,
-    apply for jobs, and manage applications securely.
-    Authentication is supported through Google Sign-In to protect user accounts
-    and simplify access.
+    Users can browse job opportunities, create professional profiles, apply for jobs,
+    and manage applications securely. Google Sign-In authentication is supported to
+    protect user accounts and simplify access.
+    <br><br>
+    For more information, view our
+    <a href="/privacy/" style="color:#ffcc00;font-weight:700;text-decoration:none;">Privacy Policy</a>.
   </div>
 
   <a href="{% url 'job_list' %}" class="browse-btn">Browse Jobs</a>
-
-  <p class="visible-privacy">
-    By using Joblink Kenya, you agree to our
-    <a href="/privacy/" style="color:#ffcc00;font-weight:700;text-decoration:none;">
-      Privacy Policy
-    </a>.
-  </p>
 </div>
 
 <!-- ================= FOOTER ================= -->
