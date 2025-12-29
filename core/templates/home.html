@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Joblink Kenya{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -27,17 +27,12 @@ html, body {
 
 .bg-slide {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
+  background-position: center;
   opacity: 0;
-  transform: scale(1);
-  animation: fadeZoomParallax 60s infinite;
-  animation-timing-function: ease-in-out;
+  animation: fadeZoomParallax 60s infinite ease-in-out;
 }
 
 .bg-slide:nth-child(1) { animation-delay: 0s; }
@@ -52,67 +47,52 @@ html, body {
 .bg-slide:nth-child(10){ animation-delay: 54s; }
 
 @keyframes fadeZoomParallax {
-  0% { opacity: 0; transform: scale(1) translateY(0); }
-  5% { opacity: 1; transform: scale(1.05) translateY(-5px); }
-  20% { opacity: 1; transform: scale(1.1) translateY(-10px); }
-  25% { opacity: 0; transform: scale(1.15) translateY(-15px); }
-  100% { opacity: 0; transform: scale(1) translateY(0); }
+  0% { opacity: 0; transform: scale(1); }
+  10% { opacity: 1; transform: scale(1.05); }
+  20% { opacity: 1; transform: scale(1.1); }
+  30% { opacity: 0; transform: scale(1.15); }
+  100% { opacity: 0; }
 }
 
-/* Dark overlay for text readability */
+/* Overlay */
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0,0,0,0.45);
   z-index: -1;
-  backdrop-filter: blur(1px);
 }
 
 /* ================= Home Container ================= */
 .home-container {
   position: relative;
+  min-height: 100vh;
+  padding: 40px 20px;
+  color: #e0f7fa;
+  text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 0 20px;
-  color: #fff;
-  text-align: center;
   z-index: 1;
 }
 
-/* Hero text with glowing pulse */
 .glow-title {
   font-size: 3rem;
   font-weight: 900;
   color: #00ffff;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
-  white-space: pre-wrap;
-  animation: glowPulse 2.5s infinite alternate;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
   margin-bottom: 20px;
 }
 
-@keyframes glowPulse {
-  0% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
-  50% { text-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff; }
-  100% { text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff, 0 0 45px #00ffff; }
-}
-
-/* Subtitle & purpose text */
-.subtitle, .purpose-box, .visible-privacy {
-  font-size: 1.2rem;
-  line-height: 1.6;
+.subtitle,
+.purpose-box,
+.visible-privacy {
   max-width: 850px;
+  font-size: 1.15rem;
+  line-height: 1.6;
   margin-top: 15px;
-  color: #e0f7fa;
-  text-shadow: 0 0 8px rgba(0,255,255,0.4);
 }
 
-/* Browse button with radiant pulse */
 .browse-btn {
   margin-top: 35px;
   padding: 14px 32px;
@@ -122,49 +102,18 @@ html, body {
   color: #000;
   background: linear-gradient(135deg, #00ffff, #007fff);
   border-radius: 50px;
-  box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff, 0 0 75px #007fff inset;
-  opacity: 0;
-  transform: scale(0);
-  animation: bubbleIn 1s forwards, buttonPulse 2.5s infinite alternate;
-  animation-delay: 12s;
-  transition: all 0.3s ease-in-out;
+  box-shadow: 0 0 25px #00ffff;
+  transition: transform 0.2s ease;
 }
 
 .browse-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 35px #00ffff, 0 0 60px #00ffff, 0 0 90px #007fff inset;
+  transform: scale(1.05);
 }
 
-@keyframes bubbleIn { to { opacity: 1; transform: scale(1); } }
-@keyframes buttonPulse {
-  0% { box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff, 0 0 75px #007fff inset; }
-  50% { box-shadow: 0 0 35px #0ff, 0 0 70px #0ff, 0 0 100px #00ffff inset; }
-  100% { box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff, 0 0 75px #007fff inset; }
-}
-
-/* Typing animation */
-.typing {
-  display: inline-block;
-  border-right: 3px solid #00ffff;
-  white-space: pre-wrap;
-  overflow: hidden;
-}
-
-/* Typing animation cursor */
-.typing::after {
-  content: '|';
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 50%, 100% { opacity: 1; }
-  25%, 75% { opacity: 0; }
-}
-
-/* Footer styling */
+/* Footer */
 .oauth-footer {
-  margin-top: 50px;
-  padding: 20px 10px;
+  margin-top: 40px;
+  padding: 20px;
   text-align: center;
   font-size: 14px;
   color: #00ffff;
@@ -175,61 +124,11 @@ html, body {
   margin: 0 8px;
   color: #00ffff;
   text-decoration: underline;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.oauth-footer a:hover {
-  color: #0ff;
-  text-shadow: 0 0 8px #00ffff;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .glow-title { font-size: 2.5rem; }
-  .subtitle, .purpose-box, .visible-privacy { font-size: 1.1rem; }
-  .browse-btn { font-size: 16px; padding: 12px 28px; }
-}
-
-@media (max-width: 768px) {
-  .glow-title { font-size: 2rem; }
-  .subtitle, .purpose-box, .visible-privacy { font-size: 1rem; }
-  .browse-btn { font-size: 15px; padding: 10px 24px; }
-}
-
-@media (max-width: 480px) {
-  .glow-title { font-size: 1.6rem; }
-  .subtitle, .purpose-box, .visible-privacy { font-size: 0.95rem; }
-  .browse-btn { font-size: 14px; padding: 10px 20px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- ================= STATIC GOOGLE OAUTH COMPLIANCE CONTENT ================= -->
-<section style="max-width:900px;margin:40px auto;text-align:center;color:#e0f7fa;">
-  <h1 style="color:#00ffff;font-size:2.4rem;font-weight:800;">
-    JobLink Kenya
-  </h1>
-
-  <p style="font-size:1.1rem;line-height:1.6;margin-top:15px;">
-    JobLink Kenya is an online employment platform that connects job seekers in Kenya
-    with verified employers. Users can browse job opportunities, create profiles,
-    apply for jobs, and manage applications securely.
-  </p>
-
-  <p style="font-size:1.05rem;line-height:1.6;margin-top:10px;">
-    The platform supports secure authentication using Google Sign-In to simplify
-    access and protect user accounts.
-  </p>
-
-  <p style="margin-top:15px;">
-    <a href="/privacy/" style="color:#ffcc00;font-weight:700;text-decoration:none;">
-      View Privacy Policy
-    </a>
-  </p>
-</section>
 
 <!-- ================= BACKGROUND SLIDESHOW ================= -->
 <div class="bg-slideshow">
@@ -247,15 +146,30 @@ html, body {
 
 <div class="overlay"></div>
 
-<!-- ================= ANIMATED HERO (DECORATIVE) ================= -->
+<!-- ================= STATIC GOOGLE-READABLE CONTENT ================= -->
 <div class="home-container">
-  <h1 id="hero-title" class="glow-title typing"></h1>
-  <p id="subtitle" class="subtitle typing"></p>
-  <div id="purpose-box" class="purpose-box typing"></div>
+  <h1 class="glow-title">Joblink Kenya</h1>
 
-  <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
+  <p class="subtitle">
+    Joblink Kenya is an online employment platform that connects job seekers
+    across Kenya with verified employers.
+  </p>
 
-  <p id="privacy" class="visible-privacy typing"></p>
+  <div class="purpose-box">
+    Users can browse job opportunities, create professional profiles,
+    apply for jobs, and manage applications securely.
+    Authentication is supported through Google Sign-In to protect user accounts
+    and simplify access.
+  </div>
+
+  <a href="{% url 'job_list' %}" class="browse-btn">Browse Jobs</a>
+
+  <p class="visible-privacy">
+    By using Joblink Kenya, you agree to our
+    <a href="/privacy/" style="color:#ffcc00;font-weight:700;text-decoration:none;">
+      Privacy Policy
+    </a>.
+  </p>
 </div>
 
 <!-- ================= FOOTER ================= -->
@@ -265,43 +179,5 @@ html, body {
   <a href="/cookies/">Cookies Policy</a>
   <a href="/learn-more/">Learn More</a>
 </footer>
-
-<script>
-const typingTexts = {
-  "hero-title": "Welcome to JobLink Kenya",
-  "subtitle": "Connecting job seekers with trusted employers across Kenya.",
-  "purpose-box":
-    "Discover job opportunities, apply with ease, and connect with verified employers across Kenya using JobLink Kenya.",
-  "privacy":
-    'By using JobLink Kenya, you agree to our <a href="/privacy/" style="color:#ffcc00;font-weight:800;text-decoration:none;">Privacy Policy</a>.'
-};
-
-function typeHTML(elementId, htmlString, speed = 30) {
-  const element = document.getElementById(elementId);
-  let i = 0;
-  let isTag = false;
-  let buffer = '';
-
-  function type() {
-    if (i < htmlString.length) {
-      const char = htmlString[i];
-      if (char === '<') isTag = true;
-      if (char === '>') isTag = false;
-      buffer += char;
-      element.innerHTML = buffer;
-      i++;
-      setTimeout(type, speed);
-    }
-  }
-  type();
-}
-
-window.onload = () => {
-  typeHTML("hero-title", typingTexts["hero-title"], 60);
-  setTimeout(() => typeHTML("subtitle", typingTexts["subtitle"], 40), 1200);
-  setTimeout(() => typeHTML("purpose-box", typingTexts["purpose-box"], 25), 2800);
-  setTimeout(() => typeHTML("privacy", typingTexts["privacy"], 20), 5500);
-};
-</script>
 
 {% endblock %}
