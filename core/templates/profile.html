@@ -230,7 +230,7 @@
   transform: translateX(-50%);
   display: flex;
   gap: 15px;
-  flex-wrap: wrap;  /* Fix mobile truncation */
+  flex-wrap: nowrap;
   justify-content: center;
 }
 
@@ -244,6 +244,9 @@
   box-shadow: 0 0 15px #22d3ee;
   cursor: pointer;
   transition: 0.25s;
+  flex: 1 1 auto;
+  min-width: 70px;
+  text-align: center;
 }
 
 .alien-controls button:hover {
@@ -287,8 +290,8 @@
 
 @media (max-width: 768px) {
   .alien-modal {
-    align-items: flex-start;
-    padding-top: 60px;
+    align-items: center; /* center vertically */
+    padding-top: 0;
   }
 
   .alien-frame {
@@ -301,15 +304,19 @@
   .alien-frame img {
     width: 100%;
     height: auto;
-    max-height: 70vh;
+    max-height: 60vh;
     object-fit: contain;
   }
 
+  /* Force horizontal layout of buttons on mobile */
   .alien-controls {
-    bottom: 10px;
+    flex-wrap: nowrap;
     gap: 10px;
-    flex-wrap: wrap;  /* Fix mobile truncation */
-    justify-content: center;
+  }
+
+  .alien-controls button {
+    flex: 1 1 auto;
+    min-width: 60px;
   }
 }
 </style>
@@ -527,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', "{% url 'quick_profile_update' %}");
-    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');  // ✅ CSRF fix
+    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}'); 
     xhr.upload.onprogress = (event) => {
       if(event.lengthComputable){
         const percent = Math.round((event.loaded / event.total) * 100);
