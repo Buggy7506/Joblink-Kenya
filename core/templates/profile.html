@@ -249,6 +249,7 @@
   box-shadow: 0 0 30px #22d3ee;
 }
 
+/* Instagram-style upload ring */
 .upload-ring {
   position: absolute;
   top: 50%;
@@ -256,19 +257,24 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 6px solid rgba(34,211,238,.2);
+  border: 6px solid rgba(255,255,255,0.2);
   border-top: 6px solid #22d3ee;
   transform: translate(-50%, -50%);
   display: none;
   justify-content: center;
   align-items: center;
-  color: #22d3ee;
+  color: white;
   font-weight: bold;
+  font-size: 16px;
   animation: spin 1s linear infinite;
+  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.4);
+  z-index: 6000;
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Dim default profile preview */
@@ -280,28 +286,29 @@
 /* Mobile adjustments for profile picture modal */
 @media (max-width: 768px) {
   .alien-modal {
-    align-items: flex-start;  /* move modal to top */
-    padding-top: 60px;        /* spacing from top of viewport */
+    align-items: flex-start;
+    padding-top: 60px;
   }
 
   .alien-frame {
     width: 90%;
     max-width: none;
-    max-height: 80vh;         /* ensure image doesn't overflow */
+    max-height: 80vh;
     border-radius: 15px;
   }
 
   .alien-frame img {
     width: 100%;
     height: auto;
-    max-height: 70vh;         /* scale image to fit mobile screen */
+    max-height: 70vh;
     object-fit: contain;
   }
 
   .alien-controls {
     bottom: 10px;
     gap: 10px;
-    flex-wrap: wrap;           /* wrap buttons if screen is small */
+    flex-wrap: nowrap;       /* Keep buttons horizontal on mobile */
+    justify-content: center;
   }
 }
 </style>
@@ -317,17 +324,14 @@
 
   <!-- PROFILE INFORMATION -->
   <div class="profile-info">
-
     <div>
       <p class="label">Username</p>
       <p class="value">{{ user.username }}</p>
     </div>
-
     <div>
       <p class="label">Email</p>
       <p class="value">{{ user.email }}</p>
     </div>
-
     <div>
       <p class="label">Phone</p>
       {% if user.phone %}
@@ -336,7 +340,6 @@
         <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
       {% endif %}
     </div>
-
     <div>
       <p class="label">Location</p>
       {% if user.location %}
@@ -345,12 +348,10 @@
         <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
       {% endif %}
     </div>
-
     <div>
       <p class="label">Role</p>
       <p class="value">{{ user.role|capfirst }}</p>
     </div>
-
     <div>
       <p class="label">Skills</p>
       {% if skills %}
@@ -363,7 +364,6 @@
         <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
       {% endif %}
     </div>
-
     <div>
       <p class="label">CV</p>
       {% if user_cv %}
@@ -372,7 +372,6 @@
         <p><span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span></p>
       {% endif %}
     </div>
-
   </div>
 
   <!-- RESUME LINK -->
@@ -472,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteBtn = document.getElementById('deleteBtn');
   const profilePicInputModal = document.getElementById('profilePicInputModal');
 
-  // Open modal when clicking profile picture
   profilePic.addEventListener('click', () => {
     alienModal.style.display = 'flex';
     updateModalButtons();
@@ -523,27 +521,36 @@ document.addEventListener('DOMContentLoaded', () => {
   profilePicInputModal.onchange = async (e) => {
     const file = e.target.files[0];
     if(!file) return;
+
     const compressedFile = await compressImage(file);
     const formData = new FormData();
     formData.append('modal_type', 'profile_pic');
     formData.append('profile_pic', compressedFile);
+
     const uploadRing = document.getElementById('uploadRing');
     uploadRing.style.display = 'flex';
-    uploadRing.innerText = 'Uploading...';
-    fetch("{% url 'quick_profile_update' %}", {
-      method: 'POST',
-      headers: {'X-CSRFToken': '{{ csrf_token }}'},
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      if(data.success) {
-        profilePic.src = data.url;
-        alienPreview.src = data.url;
-        updateModalButtons();
+    uploadRing.innerText = '0%';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', "{% url 'quick_profile_update' %}");
+    xhr.upload.onprogress = (event) => {
+      if(event.lengthComputable){
+        const percent = Math.round((event.loaded / event.total) * 100);
+        uploadRing.innerText = `${percent}%`;
+      }
+    };
+    xhr.onload = () => {
+      uploadRing.style.display = 'none';
+      if(xhr.status === 200){
+        const data = JSON.parse(xhr.responseText);
+        if(data.success){
+          profilePic.src = data.url;
+          alienPreview.src = data.url;
+          updateModalButtons();
+        } else alert('Upload failed.');
       } else alert('Upload failed.');
-    })
-    .finally(() => { uploadRing.style.display = 'none'; });
+    };
+    xhr.send(formData);
   };
 
   // Swipe down to close modal
