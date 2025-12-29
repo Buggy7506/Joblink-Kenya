@@ -162,137 +162,124 @@
   text-shadow: 0 0 12px #22d3ee;
 }
 
+
+/* MODAL STYLING (appears beside clicked element) */
 .add-modal {
-  display: none;
-  position: fixed; /* was absolute */
-  z-index: 4000;
-  background: none;
-  pointer-events: none;
-}
-
-
-.add-box {
   position: absolute;
   background: var(--bg-card);
-  padding: 25px;
-  border-radius: 15px;
-  width: 320px;
-
-  /* floating card shadow instead of glow */
-  box-shadow: 0 15px 40px rgba(0,0,0,.5);
-
-  animation: alienZoom .18s ease;
-  pointer-events: auto;
+  padding: 20px;
+  border-radius: 10px;
+  display: none;
+  border: 1px solid var(--text-accent);
+  z-index: 1000;
+  box-shadow: none; /* remove shadows */
 }
 
-.add-box h2 {
+.add-modal h2 {
+  margin-top: 0;
   color: var(--text-accent);
-  text-align: center;
+  font-size: 18px;
 }
 
-.add-box input {
+.add-modal input[type="text"],
+.add-modal input[type="file"] {
   width: 100%;
-  padding: 12px;
-  margin: 15px 0;
+  padding: 8px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   background: var(--bg-main);
-  border: none;
-  border-radius: 10px;
-  color: white;
+  color: var(--text-main);
 }
 
-.add-box button {
-  width: 100%;
-  padding: 12px;
+.add-modal button {
+  padding: 10px 20px;
   background: var(--text-accent);
+  color: var(--text-main);
   border: none;
-  border-radius: 10px;
+  border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
 }
 
-.close-add {
-  float: right;
+.add-modal .close-add {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  font-size: 20px;
   cursor: pointer;
-  font-size: 25px;
+  color: var(--text-main);
 }
 
 /* 🛸 Alien Image Viewer */
+
+/* =========================================================
+   PROFILE PICTURE PREVIEW (CLEAN & SIMPLE)
+========================================================= */
+
 .alien-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
+  position: absolute; /* appear near clicked element */
   display: none;
-  align-items: center;
-  justify-content: center;
+  z-index: 1000;
 }
 
 .alien-frame {
   position: absolute;
   width: 280px;
-  max-width: none;
-  max-height: none;
-  border-radius: 16px;
+  max-width: 90%;
+  border-radius: 10px;
   overflow: hidden;
-  background: #000;
-
-  /* clean floating shadow */
-  box-shadow: 0 15px 50px rgba(0,0,0,.7);
-  pointer-events: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--text-accent);
+  box-shadow: none; /* removed shadow */
+  padding: 10px;
 }
 
 .alien-frame img {
   width: 100%;
   height: auto;
-  object-fit: contain;
-  cursor: zoom-in;
-  transition: transform 0.3s ease;
+  object-fit: cover;
+  cursor: default;
+  transition: transform 0.2s ease;
 }
 
 .alien-frame img:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .alien-controls {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
-  gap: 15px;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 5px;
 }
 
 .alien-controls button {
-  padding: 10px 18px;
-  background: rgba(0,0,0,0.7);
-  border: 1px solid #22d3ee;
-  border-radius: 12px;
-  color: #22d3ee;
+  padding: 6px 12px;
+  background: var(--bg-main);
+  border: 1px solid var(--text-accent);
+  border-radius: 6px;
+  color: var(--text-accent);
   font-weight: bold;
-  box-shadow: 0 8px 20px rgba(0,0,0,.6);
   cursor: pointer;
-  transition: 0.25s;
+  transition: 0.2s ease;
 }
 
 .alien-controls button:hover {
-  background: #22d3ee;
-  color: black;
-   box-shadow: 0 12px 30px rgba(0,0,0,.8);
+  background: var(--text-accent);
+  color: var(--text-main);
 }
 
-@keyframes alienZoom {
-  from {transform: scale(.7); opacity:0;}
-  to {transform: scale(1); opacity:1;}
-}
-   
+/* Upload ring simplified */
 .upload-ring {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  border: 6px solid rgba(34,211,238,.2);
-  border-top: 6px solid #22d3ee;
+  border: 4px solid rgba(34,211,238,0.2);
+  border-top: 4px solid #22d3ee;
   transform: translate(-50%, -50%);
   display: none;
   justify-content: center;
@@ -306,12 +293,13 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Dim default profile preview */
+/* Default dimmed profile preview */
 .alien-frame.default img {
-  filter: grayscale(40%) brightness(0.7);
+  filter: grayscale(30%) brightness(0.8);
   cursor: default;
   transform: scale(1) !important;
 }
+
 </style>
 
 <div class="profile-container">
@@ -455,7 +443,7 @@ const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v17545780
 let phoneInput, locationInput, skillsInput, cvInput, profilePicInput;
 
 // =======================
-// Modal
+// MODAL FUNCTIONS
 // =======================
 function openModal(type, el=null) {
   const modal = document.getElementById('addModal');
@@ -463,11 +451,12 @@ function openModal(type, el=null) {
   const title = document.getElementById('modalTitle');
 
   modal.style.display = 'block';
+  box.style.transform = ""; // reset any previous transform
 
   if (el) {
     const rect = el.getBoundingClientRect();
-    box.style.top  = (rect.top + window.scrollY - 10) + "px";
-    box.style.left = (rect.right + 15) + "px";
+    box.style.top  = (rect.top + window.scrollY) + "px";
+    box.style.left = (rect.right + 10) + "px"; // appear beside element
   } else {
     box.style.top = "30%";
     box.style.left = "50%";
@@ -484,9 +473,12 @@ function openModal(type, el=null) {
     profile_pic: profilePicInput
   };
 
+  // Hide all inputs
   Object.values(inputs).forEach(i => i && (i.style.display = "none"));
+  // Show relevant input
   inputs[type] && (inputs[type].style.display = "block");
 
+  // Set title
   title.innerText = {
     phone: "📞 Phone",
     location: "📍 Location",
@@ -502,11 +494,9 @@ function closeModal() {
 }
 
 // =======================
-// DOM
+// DOM CONTENT LOADED
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
-
-  // ----- Inputs (THIS FIXES THE CRASH)
   phoneInput      = document.getElementById("phoneInput");
   locationInput   = document.getElementById("locationInput");
   skillsInput     = document.getElementById("skillsInput");
@@ -522,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const editBtn      = document.getElementById('editBtn');
 
   // ---------------------------
-  // Default vs real picture
+  // DEFAULT / REAL UI
   // ---------------------------
   function isDefault() {
     return profilePic.src.includes("jo2wvg1a0wgiava5be20");
@@ -543,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         transform:translate(-50%,-50%);
         color:#22d3ee;
         font-weight:bold;
-        font-size:18px;
+        font-size:16px;
       `;
       msg.textContent = "No profile picture uploaded";
       alienPreview.parentElement.appendChild(msg);
@@ -558,29 +548,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---------------------------
-  // Open preview
+  // OPEN PROFILE PREVIEW
   // ---------------------------
-  profilePic.addEventListener("click", () => {
+  profilePic.addEventListener("click", (e) => {
     const rect = profilePic.getBoundingClientRect();
 
     alienModal.style.display = "block";
-    alienModal.style.top  = (rect.top + window.scrollY - 30) + "px";
-    alienModal.style.left = (rect.right + 25) + "px";
+    alienModal.style.top  = (rect.top + window.scrollY) + "px";
+    alienModal.style.left = (rect.right + 10) + "px"; // beside the picture
 
     alienPreview.src = profilePic.src;
     isDefault() ? setDefaultUI() : setRealUI();
   });
 
+  // CLOSE
   closeBtn.addEventListener("click", () => alienModal.style.display = "none");
 
+  // INFO
   infoBtn.addEventListener("click", () => {
     if (infoBtn.style.pointerEvents === "none") return;
     alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`);
   });
 
+  // DELETE
   deleteBtn.addEventListener("click", () => {
     if (deleteBtn.style.pointerEvents === "none") return;
-
     if (!confirm("Delete your profile picture?")) return;
 
     fetch("{% url 'quick_profile_update' %}", {
@@ -597,21 +589,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ✅ THIS IS WHAT WAS MISSING
+  // EDIT
   editBtn.addEventListener("click", () => {
     alienModal.style.display = "none";
     openModal("profile_pic", profilePic);
     setTimeout(() => profilePicInput.click(), 300);
   });
 
-  // Swipe close
+  // Swipe close (mobile)
   let startY = 0;
   alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
   alienPreview.addEventListener("touchmove", e => {
     if (e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
   });
 
-  // Google Maps
+  // Google Maps autocomplete
   if (locationInput && window.google && google.maps) {
     new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
   }
@@ -620,11 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
   {% if modal_type %}
     openModal("{{ modal_type }}");
   {% endif %}
-
 });
 
 // =======================
-// Image compression
+// IMAGE COMPRESSION
 // =======================
 async function compressImage(file) {
   return new Promise(resolve => {
