@@ -438,7 +438,7 @@
 const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
 // =======================
-// Modal functions
+// Modal
 // =======================
 function openModal(type, el=null) {
   const modal = document.getElementById('addModal');
@@ -451,6 +451,10 @@ function openModal(type, el=null) {
     const rect = el.getBoundingClientRect();
     box.style.top  = (rect.top + window.scrollY - 10) + "px";
     box.style.left = (rect.right + 15) + "px";
+  } else {
+    box.style.top = "30%";
+    box.style.left = "50%";
+    box.style.transform = "translateX(-50%)";
   }
 
   document.getElementById("modalTypeInput").value = type;
@@ -481,7 +485,7 @@ function closeModal() {
 }
 
 // =======================
-// DOMContentLoaded
+// DOM
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
   const profilePic   = document.getElementById('profile-pic');
@@ -493,16 +497,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const editBtn      = document.getElementById('editBtn');
 
   // ---------------------------
-  // Default picture UI
+  // Default vs real picture
   // ---------------------------
-  function setPreviewForDefault() {
+  function isDefault() {
+    return profilePic.src.includes("jo2wvg1a0wgiava5be20");
+  }
+
+  function setDefaultUI() {
     alienPreview.src = DEFAULT_PIC;
     alienModal.classList.add('default');
-
-    infoBtn.style.opacity = 0.3;
-    infoBtn.style.pointerEvents = "none";
-    deleteBtn.style.opacity = 0.3;
-    deleteBtn.style.pointerEvents = "none";
+    infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
+    infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
 
     if (!document.getElementById('defaultMsg')) {
       const msg = document.createElement('div');
@@ -516,107 +521,83 @@ document.addEventListener('DOMContentLoaded', () => {
         font-weight:bold;
         font-size:18px;
       `;
-      msg.textContent = 'No profile picture uploaded';
+      msg.textContent = "No profile picture uploaded";
       alienPreview.parentElement.appendChild(msg);
     }
   }
 
-  function resetPreviewButtons() {
+  function setRealUI() {
     alienModal.classList.remove('default');
-    infoBtn.style.opacity = 1;
-    infoBtn.style.pointerEvents = "auto";
-    deleteBtn.style.opacity = 1;
-    deleteBtn.style.pointerEvents = "auto";
-
+    infoBtn.style.opacity = deleteBtn.style.opacity = 1;
+    infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "auto";
     const msg = document.getElementById('defaultMsg');
     if (msg) msg.remove();
   }
 
-  // If current picture is default
-  if (profilePic && profilePic.src.includes("jo2wvg1a0wgiava5be20")) {
-    setPreviewForDefault();
-  } else {
-    resetPreviewButtons();
-  }
-
   // ---------------------------
-  // Click avatar → preview modal
+  // Open preview
   // ---------------------------
-  if (profilePic) {
-    profilePic.addEventListener("click", () => {
-      const rect = profilePic.getBoundingClientRect();
+  profilePic.addEventListener("click", () => {
+    const rect = profilePic.getBoundingClientRect();
 
-      alienModal.style.display = "block";
-      alienModal.style.top  = (rect.top + window.scrollY - 30) + "px";
-      alienModal.style.left = (rect.right + 25) + "px";
+    alienModal.style.display = "block";
+    alienModal.style.top  = (rect.top + window.scrollY - 30) + "px";
+    alienModal.style.left = (rect.right + 25) + "px";
 
-      alienPreview.src = profilePic.src;
+    alienPreview.src = profilePic.src;
 
-      if (profilePic.src.includes("jo2wvg1a0wgiava5be20")) {
-        setPreviewForDefault();
-      } else {
-        resetPreviewButtons();
-      }
-    });
-  }
+    isDefault() ? setDefaultUI() : setRealUI();
+  });
 
   // Close
-  if (closeBtn) closeBtn.addEventListener("click", () => alienModal.style.display = "none");
+  closeBtn.addEventListener("click", () => alienModal.style.display = "none");
 
   // Info
-  if (infoBtn) {
-    infoBtn.addEventListener("click", () => {
-      if (infoBtn.style.pointerEvents === "none") return;
-      alert(`📷 Profile Picture\nUploaded by: {{ user.username }}\nResolution: Auto\nSecurity: Encrypted`);
-    });
-  }
+  infoBtn.addEventListener("click", () => {
+    if (infoBtn.style.pointerEvents === "none") return;
+    alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`);
+  });
 
   // Delete
-  if (deleteBtn) {
-    deleteBtn.addEventListener("click", () => {
-      if (deleteBtn.style.pointerEvents === "none") return;
+  deleteBtn.addEventListener("click", () => {
+    if (deleteBtn.style.pointerEvents === "none") return;
 
-      if (confirm("Delete your profile picture?")) {
-        fetch("{% url 'quick_profile_update' %}", {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: "modal_type=profile_pic_delete"
-        }).then(() => {
-          profilePic.src = DEFAULT_PIC;
-          alienPreview.src = DEFAULT_PIC;
-          setPreviewForDefault();
-        });
-      }
+    if (!confirm("Delete your profile picture?")) return;
+
+    fetch("{% url 'quick_profile_update' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: "modal_type=profile_pic_delete"
+    }).then(() => {
+      profilePic.src = DEFAULT_PIC;
+      alienPreview.src = DEFAULT_PIC;
+      setDefaultUI();
     });
-  }
+  });
 
-  // Edit button
-  if (editBtn) {
-    editBtn.addEventListener("click", () => {
-      alienModal.style.display = "none";
-      openModal("profile_pic", profilePic);
-    });
-  }
+  // Edit
+  editBtn.addEventListener("click", () => {
+    alienModal.style.display = "none";
+    openModal("profile_pic", profilePic);
+  });
 
-  // Swipe down to close
+  // Swipe to close
   let startY = 0;
-  if (alienPreview) {
-    alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
-    alienPreview.addEventListener("touchmove", e => {
-      if (e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
-    });
-  }
+  alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
+  alienPreview.addEventListener("touchmove", e => {
+    if (e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
+  });
 
-  // Google maps
+  // Google Maps
   const locationInput = document.getElementById('locationInput');
   if (locationInput && window.google && google.maps) {
     new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
   }
 
-  // Reopen modal after validation error
+  // Reopen modal after Django error
   {% if modal_type %}
     openModal("{{ modal_type }}");
   {% endif %}
