@@ -3,7 +3,7 @@
 {% block content %}
 <style>
 /* ===================== Employer Profile ===================== */
-.employer-profile-container {
+.employer-profile-container { 
   padding: 30px;
   display: flex;
   justify-content: center;
@@ -214,7 +214,7 @@
 </div>
 
 <script>
-const DEFAULT_PIC = "{{ user.profile_pic.url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}";
+const DEFAULT_FILENAME = 'jo2wvg1a0wgiava5be20.png';
 const profilePic = document.getElementById('profile-pic');
 const alienModal = document.getElementById('imgModal');
 const alienPreview = document.getElementById('imgPreview');
@@ -232,9 +232,14 @@ function showMessage(msg, duration=2000){
   setTimeout(()=>modalMessage.style.display='none', duration);
 }
 
+function isDefaultPic(){
+  const filename = profilePic.src.split('/').pop().split('?')[0]; // ignore query strings
+  return filename === DEFAULT_FILENAME;
+}
+
 function updateModalButtons(){
-  if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')){
-    alienPreview.src = DEFAULT_PIC;
+  if(isDefaultPic()){
+    alienPreview.src = profilePic.src;
     alienModal.classList.add('default');
     infoBtn.style.opacity = 0.3; infoBtn.style.pointerEvents = "none";
     deleteBtn.style.opacity = 0.3; deleteBtn.style.pointerEvents = "none";
@@ -248,7 +253,11 @@ function updateModalButtons(){
   }
 }
 
-profilePic.addEventListener('click', ()=>{alienModal.style.display='flex'; updateModalButtons();});
+profilePic.addEventListener('click', ()=>{
+  alienModal.style.display='flex';
+  updateModalButtons();
+});
+
 closeBtn.onclick = ()=>alienModal.style.display='none';
 
 infoBtn.onclick = ()=>{
