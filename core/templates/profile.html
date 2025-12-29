@@ -455,8 +455,23 @@ function openModal(type, el=null) {
 
   if (el) {
     const rect = el.getBoundingClientRect();
-    box.style.top  = (rect.top + window.scrollY) + "px";
-    box.style.left = (rect.right + 10) + "px"; // appear beside element
+    let top = rect.top + window.scrollY;
+    let left = rect.right + 10;
+
+    // Prevent overflow right
+    const boxWidth = box.offsetWidth || 320;
+    if (left + boxWidth > window.scrollX + window.innerWidth - 10) {
+      left = rect.left - boxWidth - 10;
+    }
+
+    // Prevent overflow bottom
+    const boxHeight = box.offsetHeight || 200;
+    if (top + boxHeight > window.scrollY + window.innerHeight - 10) {
+      top = window.scrollY + window.innerHeight - boxHeight - 10;
+    }
+
+    box.style.top  = top + "px";
+    box.style.left = left + "px";
   } else {
     box.style.top = "30%";
     box.style.left = "50%";
@@ -473,12 +488,9 @@ function openModal(type, el=null) {
     profile_pic: profilePicInput
   };
 
-  // Hide all inputs
   Object.values(inputs).forEach(i => i && (i.style.display = "none"));
-  // Show relevant input
   inputs[type] && (inputs[type].style.display = "block");
 
-  // Set title
   title.innerText = {
     phone: "📞 Phone",
     location: "📍 Location",
@@ -494,32 +506,40 @@ function closeModal() {
 }
 
 // =======================
-// DOM CONTENT LOADED
+// PROFILE PICTURE PREVIEW MODAL
 // =======================
-document.addEventListener('DOMContentLoaded', () => {
-  phoneInput      = document.getElementById("phoneInput");
-  locationInput   = document.getElementById("locationInput");
-  skillsInput     = document.getElementById("skillsInput");
-  cvInput         = document.getElementById("cvInput");
-  profilePicInput = document.getElementById("profilePicInput");
-
-  const profilePic   = document.getElementById('profile-pic');
-  const alienModal   = document.getElementById('imgModal');
+function showProfilePreview(profilePic) {
+  const alienModal = document.getElementById('imgModal');
   const alienPreview = document.getElementById('imgPreview');
-  const closeBtn     = document.getElementById('closeBtn');
-  const infoBtn      = document.getElementById('infoBtn');
-  const deleteBtn    = document.getElementById('deleteBtn');
-  const editBtn      = document.getElementById('editBtn');
+  const closeBtn = document.getElementById('closeBtn');
+  const infoBtn = document.getElementById('infoBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const editBtn = document.getElementById('editBtn');
 
-  // ---------------------------
-  // DEFAULT / REAL UI
-  // ---------------------------
-  function isDefault() {
-    return profilePic.src.includes("jo2wvg1a0wgiava5be20");
+  const rect = profilePic.getBoundingClientRect();
+  let top = rect.top + window.scrollY - 30;
+  let left = rect.right + 10;
+
+  // Prevent overflow right
+  const modalWidth = 280;
+  if (left + modalWidth > window.scrollX + window.innerWidth - 10) {
+    left = rect.left - modalWidth - 10;
   }
 
-  function setDefaultUI() {
-    alienPreview.src = DEFAULT_PIC;
+  // Prevent overflow bottom
+  const modalHeight = 300;
+  if (top + modalHeight > window.scrollY + window.innerHeight - 10) {
+    top = window.scrollY + window.innerHeight - modalHeight - 10;
+  }
+
+  alienModal.style.display = "block";
+  alienModal.style.top  = top + "px";
+  alienModal.style.left = left + "px";
+
+  alienPreview.src = profilePic.src;
+
+  // Default / real UI
+  if (profilePic.src.includes("jo2wvg1a0wgiava5be20")) {
     infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
 
@@ -527,51 +547,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const msg = document.createElement('div');
       msg.id = 'defaultMsg';
       msg.style.cssText = `
-        position:absolute;
-        top:50%;
-        left:50%;
-        transform:translate(-50%,-50%);
-        color:#22d3ee;
-        font-weight:bold;
-        font-size:16px;
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        color:#22d3ee; font-weight:bold; font-size:16px;
       `;
       msg.textContent = "No profile picture uploaded";
       alienPreview.parentElement.appendChild(msg);
     }
-  }
-
-  function setRealUI() {
+  } else {
     infoBtn.style.opacity = deleteBtn.style.opacity = 1;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "auto";
     const msg = document.getElementById('defaultMsg');
     if (msg) msg.remove();
   }
 
-  // ---------------------------
-  // OPEN PROFILE PREVIEW
-  // ---------------------------
-  profilePic.addEventListener("click", (e) => {
-    const rect = profilePic.getBoundingClientRect();
+  // Event listeners
+  closeBtn.onclick = () => alienModal.style.display = "none";
 
-    alienModal.style.display = "block";
-    alienModal.style.top  = (rect.top + window.scrollY) + "px";
-    alienModal.style.left = (rect.right + 10) + "px"; // beside the picture
-
-    alienPreview.src = profilePic.src;
-    isDefault() ? setDefaultUI() : setRealUI();
-  });
-
-  // CLOSE
-  closeBtn.addEventListener("click", () => alienModal.style.display = "none");
-
-  // INFO
-  infoBtn.addEventListener("click", () => {
+  infoBtn.onclick = () => {
     if (infoBtn.style.pointerEvents === "none") return;
     alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`);
-  });
+  };
 
-  // DELETE
-  deleteBtn.addEventListener("click", () => {
+  deleteBtn.onclick = () => {
     if (deleteBtn.style.pointerEvents === "none") return;
     if (!confirm("Delete your profile picture?")) return;
 
@@ -585,22 +582,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }).then(() => {
       profilePic.src = DEFAULT_PIC;
       alienPreview.src = DEFAULT_PIC;
-      setDefaultUI();
+      infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
+      infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
     });
-  });
+  };
 
-  // EDIT
-  editBtn.addEventListener("click", () => {
+  editBtn.onclick = () => {
     alienModal.style.display = "none";
     openModal("profile_pic", profilePic);
     setTimeout(() => profilePicInput.click(), 300);
-  });
+  };
+}
 
-  // Swipe close (mobile)
+// =======================
+// DOM READY
+// =======================
+document.addEventListener('DOMContentLoaded', () => {
+  phoneInput      = document.getElementById("phoneInput");
+  locationInput   = document.getElementById("locationInput");
+  skillsInput     = document.getElementById("skillsInput");
+  cvInput         = document.getElementById("cvInput");
+  profilePicInput = document.getElementById("profilePicInput");
+
+  const profilePic = document.getElementById('profile-pic');
+  profilePic.addEventListener("click", () => showProfilePreview(profilePic));
+
+  // Swipe close for mobile
   let startY = 0;
+  const alienPreview = document.getElementById('imgPreview');
   alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
   alienPreview.addEventListener("touchmove", e => {
-    if (e.touches[0].clientY - startY > 120) alienModal.style.display = "none";
+    if (e.touches[0].clientY - startY > 120) document.getElementById('imgModal').style.display = "none";
   });
 
   // Google Maps autocomplete
