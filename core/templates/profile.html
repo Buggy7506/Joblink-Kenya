@@ -212,9 +212,12 @@
 
 /* 🛸 Alien Image Viewer */
 .alien-modal {
-  position: absolute;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
   display: none;
-  z-index: 5000;
+  align-items: center;
+  justify-content: center;
 }
 
 .alien-frame {
@@ -438,6 +441,11 @@
 const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
 // =======================
+// GLOBAL INPUTS
+// =======================
+let phoneInput, locationInput, skillsInput, cvInput, profilePicInput;
+
+// =======================
 // Modal
 // =======================
 function openModal(type, el=null) {
@@ -488,6 +496,14 @@ function closeModal() {
 // DOM
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
+
+  // ----- Inputs (THIS FIXES THE CRASH)
+  phoneInput      = document.getElementById("phoneInput");
+  locationInput   = document.getElementById("locationInput");
+  skillsInput     = document.getElementById("skillsInput");
+  cvInput         = document.getElementById("cvInput");
+  profilePicInput = document.getElementById("profilePicInput");
+
   const profilePic   = document.getElementById('profile-pic');
   const alienModal   = document.getElementById('imgModal');
   const alienPreview = document.getElementById('imgPreview');
@@ -505,7 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setDefaultUI() {
     alienPreview.src = DEFAULT_PIC;
-    alienModal.classList.add('default');
     infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
 
@@ -527,7 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setRealUI() {
-    alienModal.classList.remove('default');
     infoBtn.style.opacity = deleteBtn.style.opacity = 1;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "auto";
     const msg = document.getElementById('defaultMsg');
@@ -545,20 +559,16 @@ document.addEventListener('DOMContentLoaded', () => {
     alienModal.style.left = (rect.right + 25) + "px";
 
     alienPreview.src = profilePic.src;
-
     isDefault() ? setDefaultUI() : setRealUI();
   });
 
-  // Close
   closeBtn.addEventListener("click", () => alienModal.style.display = "none");
 
-  // Info
   infoBtn.addEventListener("click", () => {
     if (infoBtn.style.pointerEvents === "none") return;
     alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`);
   });
 
-  // Delete
   deleteBtn.addEventListener("click", () => {
     if (deleteBtn.style.pointerEvents === "none") return;
 
@@ -578,13 +588,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Edit
+  // ✅ THIS IS WHAT WAS MISSING
   editBtn.addEventListener("click", () => {
     alienModal.style.display = "none";
     openModal("profile_pic", profilePic);
+    setTimeout(() => profilePicInput.click(), 300);
   });
 
-  // Swipe to close
+  // Swipe close
   let startY = 0;
   alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
   alienPreview.addEventListener("touchmove", e => {
@@ -592,7 +603,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Google Maps
-  const locationInput = document.getElementById('locationInput');
   if (locationInput && window.google && google.maps) {
     new google.maps.places.Autocomplete(locationInput, { types: ["geocode"] });
   }
@@ -601,6 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
   {% if modal_type %}
     openModal("{{ modal_type }}");
   {% endif %}
+
 });
 
 // =======================
