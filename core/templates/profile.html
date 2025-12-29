@@ -31,6 +31,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
+  position: relative;
 }
 
 .profile-pic img {
@@ -229,6 +230,8 @@
   transform: translateX(-50%);
   display: flex;
   gap: 15px;
+  flex-wrap: wrap;  /* Fix mobile truncation */
+  justify-content: center;
 }
 
 .alien-controls button {
@@ -277,13 +280,11 @@
   100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Dim default profile preview */
 .alien-frame.default img {
   filter: brightness(0.6);
   cursor: default;
 }
 
-/* Mobile adjustments for profile picture modal */
 @media (max-width: 768px) {
   .alien-modal {
     align-items: flex-start;
@@ -307,7 +308,7 @@
   .alien-controls {
     bottom: 10px;
     gap: 10px;
-    flex-wrap: nowrap;       /* Keep buttons horizontal on mobile */
+    flex-wrap: wrap;  /* Fix mobile truncation */
     justify-content: center;
   }
 }
@@ -386,7 +387,7 @@
 
 </div>
 
-<!-- MODAL FOR ADD / EDIT INFO -->
+<!-- Add / Edit Info Modal -->
 <div id="addModal" class="add-modal">
   <div class="add-box">
     <span class="close-add" onclick="closeModal()">×</span>
@@ -413,7 +414,7 @@
   </div>
 </div>
 
-<!-- PROFILE PICTURE MODAL -->
+<!-- Profile Picture Modal -->
 <div id="imgModal" class="alien-modal">
   <div class="alien-frame">
     <img id="imgPreview" alt="Preview">
@@ -429,6 +430,7 @@
 </div>
 
 <script>
+// JS handling remains exactly as in employer profile template
 const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
 function openModal(type) {
@@ -457,9 +459,7 @@ function openModal(type) {
   }
 }
 
-function closeModal() {
-  document.getElementById('addModal').style.display = 'none';
-}
+function closeModal() { document.getElementById('addModal').style.display = 'none'; }
 
 document.addEventListener('DOMContentLoaded', () => {
   const profilePic = document.getElementById('profile-pic');
@@ -480,21 +480,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
       alienPreview.src = DEFAULT_PIC;
       alienModal.classList.add('default');
-      infoBtn.style.opacity = 0.3;
-      infoBtn.style.pointerEvents = "none";
-      deleteBtn.style.opacity = 0.3;
-      deleteBtn.style.pointerEvents = "none";
-      editBtn.style.opacity = 1;
-      editBtn.style.pointerEvents = "auto";
+      infoBtn.style.opacity = 0.3; infoBtn.style.pointerEvents = "none";
+      deleteBtn.style.opacity = 0.3; deleteBtn.style.pointerEvents = "none";
+      editBtn.style.opacity = 1; editBtn.style.pointerEvents = "auto";
     } else {
       alienPreview.src = profilePic.src;
       alienModal.classList.remove('default');
-      infoBtn.style.opacity = 1;
-      infoBtn.style.pointerEvents = "auto";
-      editBtn.style.opacity = 1;
-      editBtn.style.pointerEvents = "auto";
-      deleteBtn.style.opacity = 1;
-      deleteBtn.style.pointerEvents = "auto";
+      infoBtn.style.opacity = 1; infoBtn.style.pointerEvents = "auto";
+      editBtn.style.opacity = 1; editBtn.style.pointerEvents = "auto";
+      deleteBtn.style.opacity = 1; deleteBtn.style.pointerEvents = "auto";
     }
   }
 
@@ -521,51 +515,38 @@ document.addEventListener('DOMContentLoaded', () => {
   profilePicInputModal.onchange = async (e) => {
     const file = e.target.files[0];
     if(!file) return;
-
     const compressedFile = await compressImage(file);
     const formData = new FormData();
     formData.append('modal_type', 'profile_pic');
     formData.append('profile_pic', compressedFile);
 
     const uploadRing = document.getElementById('uploadRing');
-    uploadRing.style.display = 'flex';
-    uploadRing.innerText = '0%';
+    uploadRing.style.display = 'flex'; uploadRing.innerText = '0%';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', "{% url 'quick_profile_update' %}");
-    xhr.upload.onprogress = (event) => {
-      if(event.lengthComputable){
-        const percent = Math.round((event.loaded / event.total) * 100);
-        uploadRing.innerText = `${percent}%`;
-      }
-    };
+    xhr.upload.onprogress = (event) => { if(event.lengthComputable){ const percent = Math.round((event.loaded / event.total) * 100); uploadRing.innerText = `${percent}%`; } };
     xhr.onload = () => {
       uploadRing.style.display = 'none';
       if(xhr.status === 200){
         const data = JSON.parse(xhr.responseText);
-        if(data.success){
-          profilePic.src = data.url;
-          alienPreview.src = data.url;
-          updateModalButtons();
-        } else alert('Upload failed.');
+        if(data.success){ profilePic.src = data.url; alienPreview.src = data.url; updateModalButtons(); } 
+        else alert('Upload failed.');
       } else alert('Upload failed.');
     };
     xhr.send(formData);
   };
 
-  // Swipe down to close modal
   let startY = 0;
   alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
   alienPreview.addEventListener('touchmove', e => { if(e.touches[0].clientY - startY > 120) alienModal.style.display = 'none'; });
 
-  // Google Places Autocomplete
   const locInput = document.getElementById('locationInput');
   if(locInput && window.google) new google.maps.places.Autocomplete(locInput, {types:["geocode"]});
 
   {% if form_errors %} openModal("{{ modal_type }}"); {% endif %}
 });
 
-// Compress image before upload
 async function compressImage(file) {
   return new Promise(resolve => {
     const img = new Image();
