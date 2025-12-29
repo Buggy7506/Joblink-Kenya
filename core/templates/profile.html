@@ -276,6 +276,34 @@
   filter: brightness(0.6);
   cursor: default;
 }
+
+/* Mobile adjustments for profile picture modal */
+@media (max-width: 768px) {
+  .alien-modal {
+    align-items: flex-start;  /* move modal to top */
+    padding-top: 60px;        /* spacing from top of viewport */
+  }
+
+  .alien-frame {
+    width: 90%;
+    max-width: none;
+    max-height: 80vh;         /* ensure image doesn't overflow */
+    border-radius: 15px;
+  }
+
+  .alien-frame img {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;         /* scale image to fit mobile screen */
+    object-fit: contain;
+  }
+
+  .alien-controls {
+    bottom: 10px;
+    gap: 10px;
+    flex-wrap: wrap;           /* wrap buttons if screen is small */
+  }
+}
 </style>
 
 <div class="profile-container">
