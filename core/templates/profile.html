@@ -165,14 +165,14 @@
 
 /* MODAL STYLING (appears beside clicked element) */
 .add-modal {
-  position: absolute;
+  position: fixed; /* changed from absolute */
+  display: none;
   background: var(--bg-card);
   padding: 20px;
   border-radius: 10px;
-  display: none;
   border: 1px solid var(--text-accent);
-  z-index: 1000;
-  box-shadow: none; /* remove shadows */
+  z-index: 3000;
+  box-shadow: 0 0 15px var(--glow-accent);
 }
 
 .add-modal h2 {
@@ -211,58 +211,49 @@
   color: var(--text-main);
 }
 
-/* 🛸 Alien Image Viewer */
-
-/* =========================================================
-   PROFILE PICTURE PREVIEW (CLEAN & SIMPLE)
-========================================================= */
-
+/* ==========================
+   PROFILE PICTURE PREVIEW (ALIEN MODAL)
+========================== */
 .alien-modal {
-  position: absolute; /* appear near clicked element */
+  position: absolute; /* appears near clicked element */
   display: none;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 .alien-frame {
-  position: absolute;
+  position: relative;
   width: 280px;
-  max-width: 90%;
-  border-radius: 10px;
-  overflow: hidden;
+  max-width: 90vw;
+  border-radius: 12px;
   background: var(--bg-card);
   border: 1px solid var(--text-accent);
-  box-shadow: none; /* removed shadow */
   padding: 10px;
+  box-shadow: 0 0 15px var(--glow-accent);
 }
 
 .alien-frame img {
   width: 100%;
   height: auto;
+  border-radius: 10px;
   object-fit: cover;
-  cursor: default;
-  transition: transform 0.2s ease;
-}
-
-.alien-frame img:hover {
-  transform: scale(1.03);
 }
 
 .alien-controls {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 5px;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 5px;
 }
 
 .alien-controls button {
-  padding: 6px 12px;
-  background: var(--bg-main);
-  border: 1px solid var(--text-accent);
+  flex: 1;
+  padding: 6px 8px;
   border-radius: 6px;
+  border: 1px solid var(--text-accent);
+  background: var(--bg-main);
   color: var(--text-accent);
   font-weight: bold;
   cursor: pointer;
-  transition: 0.2s ease;
 }
 
 .alien-controls button:hover {
@@ -270,6 +261,24 @@
   color: var(--text-main);
 }
 
+/* Message inside modal */
+#previewMsg {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: bold;
+  color: #22d3ee;
+  background: rgba(0,0,0,0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Remove elongated dark overlay */
+.alien-overlay { display: none !important; }
+   
 /* Upload ring simplified */
 .upload-ring {
   position: absolute;
@@ -299,7 +308,6 @@
   cursor: default;
   transform: scale(1) !important;
 }
-
 </style>
 
 <div class="profile-container">
@@ -442,7 +450,7 @@ const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v17545780
 let phoneInput, locationInput, skillsInput, cvInput, profilePicInput;
 
 // =======================
-// MODAL FUNCTIONS
+// OPEN ADD/EDIT MODAL
 // =======================
 function openModal(type, el=null) {
   const modal = document.getElementById('addModal');
@@ -452,38 +460,48 @@ function openModal(type, el=null) {
   modal.style.display = 'block';
   box.style.transform = ""; // reset previous transform
 
+  // Default center
+  let top = window.scrollY + window.innerHeight / 3;
+  let left = window.scrollX + (window.innerWidth - (box.offsetWidth || 320)) / 2;
+
   if (el) {
     const rect = el.getBoundingClientRect();
-    let top = rect.top + window.scrollY;
-    let left = rect.right + 10;
+    top = rect.top + window.scrollY;
+    left = rect.right + 10;
 
     const boxWidth = box.offsetWidth || 320;
     const boxHeight = box.offsetHeight || 200;
 
-    // Reposition if overflowing right
+    // Prevent overflow right
     if (left + boxWidth > window.scrollX + window.innerWidth - 10) {
       left = rect.left - boxWidth - 10;
     }
-    // Reposition if overflowing bottom
+    // Prevent overflow bottom
     if (top + boxHeight > window.scrollY + window.innerHeight - 10) {
       top = window.scrollY + window.innerHeight - boxHeight - 10;
     }
-
-    box.style.top = top + "px";
-    box.style.left = left + "px";
-  } else {
-    box.style.top = "30%";
-    box.style.left = "50%";
-    box.style.transform = "translateX(-50%)";
+    // Prevent overflow top
+    if (top < window.scrollY + 10) top = window.scrollY + 10;
   }
+
+  box.style.position = "absolute";
+  box.style.top = top + "px";
+  box.style.left = left + "px";
 
   document.getElementById("modalTypeInput").value = type;
 
+  // Show only the relevant input
   const inputs = { phone: phoneInput, location: locationInput, skills: skillsInput, upload_cv: cvInput, profile_pic: profilePicInput };
   Object.values(inputs).forEach(i => i && (i.style.display = "none"));
-  inputs[type] && (inputs[type].style.display = "block");
+  if (inputs[type]) inputs[type].style.display = "block";
 
-  title.innerText = { phone:"📞 Phone", location:"📍 Location", skills:"🧠 Skills", upload_cv:"📄 Upload CV", profile_pic:"🖼 Update Picture" }[type];
+  title.innerText = {
+    phone:"📞 Phone",
+    location:"📍 Location",
+    skills:"🧠 Skills",
+    upload_cv:"📄 Upload CV",
+    profile_pic:"🖼 Update Picture"
+  }[type];
 }
 
 function closeModal() {
@@ -502,22 +520,25 @@ function showProfilePreview(profilePic) {
   const deleteBtn = document.getElementById('deleteBtn');
   const editBtn = document.getElementById('editBtn');
 
-  // Smart positioning
+  // Smart position near clicked image
   const rect = profilePic.getBoundingClientRect();
-  let top = rect.top + window.scrollY - 30;
-  let left = rect.right + 10;
   const modalWidth = 280, modalHeight = 300;
+  let top = rect.top;
+  let left = rect.right + 10;
 
-  if (left + modalWidth > window.scrollX + window.innerWidth - 10) left = rect.left - modalWidth - 10;
-  if (top + modalHeight > window.scrollY + window.innerHeight - 10) top = window.scrollY + window.innerHeight - modalHeight - 10;
-  if (top < window.scrollY + 10) top = window.scrollY + 10;
+  // Prevent going offscreen
+  if (left + modalWidth > window.innerWidth - 10) left = rect.left - modalWidth - 10;
+  if (top + modalHeight > window.innerHeight - 10) top = window.innerHeight - modalHeight - 10;
+  if (top < 10) top = 10;
 
   alienModal.style.display = "block";
+  alienModal.style.position = "fixed";
   alienModal.style.top = top + "px";
   alienModal.style.left = left + "px";
+
   alienPreview.src = profilePic.src;
 
-  // Default or real UI
+  // Default vs uploaded profile picture
   if (profilePic.src.includes("jo2wvg1a0wgiava5be20")) {
     infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
@@ -574,10 +595,15 @@ function showPreviewMessage(text) {
   const msg = document.createElement('div');
   msg.id = 'previewMsg';
   msg.style.cssText = `
-    position:absolute; top:5px; left:50%;
+    position:absolute; top:-25px; left:50%;
     transform:translateX(-50%);
-    color:#22d3ee; font-weight:bold; font-size:14px;
-    background: rgba(0,0,0,0.2); padding:4px 10px; border-radius:6px;
+    font-size:13px;
+    font-weight:bold;
+    color:#22d3ee;
+    background: rgba(0,0,0,0.15);
+    padding:3px 8px;
+    border-radius:6px;
+    white-space:nowrap;
   `;
   msg.textContent = text;
   alienModal.appendChild(msg);
