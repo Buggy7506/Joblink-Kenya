@@ -79,6 +79,8 @@
   border-radius: 20px;
   overflow: hidden;
   background: black;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,.4);
 }
 .alien-frame img {
@@ -96,7 +98,9 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: auto; /* push buttons to bottom */
+  padding: 10px 0;
+  background: rgba(0,0,0,0.4);
 }
 .alien-controls button {
   flex: 1 1 auto;
@@ -233,7 +237,7 @@ function showMessage(msg, duration=2000){
 }
 
 function isDefaultPic(){
-  const filename = profilePic.src.split('/').pop().split('?')[0]; // ignore query strings
+  const filename = profilePic.src.split('/').pop().split('?')[0];
   return filename === DEFAULT_FILENAME;
 }
 
@@ -253,19 +257,19 @@ function updateModalButtons(){
   }
 }
 
-profilePic.addEventListener('click', ()=>{
+profilePic.addEventListener('click', ()=> {
   alienModal.style.display='flex';
   updateModalButtons();
 });
 
 closeBtn.onclick = ()=>alienModal.style.display='none';
 
-infoBtn.onclick = ()=>{
+infoBtn.onclick = ()=> {
   if(infoBtn.style.pointerEvents!=='none')
     showMessage(`📷 Profile Picture\nUploaded by: {{ user.username }}\nEmail: {{ user.email }}\nJoined: {{ user.date_joined }}`,4000);
 };
 
-deleteBtn.onclick = async ()=>{
+deleteBtn.onclick = async ()=> {
   if(deleteBtn.style.pointerEvents==='none') return;
   if(!confirm("Delete your profile picture?")) return;
 
@@ -293,9 +297,9 @@ deleteBtn.onclick = async ()=>{
   }
 };
 
-editBtn.onclick = ()=>{ if(editBtn.style.pointerEvents!=='none') profilePicInputModal.click(); };
+editBtn.onclick = ()=> { if(editBtn.style.pointerEvents!=='none') profilePicInputModal.click(); };
 
-profilePicInputModal.onchange = async e=>{
+profilePicInputModal.onchange = async e => {
   const file = e.target.files[0];
   if(!file) return;
   const compressedFile = await compressImage(file);
@@ -337,15 +341,15 @@ alienPreview.addEventListener('touchmove', e => {
 });
 
 async function compressImage(file){
-  return new Promise(resolve=>{
+  return new Promise(resolve => {
     const img = new Image();
-    img.onload = ()=>{
+    img.onload = ()=> {
       const canvas = document.createElement('canvas');
       const scale = Math.min(1, 800 / img.width);
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;
       canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-      canvas.toBlob(blob=>resolve(new File([blob],file.name,{type:'image/jpeg'})),'image/jpeg',0.7);
+      canvas.toBlob(blob => resolve(new File([blob],file.name,{type:'image/jpeg'})),'image/jpeg',0.7);
     };
     img.src = URL.createObjectURL(file);
   });
