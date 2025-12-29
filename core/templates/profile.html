@@ -5,64 +5,74 @@
 {% block content %}
 <style>
 /* =========================================================
-   PROFILE PAGE — THEME COMPATIBLE (REFINED)
+   PROFILE PAGE — MODERN & UNIQUE
 ========================================================= */
 
-/* ---------- Container ---------- */
 .profile-container {
-  max-width: 800px;
+  max-width: 850px;
   margin: 60px auto;
-  padding: 40px;
+  padding: 45px;
+  border-radius: 22px;
   background: var(--bg-card);
-  border-radius: 20px;
   border: 1px solid var(--text-accent);
-  box-shadow: 0 0 30px rgba(128, 0, 255, 0.6);
-  animation: fadeIn 0.9s ease;
+  box-shadow: 0 0 35px rgba(128, 0, 255, 0.5);
+  animation: fadeIn 1s ease;
 }
 
 .profile-container h1 {
   text-align: center;
-  font-size: 36px;
-  margin-bottom: 40px;
+  font-size: 38px;
   color: var(--text-accent);
-  text-shadow: 0 0 15px var(--glow-accent);
+  text-shadow: 0 0 16px var(--glow-accent);
+  margin-bottom: 45px;
 }
 
 /* ---------- Profile Picture ---------- */
 .profile-pic {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
 }
 
 .profile-pic img {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
-  border: 3px solid var(--text-accent);
-  box-shadow: 0 0 15px var(--glow-accent);
+  object-fit: cover;
+  border: 4px solid var(--text-accent);
+  box-shadow: 0 0 18px var(--glow-accent);
   cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-pic img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 28px var(--glow-accent);
 }
 
 /* ---------- Profile Info Grid ---------- */
 .profile-info {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 25px;
+  gap: 28px;
 }
 
 .profile-info div {
   background: var(--bg-main);
-  padding: 15px 20px;
-  border-radius: 12px;
-  border-left: 5px solid var(--text-accent);
+  padding: 18px 22px;
+  border-radius: 14px;
+  border-left: 6px solid var(--text-accent);
+  transition: transform 0.2s ease;
+}
+
+.profile-info div:hover {
+  transform: translateY(-2px);
 }
 
 .profile-info div p:first-child {
-  font-weight: bold;
+  font-weight: 600;
   color: var(--text-accent);
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .profile-info div p:last-child {
@@ -71,49 +81,46 @@
 
 /* ---------- Resume Card ---------- */
 .resume-card {
-  display: block;
-  margin-top: 40px;
-  padding: 20px;
+  margin-top: 45px;
+  padding: 22px;
+  border-radius: 18px;
   text-align: center;
   font-size: 18px;
   font-weight: bold;
-  color: var(--text-accent);
   text-decoration: none;
-
+  color: var(--text-accent);
   background: var(--bg-card);
-  border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.35);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .resume-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 35px var(--glow-accent);
+  transform: scale(1.06);
+  box-shadow: 0 0 38px var(--glow-accent);
 }
 
-/* ---------- Edit Button ---------- */
+/* ---------- Edit Profile Button ---------- */
 .edit-button {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 45px;
 }
 
 .edit-button a {
   display: inline-block;
-  padding: 12px 30px;
-  font-size: 16px;
-  border-radius: 30px;
+  padding: 14px 32px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 32px;
   text-decoration: none;
-  font-weight: bold;
-
   background: var(--text-accent);
   color: var(--text-main);
-  box-shadow: 0 0 12px var(--glow-accent);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 14px var(--glow-accent);
+  transition: all 0.3s ease;
 }
 
 .edit-button a:hover {
   background: var(--glow-accent);
-  box-shadow: 0 0 20px var(--glow-accent);
+  box-shadow: 0 0 25px var(--glow-accent);
 }
 
 /* ---------- Responsive ---------- */
@@ -123,593 +130,333 @@
   }
 }
 
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* =========================================================
-   IMAGE MODAL (FULL PREVIEW)
+   MODALS
 ========================================================= */
-#imgModal {
+#addModal, .alien-modal {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.9);
-  padding-top: 60px;
+  z-index: 5000;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.85);
 }
 
-#imgModal img {
-  display: block;
-  margin: auto;
-  max-width: 90%;
-  max-height: 90%;
-}
-
-#imgModal span {
-  position: absolute;
-  top: 15px;
-  right: 35px;
-  font-size: 40px;
-  cursor: pointer;
-  color: var(--text-main);
-}
-
-/* =========================================================
-   ADD MODAL (INLINE ACTIONS)
-========================================================= */
-.add-link {
-  color: #22d3ee;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.add-link:hover {
-  text-shadow: 0 0 12px #22d3ee;
-}
-
-.add-modal {
-  position: fixed;
-  display: none;
-  z-index: 3000;
-
+.add-box {
   background: var(--bg-card);
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid var(--text-accent);
-  box-shadow: 0 0 15px var(--glow-accent);
+  padding: 35px;
+  border-radius: 18px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 0 42px var(--glow-accent);
+  position: relative;
 }
 
-.add-modal h2 {
-  margin-top: 0;
-  font-size: 18px;
+.add-box h2 {
+  text-align: center;
   color: var(--text-accent);
+  margin-bottom: 20px;
 }
 
-.add-modal input {
+.add-box input {
   width: 100%;
-  padding: 8px;
-  margin: 10px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 13px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: none;
   background: var(--bg-main);
   color: var(--text-main);
 }
 
-.add-modal button {
-  padding: 10px 20px;
-  border-radius: 6px;
+.add-box button {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
   border: none;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
-
   background: var(--text-accent);
   color: var(--text-main);
+  transition: all 0.3s ease;
 }
 
-.add-modal .close-add {
+.add-box button:hover {
+  background: var(--glow-accent);
+}
+
+.close-add {
   position: absolute;
-  top: 6px;
-  right: 10px;
-  font-size: 20px;
+  top: 12px;
+  right: 15px;
+  font-size: 26px;
   cursor: pointer;
 }
 
-/* =========================================================
-   PROFILE PICTURE PREVIEW (ALIEN MODAL)
-========================================================= */
-.alien-modal {
-  position: absolute;
-  display: none;
-  z-index: 2000;
-}
-
+/* ---------- Alien Image Preview ---------- */
 .alien-frame {
-  width: 280px;
-  max-width: 90vw;
-  padding: 10px;
-
-  background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid var(--text-accent);
-  box-shadow: 0 0 15px var(--glow-accent);
+  position: relative;
+  max-width: 520px;
+  width: 90%;
+  background: black;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,0.4);
 }
 
 .alien-frame img {
   width: 100%;
-  border-radius: 10px;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+}
+
+.alien-frame img:hover {
+  transform: scale(1.05);
 }
 
 .alien-controls {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 16px;
 }
 
 .alien-controls button {
-  flex: 1;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid #22d3ee;
+  background: rgba(0,0,0,0.75);
+  color: #22d3ee;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
-
-  background: var(--bg-main);
-  border: 1px solid var(--text-accent);
-  color: var(--text-accent);
+  transition: 0.25s;
 }
 
 .alien-controls button:hover {
-  background: var(--text-accent);
-  color: var(--text-main);
+  background: #22d3ee;
+  color: black;
+  box-shadow: 0 0 28px #22d3ee;
 }
 
-/* ---------- Preview Message ---------- */
-#previewMsg {
-  position: absolute;
-  top: -26px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 3px 8px;
-  font-size: 13px;
-  font-weight: bold;
-  color: #22d3ee;
-
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  white-space: nowrap;
-}
-
-/* ---------- Upload Ring ---------- */
 .upload-ring {
   position: absolute;
-  inset: 50%;
-  width: 100px;
-  height: 100px;
-
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  border: 4px solid rgba(34, 211, 238, 0.2);
-  border-top: 4px solid #22d3ee;
-
+  border: 6px solid rgba(34,211,238,0.2);
+  border-top: 6px solid #22d3ee;
   transform: translate(-50%, -50%);
   display: none;
+  align-items: center;
+  justify-content: center;
+  color: #22d3ee;
+  font-weight: bold;
   animation: spin 1s linear infinite;
 }
 
-/* ---------- Defaults ---------- */
-.alien-frame.default img {
-  filter: grayscale(30%) brightness(0.8);
-  cursor: default;
-}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* ---------- Animations ---------- */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Disable unused overlay */
-.alien-overlay {
-  display: none !important;
-}
+.alien-frame.default img { filter: brightness(0.6); cursor: default; }
 </style>
 
-<!-- =========================
-     PROFILE CONTAINER
-========================= -->
 <div class="profile-container">
 
-  <!-- Profile Picture -->
+  <!-- PROFILE PICTURE -->
   <div class="profile-pic">
-    <img
-      id="profilePic"
-      src="{{ profile_picture_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}"
-      alt="User profile picture"
-    >
+    <img id="profilePic"
+         src="{{ profile_picture_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}"
+         alt="Profile Picture">
   </div>
 
-  <!-- =========================
-       PROFILE DETAILS
-  ========================= -->
+  <!-- PROFILE DETAILS -->
   <div class="profile-info">
-
-    <!-- Username -->
-    <div class="info-item">
-      <p class="label">Username</p>
-      <p class="value">{{ user.username }}</p>
+    <div><p class="label">Username</p><p class="value">{{ user.username }}</p></div>
+    <div><p class="label">Email</p><p class="value">{{ user.email }}</p></div>
+    <div><p class="label">Phone</p>
+      {% if user.phone %}<p class="value">{{ user.phone }}</p>
+      {% else %}<span class="add-link" onclick="openModal('phone')">➕ Add phone</span>{% endif %}
     </div>
-
-    <!-- Email -->
-    <div class="info-item">
-      <p class="label">Email</p>
-      <p class="value">{{ user.email }}</p>
+    <div><p class="label">Location</p>
+      {% if user.location %}<p class="value">{{ user.location }}</p>
+      {% else %}<span class="add-link" onclick="openModal('location')">➕ Add location</span>{% endif %}
     </div>
-
-    <!-- Phone -->
-    <div class="info-item">
-      <p class="label">Phone</p>
-      {% if user.phone %}
-        <p class="value">{{ user.phone }}</p>
-      {% else %}
-        <span class="add-link" onclick="openModal('phone', this)">➕ Add phone</span>
-      {% endif %}
-    </div>
-
-    <!-- Location -->
-    <div class="info-item">
-      <p class="label">Location</p>
-      {% if user.location %}
-        <p class="value">{{ user.location }}</p>
-      {% else %}
-        <span class="add-link" onclick="openModal('location', this)">➕ Add location</span>
-      {% endif %}
-    </div>
-
-    <!-- Role -->
-    <div class="info-item">
-      <p class="label">Role</p>
-      <p class="value">{{ user.role|capfirst }}</p>
-    </div>
-
-    <!-- Skills -->
-    <div class="info-item">
-      <p class="label">Skills</p>
+    <div><p class="label">Role</p><p class="value">{{ user.role|capfirst }}</p></div>
+    <div><p class="label">Skills</p>
       {% if skills %}
-        <ul class="skills-list">
-          {% for skill in skills %}
-            <li>{{ skill }}</li>
-          {% endfor %}
-        </ul>
+        <ul class="skills-list">{% for skill in skills %}<li>{{ skill }}</li>{% endfor %}</ul>
       {% else %}
-        <span class="add-link" onclick="openModal('skills', this)">➕ Add skills</span>
+        <span class="add-link" onclick="openModal('skills')">➕ Add skills</span>
       {% endif %}
     </div>
-
-    <!-- CV -->
-    <div class="info-item">
-      <p class="label">CV</p>
+    <div><p class="label">CV</p>
       {% if user_cv %}
         <a href="{{ user_cv.cv.url }}" target="_blank" class="cv-link">📄 View CV</a>
       {% else %}
-        <span class="add-link" onclick="openModal('upload_cv', this)">➕ Upload CV</span>
+        <span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span>
       {% endif %}
     </div>
-
   </div>
 
-  <!-- Resume -->
-  <a href="{% url 'view_resume' %}" class="resume-card">
-    📄 View My Resume
-  </a>
+  <a href="{% url 'view_resume' %}" class="resume-card">📄 View My Resume</a>
 
-  <!-- Edit Profile -->
   <div class="edit-button">
     <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
   </div>
-
 </div>
 
-<!-- =========================
-     QUICK ADD / EDIT MODAL
-========================= -->
+<!-- MODALS -->
 <div id="addModal" class="add-modal">
   <div class="add-box">
-
-    <button class="close-add" onclick="closeModal()" aria-label="Close">×</button>
+    <span class="close-add" onclick="closeModal()">×</span>
     <h2 id="modalTitle"></h2>
-
-    <form
-      method="POST"
-      enctype="multipart/form-data"
-      action="{% url 'quick_profile_update' %}"
-    >
+    <form method="POST" enctype="multipart/form-data" action="{% url 'quick_profile_update' %}">
       {% csrf_token %}
       <input type="hidden" name="modal_type" id="modalTypeInput">
-
       {% if form_errors %}
-        <div class="form-errors">
-          {% for field, errors in form_errors.items %}
-            {% for error in errors %}
-              <p>{{ error }}</p>
-            {% endfor %}
-          {% endfor %}
+        <div style="color:#f87171; margin-bottom:10px;">
+          {% for field, errors in form_errors.items %}{% for error in errors %}<p>{{ error }}</p>{% endfor %}{% endfor %}
         </div>
       {% endif %}
-
-      <!-- Dynamic Inputs -->
       <input id="phoneInput" name="phone" placeholder="Enter phone" hidden>
-      <input id="locationInput" name="location" placeholder="Search location" hidden>
+      <input id="locationInput" name="location" placeholder="Enter location" hidden>
       <input id="skillsInput" name="skills" placeholder="Comma-separated skills" hidden>
       <input id="cvInput" type="file" name="upload_cv" hidden>
       <input id="profilePicInput" type="file" name="profile_pic" hidden>
-
       <button type="submit">Save</button>
     </form>
-
   </div>
 </div>
 
-<!-- =========================
-     PROFILE PICTURE PREVIEW
-========================= -->
 <div id="imgModal" class="alien-modal">
-
   <div class="alien-frame">
-
-    <img id="imgPreview" alt="Profile preview">
+    <img id="imgPreview" alt="Preview">
     <div id="uploadRing" class="upload-ring">0%</div>
-
-    <!-- Alien HUD -->
     <div class="alien-controls">
       <button id="infoBtn">👁 INFO</button>
       <button id="editBtn">✏️ EDIT</button>
       <button id="deleteBtn">🗑 DELETE</button>
       <button id="closeBtn">✕</button>
     </div>
-
   </div>
 </div>
+
 <script>
-/* =========================================================
-   CONSTANTS
-========================================================= */
-const DEFAULT_PIC =
-  "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
+const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
-/* =========================================================
-   STATE
-========================================================= */
-const inputs = {
-  phone: null,
-  location: null,
-  skills: null,
-  upload_cv: null,
-  profile_pic: null
-};
-
-/* =========================================================
-   UTILITIES
-========================================================= */
-function qs(id) {
-  return document.getElementById(id);
-}
-
-function clamp(val, min, max) {
-  return Math.min(Math.max(val, min), max);
-}
-
-/* =========================================================
-   ADD / EDIT MODAL
-========================================================= */
-function openModal(type, anchor = null) {
-  const modal = qs("addModal");
-  const box = modal.querySelector(".add-box");
-  const title = qs("modalTitle");
-
-  modal.style.display = "block";
-  box.style.position = "absolute";
-
-  let top = window.scrollY + window.innerHeight / 3;
-  let left = window.scrollX + (window.innerWidth - (box.offsetWidth || 320)) / 2;
-
-  if (anchor) {
-    const r = anchor.getBoundingClientRect();
-    const bw = box.offsetWidth || 320;
-    const bh = box.offsetHeight || 200;
-
-    top = clamp(
-      r.top + window.scrollY,
-      window.scrollY + 10,
-      window.scrollY + window.innerHeight - bh - 10
-    );
-
-    left = r.right + bw > window.innerWidth
-      ? r.left - bw - 10
-      : r.right + 10;
+function openModal(type) {
+  const modal = document.getElementById('addModal');
+  const title = document.getElementById('modalTitle');
+  const inputs = {
+    phone: document.getElementById('phoneInput'),
+    location: document.getElementById('locationInput'),
+    skills: document.getElementById('skillsInput'),
+    upload_cv: document.getElementById('cvInput'),
+    profile_pic: document.getElementById('profilePicInput')
+  };
+  if (!modal || !title) return;
+  modal.style.display = 'flex';
+  document.getElementById('modalTypeInput').value = type;
+  Object.values(inputs).forEach(i=>i.style.display='none');
+  if(inputs[type]) { 
+    inputs[type].style.display='block'; 
+    title.innerText={
+      phone:"Add Phone", location:"Add Location", skills:"Add Skills",
+      upload_cv:"Upload CV", profile_pic:"Update Profile Picture"
+    }[type]; 
   }
-
-  box.style.top = `${top}px`;
-  box.style.left = `${left}px`;
-
-  qs("modalTypeInput").value = type;
-
-  Object.values(inputs).forEach(i => i && (i.style.display = "none"));
-  if (inputs[type]) inputs[type].style.display = "block";
-
-  title.textContent = {
-    phone: "📞 Phone",
-    location: "📍 Location",
-    skills: "🧠 Skills",
-    upload_cv: "📄 Upload CV",
-    profile_pic: "🖼 Update Picture"
-  }[type] || "";
 }
 
-function closeModal() {
-  const modal = qs("addModal");
-  if (modal) modal.style.display = "none";
-}
+function closeModal() { document.getElementById('addModal').style.display='none'; }
 
-/* =========================================================
-   PROFILE IMAGE PREVIEW (ALIEN MODAL)
-========================================================= */
-function showProfilePreview(profilePic) {
-  const modal = qs("imgModal");
-  const preview = qs("imgPreview");
-  const infoBtn = qs("infoBtn");
-  const editBtn = qs("editBtn");
-  const deleteBtn = qs("deleteBtn");
-  const closeBtn = qs("closeBtn");
+document.addEventListener('DOMContentLoaded', ()=>{
+  const profilePic = document.getElementById('profilePic');
+  const alienModal = document.getElementById('imgModal');
+  const alienPreview = document.getElementById('imgPreview');
+  const closeBtn = document.getElementById('closeBtn');
+  const infoBtn = document.getElementById('infoBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const editBtn = document.getElementById('editBtn');
 
-  const r = profilePic.getBoundingClientRect();
-  const MW = 280, MH = 300;
-
-  let top = clamp(r.top, 10, window.innerHeight - MH - 10);
-  let left = r.right + MW > window.innerWidth
-    ? r.left - MW - 10
-    : r.right + 10;
-
-  modal.style.display = "block";
-  modal.style.position = "fixed";
-  modal.style.top = `${top}px`;
-  modal.style.left = `${left}px`;
-
-  preview.src = profilePic.src;
-
-  const isDefault = profilePic.src.includes("jo2wvg1a0wgiava5be20");
-  [infoBtn, deleteBtn].forEach(btn => {
-    btn.style.opacity = isDefault ? 0.3 : 1;
-    btn.style.pointerEvents = isDefault ? "none" : "auto";
-  });
-
-  if (isDefault) {
-    showPreviewMessage("No profile picture uploaded");
-  } else {
-    removePreviewMessage();
-  }
-
-  closeBtn.onclick = () => modal.style.display = "none";
-
-  infoBtn.onclick = () => {
-    if (isDefault) return;
-    showPreviewMessage(`📷 Uploaded by: {{ user.username }}`);
-  };
-
-  deleteBtn.onclick = async () => {
-    if (isDefault || !confirm("Delete your profile picture?")) return;
-
-    await fetch("{% url 'quick_profile_update' %}", {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": "{{ csrf_token }}",
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: "modal_type=profile_pic_delete"
-    });
-
-    profilePic.src = preview.src = DEFAULT_PIC;
-    showPreviewMessage("✅ Profile picture deleted");
-  };
-
-  editBtn.onclick = () => {
-    modal.style.display = "none";
-    openModal("profile_pic", profilePic);
-    setTimeout(() => inputs.profile_pic.click(), 300);
-  };
-}
-
-/* =========================================================
-   PREVIEW MESSAGE
-========================================================= */
-function removePreviewMessage() {
-  const m = qs("previewMsg");
-  if (m) m.remove();
-}
-
-function showPreviewMessage(text) {
-  removePreviewMessage();
-
-  const msg = document.createElement("div");
-  msg.id = "previewMsg";
-  msg.textContent = text;
-  msg.style.cssText = `
-    position:absolute;
-    top:-25px;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:13px;
-    font-weight:bold;
-    color:#22d3ee;
-    background:rgba(0,0,0,.15);
-    padding:3px 8px;
-    border-radius:6px;
-    white-space:nowrap;
-  `;
-
-  qs("imgModal").appendChild(msg);
-}
-
-/* =========================================================
-   DOM READY
-========================================================= */
-document.addEventListener("DOMContentLoaded", () => {
-  inputs.phone = qs("phoneInput");
-  inputs.location = qs("locationInput");
-  inputs.skills = qs("skillsInput");
-  inputs.upload_cv = qs("cvInput");
-  inputs.profile_pic = qs("profilePicInput");
-
-  const profilePic = qs("profile-pic");
-  profilePic.addEventListener("click", () => showProfilePreview(profilePic));
-
-  // Swipe down to close (mobile)
-  const preview = qs("imgPreview");
-  let startY = 0;
-
-  preview.addEventListener("touchstart", e => {
-    startY = e.touches[0].clientY;
-  });
-
-  preview.addEventListener("touchmove", e => {
-    if (e.touches[0].clientY - startY > 120) {
-      qs("imgModal").style.display = "none";
+  profilePic.onclick = ()=>{
+    alienModal.style.display='flex';
+    if(profilePic.src===DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')){
+      alienPreview.src = DEFAULT_PIC;
+      alienModal.classList.add('default');
+      infoBtn.style.opacity=0.3; infoBtn.style.pointerEvents='none';
+      deleteBtn.style.opacity=0.3; deleteBtn.style.pointerEvents='none';
+      editBtn.style.opacity=0.3; editBtn.style.pointerEvents='none';
+    } else {
+      alienPreview.src = profilePic.src;
+      alienModal.classList.remove('default');
+      infoBtn.style.opacity=1; infoBtn.style.pointerEvents='auto';
+      deleteBtn.style.opacity=1; deleteBtn.style.pointerEvents='auto';
+      editBtn.style.opacity=1; editBtn.style.pointerEvents='auto';
     }
-  });
+  };
 
-  // Google Places
-  if (inputs.location && window.google?.maps) {
-    new google.maps.places.Autocomplete(inputs.location, {
-      types: ["geocode"]
-    });
-  }
+  closeBtn.onclick = ()=>alienModal.style.display='none';
+  infoBtn.onclick = ()=>{ if(infoBtn.style.pointerEvents==='none') return; alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`); };
+  deleteBtn.onclick = ()=>{
+    if(deleteBtn.style.pointerEvents==='none') return;
+    if(confirm("Delete your profile picture?")){
+      fetch("{% url 'quick_profile_update' %}", {
+        method:'POST', 
+        headers:{'X-CSRFToken':'{{ csrf_token }}'}, 
+        body:new URLSearchParams({modal_type:'profile_pic_delete'})
+      })
+      .then(()=>{ 
+        profilePic.src = DEFAULT_PIC; 
+        alienModal.classList.add('default'); 
+      });
+    }
+  };
 
-  {% if modal_type %}
-    openModal("{{ modal_type }}");
-  {% endif %}
+  editBtn.onclick = ()=>{
+    if(editBtn.style.pointerEvents==='none') return;
+    closeModal();
+    document.getElementById('profilePicInput').click();
+    openModal('profile_pic');
+  };
+
+  // Swipe down to close
+  let startY=0;
+  alienPreview.addEventListener('touchstart', e=>startY=e.touches[0].clientY);
+  alienPreview.addEventListener('touchmove', e=>{ if(e.touches[0].clientY-startY>120) alienModal.style.display='none'; });
+
+  // Google Places Autocomplete
+  const locInput=document.getElementById('locationInput');
+  if(locInput && window.google){ new google.maps.places.Autocomplete(locInput,{types:["geocode"]}); }
+
+  {% if modal_type %} openModal("{{ modal_type }}"); {% endif %}
 });
 
-/* =========================================================
-   IMAGE COMPRESSION
-========================================================= */
-async function compressImage(file) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const scale = Math.min(1, 800 / img.width);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(
-        b => resolve(new File([b], file.name, { type: "image/jpeg" })),
-        "image/jpeg",
-        0.7
-      );
+// Image compression
+async function compressImage(file){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement("canvas");
+      const scale=Math.min(1,800/img.width);
+      canvas.width=img.width*scale; canvas.height=img.height*scale;
+      canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+      canvas.toBlob(blob=>resolve(new File([blob],file.name,{type:'image/jpeg'})),"image/jpeg",0.7);
     };
-    img.src = URL.createObjectURL(file);
+    img.src=URL.createObjectURL(file);
   });
 }
 </script>
-<!-- Google Maps API (replace YOUR_API_KEY with your actual API key) -->
+
 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 {% endblock %}
