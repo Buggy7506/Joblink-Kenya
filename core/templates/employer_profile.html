@@ -71,7 +71,7 @@
   box-shadow: 0 0 20px var(--glow-accent);
 }
 
-/* 🛸 Alien Image Viewer for Employer */
+/* Alien Image Viewer */
 .alien-modal {
   display: none;
   position: fixed;
@@ -111,7 +111,10 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 90%;
 }
 
 .alien-controls button {
@@ -124,6 +127,9 @@
   box-shadow: 0 0 15px #22d3ee;
   cursor: pointer;
   transition: 0.25s;
+  flex: 1 1 40%;
+  text-align: center;
+  min-width: 80px;
 }
 
 .alien-controls button:hover {
@@ -153,17 +159,24 @@
   z-index: 6000;
 }
 
+.message-box {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  color: #22d3ee;
+  padding: 8px 15px;
+  border-radius: 12px;
+  font-weight: bold;
+  text-align: center;
+  display: none;
+  z-index: 6001;
+}
+
 @keyframes spin {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Mobile horizontal alignment */
-@media (max-width: 768px) {
-  .alien-controls {
-    flex-wrap: nowrap;
-    justify-content: center;
-  }
 }
 
 .alien-frame.default img {
@@ -197,6 +210,7 @@
 <!-- Profile Picture Modal -->
 <div id="imgModal" class="alien-modal">
   <div class="alien-frame">
+    <div id="modalMessage" class="message-box"></div>
     <img id="imgPreview" alt="Preview">
     <div id="uploadRing" class="upload-ring">0%</div>
     <div class="alien-controls">
@@ -220,52 +234,57 @@ const editBtn = document.getElementById('editBtn');
 const deleteBtn = document.getElementById('deleteBtn');
 const profilePicInputModal = document.getElementById('profilePicInputModal');
 const uploadRing = document.getElementById('uploadRing');
+const modalMessage = document.getElementById('modalMessage');
+
+function showMessage(msg, duration=2000){
+  modalMessage.innerText = msg;
+  modalMessage.style.display = 'block';
+  setTimeout(() => { modalMessage.style.display = 'none'; }, duration);
+}
 
 function updateModalButtons() {
   if(profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
     alienPreview.src = DEFAULT_PIC;
     alienModal.classList.add('default');
-    infoBtn.style.opacity = 0.3;
-    infoBtn.style.pointerEvents = "none";
-    deleteBtn.style.opacity = 0.3;
-    deleteBtn.style.pointerEvents = "none";
-    editBtn.style.opacity = 1;
-    editBtn.style.pointerEvents = "auto";
+    infoBtn.style.opacity = 0.3; infoBtn.style.pointerEvents = "none";
+    deleteBtn.style.opacity = 0.3; deleteBtn.style.pointerEvents = "none";
+    editBtn.style.opacity = 1; editBtn.style.pointerEvents = "auto";
   } else {
     alienPreview.src = profilePic.src;
     alienModal.classList.remove('default');
-    infoBtn.style.opacity = 1;
-    infoBtn.style.pointerEvents = "auto";
-    editBtn.style.opacity = 1;
-    editBtn.style.pointerEvents = "auto";
-    deleteBtn.style.opacity = 1;
-    deleteBtn.style.pointerEvents = "auto";
+    infoBtn.style.opacity = 1; infoBtn.style.pointerEvents = "auto";
+    editBtn.style.opacity = 1; editBtn.style.pointerEvents = "auto";
+    deleteBtn.style.opacity = 1; deleteBtn.style.pointerEvents = "auto";
   }
 }
 
-profilePic.addEventListener('click', () => {
-  alienModal.style.display = 'flex';
-  updateModalButtons();
-});
-
+profilePic.addEventListener('click', () => { alienModal.style.display='flex'; updateModalButtons(); });
 closeBtn.onclick = () => alienModal.style.display = 'none';
-infoBtn.onclick = () => { if(infoBtn.style.pointerEvents === "none") return; alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`); };
+
+infoBtn.onclick = () => {
+  if(infoBtn.style.pointerEvents==='none') return;
+  showMessage(`📷 Profile Picture\nUploaded by: {{ user.username }}\nEmail: {{ user.email }}\nJoined: {{ user.date_joined }}`, 4000);
+};
+
 deleteBtn.onclick = () => {
-  if(deleteBtn.style.pointerEvents === "none") return;
-  if(confirm("Delete your profile picture?")) {
-    fetch("{% url 'quick_profile_update' %}", {
-      method:'POST',
-      headers:{'X-CSRFToken':'{{ csrf_token }}'},
-      body:new URLSearchParams({modal_type:'profile_pic_delete'})
-    }).then(() => {
-      profilePic.src = DEFAULT_PIC;
-      alienPreview.src = DEFAULT_PIC;
-      alienModal.classList.add('default');
-      updateModalButtons();
+  if(deleteBtn.style.pointerEvents==='none') return;
+  if(confirm("Delete your profile picture?")){
+    const form = new FormData();
+    form.append('modal_type','profile_pic_delete');
+    fetch("{% url 'quick_profile_update' %}", {method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}'}, body:form})
+    .then(res=>res.json())
+    .then(data=>{
+      if(data.success){
+        profilePic.src = data.url;
+        alienPreview.src = data.url;
+        updateModalButtons();
+        showMessage('Profile picture deleted', 2000);
+      } else showMessage('Delete failed', 2000);
     });
   }
 };
-editBtn.onclick = () => { if(editBtn.style.pointerEvents === "none") return; profilePicInputModal.click(); };
+
+editBtn.onclick = () => { if(editBtn.style.pointerEvents!=='none') profilePicInputModal.click(); };
 
 profilePicInputModal.onchange = async (e) => {
   const file = e.target.files[0];
@@ -288,14 +307,15 @@ profilePicInputModal.onchange = async (e) => {
   };
   xhr.onload = () => {
     uploadRing.style.display = 'none';
-    if(xhr.status === 200){
+    try {
       const data = JSON.parse(xhr.responseText);
       if(data.success){
         profilePic.src = data.url;
         alienPreview.src = data.url;
         updateModalButtons();
-      } else alert('Upload failed.');
-    } else alert('Upload failed.');
+        showMessage('Upload successful!', 2000);
+      } else showMessage('Upload failed', 2000);
+    } catch(e) { showMessage('Upload failed', 2000); }
   };
   xhr.send(formData);
 };
