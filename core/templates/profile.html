@@ -164,10 +164,12 @@
 
 .add-modal {
   display: none;
-  position: absolute;
+  position: fixed; /* was absolute */
   z-index: 4000;
   background: none;
+  pointer-events: none;
 }
+
 
 .add-box {
   position: absolute;
@@ -175,8 +177,12 @@
   padding: 25px;
   border-radius: 15px;
   width: 320px;
-  box-shadow: 0 0 40px var(--glow-accent);
-  animation: alienZoom .25s ease;
+
+  /* floating card shadow instead of glow */
+  box-shadow: 0 15px 40px rgba(0,0,0,.5);
+
+  animation: alienZoom .18s ease;
+  pointer-events: auto;
 }
 
 .add-box h2 {
@@ -221,14 +227,17 @@
 }
 
 .alien-frame {
-  position: relative;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90%;
-  border-radius: 20px;
+  position: absolute;
+  width: 280px;
+  max-width: none;
+  max-height: none;
+  border-radius: 16px;
   overflow: hidden;
-  background: black;
-  box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,.4);
+  background: #000;
+
+  /* clean floating shadow */
+  box-shadow: 0 15px 50px rgba(0,0,0,.7);
+  pointer-events: auto;
 }
 
 .alien-frame img {
@@ -259,7 +268,7 @@
   border-radius: 12px;
   color: #22d3ee;
   font-weight: bold;
-  box-shadow: 0 0 15px #22d3ee;
+  box-shadow: 0 8px 20px rgba(0,0,0,.6);
   cursor: pointer;
   transition: 0.25s;
 }
@@ -267,7 +276,7 @@
 .alien-controls button:hover {
   background: #22d3ee;
   color: black;
-  box-shadow: 0 0 30px #22d3ee;
+   box-shadow: 0 12px 30px rgba(0,0,0,.8);
 }
 
 @keyframes alienZoom {
@@ -299,7 +308,7 @@
 
 /* Dim default profile preview */
 .alien-frame.default img {
-  filter: brightness(0.6);
+  filter: grayscale(40%) brightness(0.7);
   cursor: default;
   transform: scale(1) !important;
 }
