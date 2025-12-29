@@ -433,7 +433,6 @@
     </div>
   </div>
 </div>
-
 <script>
 const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
@@ -451,26 +450,26 @@ function openModal(type, el=null) {
   const title = document.getElementById('modalTitle');
 
   modal.style.display = 'block';
-  box.style.transform = ""; // reset any previous transform
+  box.style.transform = ""; // reset previous transform
 
   if (el) {
     const rect = el.getBoundingClientRect();
     let top = rect.top + window.scrollY;
     let left = rect.right + 10;
 
-    // Prevent overflow right
     const boxWidth = box.offsetWidth || 320;
+    const boxHeight = box.offsetHeight || 200;
+
+    // Reposition if overflowing right
     if (left + boxWidth > window.scrollX + window.innerWidth - 10) {
       left = rect.left - boxWidth - 10;
     }
-
-    // Prevent overflow bottom
-    const boxHeight = box.offsetHeight || 200;
+    // Reposition if overflowing bottom
     if (top + boxHeight > window.scrollY + window.innerHeight - 10) {
       top = window.scrollY + window.innerHeight - boxHeight - 10;
     }
 
-    box.style.top  = top + "px";
+    box.style.top = top + "px";
     box.style.left = left + "px";
   } else {
     box.style.top = "30%";
@@ -480,24 +479,11 @@ function openModal(type, el=null) {
 
   document.getElementById("modalTypeInput").value = type;
 
-  const inputs = {
-    phone: phoneInput,
-    location: locationInput,
-    skills: skillsInput,
-    upload_cv: cvInput,
-    profile_pic: profilePicInput
-  };
-
+  const inputs = { phone: phoneInput, location: locationInput, skills: skillsInput, upload_cv: cvInput, profile_pic: profilePicInput };
   Object.values(inputs).forEach(i => i && (i.style.display = "none"));
   inputs[type] && (inputs[type].style.display = "block");
 
-  title.innerText = {
-    phone: "📞 Phone",
-    location: "📍 Location",
-    skills: "🧠 Skills",
-    upload_cv: "📄 Upload CV",
-    profile_pic: "🖼 Update Picture"
-  }[type];
+  title.innerText = { phone:"📞 Phone", location:"📍 Location", skills:"🧠 Skills", upload_cv:"📄 Upload CV", profile_pic:"🖼 Update Picture" }[type];
 }
 
 function closeModal() {
@@ -516,56 +502,41 @@ function showProfilePreview(profilePic) {
   const deleteBtn = document.getElementById('deleteBtn');
   const editBtn = document.getElementById('editBtn');
 
+  // Smart positioning
   const rect = profilePic.getBoundingClientRect();
   let top = rect.top + window.scrollY - 30;
   let left = rect.right + 10;
+  const modalWidth = 280, modalHeight = 300;
 
-  // Prevent overflow right
-  const modalWidth = 280;
-  if (left + modalWidth > window.scrollX + window.innerWidth - 10) {
-    left = rect.left - modalWidth - 10;
-  }
-
-  // Prevent overflow bottom
-  const modalHeight = 300;
-  if (top + modalHeight > window.scrollY + window.innerHeight - 10) {
-    top = window.scrollY + window.innerHeight - modalHeight - 10;
-  }
+  if (left + modalWidth > window.scrollX + window.innerWidth - 10) left = rect.left - modalWidth - 10;
+  if (top + modalHeight > window.scrollY + window.innerHeight - 10) top = window.scrollY + window.innerHeight - modalHeight - 10;
+  if (top < window.scrollY + 10) top = window.scrollY + 10;
 
   alienModal.style.display = "block";
-  alienModal.style.top  = top + "px";
+  alienModal.style.top = top + "px";
   alienModal.style.left = left + "px";
-
   alienPreview.src = profilePic.src;
 
-  // Default / real UI
+  // Default or real UI
   if (profilePic.src.includes("jo2wvg1a0wgiava5be20")) {
     infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
-
-    if (!document.getElementById('defaultMsg')) {
-      const msg = document.createElement('div');
-      msg.id = 'defaultMsg';
-      msg.style.cssText = `
-        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-        color:#22d3ee; font-weight:bold; font-size:16px;
-      `;
-      msg.textContent = "No profile picture uploaded";
-      alienPreview.parentElement.appendChild(msg);
-    }
+    if (!document.getElementById('previewMsg')) showPreviewMessage("No profile picture uploaded");
   } else {
     infoBtn.style.opacity = deleteBtn.style.opacity = 1;
     infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "auto";
-    const msg = document.getElementById('defaultMsg');
-    if (msg) msg.remove();
+    const oldMsg = document.getElementById('previewMsg');
+    if (oldMsg) oldMsg.remove();
   }
 
-  // Event listeners
+  // =======================
+  // Event Listeners
+  // =======================
   closeBtn.onclick = () => alienModal.style.display = "none";
 
   infoBtn.onclick = () => {
     if (infoBtn.style.pointerEvents === "none") return;
-    alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`);
+    showPreviewMessage(`📷 Uploaded by: {{ user.username }}`);
   };
 
   deleteBtn.onclick = () => {
@@ -574,16 +545,14 @@ function showProfilePreview(profilePic) {
 
     fetch("{% url 'quick_profile_update' %}", {
       method: "POST",
-      headers: {
-        "X-CSRFToken": "{{ csrf_token }}",
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
+      headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
       body: "modal_type=profile_pic_delete"
     }).then(() => {
       profilePic.src = DEFAULT_PIC;
       alienPreview.src = DEFAULT_PIC;
       infoBtn.style.opacity = deleteBtn.style.opacity = 0.3;
       infoBtn.style.pointerEvents = deleteBtn.style.pointerEvents = "none";
+      showPreviewMessage("✅ Profile picture deleted");
     });
   };
 
@@ -592,6 +561,26 @@ function showProfilePreview(profilePic) {
     openModal("profile_pic", profilePic);
     setTimeout(() => profilePicInput.click(), 300);
   };
+}
+
+// =======================
+// Helper: show message inside modal
+// =======================
+function showPreviewMessage(text) {
+  const alienModal = document.getElementById('imgModal');
+  let oldMsg = document.getElementById('previewMsg');
+  if (oldMsg) oldMsg.remove();
+
+  const msg = document.createElement('div');
+  msg.id = 'previewMsg';
+  msg.style.cssText = `
+    position:absolute; top:5px; left:50%;
+    transform:translateX(-50%);
+    color:#22d3ee; font-weight:bold; font-size:14px;
+    background: rgba(0,0,0,0.2); padding:4px 10px; border-radius:6px;
+  `;
+  msg.textContent = text;
+  alienModal.appendChild(msg);
 }
 
 // =======================
@@ -608,8 +597,8 @@ document.addEventListener('DOMContentLoaded', () => {
   profilePic.addEventListener("click", () => showProfilePreview(profilePic));
 
   // Swipe close for mobile
-  let startY = 0;
   const alienPreview = document.getElementById('imgPreview');
+  let startY = 0;
   alienPreview.addEventListener("touchstart", e => startY = e.touches[0].clientY);
   alienPreview.addEventListener("touchmove", e => {
     if (e.touches[0].clientY - startY > 120) document.getElementById('imgModal').style.display = "none";
@@ -638,9 +627,7 @@ async function compressImage(file) {
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;
       canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => {
-        resolve(new File([blob], file.name, { type: "image/jpeg" }));
-      }, "image/jpeg", 0.7);
+      canvas.toBlob(blob => resolve(new File([blob], file.name, { type: "image/jpeg" })), "image/jpeg", 0.7);
     };
     img.src = URL.createObjectURL(file);
   });
