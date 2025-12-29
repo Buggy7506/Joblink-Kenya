@@ -8,6 +8,7 @@
   display: flex;
   justify-content: center;
 }
+
 .profile-box {
   background: var(--bg-card);
   padding: 25px;
@@ -19,11 +20,13 @@
   color: var(--text-main);
   text-align: center;
 }
+
 .profile-pic {
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
 }
+
 .profile-pic img {
   width: 120px;
   height: 120px;
@@ -34,17 +37,21 @@
   cursor: pointer;
   transition: border 0.4s, box-shadow 0.4s;
 }
+
 .user-details {
   text-align: left;
   margin-top: 20px;
 }
+
 .user-details p {
   margin-bottom: 10px;
   color: var(--text-main);
 }
+
 .edit-button {
   margin-top: 40px;
 }
+
 .edit-button a {
   display: inline-block;
   background: var(--text-accent);
@@ -56,12 +63,13 @@
   box-shadow: 0 0 12px var(--glow-accent);
   transition: 0.3s;
 }
+
 .edit-button a:hover {
   background: var(--glow-accent);
   box-shadow: 0 0 20px var(--glow-accent);
 }
 
-/* Alien Image Viewer */
+/* ===================== Alien Image Viewer ===================== */
 .alien-modal {
   display: none;
   position: fixed;
@@ -71,29 +79,36 @@
   justify-content: center;
   align-items: center;
 }
+
+/* 🔴 FIX: Lock modal height and layout */
 .alien-frame {
   position: relative;
   width: 90%;
   max-width: 500px;
-  max-height: 90%;
+  height: 90vh;                 /* ← FIX */
   border-radius: 20px;
   background: black;
   display: flex;
-  flex-direction: column;
+  flex-direction: column;       /* ← FIX */
   overflow: hidden;
   box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,.4);
 }
+
+/* 🔴 FIX: Image can NEVER push buttons away */
 .alien-frame img {
   width: 100%;
-  max-height: calc(90vh - 60px); /* leave room for buttons */
+  max-height: calc(90vh - 90px); /* ← FIX */
   object-fit: contain;
   cursor: zoom-in;
   transition: transform 0.3s ease;
-  flex-shrink: 0;
+  flex-shrink: 1;               /* ← FIX */
 }
-.alien-frame img:hover { transform: scale(1.05); }
 
-/* Buttons container */
+.alien-frame img:hover {
+  transform: scale(1.05);
+}
+
+/* ===================== Buttons ===================== */
 .alien-controls {
   display: flex;
   justify-content: center;
@@ -101,8 +116,10 @@
   gap: 10px;
   padding: 10px 0;
   background: rgba(0,0,0,0.4);
+  margin-top: auto;             /* ← FIX: pins buttons */
   flex-shrink: 0;
 }
+
 .alien-controls button {
   flex: 1 1 auto;
   min-width: 70px;
@@ -118,12 +135,14 @@
   text-align: center;
   white-space: nowrap;
 }
+
 .alien-controls button:hover {
   background: #22d3ee;
   color: black;
   box-shadow: 0 0 30px #22d3ee;
 }
 
+/* ===================== Upload Ring ===================== */
 .upload-ring {
   position: absolute;
   top: 50%;
@@ -144,6 +163,7 @@
   background: rgba(0,0,0,0.4);
   z-index: 6000;
 }
+
 .message-box {
   position: absolute;
   top: 10px;
@@ -154,24 +174,23 @@
   padding: 8px 15px;
   border-radius: 12px;
   font-weight: bold;
-  text-align: center;
   display: none;
   z-index: 6001;
 }
 
 @keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
 }
+
 .alien-frame.default img {
   filter: brightness(0.6);
   cursor: default;
 }
 
-/* Mobile adjustments */
+/* ===================== Mobile ===================== */
 @media (max-width: 480px) {
   .alien-controls {
-    flex-wrap: wrap;
     gap: 5px;
   }
   .alien-controls button {
