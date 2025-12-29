@@ -564,8 +564,8 @@ def set_google_password(request):
 
 
 # Google OAuth settings
-GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
-GOOGLE_CLIENT_SECRET = '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'
+GOOGLE_CLIENT_ID = '423871571902-odlv7fvlvijo2qliqi403p9skpe52kj0.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = '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'
 GOOGLE_REDIRECT_URI = 'https://stepper.dpdns.org/google/callback/'
 GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
