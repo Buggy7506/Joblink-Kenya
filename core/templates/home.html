@@ -206,7 +206,32 @@ html, body {
 {% endblock %}
 
 {% block content %}
-<!-- Background slideshow -->
+
+<!-- ================= STATIC GOOGLE OAUTH COMPLIANCE CONTENT ================= -->
+<section style="max-width:900px;margin:40px auto;text-align:center;color:#e0f7fa;">
+  <h1 style="color:#00ffff;font-size:2.4rem;font-weight:800;">
+    JobLink Kenya
+  </h1>
+
+  <p style="font-size:1.1rem;line-height:1.6;margin-top:15px;">
+    JobLink Kenya is an online employment platform that connects job seekers in Kenya
+    with verified employers. Users can browse job opportunities, create profiles,
+    apply for jobs, and manage applications securely.
+  </p>
+
+  <p style="font-size:1.05rem;line-height:1.6;margin-top:10px;">
+    The platform supports secure authentication using Google Sign-In to simplify
+    access and protect user accounts.
+  </p>
+
+  <p style="margin-top:15px;">
+    <a href="/privacy/" style="color:#ffcc00;font-weight:700;text-decoration:none;">
+      View Privacy Policy
+    </a>
+  </p>
+</section>
+
+<!-- ================= BACKGROUND SLIDESHOW ================= -->
 <div class="bg-slideshow">
   <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg')"></div>
   <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg')"></div>
@@ -222,16 +247,18 @@ html, body {
 
 <div class="overlay"></div>
 
-<!-- Home container -->
+<!-- ================= ANIMATED HERO (DECORATIVE) ================= -->
 <div class="home-container">
   <h1 id="hero-title" class="glow-title typing"></h1>
   <p id="subtitle" class="subtitle typing"></p>
   <div id="purpose-box" class="purpose-box typing"></div>
+
   <a href="{% url 'job_list' %}" class="browse-btn">🔍 Browse Jobs</a>
+
   <p id="privacy" class="visible-privacy typing"></p>
 </div>
 
-<!-- Footer -->
+<!-- ================= FOOTER ================= -->
 <footer class="oauth-footer">
   <a href="/privacy/">Privacy Policy</a>
   <a href="/terms/">Terms of Service</a>
@@ -243,52 +270,38 @@ html, body {
 const typingTexts = {
   "hero-title": "Welcome to JobLink Kenya",
   "subtitle": "Connecting job seekers with trusted employers across Kenya.",
-  "purpose-box": "JobLink Kenya is an online employment platform designed to help job seekers discover career opportunities and connect with verified employers. Users can create profiles, apply for jobs, manage applications, and communicate securely within the platform.\n\nTo provide a fast and secure experience, JobLink Kenya allows users to sign in using Google. Google Sign-In helps verify user identity and prevents unauthorized access while eliminating the need to create a separate password.",
-  "privacy": 'By using JobLink Kenya, you agree to our <a href="/privacy/" style="color:#ffcc00; font-weight:800; text-decoration:none;">Privacy Policy</a>.'
+  "purpose-box":
+    "Discover job opportunities, apply with ease, and connect with verified employers across Kenya using JobLink Kenya.",
+  "privacy":
+    'By using JobLink Kenya, you agree to our <a href="/privacy/" style="color:#ffcc00;font-weight:800;text-decoration:none;">Privacy Policy</a>.'
 };
 
-// Function to type HTML correctly
 function typeHTML(elementId, htmlString, speed = 30) {
   const element = document.getElementById(elementId);
   let i = 0;
   let isTag = false;
-  let textBuffer = '';
+  let buffer = '';
 
   function type() {
     if (i < htmlString.length) {
       const char = htmlString[i];
-
       if (char === '<') isTag = true;
-      if (char === '>') {
-        isTag = false;
-        textBuffer += char;
-        element.innerHTML = textBuffer;
-        i++;
-        return setTimeout(type, speed);
-      }
-
-      textBuffer += char;
-
-      if (!isTag) {
-        element.innerHTML = textBuffer;
-      }
-
+      if (char === '>') isTag = false;
+      buffer += char;
+      element.innerHTML = buffer;
       i++;
       setTimeout(type, speed);
     }
   }
-
   type();
 }
 
-// Sequential typing
-function startTyping() {
+window.onload = () => {
   typeHTML("hero-title", typingTexts["hero-title"], 60);
-  setTimeout(() => typeHTML("subtitle", typingTexts["subtitle"], 40), 1500);
-  setTimeout(() => typeHTML("purpose-box", typingTexts["purpose-box"], 20), 3500);
-  setTimeout(() => typeHTML("privacy", typingTexts["privacy"], 20), 9000);
-}
-
-window.onload = startTyping;
+  setTimeout(() => typeHTML("subtitle", typingTexts["subtitle"], 40), 1200);
+  setTimeout(() => typeHTML("purpose-box", typingTexts["purpose-box"], 25), 2800);
+  setTimeout(() => typeHTML("privacy", typingTexts["privacy"], 20), 5500);
+};
 </script>
+
 {% endblock %}
