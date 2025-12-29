@@ -330,8 +330,8 @@ def delete_cv(request):
 @login_required
 def quick_profile_update(request):
     user = request.user
+    DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
 
-    # Base context for modal reopening and errors
     context = {
         "user": user,
         "skills": user.skills.split(",") if user.skills else [],
@@ -377,7 +377,6 @@ def quick_profile_update(request):
                 errors["upload_cv"] = ["Please upload a CV."]
             else:
                 CVUpload.objects.create(applicant=user, cv=cv_file)
-                # Refresh latest CV in context
                 context["user_cv"] = CVUpload.objects.filter(applicant=user).order_by('-id').first()
 
         # ---------- PROFILE PIC DELETE ----------
@@ -389,15 +388,17 @@ def quick_profile_update(request):
                     pass
                 user.profile_pic = None
                 user.save()
-            return JsonResponse({"status": "deleted"})
+            return JsonResponse({"success": True, "url": DEFAULT_PIC})
 
         # ---------- PROFILE PIC UPLOAD ----------
         elif modal_type == "profile_pic":
             pic = request.FILES.get("profile_pic")
             if not pic:
-                errors["profile_pic"] = ["No image selected."]
+                return JsonResponse({"success": False, "error": "No image selected."})
             else:
                 user.profile_pic = pic
+                user.save()
+                return JsonResponse({"success": True, "url": user.profile_pic.url})
 
         # ---------- HANDLE VALIDATION ERRORS ----------
         if errors:
@@ -406,6 +407,8 @@ def quick_profile_update(request):
 
         # ---------- SAVE USER ----------
         user.save()
+
+        # Redirect to profile after successful modal form submission
         return redirect("profile")
 
     # Fallback for GET requests
