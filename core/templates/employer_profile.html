@@ -97,7 +97,7 @@
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* horizontal alignment on all screens */
   justify-content: center;
   max-width: 90%;
 }
@@ -111,9 +111,9 @@
   box-shadow: 0 0 15px #22d3ee;
   cursor: pointer;
   transition: 0.25s;
-  flex: 1 1 40%;
+  flex: 1 1 auto;
+  min-width: 70px;
   text-align: center;
-  min-width: 80px;
 }
 .alien-controls button:hover {
   background: #22d3ee;
@@ -161,6 +161,17 @@
 .alien-frame.default img {
   filter: brightness(0.6);
   cursor: default;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .alien-controls {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .alien-controls button {
+    min-width: 60px;
+  }
 }
 </style>
 
@@ -240,10 +251,7 @@ function updateModalButtons(){
 profilePic.addEventListener('click', ()=>{alienModal.style.display='flex'; updateModalButtons();});
 closeBtn.onclick = ()=>alienModal.style.display='none';
 
-infoBtn.onclick = ()=>{
-  if(infoBtn.style.pointerEvents==='none') return;
-  showMessage(`📷 Profile Picture\nUploaded by: {{ user.username }}\nEmail: {{ user.email }}\nJoined: {{ user.date_joined }}`,4000);
-};
+infoBtn.onclick = ()=>{ if(infoBtn.style.pointerEvents!=='none') showMessage(`📷 Profile Picture\nUploaded by: {{ user.username }}\nEmail: {{ user.email }}\nJoined: {{ user.date_joined }}`,4000); };
 
 deleteBtn.onclick = ()=>{
   if(deleteBtn.style.pointerEvents==='none') return;
@@ -277,7 +285,7 @@ profilePicInputModal.onchange = async e=>{
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST',"{% url 'quick_profile_update' %}");
-  xhr.setRequestHeader('X-CSRFToken','{{ csrf_token }}'); // ✅ CSRF fixed
+  xhr.setRequestHeader('X-CSRFToken','{{ csrf_token }}');
   xhr.upload.onprogress = event=>{
     if(event.lengthComputable){
       const percent = Math.round(event.loaded / event.total * 100);
