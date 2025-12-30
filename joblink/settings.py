@@ -238,12 +238,13 @@ SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
 # SendGrid
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-#EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-DEFAULT_FROM_EMAIL = "security@em1232.stepper.dpdns.org"
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+DEFAULT_FROM_EMAIL = "security@stepper.dpdns.org"
+SERVER_EMAIL = "security@stepper.dpdns.org"
 DEFAULT_REPLY_TO_EMAIL = "Replylinux7506@gmail.com"
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
