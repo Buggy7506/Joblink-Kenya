@@ -1,35 +1,36 @@
 """
 ASGI config for joblink project.
 
-It exposes the ASGI callable as a module-level variable named `application`.
+Exposes the ASGI callable as a module-level variable named `application`.
 """
 
 import os
+
 from django.core.asgi import get_asgi_application
-
-# -----------------------------
-# Set Django settings module
-# -----------------------------
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joblink.settings")
-
-# -----------------------------
-# Reference to Django ASGI app for HTTP requests
-# -----------------------------
-django_asgi_app = get_asgi_application()
-
-# -----------------------------
-# Channels imports (after settings are configured)
-# -----------------------------
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-import core.routing  # WebSocket routes
 
-# -----------------------------
-# ASGI application with HTTP & WebSocket support
-# -----------------------------
+# --------------------------------------------------
+# Set Django settings module BEFORE importing Channels
+# --------------------------------------------------
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joblink.settings")
+
+# --------------------------------------------------
+# Initialize Django ASGI application early
+# --------------------------------------------------
+django_asgi_app = get_asgi_application()
+
+# --------------------------------------------------
+# Import websocket routing AFTER Django setup
+# --------------------------------------------------
+import core.routing  # noqa: E402
+
+# --------------------------------------------------
+# ASGI application
+# --------------------------------------------------
 application = ProtocolTypeRouter({
-    "http": django_asgi_app,  # Handle standard HTTP requests
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
-        URLRouter(core.routing.websocket_urlpatterns)  # Handle WebSocket connections
+        URLRouter(core.routing.websocket_urlpatterns)
     ),
 })
