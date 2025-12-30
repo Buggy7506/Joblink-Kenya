@@ -242,9 +242,9 @@ X_FRAME_OPTIONS = "DENY"
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
-DEFAULT_FROM_EMAIL = "security@em1232.stepper.dpdns.org"
-SERVER_EMAIL = "security@em1232.stepper.dpdns.org"
-DEFAULT_REPLY_TO_EMAIL = "Reply -To security@em1232.stepper.dpdns.org"
+DEFAULT_FROM_EMAIL = "security@stepper.dpdns.org"
+SERVER_EMAIL = "security@stepper.dpdns.org"
+DEFAULT_REPLY_TO_EMAIL = "security@stepper.dpdns.org"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
