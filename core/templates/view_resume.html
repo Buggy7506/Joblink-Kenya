@@ -4,14 +4,11 @@
 
 {% block content %}
 <style>
-/* Wrapper */
+/* Wrapper – NO background (inherits from base.html) */
 .resume-wrapper {
-  min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #0b0c1f, #1a1a2e, #2c1a4d);
+  padding: 40px 20px;
   box-sizing: border-box;
 }
 
@@ -23,12 +20,11 @@
   padding: 40px;
   width: 100%;
   max-width: 900px;
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(10px);
   border: 1px solid #6f00ff;
-  animation: fadeIn 0.8s ease-in-out;
+  animation: fadeIn 0.6s ease-in-out;
   color: #e0e0ff;
   font-family: 'Poppins', sans-serif;
-  overflow-x: auto;
 }
 
 /* Displayed resume content (Quill HTML) */
@@ -36,11 +32,24 @@
   background: rgba(30, 30, 50, 0.95);
   border-radius: 15px;
   padding: 25px;
-  box-shadow: 0 0 25px #6f00ff inset;
+  box-shadow: 0 0 20px #6f00ff inset;
   min-height: 500px;
   color: #e0e0ff;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.7;
+}
+
+/* Normalize Quill content */
+#resume-content-view h1,
+#resume-content-view h2,
+#resume-content-view h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+}
+
+#resume-content-view p,
+#resume-content-view li {
+  margin-bottom: 0.6em;
 }
 
 /* Buttons */
@@ -49,6 +58,7 @@
   justify-content: center;
   gap: 20px;
   margin-top: 30px;
+  flex-wrap: wrap;
 }
 
 .glow-btn {
@@ -61,26 +71,25 @@
   cursor: pointer;
   text-decoration: none;
   box-shadow: 0 0 15px #6f00ff, 0 0 30px #00ffff;
-  transition: all 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .glow-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 35px #6f00ff, 0 0 50px #00ffff inset;
+  box-shadow: 0 0 30px #6f00ff, 0 0 40px #00ffff inset;
 }
 
 /* No resume message */
 .no-resume {
   text-align: center;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: #a0a0ff;
-  animation: fadeIn 1s ease-in-out;
-  margin: 50px 0;
+  margin: 40px 0;
 }
 
-/* Animations */
+/* Animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
@@ -88,7 +97,6 @@
 <div class="resume-wrapper">
   <div class="resume-container">
     {% if resume and resume.content %}
-      <!-- Render full HTML content from Quill -->
       <div id="resume-content-view">
         {{ resume.content|safe }}
       </div>
@@ -99,7 +107,7 @@
       </div>
     {% else %}
       <div class="no-resume">
-        🚫 You have not created a resume yet.
+        You have not created a resume yet.
       </div>
       <div class="btn-container">
         <a href="{% url 'build_resume' %}" class="glow-btn">➕ Create Resume</a>
