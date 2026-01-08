@@ -32,6 +32,7 @@ urlpatterns = [
     # -------------------------
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
+    path('login/google/', views.google_login, name='google_login'),
     path('logout/', views.logout_view, name='logout'),
     path('logout-success/', views.logout_success, name='logout_success'),
     path('change/', views.change_username_password, name='change_username_password'),
