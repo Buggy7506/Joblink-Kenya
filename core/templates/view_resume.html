@@ -129,14 +129,14 @@
 
     <div class="btn-container">
       <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
-      <a href="{% url 'edit_resume' %}" class="glow-btn">✏ Edit Resume</a>
+      <a href="{% url 'build_resume' %}" class="glow-btn">✏ Edit Resume</a>
     </div>
   {% else %}
     <div class="no-resume">
       🚫 You have not created a resume yet.
     </div>
     <div class="btn-container">
-      <a href="{% url 'edit_resume' %}" class="glow-btn">➕ Create Resume</a>
+      <a href="{% url 'build_resume' %}" class="glow-btn">➕ Create Resume</a>
     </div>
   {% endif %}
 </div>
