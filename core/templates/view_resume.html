@@ -3,116 +3,77 @@
 {% block title %}View Resume{% endblock %}
 
 {% block content %}
-<style>
-/* Wrapper – NO background (inherits from base.html) */
-.resume-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 40px 20px;
-  box-sizing: border-box;
-}
-
-/* Alien-professional container */
-.resume-container {
-  background: rgba(20, 20, 40, 0.95);
-  border-radius: 20px;
-  box-shadow: 0 0 40px #6f00ff;
-  padding: 40px;
-  width: 100%;
-  max-width: 900px;
-  backdrop-filter: blur(10px);
-  border: 1px solid #6f00ff;
-  animation: fadeIn 0.6s ease-in-out;
-  color: #e0e0ff;
-  font-family: 'Poppins', sans-serif;
-}
-
-/* Displayed resume content (Quill HTML) */
-#resume-content-view {
-  background: rgba(30, 30, 50, 0.95);
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 0 20px #6f00ff inset;
-  min-height: 500px;
-  color: #e0e0ff;
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
-/* Normalize Quill content */
-#resume-content-view h1,
-#resume-content-view h2,
-#resume-content-view h3 {
-  margin-top: 1.5em;
-  margin-bottom: 0.6em;
-}
-
-#resume-content-view p,
-#resume-content-view li {
-  margin-bottom: 0.6em;
-}
-
-/* Buttons */
-.btn-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 30px;
-  flex-wrap: wrap;
-}
-
-.glow-btn {
-  padding: 12px 30px;
-  border: none;
-  border-radius: 30px;
-  background: linear-gradient(90deg, #6f00ff, #00ffff);
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-  text-decoration: none;
-  box-shadow: 0 0 15px #6f00ff, 0 0 30px #00ffff;
-  transition: all 0.3s ease;
-}
-
-.glow-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px #6f00ff, 0 0 40px #00ffff inset;
-}
-
-/* No resume message */
-.no-resume {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #a0a0ff;
-  margin: 40px 0;
-}
-
-/* Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
-
-<div class="resume-wrapper">
-  <div class="resume-container">
+<div class="container main">
+  <div class="glass-card" style="padding: 2rem; max-width: 900px; margin: auto;">
     {% if resume and resume.content %}
-      <div id="resume-content-view">
+      <!-- Displayed resume content -->
+      <div id="resume-content-view" style="
+          min-height: 500px;
+          background: var(--bg-card);
+          color: var(--text-main);
+          padding: 1.5rem;
+          border-radius: 1rem;
+          overflow-x: auto;
+          font-family: inherit;
+          line-height: 1.7;
+      ">
         {{ resume.content|safe }}
       </div>
 
-      <div class="btn-container">
+      <!-- Buttons -->
+      <div class="btn-container" style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
         <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
         <a href="{% url 'build_resume' %}" class="glow-btn">✏ Edit Resume</a>
       </div>
     {% else %}
-      <div class="no-resume">
+      <div class="no-resume" style="text-align:center; font-size:1.2rem; color: var(--text-muted); margin: 3rem 0;">
         You have not created a resume yet.
       </div>
-      <div class="btn-container">
+      <div class="btn-container" style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
         <a href="{% url 'build_resume' %}" class="glow-btn">➕ Create Resume</a>
       </div>
     {% endif %}
   </div>
 </div>
+
+<!-- Optional: Some extra styling for headers and lists to match editor -->
+<style>
+#resume-content-view h1, 
+#resume-content-view h2, 
+#resume-content-view h3, 
+#resume-content-view h4, 
+#resume-content-view h5, 
+#resume-content-view h6 {
+    color: var(--text-accent);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+}
+
+#resume-content-view p, 
+#resume-content-view li {
+    margin-bottom: 0.8em;
+}
+
+#resume-content-view ul, 
+#resume-content-view ol {
+    padding-left: 1.5rem;
+}
+
+#resume-content-view blockquote {
+    border-left: 3px solid var(--text-accent);
+    padding-left: 1rem;
+    color: var(--text-main);
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+}
+
+#resume-content-view code {
+    background-color: rgba(0,0,0,0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+</style>
 {% endblock %}
