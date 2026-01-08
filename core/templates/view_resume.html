@@ -1,143 +1,147 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Resume{% endblock %}
+{% block title %}View Resume{% endblock %}
 
 {% block content %}
 <style>
-/* Container */
+/* Wrapper */
+.resume-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #0b0c1f, #1a1a2e, #2c1a4d);
+}
+
+/* Alien-professional container */
 .resume-container {
-  max-width: 900px;
-  margin: 50px auto;
-  padding: 40px;
-  background: var(--resume-bg, linear-gradient(135deg, #0a0a0a, #111));
+  background: rgba(20, 20, 40, 0.85);
   border-radius: 20px;
-  box-shadow: 0 0 25px var(--glow-accent, rgba(0, 255, 200, 0.3));
-  color: var(--text-main, #fff);
-  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 0 30px #6f00ff;
+  padding: 40px;
+  width: 100%;
+  max-width: 900px;
+  backdrop-filter: blur(12px);
+  border: 1px solid #6f00ff;
   animation: fadeIn 0.8s ease-in-out;
-  text-align: center;
-  transition: all 0.4s ease;
+  color: #e0e0ff;
 }
 
 /* Header */
 .resume-header h1 {
+  text-align: center;
   font-size: 2.5rem;
-  background: linear-gradient(90deg, var(--glow-main, #00ffc3), var(--glow-accent, #00bfff));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: glowText 2s ease-in-out infinite alternate;
+  color: #6f00ff;
+  text-shadow: 0 0 15px #6f00ff, 0 0 30px #00ffff;
+  margin-bottom: 10px;
 }
+
 .resume-header p {
-  font-size: 1rem;
-  color: var(--text-secondary, #ccc);
-  margin-top: 8px;
+  text-align: center;
+  color: #a0a0ff;
+  margin-bottom: 30px;
 }
 
-/* Section Styling */
+/* Sections */
 .resume-section {
-  margin-bottom: 25px;
-  padding: 15px;
-  border-left: 4px solid var(--glow-main, #00ffc3);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  transition: all 0.3s ease, box-shadow 0.4s ease;
-  text-align: left;
-}
-.resume-section:hover {
-  box-shadow: 0 0 20px var(--glow-accent, rgba(0, 255, 200, 0.5)), 0 0 40px var(--glow-main, rgba(0, 255, 195, 0.4));
-  transform: translateY(-2px);
+  background: rgba(30, 30, 50, 0.9);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 4px solid #6f00ff;
+  transition: all 0.3s ease;
 }
 
-/* Headings */
 .resume-section h3 {
   margin-bottom: 10px;
-  font-size: 1.3rem;
-  color: var(--glow-main, #00ffc3);
-  text-shadow: 0 0 8px var(--glow-main, #00ffc3), 0 0 16px var(--glow-accent, #00bfff);
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff, 0 0 16px #6f00ff;
 }
 
 /* Buttons */
 .btn-container {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 20px;
   margin-top: 30px;
 }
+
 .glow-btn {
-  padding: 12px 25px;
+  padding: 12px 30px;
   border: none;
   border-radius: 30px;
-  background: linear-gradient(90deg, var(--glow-main, #00ffc3), var(--glow-accent, #00bfff));
-  color: var(--text-invert, #000);
+  background: linear-gradient(90deg, #6f00ff, #00ffff);
+  color: #000;
   font-weight: bold;
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 0 15px var(--glow-main, #00ffc3), 0 0 30px var(--glow-accent, #00bfff);
+  box-shadow: 0 0 15px #6f00ff, 0 0 30px #00ffff;
   transition: all 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .glow-btn:hover {
-  box-shadow: 0 0 25px var(--glow-main, #00ffc3), 0 0 50px var(--glow-accent, #00bfff);
   transform: scale(1.05);
+  box-shadow: 0 0 35px #6f00ff, 0 0 50px #00ffff inset;
 }
 
-/* Message for no resume */
+/* No resume message */
 .no-resume {
-  font-size: 1.2rem;
-  color: var(--text-secondary, #ccc);
-  margin: 50px 0;
+  text-align: center;
+  font-size: 1.3rem;
+  color: #a0a0ff;
   animation: fadeIn 1s ease-in-out;
+  margin: 50px 0;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes glowText {
-  from { text-shadow: 0 0 8px var(--glow-main, #00ffc3), 0 0 16px var(--glow-accent, #00bfff); }
-  to { text-shadow: 0 0 16px var(--glow-accent, #00bfff), 0 0 32px var(--glow-main, #00ffc3); }
 }
 </style>
 
-<div class="resume-container">
-  {% if resume %}
-    <div class="resume-header">
-      <h1>{{ resume.full_name }}</h1>
-      <p>{{ resume.email }} | {{ resume.phone }}</p>
-    </div>
+<div class="resume-wrapper">
+  <div class="resume-container">
+    {% if resume %}
+      <div class="resume-header">
+        <h1>{{ resume.full_name }}</h1>
+        <p>{{ resume.email }} | {{ resume.phone }}</p>
+      </div>
 
-    <div class="resume-section">
-      <h3>Summary</h3>
-      <p>{{ resume.summary }}</p>
-    </div>
+      <div class="resume-section">
+        <h3>Summary</h3>
+        <div>{{ resume.summary|safe }}</div>
+      </div>
 
-    <div class="resume-section">
-      <h3>Skills</h3>
-      <p>{{ resume.skills }}</p>
-    </div>
+      <div class="resume-section">
+        <h3>Skills</h3>
+        <div>{{ resume.skills|safe }}</div>
+      </div>
 
-    <div class="resume-section">
-      <h3>Experience</h3>
-      <p>{{ resume.experience }}</p>
-    </div>
+      <div class="resume-section">
+        <h3>Experience</h3>
+        <div>{{ resume.experience|safe }}</div>
+      </div>
 
-    <div class="resume-section">
-      <h3>Education</h3>
-      <p>{{ resume.education }}</p>
-    </div>
+      <div class="resume-section">
+        <h3>Education</h3>
+        <div>{{ resume.education|safe }}</div>
+      </div>
 
-    <div class="btn-container">
-      <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
-      <a href="{% url 'build_resume' %}" class="glow-btn">✏ Edit Resume</a>
-    </div>
-  {% else %}
-    <div class="no-resume">
-      🚫 You have not created a resume yet.
-    </div>
-    <div class="btn-container">
-      <a href="{% url 'build_resume' %}" class="glow-btn">➕ Create Resume</a>
-    </div>
-  {% endif %}
+      <div class="btn-container">
+        <a href="{% url 'download_resume' %}" class="glow-btn">⬇ Download Resume</a>
+        <a href="{% url 'build_resume' %}" class="glow-btn">✏ Edit Resume</a>
+      </div>
+    {% else %}
+      <div class="no-resume">
+        🚫 You have not created a resume yet.
+      </div>
+      <div class="btn-container">
+        <a href="{% url 'build_resume' %}" class="glow-btn">➕ Create Resume</a>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
