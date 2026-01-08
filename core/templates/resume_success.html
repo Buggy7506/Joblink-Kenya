@@ -4,59 +4,81 @@
     <meta charset="UTF-8">
     <title>Resume Submitted</title>
     <style>
+        /* Full-screen gradient background */
         body {
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0b0c1f, #1a1a2e, #2c1a4d);
+            font-family: 'Roboto Mono', monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: #ffffff;
+            color: #e0e0ff;
             margin: 0;
+            overflow: hidden;
         }
 
+        /* Glowing container */
         .container {
             text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 40px;
+            background: rgba(20, 20, 40, 0.85);
+            padding: 50px 60px;
             border-radius: 20px;
-            box-shadow: 0 0 20px #00ffff66;
+            box-shadow: 0 0 40px #6f00ffaa, 0 0 60px #00ffff44 inset;
+            border: 1px solid #6f00ff;
+            animation: fadeIn 1s ease-out;
         }
 
         h1 {
             color: #00ffff;
-            font-size: 2.5rem;
-            text-shadow: 0 0 10px #00ffff;
+            font-size: 3rem;
+            text-shadow: 0 0 15px #00ffff, 0 0 30px #6f00ff;
             margin-bottom: 20px;
+            animation: glowText 2s ease-in-out infinite alternate;
         }
 
         p {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            line-height: 1.5;
         }
 
+        /* Futuristic button */
         a {
-            background-color: #00ffff;
-            color: #000;
+            display: inline-block;
+            background-color: #6f00ff;
+            color: #fff;
             text-decoration: none;
-            padding: 12px 25px;
-            border-radius: 30px;
+            padding: 15px 35px;
+            border-radius: 50px;
             font-weight: bold;
-            box-shadow: 0 0 10px #00ffff99;
-            transition: background 0.3s ease;
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px #6f00ff, 0 0 40px #00ffff44 inset;
+            transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
         }
 
         a:hover {
-            background-color: #00cccc;
-            box-shadow: 0 0 20px #00ffff;
+            background-color: #9a00ff;
+            transform: scale(1.05);
+            box-shadow: 0 0 35px #6f00ff, 0 0 60px #00ffff66 inset;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glowText {
+            from { text-shadow: 0 0 15px #00ffff, 0 0 30px #6f00ff; }
+            to { text-shadow: 0 0 30px #00ffff, 0 0 60px #6f00ff; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Resume Submitted Successfully!</h1>
-        <p>Thank you for submitting your resume. We’ll review it and get back to you shortly.</p>
+        <h1>✅ Resume Submitted!</h1>
+        <p>Thank you for submitting your resume. Our team will review it and get back to you shortly.</p>
         <a href="{% url 'dashboard' %}">Back to Dashboard</a>
     </div>
 </body>
