@@ -67,6 +67,7 @@ def learn_more(request):
 def cookies_policy(request):
     return render(request, "cookies_policy.html", {"now": timezone.now()})
 
+RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 
 # def choose_verification_method(request):
 #     """
@@ -863,18 +864,45 @@ User = get_user_model()
 def home(request):
     return render(request, 'home.html')
 
-#User Signup
-def signup_view(request):
-     if request.method == 'POST':
-         form = CustomUserCreationForm(request.POST)
-         if form.is_valid():
-             user = form.save()
-             login(request, user)
-             return redirect('dashboard')
-     else:
-         form = CustomUserCreationForm() 
-     return render(request, 'signup.html', {'form': form})
 
+def signup_view(request):
+    """
+    User signup view with Google reCAPTCHA verification
+    """
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+
+        # 0️⃣ Verify Google reCAPTCHA
+        if not recaptcha_response:
+            messages.error(request, "Please complete the reCAPTCHA.")
+            return render(request, 'signup.html', {'form': form})
+
+        recaptcha_data = {
+            'secret': RECAPTCHA_SECRET,
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+            return render(request, 'signup.html', {'form': form})
+
+        # 1️⃣ If reCAPTCHA passed, validate form
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Signup successful! Welcome!")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
+
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'signup.html', {'form': form})
+    
 #User Login
 from django.contrib.auth import get_user_model
 
@@ -882,19 +910,29 @@ User = get_user_model()
 
 def login_view(request):
     """
-    Login view with device verification:
-    - Username / Email / Phone
-    - Device verification via Email / WhatsApp / SMS
+    Login view with device verification and Google reCAPTCHA
     """
-
-    # ❌ Clear stale verification sessions (DEVICE VERIFICATION)
-    # request.session.pop("verify_device_user_id", None)
-    # request.session.pop("verification_method", None)
-    # request.session.pop("pending_verification", None)
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()
         password = request.POST.get('password', '').strip()
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+
+        # 0️⃣ Verify Google reCAPTCHA
+        if not recaptcha_response:
+            messages.error(request, "Please complete the reCAPTCHA.")
+            return render(request, 'login.html')
+
+        recaptcha_data = {
+            'secret': RECAPTCHA_SECRET,
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+            return render(request, 'login.html')
 
         # 1️⃣ Find user
         try:
@@ -927,6 +965,13 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
+        # 4️⃣ Successful login
+        login(request, user)
+        messages.success(request, f"Welcome back, {user.username}!")
+        return redirect("dashboard")  # or your target page
+
+    return render(request, 'login.html')
+    
         # ❌ DEVICE TRUST CHECK (DISABLED)
         # device_hash = get_device_fingerprint(request)
         # device = TrustedDevice.objects.filter(
