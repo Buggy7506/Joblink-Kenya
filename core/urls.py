@@ -12,9 +12,6 @@ urlpatterns = [
     # Resume save success page (optional)
     path('resume/success/', views.resume_success, name='resume_success'),
 
-    # Edit existing resume via traditional form upload
-    path('resume/edit/', views.edit_resume, name='edit_resume'),
-
     # View resume
     path('resume/view/', views.view_resume, name='view_resume'),
 
