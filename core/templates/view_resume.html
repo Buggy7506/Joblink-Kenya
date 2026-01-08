@@ -31,21 +31,6 @@
   overflow-x: auto;
 }
 
-/* Header */
-.resume-header h1 {
-  text-align: center;
-  font-size: 2.5rem;
-  color: #6f00ff;
-  text-shadow: 0 0 15px #6f00ff, 0 0 30px #00ffff;
-  margin-bottom: 10px;
-}
-
-.resume-header p {
-  text-align: center;
-  color: #a0a0ff;
-  margin-bottom: 30px;
-}
-
 /* Displayed resume content (Quill HTML) */
 #resume-content-view {
   background: rgba(30, 30, 50, 0.95);
@@ -55,6 +40,7 @@
   min-height: 500px;
   color: #e0e0ff;
   font-size: 1rem;
+  line-height: 1.6;
 }
 
 /* Buttons */
@@ -102,11 +88,6 @@
 <div class="resume-wrapper">
   <div class="resume-container">
     {% if resume and resume.content %}
-      <div class="resume-header">
-        <h1>{{ resume.full_name|default:"Your Name" }}</h1>
-        <p>{{ resume.email|default:"email@example.com" }} | {{ resume.phone|default:"000-000-0000" }}</p>
-      </div>
-
       <!-- Render full HTML content from Quill -->
       <div id="resume-content-view">
         {{ resume.content|safe }}
