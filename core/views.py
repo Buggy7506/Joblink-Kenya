@@ -910,8 +910,15 @@ User = get_user_model()
 
 def login_view(request):
     """
-    Login view with device verification and Google reCAPTCHA
+    Login view with device verification:
+    - Username / Email / Phone
+    - Device verification via Email / WhatsApp / SMS
     """
+
+    # ❌ Clear stale verification sessions (DEVICE VERIFICATION)
+    # request.session.pop("verify_device_user_id", None)
+    # request.session.pop("verification_method", None)
+    # request.session.pop("pending_verification", None)
 
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()
@@ -965,13 +972,6 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # 4️⃣ Successful login
-        login(request, user)
-        messages.success(request, f"Welcome back, {user.username}!")
-        return redirect("dashboard")  # or your target page
-
-    return render(request, 'login.html')
-    
         # ❌ DEVICE TRUST CHECK (DISABLED)
         # device_hash = get_device_fingerprint(request)
         # device = TrustedDevice.objects.filter(
