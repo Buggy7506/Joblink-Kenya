@@ -4,70 +4,89 @@
 
 {% block content %}
 <style>
-/* Wrapper to center editor */
+/* Wrapper */
 .resume-wrapper {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
+  background: linear-gradient(135deg, #0b0c1f, #1a1a2e, #2c1a4d);
   box-sizing: border-box;
 }
 
 /* Alien-professional container */
 .resume-container {
-  background: rgba(20, 20, 40, 0.85);
+  background: rgba(20, 20, 40, 0.95);
   border-radius: 20px;
-  box-shadow: 0 0 30px #6f00ff;
+  box-shadow: 0 0 40px #6f00ff;
   padding: 40px;
   width: 100%;
-  max-width: 800px;
-  backdrop-filter: blur(12px);
+  max-width: 900px;
+  backdrop-filter: blur(15px);
   border: 1px solid #6f00ff;
   animation: fadeIn 0.8s ease-in-out;
   color: #e0e0ff;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Heading */
 .resume-container h1 {
   text-align: center;
-  font-size: 2.2em;
+  font-size: 2.5rem;
   color: #6f00ff;
-  text-shadow: 0 0 15px #6f00ff;
-  margin-bottom: 30px;
+  text-shadow: 0 0 15px #6f00ff, 0 0 30px #00ffff;
+  margin-bottom: 25px;
 }
 
 /* Quill editor */
 #editor {
-  height: 500px;
-  background: rgba(30, 30, 50, 0.9);
-  border-radius: 12px;
-  padding: 15px;
+  min-height: 600px;
+  background: rgba(30, 30, 50, 0.95);
+  border-radius: 15px;
+  padding: 20px;
   color: #e0e0ff;
-  box-shadow: 0 0 20px #6f00ff inset;
+  box-shadow: 0 0 25px #6f00ff inset;
   overflow-y: auto;
+  font-size: 1rem;
+}
+
+/* Section styling (Word-like) */
+#editor h1, #editor h2, #editor h3 {
+  color: #00ffff;
+  text-shadow: 0 0 6px #00ffff, 0 0 12px #6f00ff;
+  margin-bottom: 10px;
+}
+
+#editor p, #editor li {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+#editor ul, #editor ol {
+  padding-left: 20px;
 }
 
 /* Save button */
 #save-btn {
-  margin-top: 20px;
+  margin-top: 25px;
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   background-color: #6f00ff;
   color: #fff;
-  font-size: 1.1em;
+  font-size: 1.2em;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
-  box-shadow: 0 0 20px #6f00ff;
+  box-shadow: 0 0 25px #6f00ff;
   transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 #save-btn:hover {
   background-color: #9a00ff;
   transform: scale(1.03);
-  box-shadow: 0 0 30px #6f00ff, 0 0 15px #9a00ff inset;
+  box-shadow: 0 0 35px #6f00ff, 0 0 15px #9a00ff inset;
 }
 
 /* Messages */
@@ -95,6 +114,7 @@
   box-shadow: 0 0 15px #ff5555;
 }
 
+/* Animations */
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(-10px); }
 }
@@ -109,17 +129,34 @@
   <div class="resume-container" data-aos="zoom-in">
     <h1>💼 Build Your Resume</h1>
 
-    <!-- Django messages -->
     {% if messages %}
       {% for message in messages %}
         <div class="resume-messages {{ message.tags }}">{{ message }}</div>
       {% endfor %}
     {% endif %}
 
-    <!-- Immersive Resume Builder Form -->
     <form method="POST">
       {% csrf_token %}
-      <div id="editor">{{ resume.content|safe }}</div>
+      <!-- Word-like sections inside Quill -->
+      <div id="editor">
+        {% if resume.content %}
+          {{ resume.content|safe }}
+        {% else %}
+          <h1>Full Name</h1>
+          <p>Email | Phone</p>
+          <h2>Summary</h2>
+          <p>Write a brief summary about yourself...</p>
+          <h2>Skills</h2>
+          <ul>
+            <li>Skill 1</li>
+            <li>Skill 2</li>
+          </ul>
+          <h2>Experience</h2>
+          <p>Describe your work experience...</p>
+          <h2>Education</h2>
+          <p>Describe your education background...</p>
+        {% endif %}
+      </div>
       <input type="hidden" name="content" id="resume-content">
       <button type="submit" id="save-btn">Save Resume</button>
     </form>
@@ -130,7 +167,6 @@
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
-  // Initialize Quill editor
   var quill = new Quill('#editor', {
     theme: 'snow',
     placeholder: 'Start building your professional resume...',
@@ -145,12 +181,12 @@
     }
   });
 
-  // On form submit, copy HTML content to hidden input
+  // On submit, save HTML content
   document.querySelector('form').onsubmit = function() {
     document.getElementById('resume-content').value = quill.root.innerHTML;
   };
 
-  // Auto-remove messages after 3s
+  // Auto-remove messages
   document.addEventListener("DOMContentLoaded", function() {
     setTimeout(function() {
       document.querySelectorAll('.resume-messages').forEach(function(msg) {
