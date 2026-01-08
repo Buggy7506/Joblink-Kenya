@@ -325,17 +325,27 @@ class CVUpload(models.Model):
 # ======================================================
 # RESUME
 # ======================================================
+from django.conf import settings
+from django.db import models
+
 class Resume(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    address = models.CharField(max_length=200)
-    summary = models.TextField()
-    education = models.TextField()
-    experience = models.TextField()
-    skills = models.TextField()
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="resumes"
+    )
+    
+    # Full HTML content from the alien_resume_builder (Quill editor)
+    content = models.TextField(
+        blank=True,
+        help_text="Full HTML content created by the user in the resume builder"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # Track changes
+
+    class Meta:
+        ordering = ['-updated_at']
 
     def __str__(self):
         return f"{self.user.username}'s Resume"
