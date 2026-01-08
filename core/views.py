@@ -1655,13 +1655,15 @@ def resume_success(request):
 def alien_resume_builder(request):
     """
     Full-page, immersive resume editor.
-    Automatically creates a resume if none exists.
-    Overwrites existing resume content on save.
+    - Automatically creates a resume if none exists.
+    - Overwrites existing resume content on save.
+    - Supports full-page rich HTML editing.
     """
+    # Get existing resume or create a new one
     resume, created = Resume.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        # Save HTML content from the builder
+        # Save the HTML content from the builder
         content = request.POST.get('content', '')
         resume.content = content
         resume.save()
@@ -1669,26 +1671,6 @@ def alien_resume_builder(request):
         return redirect('view_resume')
 
     return render(request, 'alien_resume_builder.html', {'resume': resume})
-
-
-@login_required
-def edit_resume(request):
-    """Edit an existing resume using form upload (legacy method)."""
-    resume = get_object_or_404(Resume, user=request.user)
-
-    if request.method == 'POST':
-        form = ResumeForm(request.POST, request.FILES, instance=resume)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "✅ Your resume has been updated successfully.")
-            return redirect('view_resume')
-        else:
-            messages.error(request, "❌ Please fix the errors below.")
-    else:
-        form = ResumeForm(instance=resume)
-
-    return render(request, 'edit_resume.html', {'form': form})
-
 
 @login_required
 def view_resume(request):
