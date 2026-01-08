@@ -11,22 +11,24 @@
   justify-content: center;
   align-items: center;
   padding: 20px;
-  box-sizing: border-box;
   background: linear-gradient(135deg, #0b0c1f, #1a1a2e, #2c1a4d);
+  box-sizing: border-box;
 }
 
 /* Alien-professional container */
 .resume-container {
-  background: rgba(20, 20, 40, 0.85);
+  background: rgba(20, 20, 40, 0.95);
   border-radius: 20px;
-  box-shadow: 0 0 30px #6f00ff;
+  box-shadow: 0 0 40px #6f00ff;
   padding: 40px;
   width: 100%;
   max-width: 900px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(15px);
   border: 1px solid #6f00ff;
   animation: fadeIn 0.8s ease-in-out;
   color: #e0e0ff;
+  font-family: 'Poppins', sans-serif;
+  overflow-x: auto;
 }
 
 /* Header */
@@ -44,20 +46,15 @@
   margin-bottom: 30px;
 }
 
-/* Sections */
-.resume-section {
-  background: rgba(30, 30, 50, 0.9);
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border-left: 4px solid #6f00ff;
-  transition: all 0.3s ease;
-}
-
-.resume-section h3 {
-  margin-bottom: 10px;
-  color: #00ffff;
-  text-shadow: 0 0 8px #00ffff, 0 0 16px #6f00ff;
+/* Displayed resume content (Quill HTML) */
+#resume-content-view {
+  background: rgba(30, 30, 50, 0.95);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 0 25px #6f00ff inset;
+  min-height: 500px;
+  color: #e0e0ff;
+  font-size: 1rem;
 }
 
 /* Buttons */
@@ -104,30 +101,15 @@
 
 <div class="resume-wrapper">
   <div class="resume-container">
-    {% if resume %}
+    {% if resume and resume.content %}
       <div class="resume-header">
-        <h1>{{ resume.full_name }}</h1>
-        <p>{{ resume.email }} | {{ resume.phone }}</p>
+        <h1>{{ resume.full_name|default:"Your Name" }}</h1>
+        <p>{{ resume.email|default:"email@example.com" }} | {{ resume.phone|default:"000-000-0000" }}</p>
       </div>
 
-      <div class="resume-section">
-        <h3>Summary</h3>
-        <div>{{ resume.summary|safe }}</div>
-      </div>
-
-      <div class="resume-section">
-        <h3>Skills</h3>
-        <div>{{ resume.skills|safe }}</div>
-      </div>
-
-      <div class="resume-section">
-        <h3>Experience</h3>
-        <div>{{ resume.experience|safe }}</div>
-      </div>
-
-      <div class="resume-section">
-        <h3>Education</h3>
-        <div>{{ resume.education|safe }}</div>
+      <!-- Render full HTML content from Quill -->
+      <div id="resume-content-view">
+        {{ resume.content|safe }}
       </div>
 
       <div class="btn-container">
