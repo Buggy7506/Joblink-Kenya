@@ -1645,37 +1645,36 @@ def admin_only_view(request):
         return redirect('home')
     return render(request, 'admin_only.html')
     
-#Resume Builder / download / suggestions
 @login_required
 def resume_success(request):
+    """Simple success page after resume is saved."""
     return render(request, 'resume_success.html')
 
+
 @login_required
-def build_resume(request):
-    """Create a new resume or update the existing one."""
+def alien_resume_builder(request):
+    """
+    Full-page, immersive resume editor.
+    Automatically creates a resume if none exists.
+    Overwrites existing resume content on save.
+    """
     resume, created = Resume.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        form = ResumeForm(request.POST, request.FILES, instance=resume)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "✅ Resume saved successfully.")
-            return redirect('resume_success')  # Go straight to view
-        else:
-            messages.error(request, "❌ Please fix the errors below.")
-    else:
-        form = ResumeForm(instance=resume)
+        # Save HTML content from the builder
+        content = request.POST.get('content', '')
+        resume.content = content
+        resume.save()
+        messages.success(request, "✅ Your resume has been saved successfully!")
+        return redirect('view_resume')
 
-    return render(request, 'resume_builder.html', {'form': form})
+    return render(request, 'alien_resume_builder.html', {'resume': resume})
 
 
 @login_required
 def edit_resume(request):
-    """Edit an existing resume."""
-    try:
-        resume = Resume.objects.get(user=request.user)
-    except Resume.DoesNotExist:
-        return redirect('build_resume')  # redirect if resume not found
+    """Edit an existing resume using form upload (legacy method)."""
+    resume = get_object_or_404(Resume, user=request.user)
 
     if request.method == 'POST':
         form = ResumeForm(request.POST, request.FILES, instance=resume)
@@ -1693,24 +1692,24 @@ def edit_resume(request):
 
 @login_required
 def view_resume(request):
+    """View the resume content or uploaded file."""
     resume = Resume.objects.filter(user=request.user).first()
     return render(request, 'view_resume.html', {'resume': resume})
 
 
 @login_required
 def download_resume_pdf(request):
-    """Generate and download resume as PDF without wkhtmltopdf."""
+    """Generate and download resume as PDF from saved content."""
     resume = get_object_or_404(Resume, user=request.user)
+    
+    # Use editor HTML content if available, else fallback to uploaded file
     html_string = render_to_string('resume_template.html', {'resume': resume})
 
-    # Generate PDF from HTML string
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
-    # Send PDF as a downloadable file
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="resume.pdf"'
     return response
-
 
 @login_required
 def job_suggestions(request):
