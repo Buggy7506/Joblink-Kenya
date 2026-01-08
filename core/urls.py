@@ -9,7 +9,6 @@ urlpatterns = [
     path('resume/build/', views.alien_resume_builder, name='build_resume'),
     path('resume/success/', views.resume_success, name='resume_success'),
     path('resume/view/', views.view_resume, name='view_resume'),
-    path('resume/edit/', views.edit_resume, name='edit_resume'),
     path('resume/download/', views.download_resume_pdf, name='download_resume'),
 
     # Upload / Delete CV (legacy)
