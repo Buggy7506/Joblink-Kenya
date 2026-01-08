@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{{ resume.full_name }} - Resume</title>
+  <title>Resume</title>
+
+  <!-- Quill core styles (for proper rendering of Quill HTML) -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.core.css" rel="stylesheet">
+
   <style>
     body {
       margin: 40px;
@@ -10,92 +14,109 @@
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: #f1f5f9;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    h1 {
-      font-size: 36px;
-      color: #38bdf8;
-      text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8;
-      animation: neonPulse 2s infinite alternate;
-    }
-    h2 {
-      font-size: 24px;
-      margin-top: 30px;
-      color: #a5f3fc;
-      border-bottom: 2px solid #38bdf8;
-      padding-bottom: 6px;
-      text-shadow: 0 0 3px #67e8f9, 0 0 6px #38bdf8;
-      animation: neonPulse 2s infinite alternate;
-    }
-    p {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #e2e8f0;
-      word-break: break-word;
-    }
-    section {
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+
+    /* Word-like page container */
+    .resume-page {
+      max-width: 900px;
+      margin: auto;
+      background: rgba(30, 41, 59, 0.75);
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
       animation: glowPulse 3s infinite alternate;
     }
-    .contact {
+
+    /* Quill content normalization */
+    .ql-editor {
+      padding: 0;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #e2e8f0;
+    }
+
+    .ql-editor h1 {
+      font-size: 36px;
+      color: #38bdf8;
+      text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9;
+    }
+
+    .ql-editor h2 {
+      font-size: 24px;
+      margin-top: 30px;
+      border-bottom: 2px solid #38bdf8;
+      padding-bottom: 6px;
+      color: #a5f3fc;
+      text-shadow: 0 0 3px #67e8f9;
+    }
+
+    .ql-editor p,
+    .ql-editor li {
+      font-size: 16px;
+      color: #e2e8f0;
+    }
+
+    .ql-editor ul {
+      padding-left: 20px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 60px;
+      text-align: center;
       font-size: 14px;
-      color: #cbd5e1;
-      margin-top: -10px;
-      text-shadow: 0 0 2px #38bdf8;
+      color: #94a3b8;
     }
-    hr {
-      border: 1px solid #38bdf8;
-      margin: 30px 0;
+
+    footer a {
+      color: #38bdf8;
+      text-decoration: none;
+      font-weight: 500;
     }
-    @keyframes neonPulse {
-      0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8; }
-      50% { text-shadow: 0 0 10px #0ea5e9, 0 0 20px #38bdf8, 0 0 30px #67e8f9; }
-      100% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9, 0 0 20px #38bdf8; }
+
+    footer a:hover {
+      text-decoration: underline;
     }
+
     @keyframes glowPulse {
-      0% { box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3); }
-      50% { box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5); }
-      100% { box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3); }
+      0% {
+        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5);
+      }
+      100% {
+        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+      }
     }
+
     @media screen and (max-width: 600px) {
       body { margin: 20px; }
-      h1 { font-size: 28px; }
-      h2 { font-size: 20px; }
-      section { padding: 15px; }
+      .resume-page { padding: 20px; }
     }
   </style>
 </head>
 <body>
-  <h1>{{ resume.full_name }}</h1>
-  <p class="contact">
-    {% if resume.email %}📧 {{ resume.email }}{% endif %}
-    {% if resume.phone %} | 📞 {{ resume.phone }}{% endif %}
-    {% if resume.address %} | 📍 {{ resume.address }}{% endif %}
-  </p>
-  <hr>
 
-  <section>
-    <h2>✨ Summary</h2>
-    <p>{% if resume.summary %}{{ resume.summary|linebreaks }}{% else %}No summary provided.{% endif %}</p>
-  </section>
+  <div class="resume-page">
+    <div class="ql-editor">
+      {% if resume.content %}
+        {{ resume.content|safe }}
+      {% else %}
+        <p>No resume content available.</p>
+      {% endif %}
+    </div>
+  </div>
 
-  <section>
-    <h2>🎓 Education</h2>
-    <p>{% if resume.education %}{{ resume.education|linebreaks }}{% else %}No education information available.{% endif %}</p>
-  </section>
+  <footer>
+    <a href="https://www.stepper.dpdns.org/" target="_blank" rel="noopener">
+      https://www.stepper.dpdns.org/
+    </a>
+    &nbsp;•&nbsp; English (UK) &nbsp;•&nbsp; © 2025 JobLink Kenya. All rights reserved.
+  </footer>
 
-  <section>
-    <h2>💼 Experience</h2>
-    <p>{% if resume.experience %}{{ resume.experience|linebreaks }}{% else %}No experience listed.{% endif %}</p>
-  </section>
-
-  <section>
-    <h2>🛠 Skills</h2>
-    <p>{% if resume.skills %}{{ resume.skills|linebreaks }}{% else %}No skills added.{% endif %}</p>
-  </section>
 </body>
 </html>
