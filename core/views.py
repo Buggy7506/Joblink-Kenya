@@ -1744,23 +1744,44 @@ def payment_cancelled(request):
     
 @login_required
 def change_username_password(request):
-    # Instantiate correctly both GET and POST
+    """
+    Change username and password view with Google reCAPTCHA verification
+    """
     if request.method == 'POST':
         form = ChangeUsernamePasswordForm(request.POST, user=request.user, instance=request.user)
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+
+        # 0️⃣ Verify Google reCAPTCHA
+        if not recaptcha_response:
+            messages.error(request, "Please complete the reCAPTCHA.")
+            return render(request, 'change_username_password.html', {'form': form})
+
+        recaptcha_data = {
+            'secret': RECAPTCHA_SECRET,
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+            return render(request, 'change_username_password.html', {'form': form})
+
+        # 1️⃣ Validate form
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['new_password1'])
             user.save()
             update_session_auth_hash(request, user)  # keeps user logged in
             messages.success(request, "Account updated successfully!")
-            return redirect('profile')   # make sure this URL name exists
+            return redirect('profile')  # ensure this URL exists
         else:
             messages.error(request, "Please correct the errors below.")
     else:
         form = ChangeUsernamePasswordForm(user=request.user, instance=request.user)
 
     return render(request, 'change_username_password.html', {'form': form})
-
+    
 
 from django.db.models import Count, Q, F
 
