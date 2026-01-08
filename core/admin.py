@@ -97,10 +97,9 @@ class CVUploadAdmin(admin.ModelAdmin):
 # ======================================================
 # RESUME
 # ======================================================
-@admin.register(Resume)
 class ResumeAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "email", "phone", "created_at")
-    search_fields = ("full_name", "email", "phone")
+    list_display = ('user', 'created_at')  # Only show fields that exist
+    search_fields = ('user__username',)    # Optional: search by username
     ordering = ("-created_at",)
 
 
