@@ -1342,7 +1342,7 @@ def edit_job(request, job_id):
 
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
-# Apply Job View
+# Apply Job View with reCAPTCHA
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -1352,9 +1352,30 @@ def apply_job(request, job_id):
         messages.error(request, "❌ You cannot apply to your own job posting.")
         return redirect('job_list')
 
-    # ---------- FREE JOB FLOW ----------
-    if not job.is_premium:
-        if request.method == "POST":
+    # Handle POST requests
+    if request.method == "POST":
+        # --------------------------
+        # 0️⃣ Verify Google reCAPTCHA
+        # --------------------------
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        if not recaptcha_response:
+            messages.error(request, "Please complete the reCAPTCHA.")
+            return render(request, 'apply_job.html', {'job': job})
+
+        recaptcha_data = {
+            'secret': settings.RECAPTCHA_SECRET,  # make sure you have this in your settings
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+            return render(request, 'apply_job.html', {'job': job})
+        # --------------------------
+
+        # ---------- FREE JOB FLOW ----------
+        if not job.is_premium:
             application, created = Application.objects.get_or_create(
                 applicant=request.user,
                 job=job
@@ -1375,13 +1396,8 @@ def apply_job(request, job_id):
 
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
-        # GET request → Show application page
-        return render(request, 'apply_job.html', {'job': job})
-
-    # ---------- PREMIUM JOB FLOW ----------
-    amount = 200 * 100  # KES 200 in cents
-
-    if request.method == "POST":
+        # ---------- PREMIUM JOB FLOW ----------
+        amount = 200 * 100  # KES 200 in cents
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -1408,7 +1424,7 @@ def apply_job(request, job_id):
         except Exception as e:
             return render(request, 'apply_job.html', {'job': job, 'error': str(e)})
 
-    # GET request for premium job → Show application page
+    # GET request → Show application page
     return render(request, 'apply_job.html', {'job': job})
 
 @login_required
@@ -1509,20 +1525,52 @@ def resources(request):
     items = SkillResource.objects.all()
     return render(request, 'resources.html', {'items': items})
 
-#Job Alerts
-
+# Job Alerts with reCAPTCHA
+@login_required
 def job_alerts_view(request):
     alerts = JobAlert.objects.filter(user=request.user)
+
     if request.method == 'POST':
-        JobAlert.objects.create(
-            user=request.user,
-            job_title=request.POST['job_title'],
-            location=request.POST['location']
-        )
+        # --------------------------
+        # 0️⃣ Verify Google reCAPTCHA
+        # --------------------------
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        if not recaptcha_response:
+            messages.error(request, "Please complete the reCAPTCHA.")
+            return render(request, 'job_alerts.html', {'alerts': alerts})
+
+        recaptcha_data = {
+            'secret': settings.RECAPTCHA_SECRET,  # Ensure you have this in settings.py
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+            return render(request, 'job_alerts.html', {'alerts': alerts})
+        # --------------------------
+
+        # Create new job alert
+        job_title = request.POST.get('job_title', '').strip()
+        location = request.POST.get('location', '').strip()
+
+        if job_title and location:
+            JobAlert.objects.create(
+                user=request.user,
+                job_title=job_title,
+                location=location
+            )
+            messages.success(request, "✅ Job alert created successfully!")
+        else:
+            messages.error(request, "Please provide both job title and location.")
+
         return redirect('job_alerts')
+
     return render(request, 'job_alerts.html', {'alerts': alerts})
 
-
+# Delete Job Alert with reCAPTCHA
+@login_required
 def delete_alert(request, alert_id):
     try:
         alert = JobAlert.objects.get(id=alert_id, user=request.user)
@@ -1531,12 +1579,32 @@ def delete_alert(request, alert_id):
         return redirect('delete_alert_success')
 
     if request.method == 'POST':
+        # --------------------------
+        # 0️⃣ Verify Google reCAPTCHA
+        # --------------------------
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        if not recaptcha_response:
+            messages.error(request, "Please complete the reCAPTCHA.")
+            return render(request, 'delete_alert.html', {'alert': alert})
+
+        recaptcha_data = {
+            'secret': settings.RECAPTCHA_SECRET,  # Ensure this is set in settings.py
+            'response': recaptcha_response
+        }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        result = r.json()
+
+        if not result.get('success'):
+            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+            return render(request, 'delete_alert.html', {'alert': alert})
+        # --------------------------
+
+        # Delete the alert
         alert.delete()
-        messages.success(request, "Job alert deleted successfully.")
+        messages.success(request, "✅ Job alert deleted successfully.")
         return redirect('delete_alert_success')
 
     return render(request, 'delete_alert.html', {'alert': alert})
-
 
 def delete_alert_success(request):
     return render(request, 'delete_alert_success.html')
