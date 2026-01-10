@@ -289,7 +289,10 @@ class ResumeForm(TooltipFormMixin, forms.ModelForm):
 class CustomUserCreationForm(TooltipFormMixin, UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ("username", "email", "first_name", "last_name", "password1", "password2", "phone", "location", 'role')      
+        fields = (
+            "username", "email", "first_name", "last_name",
+            "password1", "password2", "phone", "location", "role"
+        )
         help_texts = {
             'username': "Choose a username.",
             'email': "Provide your email address.",
@@ -305,13 +308,19 @@ class CustomUserCreationForm(TooltipFormMixin, UserCreationForm):
             'first_name': forms.TextInput(attrs={'placeholder': 'Enter first name'}),
             'last_name': forms.TextInput(attrs={'placeholder': 'Enter last name'}),
             'phone': forms.TextInput(attrs={'placeholder': 'Enter phone number'}),
-            'location': forms.TextInput(attrs={'placeholder': 'Enter location'}),
+            'location': forms.TextInput(attrs={
+                'placeholder': 'Enter location',
+                'class': 'form-input location-input',
+                'data-lat-input': 'latitude',
+                'data-lon-input': 'longitude'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['role'].choices = [choice for choice in CustomUser.ROLE_CHOICES if choice[0] != 'admin']
-
+        # Exclude admin role from choices
+        self.fields['role'].choices = [
+            choice for choice in CustomUser.ROLE_CHOICES if choice[0] != 'admin']
 
 # 🔹 User Email Form
 class UserForm(TooltipFormMixin, forms.ModelForm):
