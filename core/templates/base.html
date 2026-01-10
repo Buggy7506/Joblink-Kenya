@@ -821,9 +821,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------------------------
 // Mobile dropdown (arrow-only toggle)
 // ---------------------------
-document.querySelectorAll('.dropdown-arrow').forEach(arrow => {
+document.querySelectorAll('.mobile-dropdown .dropdown-arrow').forEach(arrow => {
   arrow.addEventListener('click', e => {
-    e.stopPropagation(); // prevent link click
+    e.preventDefault();
+    e.stopPropagation();
     arrow.closest('.mobile-dropdown').classList.toggle('open');
   });
 });
