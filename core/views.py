@@ -868,10 +868,20 @@ def home(request):
 def signup_view(request):
     """
     User signup view with Google reCAPTCHA verification
+    Supports Applicant & Employer signup
     """
+
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         recaptcha_response = request.POST.get('g-recaptcha-response')
+
+        role = request.POST.get("role")  # applicant | employer
+
+        # Employer-only fields
+        company_name = request.POST.get("company_name", "").strip()
+        company_email = request.POST.get("company_email", "").strip()
+        company_phone = request.POST.get("company_phone", "").strip()
+        company_website = request.POST.get("company_website", "").strip()
 
         # 0️⃣ Verify Google reCAPTCHA
         if not recaptcha_response:
@@ -882,19 +892,55 @@ def signup_view(request):
             'secret': RECAPTCHA_SECRET,
             'response': recaptcha_response
         }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=recaptcha_data
+        )
         result = r.json()
 
         if not result.get('success'):
             messages.error(request, "reCAPTCHA verification failed. Please try again.")
             return render(request, 'signup.html', {'form': form})
 
-        # 1️⃣ If reCAPTCHA passed, validate form
+        # 1️⃣ Validate form
         if form.is_valid():
+
+            # Employer validation
+            if role == "employer" and not company_name:
+                messages.error(request, "Company name is required for employers.")
+                return render(request, 'signup.html', {'form': form})
+
             user = form.save()
+
+            # Ensure profile exists
+            profile, _ = Profile.objects.get_or_create(user=user)
+
+            # Set role
+            profile.role = role if role in ["applicant", "employer"] else "applicant"
+            profile.save()
+
+            # Employer → create company (UNVERIFIED by default)
+            if profile.role == "employer":
+                Company.objects.create(
+                    owner=user,
+                    name=company_name,
+                    email=company_email,
+                    phone=company_phone,
+                    website=company_website,
+                    is_verified=False,   # 🔒 ADMIN VERIFICATION REQUIRED
+                    is_active=False
+                )
+
             login(request, user)
+
             messages.success(request, "Signup successful! Welcome!")
-            return redirect('dashboard')
+
+            # Role-based redirect
+            if profile.role == "employer":
+                return redirect("employer_control_panel")
+
+            return redirect("dashboard")
+
         else:
             messages.error(request, "Please correct the errors below.")
 
@@ -934,7 +980,10 @@ def login_view(request):
             'secret': RECAPTCHA_SECRET,
             'response': recaptcha_response
         }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=recaptcha_data
+        )
         result = r.json()
 
         if not result.get('success'):
@@ -953,7 +1002,7 @@ def login_view(request):
             return render(request, 'login.html')
 
         # Ensure profile exists
-        Profile.objects.get_or_create(user=user_obj)
+        profile, _ = Profile.objects.get_or_create(user=user_obj)
 
         # 2️⃣ Google users → force password setup
         if not user_obj.has_usable_password():
@@ -1008,9 +1057,14 @@ def login_view(request):
         # ❌ Cleanup verification flags (DEVICE VERIFICATION)
         # request.session.pop("pending_verification", None)
 
-        return redirect(
-            'admin_dashboard' if user.is_superuser else 'dashboard'
-        )
+        # ✅ ROLE-AWARE REDIRECT
+        if user.is_superuser:
+            return redirect("admin_dashboard")
+
+        if profile.role == "employer":
+            return redirect("employer_control_panel")
+
+        return redirect("dashboard")
 
     return render(request, 'login.html')
     
