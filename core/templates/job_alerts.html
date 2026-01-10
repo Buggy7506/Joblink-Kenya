@@ -169,17 +169,26 @@
 
     <h1 class="alerts-title">Job Alerts</h1>
 
-    <form method="post" class="alerts-form">
-        {% csrf_token %}
-
-        <label>Preferred Job Title</label>
-        <input type="text" name="job_title" placeholder="e.g., Software Developer">
-
-        <label>Preferred Location</label>
-        <input type="text" name="location" placeholder="e.g., Nairobi">
-
-        <button type="submit" class="submit-btn">Set Alert</button>
-    </form>
+   <form method="post" class="alerts-form">
+       {% csrf_token %}
+   
+       <label>Preferred Job Title</label>
+       <input type="text" name="job_title" placeholder="e.g., Software Developer">
+   
+       <label>Preferred Location</label>
+       <input
+           type="text"
+           name="location"
+           class="form-input location-input"
+           placeholder="e.g., Nairobi"
+           data-lat-input="alert-latitude"
+           data-lon-input="alert-longitude"
+       >
+       <input type="hidden" id="alert-latitude" name="latitude" value="">
+       <input type="hidden" id="alert-longitude" name="longitude" value="">
+   
+       <button type="submit" class="submit-btn">Set Alert</button>
+   </form>
 
     <h2 style="margin-bottom:16px; color:var(--text-muted);">
         Your Alerts
