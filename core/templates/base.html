@@ -429,13 +429,28 @@ body.light-mode .active-link {
 </main>
 
 <footer class="footer glow-border">
-  <p>English(UK) •&copy; 2025 <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.</p>
+  <p>
+    English (UK) • &copy; <span id="currentYear"></span>
+    <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.
+  </p>
 </footer>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // ---------------------------
+  // Set current year in footer
+  // ---------------------------
+  const yearEl = document.getElementById('currentYear');
+  if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+  }
+
+  // ---------------------------
   // Initialize AOS animations
-  AOS.init();
+  // ---------------------------
+  if (typeof AOS !== 'undefined') {
+    AOS.init();
+  }
 
   // ---------------------------
   // Mobile menu toggle
@@ -443,19 +458,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const menu = document.getElementById('mobileMenu');
   const menuToggle = document.getElementById('menuToggle');
 
-  menuToggle.addEventListener('click', () => {
-    if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
-      menu.style.maxHeight = '0';
-      menu.style.padding = '0 1rem';
-      setTimeout(() => (menu.style.display = 'none'), 350);
-    } else {
-      menu.style.display = 'flex';
-      setTimeout(() => {
-        menu.style.maxHeight = '70vh';
-        menu.style.padding = '1rem';
-      }, 10);
-    }
-  });
+  if (menuToggle && menu) {
+    menuToggle.addEventListener('click', () => {
+      if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
+        menu.style.maxHeight = '0';
+        menu.style.padding = '0 1rem';
+        setTimeout(() => (menu.style.display = 'none'), 350);
+      } else {
+        menu.style.display = 'flex';
+        setTimeout(() => {
+          menu.style.maxHeight = '70vh';
+          menu.style.padding = '1rem';
+        }, 10);
+      }
+    });
+  }
 
   // ---------------------------
   // Theme toggle (desktop & mobile)
@@ -466,34 +483,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileText = document.getElementById('mobileThemeText');
   const body = document.body;
 
-  // Load saved theme
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme === 'light') {
     body.classList.add('light-mode');
-    toggleDesktop.textContent = '☀️';
-    mobileIcon.textContent = '☀️';
-    mobileText.textContent = 'Light Mode';
+    if (toggleDesktop) toggleDesktop.textContent = '☀️';
+    if (mobileIcon) mobileIcon.textContent = '☀️';
+    if (mobileText) mobileText.textContent = 'Light Mode';
   } else {
-    toggleDesktop.textContent = '🌙';
-    mobileIcon.textContent = '🌙';
-    mobileText.textContent = 'Dark Mode';
+    if (toggleDesktop) toggleDesktop.textContent = '🌙';
+    if (mobileIcon) mobileIcon.textContent = '🌙';
+    if (mobileText) mobileText.textContent = 'Dark Mode';
   }
 
-  // Theme toggle function
   function toggleTheme() {
     body.classList.toggle('light-mode');
     const isLight = body.classList.contains('light-mode');
-    toggleDesktop.textContent = isLight ? '☀️' : '🌙';
-    mobileIcon.textContent = isLight ? '☀️' : '🌙';
-    mobileText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
+    if (toggleDesktop) toggleDesktop.textContent = isLight ? '☀️' : '🌙';
+    if (mobileIcon) mobileIcon.textContent = isLight ? '☀️' : '🌙';
+    if (mobileText) mobileText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
   }
 
-  toggleDesktop.addEventListener('click', toggleTheme);
-  toggleMobile.addEventListener('click', toggleTheme);
+  if (toggleDesktop) toggleDesktop.addEventListener('click', toggleTheme);
+  if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
 
   // ---------------------------
-  // Background slideshow (fade + mirror)
+  // Background slideshow
   // ---------------------------
   const slides = document.querySelectorAll('.bg-slide');
   let current = 0;
@@ -501,53 +516,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showSlide(index) {
     slides.forEach((slide) => slide.classList.remove('active'));
-    slides[index].classList.add('active');
+    if (slides[index]) slides[index].classList.add('active');
   }
 
-  // Initial slide
-  showSlide(current);
-
-  // Slide rotation
-  setInterval(() => {
-    if (forward) {
-      current++;
-      if (current >= slides.length - 1) forward = false;
-    } else {
-      current--;
-      if (current <= 0) forward = true;
-    }
+  if (slides.length) {
     showSlide(current);
-  }, 4000); // Change every 4 seconds
-});
+    setInterval(() => {
+      if (forward) {
+        current++;
+        if (current >= slides.length - 1) forward = false;
+      } else {
+        current--;
+        if (current <= 0) forward = true;
+      }
+      showSlide(current);
+    }, 4000); // Change every 4 seconds
+  }
 
-document.addEventListener('DOMContentLoaded', () => {
+  // ---------------------------
+  // Highlight active nav link
+  // ---------------------------
   const currentPath = window.location.pathname;
-
-  // Select all internal nav links
   const navLinks = document.querySelectorAll('nav a, .mobile-menu a');
 
   navLinks.forEach(link => {
     try {
       const url = new URL(link.href, window.location.origin);
       const linkPath = url.pathname;
-
-      // Add active-link if:
-      // 1) Exact match
-      // 2) Current path starts with link path (but not root "/")
-      if (
-        currentPath === linkPath ||
-        (linkPath !== "/" && currentPath.startsWith(linkPath))
-      ) {
+      if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
         link.classList.add('active-link');
       } else {
         link.classList.remove('active-link');
       }
-
     } catch (e) {
-      // Ignore invalid URLs (e.g., external links)
       console.warn('Skipping invalid link:', link.href);
     }
   });
+
 });
 </script>
 
