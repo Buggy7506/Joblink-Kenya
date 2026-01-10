@@ -171,6 +171,12 @@ class CustomUser(AbstractUser):
 # ======================================================
 # PROFILE
 # ======================================================
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+from cloudinary.models import CloudinaryField
+
+
 class Profile(models.Model):
 
     # ==========================
@@ -193,7 +199,7 @@ class Profile(models.Model):
     # RELATION
     # ==========================
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="profile"
     )
@@ -213,7 +219,7 @@ class Profile(models.Model):
     skills = models.CharField(max_length=255, blank=True, null=True)
 
     # ==========================
-    # ROLE (NEW)
+    # ROLE
     # ==========================
     role = models.CharField(
         max_length=20,
@@ -223,7 +229,13 @@ class Profile(models.Model):
     )
 
     # ==========================
-    # DEVICE VERIFICATION PREFERENCE
+    # 🔒 ROLE SECURITY (NEW)
+    # ==========================
+    role_failed_attempts = models.PositiveIntegerField(default=0)
+    role_lock_until = models.DateTimeField(null=True, blank=True)
+
+    # ==========================
+    # DEVICE VERIFICATION PREF
     # ==========================
     verification_method = models.CharField(
         max_length=10,
@@ -234,7 +246,9 @@ class Profile(models.Model):
     # ==========================
     # META
     # ==========================
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created_at = models.DateTimeField(
+        default=timezone.now   # ✅ SAFE FOR EXISTING ROWS
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     # ==========================
@@ -250,6 +264,21 @@ class Profile(models.Model):
     @property
     def is_applicant(self):
         return self.role == "applicant"
+
+    def is_role_locked(self):
+        """
+        Returns True if account is temporarily locked
+        due to wrong role attempts.
+        """
+        return self.role_lock_until and timezone.now() < self.role_lock_until
+
+    def reset_role_lock(self):
+        """
+        Clears role lock after successful login.
+        """
+        self.role_failed_attempts = 0
+        self.role_lock_until = None
+        self.save(update_fields=["role_failed_attempts", "role_lock_until"])
 
     @property
     def profile_picture_url(self):
