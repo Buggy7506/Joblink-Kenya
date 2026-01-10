@@ -193,7 +193,7 @@ class Profile(models.Model):
     # RELATION
     # ==========================
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
         related_name="profile"
     )
