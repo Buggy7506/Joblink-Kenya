@@ -152,9 +152,20 @@
       <input type="text" id="company" name="company" value="{{ form.company.value }}">
     </div>
 
-    <div class="form-group">
-      <label for="location">Location</label>
-      <input type="text" id="location" name="location" value="{{ form.location.value }}">
+    <div class="form-group" style="position: relative;">
+        <label for="location">Location</label>
+        <input
+            type="text"
+            id="location"
+            name="location"
+            value="{{ form.location.value|default_if_none:'' }}"
+            class="form-input location-input"
+            placeholder="Enter job location"
+            data-lat-input="job-latitude"
+            data-lon-input="job-longitude"
+        >
+        <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default_if_none:'' }}">
+        <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default_if_none:'' }}">
     </div>
 
     <div class="form-group">
