@@ -438,6 +438,41 @@ body.light-mode .active-link {
 .mobile-dropdown.open .mobile-dropdown-menu {
   display: block;
 }
+.theme-toggle-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-link);
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-accent);
+}
+.nav-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dropdown-main-link {
+  color: var(--text-link);
+  font-weight: 600;
+}
+
+.dropdown-main-link:hover {
+  color: var(--text-accent);
+}
+
+.dropdown-arrow {
+  font-size: 0.75rem;
+  cursor: pointer;
+}
 </style>
 
 </head>
@@ -474,9 +509,12 @@ body.light-mode .active-link {
           {% elif user.role == 'employer' %}
             <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <div class="nav-dropdown">
-              <button class="nav-dropdown-toggle hover-glow">
-                Dashboard <i class="fas fa-chevron-down"></i>
-              </button>
+              <div class="nav-dropdown-toggle hover-glow">
+              <a href="{% url 'employer_dashboard' %}" class="dropdown-main-link">
+                Dashboard
+              </a>
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </div>
             
               <div class="nav-dropdown-menu glass-card">
             
@@ -499,10 +537,13 @@ body.light-mode .active-link {
               </div>
             </div>
             <div class="nav-dropdown">
-              <button class="nav-dropdown-toggle hover-glow">
-                Profile <i class="fas fa-chevron-down"></i>
-              </button>
-            
+              <div class="nav-dropdown-toggle hover-glow">
+              <a href="{% url 'employer_profile' %}" class="dropdown-main-link">
+                Profile
+              </a>
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </div>
+
               <div class="nav-dropdown-menu glass-card">
             
                 <div class="dropdown-group">
@@ -521,9 +562,12 @@ body.light-mode .active-link {
           {% else %}
             <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <div class="nav-dropdown">
-              <button class="nav-dropdown-toggle hover-glow">
-                Dashboard <i class="fas fa-chevron-down"></i>
-              </button>
+              <div class="nav-dropdown-toggle hover-glow">
+              <a href="{% url 'applicant_dashboard' %}" class="dropdown-main-link">
+                Dashboard
+              </a>
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </div>
             
               <div class="nav-dropdown-menu glass-card">
             
@@ -551,9 +595,13 @@ body.light-mode .active-link {
               </div>
             </div>
             <div class="nav-dropdown">
-              <button class="nav-dropdown-toggle hover-glow">
-                Profile <i class="fas fa-chevron-down"></i>
-              </button>
+              <div class="nav-dropdown-toggle hover-glow">
+              <a href="{% url 'profile' %}" class="dropdown-main-link">
+                Profile
+              </a>
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </div>
+
             
               <div class="nav-dropdown-menu glass-card">
             
@@ -577,10 +625,13 @@ body.light-mode .active-link {
             </div>
           {% endif %}
          <div class="nav-dropdown">
-              <button class="nav-dropdown-toggle hover-glow">
-                Settings <i class="fas fa-chevron-down"></i>
-              </button>
-            
+              <div class="nav-dropdown-toggle hover-glow">
+              <a href="{% url 'change_username_password' %}" class="dropdown-main-link">
+                Settings
+              </a>
+              <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </div>
+
               <div class="nav-dropdown-menu glass-card">
             
                 <!-- Account -->
@@ -598,6 +649,10 @@ body.light-mode .active-link {
                      class="danger-link">
                     🗑 Delete Account
                   </a>
+                   <!-- Theme Toggle -->
+                    <button class="theme-toggle-btn" id="darkModeToggleDesktop">
+                      🌙 <span>Toggle Theme</span>
+                    </button>
                 </div>
             
               </div>
@@ -610,8 +665,6 @@ body.light-mode .active-link {
         {% endif %}
       </nav>
 
-      <!-- Desktop Theme Toggle -->
-      <button id="darkModeToggleDesktop">🌙</button>
     </div>
 
     <!-- Mobile toggle -->
@@ -630,9 +683,12 @@ body.light-mode .active-link {
       {% elif user.role == 'employer' %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
         <div class="mobile-dropdown">
-              <button class="mobile-dropdown-toggle">
-                Dashboard <i class="fas fa-chevron-down"></i>
-              </button>
+              <div class="mobile-dropdown-toggle">
+                <a href="{% url 'employer_dashboard' %}" class="dropdown-main-link">
+                  Dashboard
+                </a>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </div>
             
               <div class="mobile-dropdown-menu">
             
@@ -648,10 +704,13 @@ body.light-mode .active-link {
             
               </div>
             </div>
-        <div class="mobile-dropdown">
-              <button class="mobile-dropdown-toggle">
-                Profile <i class="fas fa-chevron-down"></i>
-              </button>
+       <div class="mobile-dropdown">
+              <div class="mobile-dropdown-toggle">
+                <a href="{% url 'employer_profile' %}" class="dropdown-main-link">
+                  Profile
+                </a>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </div>
             
               <div class="mobile-dropdown-menu">
                 <span class="dropdown-title">Company</span>
@@ -664,10 +723,13 @@ body.light-mode .active-link {
             </div>
       {% else %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-        <div class="mobile-dropdown">
-              <button class="mobile-dropdown-toggle">
-                Dashboard <i class="fas fa-chevron-down"></i>
-              </button>
+       <div class="mobile-dropdown">
+              <div class="mobile-dropdown-toggle">
+                <a href="{% url 'applicant_dashboard' %}" class="dropdown-main-link">
+                  Dashboard
+                </a>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </div>
             
               <div class="mobile-dropdown-menu">
             
@@ -689,9 +751,12 @@ body.light-mode .active-link {
               </div>
             </div>
         <div class="mobile-dropdown">
-              <button class="mobile-dropdown-toggle">
-                Profile <i class="fas fa-chevron-down"></i>
-              </button>
+              <div class="mobile-dropdown-toggle">
+                <a href="{% url 'profile' %}" class="dropdown-main-link">
+                  Profile
+                </a>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </div>
             
               <div class="mobile-dropdown-menu">
                 <span class="dropdown-title">Profile</span>
@@ -707,9 +772,12 @@ body.light-mode .active-link {
             </div>
       {% endif %}
       <div class="mobile-dropdown">
-        <button class="mobile-dropdown-toggle">
-          Settings <i class="fas fa-chevron-down"></i>
-        </button>
+        <div class="mobile-dropdown-toggle">
+          <a href="{% url 'change_username_password' %}" class="dropdown-main-link">
+            Settings
+          </a>
+          <i class="fas fa-chevron-down dropdown-arrow"></i>
+        </div>
       
         <div class="mobile-dropdown-menu">
       
@@ -717,13 +785,15 @@ body.light-mode .active-link {
           <a href="{% url 'change_username_password' %}#security">
             🔐 Security
           </a>
-      
+            <button class="theme-toggle-btn" id="darkModeToggleMobile">
+              <span id="mobileThemeIcon">🌙</span>
+              <span id="mobileThemeText">Dark Mode</span>
+            </button>
           <span class="dropdown-title danger">Danger Zone</span>
           <a href="{% url 'change_username_password' %}#danger"
              class="danger-link">
             🗑 Delete Account
           </a>
-      
         </div>
       </div>
       <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
@@ -732,12 +802,6 @@ body.light-mode .active-link {
       <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
       <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
     {% endif %}
-
-    <!-- Mobile Theme Toggle -->
-    <button id="darkModeToggleMobile">
-      <span id="mobileThemeIcon">🌙</span>
-      <span id="mobileThemeText">Dark Mode</span>
-    </button>
   </div>
 </header>
 
@@ -755,11 +819,12 @@ body.light-mode .active-link {
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 // ---------------------------
-// Mobile dashboard dropdown
+// Mobile dropdown (arrow-only toggle)
 // ---------------------------
-document.querySelectorAll('.mobile-dropdown-toggle').forEach(toggle => {
-  toggle.addEventListener('click', () => {
-    toggle.parentElement.classList.toggle('open');
+document.querySelectorAll('.dropdown-arrow').forEach(arrow => {
+  arrow.addEventListener('click', e => {
+    e.stopPropagation(); // prevent link click
+    arrow.closest('.mobile-dropdown').classList.toggle('open');
   });
 });
 
