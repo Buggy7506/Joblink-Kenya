@@ -629,6 +629,11 @@ function initLocationAutocomplete(input) {
   if(input.dataset.autocompleteInitialized) return;
   input.dataset.autocompleteInitialized = true;
 
+  // Remove any existing dropdown attached to this input
+  const existingDropdown = input.parentNode.querySelector('.autocomplete-results');
+  if(existingDropdown) existingDropdown.remove();
+
+  // Create results list
   const resultsList = document.createElement('ul');
   resultsList.classList.add('autocomplete-results');
   resultsList.style.position = 'absolute';
