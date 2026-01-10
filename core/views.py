@@ -941,7 +941,7 @@ def signup_view(request):
 
             # 3️⃣ Employer → create company (UNVERIFIED)
             if profile.role == "employer":
-                Company.objects.create(
+                EmployerCompany.objects.create(
                     owner=user,
                     name=company_name,
                     email=company_email,
