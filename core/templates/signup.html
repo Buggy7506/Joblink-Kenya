@@ -482,7 +482,52 @@ body {
                         </ul>
                     {% endif %}
                 </p>
-            
+            <!-- Employer Company Fields -->
+                <div id="employerFields" style="display:none; margin-top:20px;">
+                
+                    <h4>Company Information</h4>
+                
+                    <p>
+                        <label for="company_name">Company Name</label>
+                        <input type="text"
+                               name="company_name"
+                               id="company_name"
+                               placeholder="Registered company name">
+                    </p>
+                
+                    <p>
+                        <label for="company_email">Company Email</label>
+                        <input type="email"
+                               name="company_email"
+                               id="company_email"
+                               placeholder="admin@company.com">
+                        <small class="hint">
+                            Business/admin email required (no Gmail, Yahoo, etc.)
+                        </small>
+                    </p>
+                
+                    <p>
+                        <label for="company_phone">Company Phone</label>
+                        <input type="text"
+                               name="company_phone"
+                               id="company_phone"
+                               placeholder="+254...">
+                    </p>
+                
+                    <p>
+                        <label for="company_website">Company Website</label>
+                        <input type="url"
+                               name="company_website"
+                               id="company_website"
+                               placeholder="https://company.com">
+                    </p>
+                
+                    <p class="info-note">
+                        ⚠ Employer accounts require admin verification before posting jobs.
+                    </p>
+                
+                </div>
+
             </div>
 
                         
@@ -499,7 +544,9 @@ body {
                 <div class="g-recaptcha"
                      data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS">
                 </div>
-
+                <p class="verify-note">
+                    Employers must be verified before posting jobs.
+                </p>
                 <button type="submit" class="signup-btn" id="signupBtn">Sign Up</button>
             </form>
         </div>
@@ -576,6 +623,25 @@ pass2.addEventListener("keyup", () => {
         matchStatus.textContent = "Passwords do not match ✘";
     }
 });
+
+/* ================================
+   ROLE TOGGLE (APPLICANT / EMPLOYER)
+================================ */
+
+const roleField = document.getElementById("id_role");
+const employerFields = document.getElementById("employerFields");
+
+function toggleEmployerFields() {
+    if (!roleField || !employerFields) return;
+
+    employerFields.style.display =
+        roleField.value === "employer" ? "block" : "none";
+}
+
+if (roleField) {
+    roleField.addEventListener("change", toggleEmployerFields);
+    toggleEmployerFields(); // run on page load
+}
 
 /* Submit button loading */
 const signupForm = document.getElementById('signupForm');
