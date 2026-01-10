@@ -4,66 +4,15 @@
 
 {% block extra_css %}
 <style>
-/* ================= Global Layout ================= */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background-color: #000;
-  overflow-x: hidden;
-}
+/* =========================================================
+   HOME PAGE – THEME-AWARE (INHERITS BASE TEMPLATE)
+========================================================= */
 
-/* ================= Background Slideshow ================= */
-.bg-slideshow {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  overflow: hidden;
-}
-
-.bg-slide {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  opacity: 0;
-  animation: fadeZoomParallax 60s infinite ease-in-out;
-}
-
-.bg-slide:nth-child(1) { animation-delay: 0s; }
-.bg-slide:nth-child(2) { animation-delay: 6s; }
-.bg-slide:nth-child(3) { animation-delay: 12s; }
-.bg-slide:nth-child(4) { animation-delay: 18s; }
-.bg-slide:nth-child(5) { animation-delay: 24s; }
-.bg-slide:nth-child(6) { animation-delay: 30s; }
-.bg-slide:nth-child(7) { animation-delay: 36s; }
-.bg-slide:nth-child(8) { animation-delay: 42s; }
-.bg-slide:nth-child(9) { animation-delay: 48s; }
-.bg-slide:nth-child(10) { animation-delay: 54s; }
-
-@keyframes fadeZoomParallax {
-  0%   { opacity: 0; transform: scale(1); }
-  10%  { opacity: 1; transform: scale(1.05); }
-  20%  { opacity: 1; transform: scale(1.1); }
-  30%  { opacity: 0; transform: scale(1.15); }
-  100% { opacity: 0; }
-}
-
-/* ================= Dark Overlay ================= */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: -1;
-}
-
-/* ================= Main Home Content ================= */
+/* Main Home Content */
 .home-container {
   min-height: 100vh;
-  padding: 60px 20px;
-  color: #e0f7fa;
+  padding: 4rem 1.5rem;
+  color: var(--text-main);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -75,9 +24,8 @@ html, body {
 .glow-title {
   font-size: 3rem;
   font-weight: 900;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
-  margin-bottom: 20px;
+  color: var(--text-accent);
+  margin-bottom: 1.25rem;
 }
 
 /* Subtitle */
@@ -85,31 +33,56 @@ html, body {
   max-width: 900px;
   font-size: 1.25rem;
   line-height: 1.6;
-  margin-bottom: 20px;
+  color: var(--text-main);
+  margin-bottom: 1.25rem;
 }
 
 /* Purpose Box */
 .purpose-box {
   max-width: 900px;
-  background: rgba(0, 0, 0, 0.65);
-  padding: 30px;
-  border-radius: 16px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  padding: 2rem;
+  border-radius: 1rem;
   font-size: 1.1rem;
   line-height: 1.7;
-  box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.purpose-box ul {
+  text-align: left;
+  max-width: 600px;
+  margin: 1rem auto;
+}
+
+.purpose-box li {
+  margin-bottom: 0.5rem;
+}
+
+/* Links inside content */
+.purpose-box a {
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.purpose-box a:hover {
+  text-decoration: underline;
 }
 
 /* Call To Action Button */
 .browse-btn {
-  margin-top: 35px;
-  padding: 15px 36px;
-  font-size: 18px;
-  font-weight: 600;
+  margin-top: 2.5rem;
+  padding: 0.9rem 2.25rem;
+  font-size: 1.1rem;
+  font-weight: 700;
   text-decoration: none;
   color: #000;
-  background: linear-gradient(135deg, #00ffff, #007fff);
-  border-radius: 50px;
-  box-shadow: 0 0 25px rgba(0,255,255,0.8);
+  background: linear-gradient(
+    135deg,
+    var(--glow-main),
+    var(--glow-accent)
+  );
+  border-radius: 2rem;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
@@ -118,40 +91,28 @@ html, body {
   opacity: 0.95;
 }
 
-/* ================= Footer ================= */
+/* Footer (inherits base theme) */
 .oauth-footer {
-  padding: 25px 15px;
+  padding: 1.5rem 1rem;
   text-align: center;
-  font-size: 14px;
-  color: #00ffff;
-  border-top: 1px solid rgba(0,255,255,0.3);
+  font-size: 0.9rem;
+  color: var(--text-main);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+body.light-mode .oauth-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .oauth-footer a {
-  margin: 0 10px;
-  color: #00ffff;
+  margin: 0 0.6rem;
+  color: var(--text-link);
   text-decoration: underline;
 }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- ================= BACKGROUND SLIDESHOW ================= -->
-<div class="bg-slideshow">
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/main-sample.png')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-3.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/cld-sample-2.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1765282520/samples/cup-on-a-table.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/upscale-face-1.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/dessert-on-a-plate.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/coffee.jpg')"></div>
-  <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404726/samples/woman-on-a-football-field.jpg')"></div>
-</div>
-
-<div class="overlay"></div>
 
 <!-- ================= HOME CONTENT ================= -->
 <div class="home-container">
@@ -165,17 +126,17 @@ html, body {
 
   <div class="purpose-box">
     <p>
-      The platform is designed to simplify and secure the job search process by allowing users to:
+      The platform is designed to simplify and secure the job search process by enabling users to:
     </p>
     <ul style="text-align:left; max-width:600px; margin:15px auto;">
       <li>Create and manage professional career profiles</li>
       <li>Browse and apply for job opportunities</li>
       <li>Track job applications and updates</li>
-      <li>Access their accounts securely using Google Sign-In</li>
+      <li>Access accounts securely using Google Sign-In</li>
     </ul>
     <p style="margin-top:15px;">
       Google Sign-In is used strictly for user authentication and account security.
-      For details on how personal information is collected, used, and protected,
+      For information on how personal data is collected, used, and protected,
       please review our
       <a href="/privacy/" style="color:#ffcc00; font-weight:600;">Privacy Policy</a>.
     </p>
@@ -187,10 +148,14 @@ html, body {
 
 <!-- ================= FOOTER ================= -->
 <footer class="oauth-footer">
-  © 2026 JobLink Kenya |
+  <span id="footer-meta">English (UK) • © <span id="currentYear"></span> JobLink Kenya</span> |
   <a href="/privacy/">Privacy Policy</a> |
   <a href="/terms/">Terms of Service</a> |
   <a href="/cookies/">Cookies Policy</a>
 </footer>
+
+<script>
+  document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
 
 {% endblock %}
