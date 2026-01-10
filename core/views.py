@@ -48,8 +48,7 @@ from .forms import (
     EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, 
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm
 )
-from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint
-
+from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
 
 # Privacy Policy page
 def privacy_policy(request):
@@ -905,11 +904,29 @@ def signup_view(request):
         # 1️⃣ Validate form
         if form.is_valid():
 
-            # Employer validation
-            if role == "employer" and not company_name:
-                messages.error(request, "Company name is required for employers.")
-                return render(request, 'signup.html', {'form': form})
+            # =========================
+            # EMPLOYER STRICT VALIDATION
+            # =========================
+            if role == "employer":
 
+                if not company_name:
+                    messages.error(request, "Company name is required for employers.")
+                    return render(request, 'signup.html', {'form': form})
+
+                if not company_email:
+                    messages.error(request, "Company email is required for employers.")
+                    return render(request, 'signup.html', {'form': form})
+
+                # 🔒 Block free email providers
+                if not is_business_email(company_email):
+                    messages.error(
+                        request,
+                        "Please use an official business email address "
+                        "(free email providers are not allowed)."
+                    )
+                    return render(request, 'signup.html', {'form': form})
+
+            # 2️⃣ Create user
             user = form.save()
 
             # Ensure profile exists
@@ -917,9 +934,12 @@ def signup_view(request):
 
             # Set role
             profile.role = role if role in ["applicant", "employer"] else "applicant"
+
+            # Employers must be approved
+            profile.is_verified = False if profile.role == "employer" else True
             profile.save()
 
-            # Employer → create company (UNVERIFIED by default)
+            # 3️⃣ Employer → create company (UNVERIFIED)
             if profile.role == "employer":
                 Company.objects.create(
                     owner=user,
@@ -927,17 +947,18 @@ def signup_view(request):
                     email=company_email,
                     phone=company_phone,
                     website=company_website,
-                    is_verified=False,   # 🔒 ADMIN VERIFICATION REQUIRED
+                    is_verified=False,   # 🔒 ADMIN APPROVAL REQUIRED
                     is_active=False
                 )
 
+            # 4️⃣ Login
             login(request, user)
 
             messages.success(request, "Signup successful! Welcome!")
 
-            # Role-based redirect
+            # 5️⃣ Role-based redirect
             if profile.role == "employer":
-                return redirect("employer_control_panel")
+                return redirect("employer_verification_pending")
 
             return redirect("dashboard")
 
@@ -1057,13 +1078,26 @@ def login_view(request):
         # ❌ Cleanup verification flags (DEVICE VERIFICATION)
         # request.session.pop("pending_verification", None)
 
-        # ✅ ROLE-AWARE REDIRECT
+        # ==========================
+        # ROLE + APPROVAL ENFORCEMENT
+        # ==========================
+
+        # Admin
         if user.is_superuser:
             return redirect("admin_dashboard")
 
+        # Employer → must be approved
         if profile.role == "employer":
+            if not profile.is_verified:
+                messages.info(
+                    request,
+                    "Your employer account is pending admin approval. "
+                    "You will be notified once verified."
+                )
+                return redirect("employer_verification_pending")
             return redirect("employer_control_panel")
 
+        # Applicant
         return redirect("dashboard")
 
     return render(request, 'login.html')
