@@ -975,11 +975,21 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+from django.utils import timezone
+from datetime import timedelta
+
+MAX_WRONG_ROLE_ATTEMPTS = 3
+ROLE_LOCK_MINUTES = 30
+
+
 def login_view(request):
     """
     Login view with device verification:
     - Username / Email / Phone
     - Device verification via Email / WhatsApp / SMS
+    - Auto role detection
+    - Role abuse protection
+    - Employer approval enforcement
     """
 
     # ❌ Clear stale verification sessions (DEVICE VERIFICATION)
@@ -990,6 +1000,7 @@ def login_view(request):
     if request.method == 'POST':
         identifier = request.POST.get('identifier', '').strip()
         password = request.POST.get('password', '').strip()
+        selected_role = request.POST.get('role')  # applicant | employer
         recaptcha_response = request.POST.get('g-recaptcha-response')
 
         # 0️⃣ Verify Google reCAPTCHA
@@ -1024,6 +1035,18 @@ def login_view(request):
 
         # Ensure profile exists
         profile, _ = Profile.objects.get_or_create(user=user_obj)
+
+        # 🛡 ROLE LOCK CHECK
+        if profile.role_lock_until and profile.role_lock_until > timezone.now():
+            minutes = int(
+                (profile.role_lock_until - timezone.now()).total_seconds() / 60
+            )
+            messages.error(
+                request,
+                f"Account locked due to repeated wrong role attempts. "
+                f"Try again in {minutes} minutes."
+            )
+            return render(request, 'login.html')
 
         # 2️⃣ Google users → force password setup
         if not user_obj.has_usable_password():
@@ -1072,6 +1095,53 @@ def login_view(request):
         #
         #     return redirect("choose-verification-method")
 
+        # ==========================
+        # 🧠 AUTO-DETECT REAL ROLE
+        # ==========================
+        actual_role = profile.role
+
+        # 🛡 WRONG ROLE ATTEMPT
+        if selected_role and selected_role != actual_role:
+            profile.wrong_role_attempts += 1
+
+            if profile.wrong_role_attempts >= MAX_WRONG_ROLE_ATTEMPTS:
+                profile.role_lock_until = timezone.now() + timedelta(minutes=ROLE_LOCK_MINUTES)
+                profile.wrong_role_attempts = 0
+                profile.save()
+
+                messages.error(
+                    request,
+                    "Too many wrong role attempts. "
+                    "Account temporarily locked."
+                )
+                return render(request, 'login.html')
+
+            profile.save()
+            messages.error(
+                request,
+                f"This account is registered as {actual_role.capitalize()}."
+            )
+            return render(request, 'login.html')
+
+        # ✅ RESET ROLE ATTEMPTS
+        profile.wrong_role_attempts = 0
+        profile.role_lock_until = None
+        profile.save()
+
+        # ==========================
+        # EMPLOYER APPROVAL CHECK
+        # ==========================
+        if actual_role == "employer":
+            company = Company.objects.filter(owner=user, is_active=True).first()
+
+            if not company or not company.is_verified:
+                messages.info(
+                    request,
+                    "Your employer account is pending admin approval. "
+                    "You will be notified once verified."
+                )
+                return redirect("employer_verification_pending")
+
         # ✅ DIRECT LOGIN (DEVICE VERIFICATION BYPASSED)
         login(request, user)
 
@@ -1079,22 +1149,15 @@ def login_view(request):
         # request.session.pop("pending_verification", None)
 
         # ==========================
-        # ROLE + APPROVAL ENFORCEMENT
+        # ROLE-AWARE REDIRECT
         # ==========================
 
         # Admin
         if user.is_superuser:
             return redirect("admin_dashboard")
 
-        # Employer → must be approved
-        if profile.role == "employer":
-            if not profile.is_verified:
-                messages.info(
-                    request,
-                    "Your employer account is pending admin approval. "
-                    "You will be notified once verified."
-                )
-                return redirect("employer_verification_pending")
+        # Employer
+        if actual_role == "employer":
             return redirect("employer_control_panel")
 
         # Applicant
