@@ -1164,6 +1164,25 @@ def login_view(request):
         return redirect("dashboard")
 
     return render(request, 'login.html')
+
+@login_required
+def employer_verification_pending(request):
+    user = request.user
+
+    # Safety: only employers can access
+    if not hasattr(user, "profile") or user.profile.role != "employer":
+        return redirect("dashboard")
+
+    # EmployerCompany is OPTIONAL at this stage
+    company = EmployerCompany.objects.filter(user=user).first()
+
+    return render(
+        request,
+        "employer_verification_pending.html",
+        {
+            "company": company
+        }
+    )
     
 #User Logout
 
