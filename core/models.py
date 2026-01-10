@@ -172,42 +172,102 @@ class CustomUser(AbstractUser):
 # PROFILE
 # ======================================================
 class Profile(models.Model):
+
+    # ==========================
+    # ROLE
+    # ==========================
+    ROLE_CHOICES = (
+        ('applicant', 'Applicant'),
+        ('employer', 'Employer'),
+    )
+
+    # ==========================
+    # DEVICE VERIFICATION
+    # ==========================
     VERIFICATION_CHOICES = (
         ('email', 'Email'),
         ('phone', 'Phone'),
     )
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # ==========================
+    # RELATION
+    # ==========================
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile"
+    )
+
+    # ==========================
+    # BASIC INFO
+    # ==========================
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=255, blank=True)
+
     profile_pic = CloudinaryField('image', blank=True, null=True)
+
     bio = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     education = models.TextField(blank=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
-    
-    # Preferred method for device verification
+
+    # ==========================
+    # ROLE (NEW)
+    # ==========================
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='applicant',
+        db_index=True
+    )
+
+    # ==========================
+    # DEVICE VERIFICATION PREFERENCE
+    # ==========================
     verification_method = models.CharField(
         max_length=10,
         choices=VERIFICATION_CHOICES,
         default='email'
     )
 
+    # ==========================
+    # META
+    # ==========================
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # ==========================
+    # HELPERS
+    # ==========================
     def __str__(self):
-        return self.full_name
+        return f"{self.full_name} ({self.role})"
+
+    @property
+    def is_employer(self):
+        return self.role == "employer"
+
+    @property
+    def is_applicant(self):
+        return self.role == "applicant"
 
     @property
     def profile_picture_url(self):
         """
-        Returns profile picture URL. Falls back to user's profile_pic or default image.
+        Returns profile picture URL.
+        Falls back to user profile pic or default image.
         """
         if self.profile_pic:
             return self.profile_pic.url
-        if self.user.profile_pic:
+
+        if hasattr(self.user, "profile_pic") and self.user.profile_pic:
             return self.user.profile_pic.url
-        return "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
-        
+
+        return (
+            "https://res.cloudinary.com/dc6z1giw2/image/upload/"
+            "v1754578015/jo2wvg1a0wgiava5be20.png"
+        )
+
 
 # ======================================================
 # DEVICE SECURITY MODELS
