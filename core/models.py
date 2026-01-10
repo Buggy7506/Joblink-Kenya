@@ -5,6 +5,80 @@ from django.utils import timezone
 from cloudinary.models import CloudinaryField
 from datetime import timedelta
 
+
+class EmployerCompany(models.Model):
+    STATUS_CHOICES = (
+        ("pending", "Pending Review"),
+        ("verified", "Verified"),
+        ("rejected", "Rejected"),
+    )
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="employer_company"
+    )
+
+    company_name = models.CharField(max_length=255)
+
+    business_email = models.EmailField(
+        help_text="Must be admin / business email (no Gmail, Yahoo, etc.)"
+    )
+
+    company_website = models.URLField(blank=True, null=True)
+
+    registration_number = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending"
+    )
+
+    rejection_reason = models.TextField(blank=True, null=True)
+
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_verified(self):
+        return self.status == "verified"
+
+    def __str__(self):
+        return f"{self.company_name} ({self.status})"
+
+class CompanyDocument(models.Model):
+    DOCUMENT_TYPES = (
+        ("incorporation", "Certificate of Incorporation"),
+        ("registration", "Business Registration"),
+        ("tax", "Tax Certificate"),
+        ("other", "Other"),
+    )
+
+    company = models.ForeignKey(
+        EmployerCompany,
+        on_delete=models.CASCADE,
+        related_name="documents"
+    )
+
+    document_type = models.CharField(
+        max_length=30,
+        choices=DOCUMENT_TYPES
+    )
+
+    file = models.FileField(upload_to="company_docs/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    is_approved = models.BooleanField(default=False)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.company.company_name} | {self.document_type}"
+
+
 # ======================================================
 # CUSTOM USER
 # ======================================================
