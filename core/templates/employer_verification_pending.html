@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Pending | JobLink</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f7f7f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 14px;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,.08);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: .4rem .9rem;
+            background: #f0ad4e;
+            color: white;
+            border-radius: 30px;
+            font-size: .85rem;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            margin-bottom: .8rem;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .logout {
+            margin-top: 1.8rem;
+            display: inline-block;
+            text-decoration: none;
+            color: #dc3545;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="badge">⏳ Verification Pending</div>
+
+    <h2>
+        {% if company %}
+            {{ company.company_name }}
+        {% else %}
+            Employer Account
+        {% endif %}
+    </h2>
+
+    <p>
+        Your employer account is currently under review by our admin team.
+        This usually takes less than 24 hours.
+    </p>
+
+    <p>
+        You’ll receive an email once your company is verified.
+    </p>
+
+    <a href="{% url 'logout' %}" class="logout">Log out</a>
+</div>
+
+</body>
+</html>
