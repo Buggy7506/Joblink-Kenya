@@ -18,7 +18,6 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://kit.fontawesome.com/a2c5a4f60f.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 {% block extra_css %}{% endblock %}
@@ -331,6 +330,33 @@ body.light-mode .active-link {
   text-align: center;
   margin: 0.25rem 0;
 }
+
+/* ==================== Location Autocomplete Dropdown ==================== */
+.autocomplete-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    background: var(--bg-card);
+    color: var(--text-main);
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    display: none;
+    border-radius: 0.5rem;
+}
+
+.autocomplete-results li {
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.autocomplete-results li:hover {
+    background: rgba(0,0,0,0.1);
+}
 </style>
 
 </head>
@@ -530,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (current <= 0) forward = true;
       }
       showSlide(current);
-    }, 4000); // Change every 4 seconds
+    }, 4000);
   }
 
   // ---------------------------
@@ -551,6 +577,75 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.warn('Skipping invalid link:', link.href);
     }
+  });
+
+  // ---------------------------
+  // OpenStreetMap / Nominatim Location Autocomplete
+  // ---------------------------
+  const locationInputs = document.querySelectorAll('.location-input');
+
+  locationInputs.forEach(input => {
+    const resultsList = document.createElement('ul');
+    resultsList.classList.add('autocomplete-results');
+    input.parentNode.style.position = 'relative';
+    input.parentNode.appendChild(resultsList);
+
+    let debounceTimeout;
+
+    async function fetchLocations(query) {
+      if (!query) {
+        resultsList.style.display = 'none';
+        return;
+      }
+
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`;
+
+      try {
+        const response = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await response.json();
+
+        resultsList.innerHTML = '';
+        if (!data.length) {
+          resultsList.style.display = 'none';
+          return;
+        }
+
+        data.forEach(place => {
+          const li = document.createElement('li');
+          li.textContent = place.display_name;
+
+          li.addEventListener('click', () => {
+            input.value = place.display_name;
+            resultsList.style.display = 'none';
+
+            // Optional: store coordinates in hidden inputs
+            const latInput = document.querySelector(`#${input.dataset.latInput}`);
+            const lonInput = document.querySelector(`#${input.dataset.lonInput}`);
+            if(latInput && lonInput) {
+              latInput.value = place.lat;
+              lonInput.value = place.lon;
+            }
+          });
+
+          resultsList.appendChild(li);
+        });
+
+        resultsList.style.display = 'block';
+      } catch (err) {
+        console.error('Error fetching locations:', err);
+      }
+    }
+
+    input.addEventListener('input', (e) => {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => fetchLocations(e.target.value), 300);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!resultsList.contains(e.target) && e.target !== input) {
+        resultsList.style.display = 'none';
+      }
+    });
   });
 
 });
