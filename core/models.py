@@ -5,24 +5,29 @@ from django.utils import timezone
 from cloudinary.models import CloudinaryField
 from datetime import timedelta
 
-
 class EmployerCompany(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_VERIFIED = "verified"
+    STATUS_REJECTED = "rejected"
+
     STATUS_CHOICES = (
-        ("pending", "Pending Review"),
-        ("verified", "Verified"),
-        ("rejected", "Rejected"),
+        (STATUS_PENDING, "Pending Review"),
+        (STATUS_VERIFIED, "Verified"),
+        (STATUS_REJECTED, "Rejected"),
     )
 
+    # 🔗 One employer = one company
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="employer_company"
     )
 
+    # 🏢 Company identity
     company_name = models.CharField(max_length=255)
 
     business_email = models.EmailField(
-        help_text="Must be admin / business email (no Gmail, Yahoo, etc.)"
+        help_text="Must be an admin / business email (no Gmail, Yahoo, etc.)"
     )
 
     company_website = models.URLField(blank=True, null=True)
@@ -30,25 +35,74 @@ class EmployerCompany(models.Model):
     registration_number = models.CharField(
         max_length=120,
         blank=True,
-        null=True
+        null=True,
+        help_text="Optional company registration or certificate number"
     )
 
+    # 🛡 Verification state
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="pending"
+        default=STATUS_PENDING,
+        db_index=True
     )
 
     rejection_reason = models.TextField(blank=True, null=True)
 
     reviewed_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
+    # ⏱ Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # ==========================
+    # VERIFICATION HELPERS
+    # ==========================
+
+    @property
     def is_verified(self):
-        return self.status == "verified"
+        return self.status == self.STATUS_VERIFIED
+
+    @property
+    def is_pending(self):
+        return self.status == self.STATUS_PENDING
+
+    @property
+    def is_rejected(self):
+        return self.status == self.STATUS_REJECTED
+
+    @property
+    def verification_badge(self):
+        """
+        Used in templates:
+        ✔ Verified Employer
+        ⏳ Pending Verification
+        ❌ Rejected
+        """
+        if self.is_verified:
+            return "verified"
+        if self.is_pending:
+            return "pending"
+        return "rejected"
+
+    # ==========================
+    # ADMIN ACTIONS
+    # ==========================
+
+    def approve(self):
+        self.status = self.STATUS_VERIFIED
+        self.reviewed_at = timezone.now()
+        self.rejection_reason = None
+        self.save(update_fields=["status", "reviewed_at", "rejection_reason"])
+
+    def reject(self, reason: str):
+        self.status = self.STATUS_REJECTED
+        self.rejection_reason = reason
+        self.reviewed_at = timezone.now()
+        self.save(update_fields=["status", "reviewed_at", "rejection_reason"])
 
     def __str__(self):
-        return f"{self.company_name} ({self.status})"
+        return f"{self.company_name} [{self.get_status_display()}]"
 
 class CompanyDocument(models.Model):
     DOCUMENT_TYPES = (
