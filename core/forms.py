@@ -224,7 +224,12 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Enter job title'}),
             'description': forms.Textarea(attrs={'placeholder': 'Enter job description'}),
-            'location': forms.TextInput(attrs={'placeholder': 'Enter job location'}),
+            'location': forms.TextInput(attrs={
+                'placeholder': 'Enter job location',
+                'class': 'form-input location-input',
+                'data-lat-input': 'job-latitude',
+                'data-lon-input': 'job-longitude'
+            }),
             'company': forms.TextInput(attrs={'placeholder': 'Enter company name'}),
             'salary': forms.NumberInput(attrs={'placeholder': 'Enter salary in KES'}),
         }
@@ -251,7 +256,6 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
         if commit:
             job.save()
         return job
-
 
 # 🔹 CV Upload Form
 class CVUploadForm(TooltipFormMixin, forms.ModelForm):
