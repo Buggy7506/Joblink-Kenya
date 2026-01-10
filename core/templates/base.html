@@ -473,7 +473,31 @@ body.light-mode .active-link {
             <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
           {% elif user.role == 'employer' %}
             <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-            <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+            <div class="nav-dropdown">
+              <button class="nav-dropdown-toggle hover-glow">
+                Dashboard <i class="fas fa-chevron-down"></i>
+              </button>
+            
+              <div class="nav-dropdown-menu glass-card">
+            
+                <div class="dropdown-group">
+                  <span class="dropdown-title">Jobs</span>
+                  <a href="{% url 'post_job' %}">➕ Post Job</a>
+                  <a href="{% url 'view_posted_jobs' %}">📄 My Jobs</a>
+                </div>
+            
+                <div class="dropdown-group">
+                  <span class="dropdown-title">Applicants</span>
+                  <a href="{% url 'view_applicants' %}">👥 Applicants</a>
+                </div>
+            
+                <div class="dropdown-group">
+                  <span class="dropdown-title">Alerts</span>
+                  <a href="{% url 'notifications' %}">🔔 Notifications</a>
+                </div>
+            
+              </div>
+            </div>
             <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
           {% else %}
             <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
@@ -537,7 +561,25 @@ body.light-mode .active-link {
         <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
       {% elif user.role == 'employer' %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-        <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+        <div class="mobile-dropdown">
+              <button class="mobile-dropdown-toggle">
+                Dashboard <i class="fas fa-chevron-down"></i>
+              </button>
+            
+              <div class="mobile-dropdown-menu">
+            
+                <span class="dropdown-title">Jobs</span>
+                <a href="{% url 'post_job' %}">➕ Post Job</a>
+                <a href="{% url 'view_posted_jobs' %}">📄 My Jobs</a>
+            
+                <span class="dropdown-title">Applicants</span>
+                <a href="{% url 'view_applicants' %}">👥 Applicants</a>
+            
+                <span class="dropdown-title">Alerts</span>
+                <a href="{% url 'notifications' %}">🔔 Notifications</a>
+            
+              </div>
+            </div>
         <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
       {% else %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
