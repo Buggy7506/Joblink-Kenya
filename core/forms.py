@@ -150,8 +150,15 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
             'first_name': forms.TextInput(attrs={'placeholder': 'Enter first name'}),
             'last_name': forms.TextInput(attrs={'placeholder': 'Enter last name'}),
             'phone': forms.TextInput(attrs={'placeholder': 'Enter phone number'}),
-            'location': forms.TextInput(attrs={'placeholder': 'Enter location'}),
-            'skills': forms.Textarea(attrs={'placeholder': 'List your skills separated by commas. '}),
+            'location': forms.TextInput(attrs={
+                'placeholder': 'Enter location',
+                'class': 'form-input location-input',
+                'data-lat-input': 'latitude',
+                'data-lon-input': 'longitude'
+            }),
+            'skills': forms.Textarea(attrs={
+                'placeholder': 'List your skills separated by commas.'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -163,7 +170,7 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
         if self.user:
             latest_cv = CVUpload.objects.filter(applicant=self.user).order_by('-uploaded_on').first()
             if latest_cv:
-                self.fields['upload_cv'].initial = latest_cv.cv
+                self.fields['upload_cv'].initial = latest_cv.cv.name  # use .name for file display
 
     def clean(self):
         cleaned_data = super().clean()
@@ -176,7 +183,7 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
 
-        # handle password change
+        # Handle password change
         if self.cleaned_data.get('password'):
             user.set_password(self.cleaned_data['password'])
 
