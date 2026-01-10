@@ -576,7 +576,32 @@ body.light-mode .active-link {
               </div>
             </div>
           {% endif %}
-          <a href="{% url 'change_username_password' %}" class="hover-glow">Account Settings</a>
+         <div class="nav-dropdown">
+              <button class="nav-dropdown-toggle hover-glow">
+                Settings <i class="fas fa-chevron-down"></i>
+              </button>
+            
+              <div class="nav-dropdown-menu glass-card">
+            
+                <!-- Account -->
+                <div class="dropdown-group">
+                  <span class="dropdown-title">Account</span>
+                  <a href="{% url 'change_username_password' %}#security">
+                    🔐 Security
+                  </a>
+                </div>
+            
+                <!-- Danger -->
+                <div class="dropdown-group danger">
+                  <span class="dropdown-title">Danger Zone</span>
+                  <a href="{% url 'change_username_password' %}#danger"
+                     class="danger-link">
+                    🗑 Delete Account
+                  </a>
+                </div>
+            
+              </div>
+            </div>
           <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
         {% else %}
           <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
@@ -681,7 +706,26 @@ body.light-mode .active-link {
               </div>
             </div>
       {% endif %}
-      <a href="{% url 'change_username_password' %}" class="hover-glow">Account Settings</a>
+      <div class="mobile-dropdown">
+        <button class="mobile-dropdown-toggle">
+          Settings <i class="fas fa-chevron-down"></i>
+        </button>
+      
+        <div class="mobile-dropdown-menu">
+      
+          <span class="dropdown-title">Account</span>
+          <a href="{% url 'change_username_password' %}#security">
+            🔐 Security
+          </a>
+      
+          <span class="dropdown-title danger">Danger Zone</span>
+          <a href="{% url 'change_username_password' %}#danger"
+             class="danger-link">
+            🗑 Delete Account
+          </a>
+      
+        </div>
+      </div>
       <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
       <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
