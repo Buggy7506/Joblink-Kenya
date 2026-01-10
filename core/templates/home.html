@@ -91,7 +91,7 @@
   opacity: 0.95;
 }
 
-/* Footer (inherits base theme) */
+/* ================= FOOTER (THEME-AWARE) ================= */
 .oauth-footer {
   padding: 1.5rem 1rem;
   text-align: center;
@@ -108,6 +108,17 @@ body.light-mode .oauth-footer {
   margin: 0 0.6rem;
   color: var(--text-link);
   text-decoration: underline;
+
+  /* Make links thicker and more identifiable */
+  font-weight: 700;  /* Bold */
+  font-size: 1rem;   /* Slightly larger than default */
+  letter-spacing: 0.5px; /* Optional subtle spacing */
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.oauth-footer a:hover {
+  text-shadow: 0 0 4px var(--glow-accent);
+  color: var(--text-accent);
 }
 </style>
 {% endblock %}
