@@ -821,13 +821,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------------------------
 // Mobile dropdown (arrow-only toggle)
 // ---------------------------
-document.querySelectorAll('.mobile-dropdown .dropdown-arrow').forEach(arrow => {
-  arrow.addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    arrow.closest('.mobile-dropdown').classList.toggle('open');
+document
+  .querySelectorAll('.mobile-dropdown .dropdown-arrow')
+  .forEach(arrow => {
+    arrow.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      arrow.closest('.mobile-dropdown').classList.toggle('open');
+    });
   });
-});
 
   // ---------------------------
   // Set current year in footer
