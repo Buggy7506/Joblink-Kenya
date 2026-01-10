@@ -442,10 +442,24 @@ body {
                     {% endif %}
                 </p>
             
-                <!-- Location -->
-                <p>
-                    {{ form.location.label_tag }}
-                    {{ form.location }}
+               <!-- Location with OpenStreetMap Autocomplete -->
+                <p class="form-field">
+                    <label for="locationInput">Location</label>
+                    
+                    <!-- Visible location input for user search -->
+                    <input id="locationInput" 
+                           name="location" 
+                           placeholder="Search location" 
+                           class="form-input location-input" 
+                           data-lat-input="latitudeInput" 
+                           data-lon-input="longitudeInput"
+                           value="{{ user.location|default:'' }}">
+                    
+                    <!-- Hidden inputs for latitude and longitude -->
+                    <input type="hidden" id="latitudeInput" name="latitude" value="{{ user.latitude|default:'' }}">
+                    <input type="hidden" id="longitudeInput" name="longitude" value="{{ user.longitude|default:'' }}">
+                    
+                    <!-- Display form errors if any -->
                     {% if form.location.errors %}
                         <ul class="errorlist">
                             {% for error in form.location.errors %}
@@ -454,6 +468,7 @@ body {
                         </ul>
                     {% endif %}
                 </p>
+
             
                 <!-- Role -->
                 <p>
