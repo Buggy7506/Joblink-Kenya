@@ -8,17 +8,6 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
 
-class EmployerSignupForm(CustomUserCreationForm):
-
-    def clean_email(self):
-        email = self.cleaned_data.get("email")
-
-        if not is_business_email(email):
-            raise forms.ValidationError(
-                "Please use a business/admin email address."
-            )
-        return email
-
 class AccountSettingsForm(PasswordChangeForm):
     username = forms.CharField(
         max_length=150,
@@ -336,6 +325,17 @@ class CustomUserCreationForm(TooltipFormMixin, UserCreationForm):
         # Exclude admin role from choices
         self.fields['role'].choices = [
             choice for choice in CustomUser.ROLE_CHOICES if choice[0] != 'admin']
+
+class EmployerSignupForm(CustomUserCreationForm):
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+
+        if not is_business_email(email):
+            raise forms.ValidationError(
+                "Please use a business/admin email address."
+            )
+        return email
 
 # 🔹 User Email Form
 class UserForm(TooltipFormMixin, forms.ModelForm):
