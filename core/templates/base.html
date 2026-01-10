@@ -827,7 +827,13 @@ document
     arrow.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
-      arrow.closest('.mobile-dropdown').classList.toggle('open');
+
+      const current = arrow.closest('.mobile-dropdown');
+
+      document.querySelectorAll('.mobile-dropdown.open')
+        .forEach(d => d !== current && d.classList.remove('open'));
+
+      current.classList.toggle('open');
     });
   });
 
