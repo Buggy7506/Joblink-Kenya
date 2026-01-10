@@ -10,6 +10,24 @@ import time
 
 logger = logging.getLogger(__name__)
 
+# =========================
+# Business email validation
+# =========================
+
+FREE_EMAIL_DOMAINS = {
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "icloud.com",
+    "aol.com",
+}
+
+def is_business_email(email: str) -> bool:
+    if not email or "@" not in email:
+        return False
+    domain = email.split("@")[-1].lower()
+    return domain not in FREE_EMAIL_DOMAINS
 
 def save_google_profile_picture(backend, user, response, *args, **kwargs):
     """
