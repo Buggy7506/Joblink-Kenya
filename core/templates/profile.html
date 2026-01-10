@@ -311,117 +311,154 @@
 </style>
 <div class="profile-container">
 
-  <!-- PROFILE PICTURE -->
-  <div class="profile-pic">
-    <img id="profile-pic"
-         src="{{ profile_picture_url|default:'https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png' }}"
-         alt="Profile Picture">
-  </div>
+ <!-- PROFILE INFORMATION -->
+<div class="profile-info">
 
-  <!-- PROFILE INFORMATION -->
-  <div class="profile-info">
     <div>
-      <p class="label">Username</p>
-      <p class="value">{{ user.username }}</p>
+        <p class="label">Username</p>
+        <p class="value">{{ user.username }}</p>
     </div>
-    <div>
-      <p class="label">Email</p>
-      <p class="value">{{ user.email }}</p>
-    </div>
-    <div>
-      <p class="label">Phone</p>
-      {% if user.phone %}
-        <p class="value">{{ user.phone }}</p>
-      {% else %}
-        <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
-      {% endif %}
-    </div>
-    <div>
-      <p class="label">Location</p>
-      {% if user.location %}
-        <p class="value">{{ user.location }}</p>
-      {% else %}
-        <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
-      {% endif %}
-    </div>
-    <div>
-      <p class="label">Role</p>
-      <p class="value">{{ user.role|capfirst }}</p>
-    </div>
-    <div>
-      <p class="label">Skills</p>
-      {% if skills %}
-        <ul class="skills-list">
-          {% for skill in skills %}
-            <li>{{ skill }}</li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
-      {% endif %}
-    </div>
-    <div>
-      <p class="label">CV</p>
-      {% if user_cv %}
-        <a href="{{ user_cv.cv.url }}" target="_blank" class="cv-link">📄 View CV</a>
-      {% else %}
-        <p><span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span></p>
-      {% endif %}
-    </div>
-  </div>
 
-  <!-- RESUME LINK -->
-  <a href="{% url 'view_resume' %}" class="resume-card">
+    <div>
+        <p class="label">Email</p>
+        <p class="value">{{ user.email }}</p>
+    </div>
+
+    <div>
+        <p class="label">Phone</p>
+        {% if user.phone %}
+            <p class="value">{{ user.phone }}</p>
+        {% else %}
+            <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
+        {% endif %}
+    </div>
+
+    <div>
+        <p class="label">Location</p>
+        {% if user.location %}
+            <p class="value">{{ user.location }}</p>
+        {% else %}
+            <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
+        {% endif %}
+    </div>
+
+    <div>
+        <p class="label">Role</p>
+        <p class="value">{{ user.role|capfirst }}</p>
+    </div>
+
+    <div>
+        <p class="label">Skills</p>
+        {% if skills %}
+            <ul class="skills-list">
+                {% for skill in skills %}
+                    <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p><span class="add-link" onclick="openModal('skills')">➕ Add skills</span></p>
+        {% endif %}
+    </div>
+
+    <div>
+        <p class="label">CV</p>
+        {% if user_cv %}
+            <a href="{{ user_cv.cv.url }}" target="_blank" class="cv-link">📄 View CV</a>
+        {% else %}
+            <p><span class="add-link" onclick="openModal('upload_cv')">➕ Upload CV</span></p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- RESUME LINK -->
+<a href="{% url 'view_resume' %}" class="resume-card">
     📄 View My Resume
-  </a>
+</a>
 
-  <!-- EDIT PROFILE BUTTON -->
-  <div class="edit-button">
+<!-- EDIT PROFILE BUTTON -->
+<div class="edit-button">
     <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
-  </div>
-
 </div>
 
-<!-- Add / Edit Info Modal -->
+<!-- ADD / EDIT INFO MODAL -->
 <div id="addModal" class="add-modal">
-  <div class="add-box">
-    <span class="close-add" onclick="closeModal()">×</span>
-    <h2 id="modalTitle"></h2>
-    <form method="POST" enctype="multipart/form-data" action="{% url 'quick_profile_update' %}">
-      {% csrf_token %}
-      <input type="hidden" name="modal_type" id="modalTypeInput">
-      {% if form_errors %}
-        <div style="color:#f87171; margin-bottom:10px;">
-          {% for field, errors in form_errors.items %}
-            {% for error in errors %}
-              <p>{{ error }}</p>
-            {% endfor %}
-          {% endfor %}
-        </div>
-      {% endif %}
-      <input id="phoneInput" name="phone" placeholder="Enter phone" style="display:none">
-      <input id="locationInput" name="location" placeholder="Search location" style="display:none">
-      <input id="skillsInput" name="skills" placeholder="Comma separated skills" style="display:none">
-      <input id="cvInput" type="file" name="upload_cv" style="display:none">
-      <input id="profilePicInput" type="file" name="profile_pic" style="display:none">
-      <button type="submit">Save</button>
-    </form>
-  </div>
+    <div class="add-box">
+        <span class="close-add" onclick="closeModal()">×</span>
+        <h2 id="modalTitle"></h2>
+
+        <form method="POST" enctype="multipart/form-data" action="{% url 'quick_profile_update' %}">
+            {% csrf_token %}
+            <input type="hidden" name="modal_type" id="modalTypeInput">
+
+            {% if form_errors %}
+                <div style="color:#f87171; margin-bottom:10px;">
+                    {% for field, errors in form_errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Phone -->
+            <input id="phoneInput" 
+                   name="phone" 
+                   placeholder="Enter phone" 
+                   style="display:none" 
+                   value="{{ user.phone|default:'' }}">
+
+            <!-- Location with OpenStreetMap Autocomplete -->
+            <input id="locationInput" 
+                   name="location" 
+                   placeholder="Search location" 
+                   class="form-input location-input" 
+                   data-lat-input="latitudeInput" 
+                   data-lon-input="longitudeInput" 
+                   style="display:none"
+                   value="{{ user.location|default:'' }}">
+            <input type="hidden" id="latitudeInput" name="latitude" value="{{ user.latitude|default:'' }}">
+            <input type="hidden" id="longitudeInput" name="longitude" value="{{ user.longitude|default:'' }}">
+
+            <!-- Skills -->
+            <input id="skillsInput" 
+                   name="skills" 
+                   placeholder="Comma separated skills" 
+                   style="display:none"
+                   value="{% if skills %}{{ skills|join:', ' }}{% endif %}">
+
+            <!-- CV Upload -->
+            <input id="cvInput" 
+                   type="file" 
+                   name="upload_cv" 
+                   style="display:none" 
+                   accept=".pdf,.doc,.docx">
+
+            <!-- Profile Picture -->
+            <input id="profilePicInput" 
+                   type="file" 
+                   name="profile_pic" 
+                   style="display:none" 
+                   accept="image/*">
+
+            <button type="submit">Save</button>
+        </form>
+    </div>
 </div>
 
-<!-- Profile Picture Modal -->
+<!-- PROFILE PICTURE MODAL -->
 <div id="imgModal" class="alien-modal">
-  <div class="alien-frame">
-    <img id="imgPreview" alt="Preview">
-    <div id="uploadRing" class="upload-ring">0%</div>
-    <div class="alien-controls">
-      <button id="infoBtn">👁 INFO</button>
-      <button id="editBtn">✏️ EDIT</button>
-      <button id="deleteBtn">🗑 DELETE</button>
-      <button id="closeBtn">✕</button>
+    <div class="alien-frame">
+        <img id="imgPreview" alt="Preview">
+        <div id="uploadRing" class="upload-ring">0%</div>
+        <div class="alien-controls">
+            <button id="infoBtn">👁 INFO</button>
+            <button id="editBtn">✏️ EDIT</button>
+            <button id="deleteBtn">🗑 DELETE</button>
+            <button id="closeBtn">✕</button>
+        </div>
+        <input type="file" id="profilePicInputModal" style="display:none" accept="image/*">
     </div>
-    <input type="file" id="profilePicInputModal" style="display:none" accept="image/*">
-  </div>
 </div>
 
 <script>
@@ -450,6 +487,12 @@ function openModal(type) {
       upload_cv: "Upload CV",
       profile_pic: "Update Profile Picture"
     }[type];
+
+    // Focus input
+    inputs[type].focus();
+
+    // Initialize location autocomplete only when modal opens for location
+    if(type === "location") initLocationAutocomplete(inputs[type]);
   }
 }
 
@@ -550,12 +593,10 @@ document.addEventListener('DOMContentLoaded', () => {
   alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
   alienPreview.addEventListener('touchmove', e => { if(e.touches[0].clientY - startY > 120) alienModal.style.display = 'none'; });
 
-  const locInput = document.getElementById('locationInput');
-  if(locInput && window.google) new google.maps.places.Autocomplete(locInput, {types:["geocode"]});
-
   {% if form_errors %} openModal("{{ modal_type }}"); {% endif %}
 });
 
+// Compress image for upload
 async function compressImage(file) {
   return new Promise(resolve => {
     const img = new Image();
@@ -570,6 +611,73 @@ async function compressImage(file) {
     img.src = URL.createObjectURL(file);
   });
 }
+
+// --- Location Autocomplete for modal ---
+function initLocationAutocomplete(input) {
+  if(!input) return;
+  const latInput = document.getElementById(input.dataset.latInput);
+  const lonInput = document.getElementById(input.dataset.lonInput);
+
+  // Avoid initializing multiple times
+  if(input.dataset.autocompleteInitialized) return;
+  input.dataset.autocompleteInitialized = true;
+
+  const resultsList = document.createElement('ul');
+  resultsList.classList.add('autocomplete-results');
+  resultsList.style.position = 'absolute';
+  resultsList.style.top = '100%';
+  resultsList.style.left = '0';
+  resultsList.style.right = '0';
+  resultsList.style.zIndex = '1000';
+  resultsList.style.background = 'var(--bg-main)';
+  resultsList.style.listStyle = 'none';
+  resultsList.style.padding = '0';
+  resultsList.style.margin = '0';
+  resultsList.style.border = '1px solid #ccc';
+  resultsList.style.maxHeight = '200px';
+  resultsList.style.overflowY = 'auto';
+  resultsList.style.display = 'none';
+  input.parentNode.appendChild(resultsList);
+
+  let debounceTimeout;
+  input.addEventListener('input', e => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(async () => {
+      const query = e.target.value;
+      if(!query){
+        resultsList.style.display = 'none';
+        return;
+      }
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`;
+      try {
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        resultsList.innerHTML = '';
+        data.forEach(place => {
+          const li = document.createElement('li');
+          li.textContent = place.display_name;
+          li.style.padding = '6px 10px';
+          li.style.cursor = 'pointer';
+          li.addEventListener('mouseenter', () => li.style.backgroundColor = '#444');
+          li.addEventListener('mouseleave', () => li.style.backgroundColor = '');
+          li.addEventListener('click', () => {
+            input.value = place.display_name;
+            if(latInput) latInput.value = place.lat;
+            if(lonInput) lonInput.value = place.lon;
+            resultsList.style.display = 'none';
+          });
+          resultsList.appendChild(li);
+        });
+        resultsList.style.display = data.length ? 'block' : 'none';
+      } catch(err) { console.error(err); }
+    }, 300);
+  });
+
+  document.addEventListener('click', e => {
+    if(!resultsList.contains(e.target) && e.target !== input){
+      resultsList.style.display = 'none';
+    }
+  });
+}
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 {% endblock %}
