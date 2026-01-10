@@ -4,31 +4,28 @@
 
 {% block extra_css %}
 <style>
-/* ================= Background & Fullscreen Setup ================= */
+/* ================= Global Layout ================= */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #000;
   overflow-x: hidden;
-  background: #000;
 }
 
+/* ================= Background Slideshow ================= */
 .bg-slideshow {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: -2;
   overflow: hidden;
 }
 
 .bg-slide {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-size: cover;
   background-position: center;
   opacity: 0;
@@ -44,38 +41,37 @@ html, body {
 .bg-slide:nth-child(7) { animation-delay: 36s; }
 .bg-slide:nth-child(8) { animation-delay: 42s; }
 .bg-slide:nth-child(9) { animation-delay: 48s; }
-.bg-slide:nth-child(10){ animation-delay: 54s; }
+.bg-slide:nth-child(10) { animation-delay: 54s; }
 
 @keyframes fadeZoomParallax {
-  0% { opacity: 0; transform: scale(1); }
-  10% { opacity: 1; transform: scale(1.05); }
-  20% { opacity: 1; transform: scale(1.1); }
-  30% { opacity: 0; transform: scale(1.15); }
+  0%   { opacity: 0; transform: scale(1); }
+  10%  { opacity: 1; transform: scale(1.05); }
+  20%  { opacity: 1; transform: scale(1.1); }
+  30%  { opacity: 0; transform: scale(1.15); }
   100% { opacity: 0; }
 }
 
-/* Overlay */
+/* ================= Dark Overlay ================= */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.55);
   z-index: -1;
 }
 
-/* ================= Home Container ================= */
+/* ================= Main Home Content ================= */
 .home-container {
-  position: relative;
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 60px 20px;
   color: #e0f7fa;
-  text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 1;
+  text-align: center;
 }
 
+/* Branding */
 .glow-title {
   font-size: 3rem;
   font-weight: 900;
@@ -84,46 +80,47 @@ html, body {
   margin-bottom: 20px;
 }
 
-.subtitle,
-.purpose-box,
-.visible-privacy {
-  max-width: 850px;
-  font-size: 1.15rem;
+/* Subtitle */
+.subtitle {
+  max-width: 900px;
+  font-size: 1.25rem;
   line-height: 1.6;
-  margin-top: 15px;
-  color: #e0f7fa;
+  margin-bottom: 20px;
 }
 
+/* Purpose Box */
 .purpose-box {
-  background: rgba(0,0,0,0.6);
-  padding: 25px;
+  max-width: 900px;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 30px;
   border-radius: 16px;
-  margin-top: 15px;
-  box-shadow: 0 0 25px rgba(0,255,255,0.2);
+  font-size: 1.1rem;
+  line-height: 1.7;
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
 }
 
-/* Browse button */
+/* Call To Action Button */
 .browse-btn {
   margin-top: 35px;
-  padding: 14px 32px;
+  padding: 15px 36px;
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 600;
   text-decoration: none;
   color: #000;
   background: linear-gradient(135deg, #00ffff, #007fff);
   border-radius: 50px;
-  box-shadow: 0 0 25px #00ffff;
-  transition: transform 0.2s ease;
+  box-shadow: 0 0 25px rgba(0,255,255,0.8);
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .browse-btn:hover {
   transform: scale(1.05);
+  opacity: 0.95;
 }
 
-/* Footer */
+/* ================= Footer ================= */
 .oauth-footer {
-  margin-top: 40px;
-  padding: 20px;
+  padding: 25px 15px;
   text-align: center;
   font-size: 14px;
   color: #00ffff;
@@ -131,7 +128,7 @@ html, body {
 }
 
 .oauth-footer a {
-  margin: 0 8px;
+  margin: 0 10px;
   color: #00ffff;
   text-decoration: underline;
 }
@@ -158,31 +155,42 @@ html, body {
 
 <!-- ================= HOME CONTENT ================= -->
 <div class="home-container">
+
   <h1 class="glow-title">JobLink Kenya</h1>
 
   <p class="subtitle">
-    JobLink Kenya is an online employment platform connecting job seekers across Kenya
-    with verified employers.
+    JobLink Kenya is a digital employment platform built to connect job seekers across Kenya
+    with verified job opportunities and trusted employers.
   </p>
 
   <div class="purpose-box">
-    Users can browse job opportunities, create professional profiles, apply for jobs,
-    and manage applications securely. Google Sign-In authentication is supported to
-    protect user accounts and simplify access.
-    <br><br>
-    For more information, view our
-    <a href="/privacy/" style="color:#ffcc00;font-weight:700;text-decoration:none;">Privacy Policy</a>.
+    <p>
+      The platform is designed to simplify and secure the job search process by allowing users to:
+    </p>
+    <ul style="text-align:left; max-width:600px; margin:15px auto;">
+      <li>Create and manage professional career profiles</li>
+      <li>Browse and apply for job opportunities</li>
+      <li>Track job applications and updates</li>
+      <li>Access their accounts securely using Google Sign-In</li>
+    </ul>
+    <p style="margin-top:15px;">
+      Google Sign-In is used strictly for user authentication and account security.
+      For details on how personal information is collected, used, and protected,
+      please review our
+      <a href="/privacy/" style="color:#ffcc00; font-weight:600;">Privacy Policy</a>.
+    </p>
   </div>
 
   <a href="{% url 'job_list' %}" class="browse-btn">Browse Jobs</a>
+
 </div>
 
 <!-- ================= FOOTER ================= -->
 <footer class="oauth-footer">
-  <a href="/privacy/">Privacy Policy</a>
-  <a href="/terms/">Terms of Service</a>
+  © 2026 JobLink Kenya |
+  <a href="/privacy/">Privacy Policy</a> |
+  <a href="/terms/">Terms of Service</a> |
   <a href="/cookies/">Cookies Policy</a>
-  <a href="/learn-more/">Learn More</a>
 </footer>
 
 {% endblock %}
