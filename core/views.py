@@ -42,7 +42,7 @@ import cloudinary.uploader
 # Local apps
 from .models import (
     JobAlert, ChatMessage, Application, Job, SkillResource, Resume, CVUpload, 
-    JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser
+    JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser, EmployerCompany
 )
 from .forms import (
     EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, 
