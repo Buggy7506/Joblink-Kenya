@@ -6,7 +6,18 @@ from django.forms.widgets import ClearableFileInput
 from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+from .utils import is_business_email
 
+class EmployerSignupForm(CustomUserCreationForm):
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+
+        if not is_business_email(email):
+            raise forms.ValidationError(
+                "Please use a business/admin email address."
+            )
+        return email
 
 class AccountSettingsForm(PasswordChangeForm):
     username = forms.CharField(
