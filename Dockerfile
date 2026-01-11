@@ -15,11 +15,18 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # =========================
-# Install system deps
+# Install system dependencies (WeasyPrint REQUIRED)
 # =========================
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libffi-dev \
+    libgobject-2.0-0 \
+    shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
 # =========================
@@ -39,11 +46,11 @@ COPY . .
 RUN python manage.py collectstatic --noinput || true
 
 # =========================
-# REQUIRED by Back4App
+# Back4App health check port
 # =========================
 EXPOSE 8000
 
 # =========================
-# Start Gunicorn (Back4App health-check port)
+# Start Gunicorn
 # =========================
-CMD ["gunicorn", "joblink.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD gunicorn joblink.wsgi:application --bind 0.0.0.0:8000
