@@ -32,6 +32,7 @@ SECRET_KEY = 'django-insecure-42z8(o&(y1uu&rx*x9s8nzn(_qhfkrh)9ks(d4(5^hm9i*yn=y
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    "node354a.containers.back4app.com",
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
     "https://*.onrender.com",
@@ -261,6 +262,7 @@ STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChu
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
 
 CSRF_TRUSTED_ORIGINS = [
+    "node354a.containers.back4app.com",
     "https://www.fazul.dpdns.org",
     "https://fazul.dpdns.org",
     "https://www.stepper.dpdns.org",
