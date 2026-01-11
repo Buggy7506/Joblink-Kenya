@@ -171,12 +171,6 @@ class CustomUser(AbstractUser):
 # ======================================================
 # PROFILE
 # ======================================================
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
-from cloudinary.models import CloudinaryField
-
-
 class Profile(models.Model):
 
     # ==========================
