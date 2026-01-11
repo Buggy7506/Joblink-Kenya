@@ -39,11 +39,11 @@ COPY . .
 RUN python manage.py collectstatic --noinput || true
 
 # =========================
-# REQUIRED by Back4App (validation)
+# REQUIRED by Back4App
 # =========================
 EXPOSE 8000
 
 # =========================
-# Start Gunicorn (actual runtime port)
+# Start Gunicorn (Back4App health-check port)
 # =========================
-CMD ["sh", "-c", "gunicorn joblink.wsgi:application --bind 0.0.0.0:$PORT"]
+CMD ["gunicorn", "joblink.wsgi:application", "--bind", "0.0.0.0:8000"]
