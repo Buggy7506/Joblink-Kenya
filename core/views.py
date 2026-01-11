@@ -1130,7 +1130,7 @@ def login_view(request):
         # EMPLOYER APPROVAL CHECK
         # ==========================
         if actual_role == "employer":
-            company = Company.objects.filter(owner=user, is_active=True).first()
+            company = EmployerCompany.objects.filter(owner=user, is_active=True).first()
 
             if not company or not company.is_verified:
                 messages.info(
