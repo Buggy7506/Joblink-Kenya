@@ -34,11 +34,16 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
 # =========================
-# Collect static files (safe)
+# Collect static files
 # =========================
 RUN python manage.py collectstatic --noinput || true
 
 # =========================
-# Start Gunicorn (Back4App injects PORT)
+# REQUIRED by Back4App (validation)
+# =========================
+EXPOSE 8000
+
+# =========================
+# Start Gunicorn (actual runtime port)
 # =========================
 CMD ["sh", "-c", "gunicorn joblink.wsgi:application --bind 0.0.0.0:$PORT"]
