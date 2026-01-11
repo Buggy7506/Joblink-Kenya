@@ -26,8 +26,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python deps
 # =========================
 COPY requirements.txt .
-RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # =========================
 # Copy project
@@ -35,16 +34,11 @@ RUN pip install --upgrade pip \
 COPY . .
 
 # =========================
-# Collect static files
+# Collect static files (safe)
 # =========================
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput || true
 
 # =========================
-# Expose port
+# Start Gunicorn (Back4App injects PORT)
 # =========================
-EXPOSE 8000
-
-# =========================
-# Start Gunicorn
-# =========================
-CMD ["gunicorn", "joblink.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["sh", "-c", "gunicorn joblink.wsgi:application --bind 0.0.0.0:$PORT"]
