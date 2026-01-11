@@ -879,97 +879,95 @@ def signup_view(request):
         # Employer-only fields
         company_name = request.POST.get("company_name", "").strip()
         company_email = request.POST.get("company_email", "").strip()
-        company_phone = request.POST.get("company_phone", "").strip()
         company_website = request.POST.get("company_website", "").strip()
 
-        # 0️⃣ Verify Google reCAPTCHA
+        # =========================
+        # RECAPTCHA
+        # =========================
         if not recaptcha_response:
             messages.error(request, "Please complete the reCAPTCHA.")
             return render(request, 'signup.html', {'form': form})
 
-        recaptcha_data = {
-            'secret': RECAPTCHA_SECRET,
-            'response': recaptcha_response
-        }
         r = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data=recaptcha_data
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={
+                "secret": RECAPTCHA_SECRET,
+                "response": recaptcha_response,
+            },
         )
-        result = r.json()
-
-        if not result.get('success'):
-            messages.error(request, "reCAPTCHA verification failed. Please try again.")
+        if not r.json().get("success"):
+            messages.error(request, "reCAPTCHA verification failed.")
             return render(request, 'signup.html', {'form': form})
 
-        # 1️⃣ Validate form
+        # =========================
+        # FORM VALIDATION
+        # =========================
         if form.is_valid():
 
-            # =========================
-            # EMPLOYER STRICT VALIDATION
-            # =========================
+            # -------------------------
+            # EMPLOYER STRICT CHECKS
+            # -------------------------
             if role == "employer":
 
                 if not company_name:
-                    messages.error(request, "Company name is required for employers.")
+                    messages.error(request, "Company name is required.")
                     return render(request, 'signup.html', {'form': form})
 
                 if not company_email:
-                    messages.error(request, "Company email is required for employers.")
+                    messages.error(request, "Business email is required.")
                     return render(request, 'signup.html', {'form': form})
 
-                # 🔒 Block free email providers
                 if not is_business_email(company_email):
                     messages.error(
                         request,
-                        "Please use an official business email address "
-                        "(free email providers are not allowed)."
+                        "Please use a business/admin email address "
+                        "(Gmail, Yahoo, etc. are not allowed)."
                     )
                     return render(request, 'signup.html', {'form': form})
 
-            # 2️⃣ Create user
+            # =========================
+            # CREATE USER
+            # =========================
             user = form.save()
 
-            # Ensure profile exists
             profile, _ = Profile.objects.get_or_create(user=user)
-
-            # Set role
             profile.role = role if role in ["applicant", "employer"] else "applicant"
+            profile.save(update_fields=["role"])
 
-            # Employers must be approved
-            profile.is_verified = False if profile.role == "employer" else True
-            profile.save()
-
-            # 3️⃣ Employer → create company (UNVERIFIED)
+            # =========================
+            # CREATE EMPLOYER COMPANY
+            # =========================
             if profile.role == "employer":
                 EmployerCompany.objects.create(
-                    owner=user,
-                    name=company_name,
-                    email=company_email,
-                    phone=company_phone,
-                    website=company_website,
-                    is_verified=False,   # 🔒 ADMIN APPROVAL REQUIRED
-                    is_active=False
+                    user=user,
+                    company_name=company_name,
+                    business_email=company_email,
+                    company_website=company_website,
+                    status="pending",  # 🔒 ADMIN APPROVAL REQUIRED
                 )
 
-            # 4️⃣ Login
+            # =========================
+            # LOGIN
+            # =========================
             login(request, user)
 
-            messages.success(request, "Signup successful! Welcome!")
-
-            # 5️⃣ Role-based redirect
             if profile.role == "employer":
-                return redirect("employer_verification_pending")
+                messages.info(
+                    request,
+                    "Your employer account is pending admin verification."
+                )
+                return redirect("dashboard")  # or employer dashboard later
 
+            messages.success(request, "Signup successful!")
             return redirect("dashboard")
 
-        else:
-            messages.error(request, "Please correct the errors below.")
+        messages.error(request, "Please correct the errors below.")
 
     else:
         form = CustomUserCreationForm()
 
     return render(request, 'signup.html', {'form': form})
-    
+
 #User Login
 from django.contrib.auth import get_user_model
 
