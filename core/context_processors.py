@@ -10,7 +10,7 @@ def employer_badge(request):
 
     if request.user.is_authenticated:
         try:
-            company = EmployerCompany.objects.get(owner=request.user)
+            company = EmployerCompany.objects.get(user=request.user)
             verified = company.is_verified
         except EmployerCompany.DoesNotExist:
             verified = False
