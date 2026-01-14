@@ -5,10 +5,30 @@ import secrets
 import requests
 from twilio.rest import Client
 from django.conf import settings
+from django.shortcuts import redirect
+from django.contrib import messages
+from functools import wraps
 from django.core.files.base import ContentFile
 import time
 
 logger = logging.getLogger(__name__)
+
+def employer_verified_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        profile = getattr(request.user, "profile", None)
+
+        if request.user.is_authenticated and profile and profile.role == "employer":
+            company = getattr(request.user, "employercompany", None)
+            if company and company.status == "pending":
+                messages.warning(
+                    request,
+                    "You must upload verification documents first."
+                )
+                return redirect("upload_company_docs")
+
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 # =========================
 # Business email validation
