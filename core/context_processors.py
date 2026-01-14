@@ -1,8 +1,16 @@
 def employer_badge(request):
+    """
+    Adds `company_verified` to the template context.
+    True  -> employer company is verified
+    False -> employer is unverified or has not created a company
+    """
+    verified = False
+
     if request.user.is_authenticated:
         try:
-            company = Company.objects.get(owner=request.user)
-            return {"company_verified": company.is_verified}
-        except Company.DoesNotExist:
-            pass
-    return {}
+            company = EmployerCompany.objects.get(owner=request.user)
+            verified = company.is_verified
+        except EmployerCompany.DoesNotExist:
+            verified = False
+
+    return {"company_verified": verified}
