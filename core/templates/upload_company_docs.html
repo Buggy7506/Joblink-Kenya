@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="verify-box">
+    <h2 class="verify-title">Employer Verification</h2>
+
+    <p class="verify-desc">
+        Upload at least one verification document to activate your employer account.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" class="verify-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="verify-btn">Upload</button>
+    </form>
+
+    <h3 class="verify-subtitle">Your Uploaded Documents:</h3>
+
+    <ul class="verify-doc-list">
+        {% for doc in documents %}
+        <li class="verify-doc-item">
+            <span class="doc-type">{{ doc.get_document_type_display }}</span>
+            <span class="doc-date">Uploaded {{ doc.uploaded_at|date:"M j, Y" }}</span>
+        </li>
+        {% empty %}
+        <li class="verify-doc-item empty">No documents uploaded yet.</li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+<style>
+/* ====== Employer Verification Wrapper Styles ====== */
+.verify-box {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 25px 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    font-family: inherit;
+}
+
+/* Headings */
+.verify-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+.verify-subtitle {
+    margin-top: 25px;
+    font-size: 18px;
+}
+
+/* Form */
+.verify-form p {
+    margin-bottom: 15px;
+}
+.verify-form input,
+.verify-form select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.verify-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 18px;
+    background: #0073ff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.verify-btn:hover {
+    background: #005fd1;
+}
+
+/* List */
+.verify-doc-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 12px;
+}
+.verify-doc-item {
+    background: #f7f9fc;
+    padding: 12px 14px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.verify-doc-item .doc-type {
+    font-weight: 600;
+}
+.verify-doc-item .doc-date {
+    float: right;
+    color: #555;
+}
+.verify-doc-item.empty {
+    text-align: center;
+    font-style: italic;
+    color: #777;
+}
+</style>
+
+{% endblock %}
