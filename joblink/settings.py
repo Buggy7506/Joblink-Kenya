@@ -264,11 +264,6 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 
-TEMPLATES[0]['OPTIONS']['context_processors'] += [
-    'core.context_processors.employer_badge',
-]
-
-
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
 
