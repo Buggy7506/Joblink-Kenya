@@ -264,7 +264,7 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawU
 
 CSRF_TRUSTED_ORIGINS = [
     "https://joblinkkenya-r8akscc3.b4a.run",
-    "node354a.containers.back4app.com",
+    "https://node354a.containers.back4app.com",
     "https://www.fazul.dpdns.org",
     "https://fazul.dpdns.org",
     "https://www.stepper.dpdns.org",
