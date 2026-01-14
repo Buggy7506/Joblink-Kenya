@@ -33,7 +33,7 @@ urlpatterns = [
     path('change/', views.change_username_password, name='change_username_password'),
     path('settings/', views.account_settings, name="account_settings"),
     path('delete-account/', views.delete_account, name="delete_account"),
-    path("upload-docs/", upload_company_docs, name="upload_company_docs"),
+    path("upload-docs/", views.upload_company_docs, name="upload_company_docs"),
 
     # Password reset
     path('password-reset/', auth_views.PasswordResetView.as_view(
