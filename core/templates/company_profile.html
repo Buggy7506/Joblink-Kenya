@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<style>
+/* --- COMPANY PROFILE PAGE SCOPED STYLES --- */
+.company-section-wrapper {
+    max-width: 800px;
+    margin: 30px auto;
+    font-family: inherit;
+}
+
+.company-card {
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e5e5e5;
+}
+
+.company-card h2 {
+    margin-bottom: 15px;
+}
+
+.company-card p {
+    margin: 6px 0;
+}
+
+/* tags */
+.verified-badge {
+    background: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.pending-badge {
+    background: #ffc107;
+    color: black;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border-left: 3px solid #ffc107;
+    padding: 10px 15px;
+    margin-top: 10px;
+    border-radius: 6px;
+}
+
+/* button */
+.primary-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 15px;
+    background: #0069d9;
+    color: white !important;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+}
+.primary-btn:hover {
+    opacity: 0.9;
+}
+</style>
+{% block content %}
+<div class="company-section-wrapper">
+
+    <div class="company-card">
+        <h2>🏢 Company Profile</h2>
+
+        {% if company %}
+            <p><strong>Company Name:</strong> {{ company.name }}</p>
+            <p><strong>Email:</strong> {{ company.email }}</p>
+            <p><strong>Phone:</strong> {{ company.phone }}</p>
+            <p><strong>Website:</strong> {{ company.website }}</p>
+            <p><strong>Location:</strong> {{ company.location }}</p>
+
+            {% if company_verified %}
+                <span class="verified-badge">✔ Verified Employer</span>
+            {% else %}
+                <span class="pending-badge">⏳ Awaiting Verification</span>
+                <div class="warning-box">
+                    Your company is not verified yet.
+                    Complete all details and wait for approval.
+                </div>
+            {% endif %}
+
+            <a href="{% url 'complete_employer_profile' %}" class="primary-btn">
+                ✏ Edit Company Profile
+            </a>
+
+        {% else %}
+            <p>No company profile found.</p>
+            <a href="{% url 'complete_employer_profile' %}" class="primary-btn">
+                ➕ Create Company Profile
+            </a>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
