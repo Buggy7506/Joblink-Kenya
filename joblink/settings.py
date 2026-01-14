@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'channels',
     'widget_tweaks',
     'django.contrib.humanize',
+    'core.apps.CoreConfig',
 ]
 
 # -----------------------------------------------
