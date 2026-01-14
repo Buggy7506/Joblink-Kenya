@@ -1465,6 +1465,23 @@ def employer_profile(request):
     })
 
 @login_required
+def company_profile(request):
+    company = None
+    is_verified = False
+
+    try:
+        company = EmployerCompany.objects.get(user=request.user)
+        is_verified = company.is_verified
+    except EmployerCompany.DoesNotExist:
+        pass
+
+    context = {
+        "company": company,
+        "company_verified": is_verified
+    }
+    return render(request, "company_profile.html", context)
+
+@login_required
 def admin_profile(request):
     """
     Simple admin profile page that shows details of the logged-in superuser.
