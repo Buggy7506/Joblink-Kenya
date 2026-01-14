@@ -1515,15 +1515,20 @@ def edit_job(request, job_id):
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    # Prevent employer from applying to their own job
+    # 1️⃣ Only applicants can apply
+    if request.user.profile.role != "applicant":
+        messages.error(request, "❌ Only applicants can apply to jobs.")
+        return redirect('job_list')
+
+    # 2️⃣ Prevent applicant from applying to their own job (in case they are employer)
     if job.employer == request.user:
         messages.error(request, "❌ You cannot apply to your own job posting.")
         return redirect('job_list')
 
-    # Handle POST requests
+    # 3️⃣ Handle POST requests
     if request.method == "POST":
         # --------------------------
-        # 0️⃣ Verify Google reCAPTCHA
+        # Verify Google reCAPTCHA
         # --------------------------
         recaptcha_response = request.POST.get('g-recaptcha-response')
         if not recaptcha_response:
@@ -1531,12 +1536,11 @@ def apply_job(request, job_id):
             return render(request, 'apply_job.html', {'job': job})
 
         recaptcha_data = {
-            'secret': settings.RECAPTCHA_SECRET,  # make sure you have this in your settings
+            'secret': settings.RECAPTCHA_SECRET,
             'response': recaptcha_response
         }
         r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
         result = r.json()
-
         if not result.get('success'):
             messages.error(request, "reCAPTCHA verification failed. Please try again.")
             return render(request, 'apply_job.html', {'job': job})
@@ -1565,6 +1569,11 @@ def apply_job(request, job_id):
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
         # ---------- PREMIUM JOB FLOW ----------
+        # Optionally, prevent applications if employer is not verified
+        if not job.employer.company.is_verified:
+            messages.error(request, "⚠️ You cannot apply to premium jobs from unverified employers.")
+            return redirect('job_list')
+
         amount = 200 * 100  # KES 200 in cents
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -1672,7 +1681,7 @@ def job_detail(request, job_id):
     application = None  
 
     # If user is an applicant, check if they already applied and not soft-deleted
-    if request.user.role == "applicant":
+    if getattr(request.user, "profile", None) and request.user.profile.role == "applicant":
         application = Application.objects.filter(
             job=job,
             applicant=request.user,
@@ -1685,17 +1694,19 @@ def job_detail(request, job_id):
     }
     return render(request, "job_detail.html", context)
 
-
-
 #Learning Resources
 
 def resources(request):
     items = SkillResource.objects.all()
     return render(request, 'resources.html', {'items': items})
 
-# Job Alerts with reCAPTCHA
 @login_required
 def job_alerts_view(request):
+    # Ensure only applicants can create job alerts
+    if not getattr(request.user, "profile", None) or request.user.profile.role != "applicant":
+        messages.error(request, "❌ Only applicants can create job alerts.")
+        return redirect('dashboard')
+
     alerts = JobAlert.objects.filter(user=request.user)
 
     if request.method == 'POST':
@@ -1708,7 +1719,7 @@ def job_alerts_view(request):
             return render(request, 'job_alerts.html', {'alerts': alerts})
 
         recaptcha_data = {
-            'secret': settings.RECAPTCHA_SECRET,  # Ensure you have this in settings.py
+            'secret': settings.RECAPTCHA_SECRET,
             'response': recaptcha_response
         }
         r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
@@ -1935,25 +1946,37 @@ def upgrade_job(request, job_id):
 
 @login_required
 def payment_success(request, job_id, plan_id):
-    job = get_object_or_404(Job, pk=job_id, employer=request.user)
+    """
+    Handle successful job payment and upgrade job to premium.
+    Only employers can access this view.
+    """
+    user = request.user
+
+    # Ensure only employers can access
+    if user.profile.role != "employer":
+        messages.error(request, "❌ Only employers can perform this action.")
+        return redirect("dashboard")
+
+    # Get the job and plan
+    job = get_object_or_404(Job, pk=job_id, employer=user)
     plan = get_object_or_404(JobPlan, pk=plan_id)
 
     # Save payment record
     JobPayment.objects.create(
-        employer=request.user,
+        employer=user,
         job=job,
         plan=plan,
         amount=plan.price,
         is_successful=True
     )
 
-    # Mark job as premium
+    # Upgrade job to premium
     job.premium = True
     job.premium_expiry = timezone.now() + timezone.timedelta(days=plan.duration_days)
     job.save()
 
-    messages.success(request, "Job upgraded to premium successfully!")
-    return redirect('dashboard')
+    messages.success(request, f"✅ Job '{job.title}' upgraded to premium for {plan.duration_days} days!")
+    return redirect("dashboard")
 
 def payment_cancelled(request):
     messages.error(request, "Payment was cancelled.")
@@ -2036,6 +2059,7 @@ def chat_view(request, application_id=None, job_id=None):
 
         # Security check
         if user.id not in (app.applicant_id, app.job.employer_id):
+            messages.error(request, "❌ You are not authorized to view this chat.")
             return redirect("job_detail", job_id=app.job_id)
 
         # Handle new message
@@ -2227,65 +2251,80 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Render always with chat.html
     return render(request, "chat.html", context)
- 
                 
 # ======================================================
 # VIEW APPLICANT'S JOB APPLICATIONS
 # ======================================================
-
-
 @login_required
 def view_applications(request):
     """
     Show jobs the logged-in applicant has applied to
     with current status, and auto-delete expired soft-deleted applications.
     """
-    if request.user.role != "applicant":
+    user = request.user
+
+    # ✅ Use profile.role if role is stored in the Profile model
+    if user.profile.role != "applicant":
         messages.error(request, "❌ Only applicants can access this page.")
         return redirect("dashboard")
 
+    # -----------------------------
     # Auto-delete expired soft-deleted applications
-    deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
-    for app in deleted_apps:
+    # -----------------------------
+    expired_deleted_apps = []
+    soft_deleted_apps = Application.objects.filter(applicant=user, is_deleted=True)
+    for app in soft_deleted_apps:
         if app.is_expired():
+            # Remove related chat messages
             ChatMessage.objects.filter(application=app).delete()
+
+            # Remove related notifications to employer
             Notification.objects.filter(
                 user=app.job.employer,
-                message__icontains=f"{app.applicant.username}"
+                message__icontains=f"{user.username}"
             ).delete()
-            app.delete()
 
-    # Fetch active (not deleted) applications
-    applications = (
-        Application.objects.filter(applicant=request.user, is_deleted=False)
+            # Delete the application
+            app.delete()
+            expired_deleted_apps.append(app)
+
+    # -----------------------------
+    # Fetch active applications
+    # -----------------------------
+    active_applications = (
+        Application.objects.filter(applicant=user, is_deleted=False)
         .select_related("job", "job__employer")
         .order_by("-applied_on")
     )
 
-    return render(request, "view_applications.html", {
-        "applications": applications,
-        "applications_count": applications.count(),
-        "deleted_apps": deleted_apps,
-    })
+    context = {
+        "applications": active_applications,
+        "applications_count": active_applications.count(),
+        "deleted_apps": expired_deleted_apps,
+    }
 
+    return render(request, "view_applications.html", context)
 
 # ======================================================
 # DELETE APPLICATION (Soft delete)
 # ======================================================
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from .models import Application, Notification, ChatMessage
-
 @login_required
 def delete_application(request, app_id):
     """
     Soft delete an application for the applicant and hide it from the employer.
     Works with SweetAlert AJAX.
     """
+    user = request.user
+
+    # Ensure only applicants can delete their applications
+    if user.profile.role != "applicant":
+        return JsonResponse({
+            "success": False,
+            "message": "❌ Only applicants can delete applications."
+        }, status=403)
+
     if request.method == "POST":
-        app = get_object_or_404(Application, id=app_id, applicant=request.user)
+        app = get_object_or_404(Application, id=app_id, applicant=user)
 
         # -------------------------------
         # Soft delete for applicant
@@ -2304,14 +2343,14 @@ def delete_application(request, app_id):
         # -------------------------------
         Notification.objects.filter(
             user=app.job.employer,
-            message__icontains=f"{app.applicant.username}"
+            message__icontains=f"{user.username}"
         ).delete()
 
         ChatMessage.objects.filter(application=app).delete()
 
         return JsonResponse({
             "success": True,
-            "message": "Application moved to Recycle Bin and hidden from employer."
+            "message": "✅ Application moved to Recycle Bin and hidden from employer."
         })
 
     return JsonResponse({
@@ -2319,18 +2358,23 @@ def delete_application(request, app_id):
         "message": "Invalid request."
     }, status=400)
 
-
 # ======================================================
 # UNDO DELETE APPLICATION
 # ======================================================
-
 @login_required
 def undo_delete_application(request, app_id):
     """
     Restore a soft-deleted application for the applicant
     and make it visible again to the employer.
     """
-    app = get_object_or_404(Application, id=app_id, applicant=request.user)
+    user = request.user
+
+    # Ensure only applicants can restore applications
+    if user.profile.role != "applicant":
+        messages.error(request, "❌ Only applicants can restore applications.")
+        return redirect("dashboard")
+
+    app = get_object_or_404(Application, id=app_id, applicant=user)
 
     # Restore for applicant
     app.is_deleted = False
@@ -2340,24 +2384,36 @@ def undo_delete_application(request, app_id):
     app.is_deleted_for_employer = False
     app.save()
 
-    messages.success(request, "Application restored successfully and is now visible to the employer!")
+    messages.success(request, "✅ Application restored successfully and is now visible to the employer!")
     return redirect("recycle_bin")
-
 
 # ======================================================
 # PERMANENT DELETE APPLICATION (Destroy)
 # ======================================================
 @login_required
 def destroy_application(request, app_id):
-    app = get_object_or_404(Application, id=app_id, applicant=request.user)
+    """
+    Permanently delete a soft-deleted application along with its related
+    chat messages and notifications. Only accessible to applicants.
+    """
+    user = request.user
 
+    # Ensure only applicants can permanently delete applications
+    if user.profile.role != "applicant":
+        messages.error(request, "❌ Only applicants can permanently delete applications.")
+        return redirect("dashboard")
+
+    app = get_object_or_404(Application, id=app_id, applicant=user)
+
+    # Delete related chat messages and employer notifications
     ChatMessage.objects.filter(application=app).delete()
     Notification.objects.filter(user=app.job.employer).delete()
+
+    # Permanently delete the application
     app.delete()
 
-    messages.success(request, "Application permanently deleted.")
+    messages.success(request, "✅ Application permanently deleted.")
     return redirect("recycle_bin")
-
 
 # ======================================================
 # RECYCLE BIN VIEW
@@ -2368,20 +2424,29 @@ def recycle_bin(request):
     Show all soft-deleted applications for the logged-in applicant.
     Auto-delete expired applications (7+ days) permanently.
     """
+    user = request.user
+
+    # Ensure only applicants can access recycle bin
+    if user.profile.role != "applicant":
+        messages.error(request, "❌ Only applicants can access the Recycle Bin.")
+        return redirect("dashboard")
+
     # Fetch soft-deleted applications
-    deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
+    deleted_apps = Application.objects.filter(applicant=user, is_deleted=True)
 
     # Auto-delete expired applications
     for app in deleted_apps:
-        if app.is_expired():  # You should have this method in your Application model
+        if app.is_expired():  # Ensure this method exists in Application model
+            # Remove related chat messages
             ChatMessage.objects.filter(application=app).delete()
+            # Remove related notifications
             Notification.objects.filter(user=app.job.employer).delete()
+            # Permanently delete application
             app.delete()
 
     # Re-fetch remaining deleted apps after auto-delete
-    deleted_apps = Application.objects.filter(applicant=request.user, is_deleted=True)
+    deleted_apps = Application.objects.filter(applicant=user, is_deleted=True)
 
-    # Pass the same variable name the template expects
     return render(request, "recycle_bin.html", {
         "deleted_apps": deleted_apps
     })
