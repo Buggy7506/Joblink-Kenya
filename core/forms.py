@@ -3,10 +3,27 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
 from django.contrib.auth import get_user_model
 from django.forms.widgets import ClearableFileInput 
-from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory, CompanyDocument
+from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory, CompanyDocument, EmployerCompany
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
+
+
+class EmployerCompanyForm(forms.ModelForm):
+    class Meta:
+        model = EmployerCompany
+        fields = ['company_name', 'business_email', 'company_website', 'registration_number']
+
+    def clean_business_email(self):
+        email = self.cleaned_data.get('business_email')
+        free_domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"]
+
+        domain = email.split("@")[-1].lower()
+        if domain in free_domains:
+            raise forms.ValidationError(
+                "Please use a business/company email. Free emails are not accepted."
+            )
+        return email
 
 class CompanyDocumentForm(forms.ModelForm):
     class Meta:
