@@ -348,6 +348,18 @@ class CustomUserCreationForm(TooltipFormMixin, UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Set specific fields as required
+        self.fields['username'].required = True
+        self.fields['email'].required = True
+        self.fields['phone'].required = True
+        self.fields['role'].required = True
+
+        # Set non-required fields
+        self.fields['first_name'].required = False
+        self.fields['last_name'].required = False
+        self.fields['location'].required = False
+
         # Exclude admin role from choices
         self.fields['role'].choices = [
             choice for choice in CustomUser.ROLE_CHOICES if choice[0] != 'admin']
