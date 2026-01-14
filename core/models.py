@@ -16,48 +16,64 @@ class EmployerCompany(models.Model):
         (STATUS_REJECTED, "Rejected"),
     )
 
-    # 🔗 One employer = one company
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="employer_company"
     )
 
-    # 🏢 Company identity
     company_name = models.CharField(max_length=255)
-
     business_email = models.EmailField(
-        help_text="Must be an admin / business email (no Gmail, Yahoo, etc.)"
+        help_text="Must be a business email (no Gmail, Yahoo, etc.)"
     )
-
     company_website = models.URLField(blank=True, null=True)
-
     registration_number = models.CharField(
         max_length=120,
         blank=True,
         null=True,
-        help_text="Optional company registration or certificate number"
+        help_text="Optional company registration / certificate number"
     )
 
-    # 🛡 Verification state
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default=STATUS_PENDING,
         db_index=True
     )
-
     rejection_reason = models.TextField(blank=True, null=True)
-
     reviewed_at = models.DateTimeField(blank=True, null=True)
 
-    # ⏱ Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # ==========================
-    # VERIFICATION HELPERS
-    # ==========================
+    # -------------------------
+    # AUTO VERIFICATION LOGIC
+    # -------------------------
+
+    def auto_verify(self):
+        """Verify automatically using business email domain rule."""
+        free_domains = [
+            "gmail.com", "yahoo.com", "hotmail.com",
+            "outlook.com", "icloud.com"
+        ]
+
+        domain = self.business_email.split("@")[-1].lower()
+
+        # Rule: corporate email + valid company name → verified
+        if domain not in free_domains and self.company_name.strip():
+            self.status = self.STATUS_VERIFIED
+            self.rejection_reason = None
+            self.reviewed_at = timezone.now()
+        else:
+            # Still pending — but no admin needed ever
+            self.status = self.STATUS_PENDING
+            self.rejection_reason = None
+            self.reviewed_at = None
+
+    def save(self, *args, **kwargs):
+        # Always auto-check verification before saving
+        self.auto_verify()
+        super().save(*args, **kwargs)
 
     @property
     def is_verified(self):
@@ -73,33 +89,11 @@ class EmployerCompany(models.Model):
 
     @property
     def verification_badge(self):
-        """
-        Used in templates:
-        ✔ Verified Employer
-        ⏳ Pending Verification
-        ❌ Rejected
-        """
         if self.is_verified:
             return "verified"
         if self.is_pending:
             return "pending"
         return "rejected"
-
-    # ==========================
-    # ADMIN ACTIONS
-    # ==========================
-
-    def approve(self):
-        self.status = self.STATUS_VERIFIED
-        self.reviewed_at = timezone.now()
-        self.rejection_reason = None
-        self.save(update_fields=["status", "reviewed_at", "rejection_reason"])
-
-    def reject(self, reason: str):
-        self.status = self.STATUS_REJECTED
-        self.rejection_reason = reason
-        self.reviewed_at = timezone.now()
-        self.save(update_fields=["status", "reviewed_at", "rejection_reason"])
 
     def __str__(self):
         return f"{self.company_name} [{self.get_status_display()}]"
@@ -126,12 +120,28 @@ class CompanyDocument(models.Model):
     file = models.FileField(upload_to="company_docs/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    # Keep fields but auto-set them
     is_approved = models.BooleanField(default=False)
     reviewed_at = models.DateTimeField(blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        # Auto approve document
+        if not self.is_approved:
+            self.is_approved = True
+            self.reviewed_at = timezone.now()
+
+        super().save(*args, **kwargs)
+
+        # Auto-verify employer company if not already verified
+        company = self.company
+        if company.is_pending or company.is_rejected:
+            company.status = company.STATUS_VERIFIED
+            company.reviewed_at = timezone.now()
+            company.rejection_reason = None
+            company.save(update_fields=["status", "reviewed_at", "rejection_reason"])
+
     def __str__(self):
         return f"{self.company.company_name} | {self.document_type}"
-
 
 # ======================================================
 # CUSTOM USER
