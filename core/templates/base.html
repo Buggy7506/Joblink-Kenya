@@ -503,12 +503,12 @@ body.light-mode .active-link {
     <!-- Desktop Navigation -->
     <div style="display:flex; align-items:center;">
       <nav class="desktop-nav">
-        {% if user.is_authenticated and not pending_verification %}
+       {% if user.is_authenticated %}
           {% if user.is_superuser or user.role == 'admin' %}
             <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
             <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
-          {% elif user.role == 'employer' %}
+         {% elif user.role == 'employer' and not profile_verification %}
             <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             <div class="nav-dropdown">
               <div class="nav-dropdown-toggle hover-glow">
@@ -677,12 +677,12 @@ body.light-mode .active-link {
 
   <!-- Mobile Menu -->
   <div id="mobileMenu" class="mobile-menu">
-    {% if user.is_authenticated and not pending_verification %}
+    {% if user.is_authenticated %}
       {% if user.is_superuser or user.role == 'admin' %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
         <a href="{% url 'admin_dashboard' %}" class="hover-glow">Dashboard</a>
         <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
-      {% elif user.role == 'employer' %}
+      {% elif user.role == 'employer' and not profile_verification %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
         <div class="mobile-dropdown">
               <div class="mobile-dropdown-toggle">
@@ -811,12 +811,12 @@ body.light-mode .active-link {
   {% block content %}{% endblock %}
 </main>
 
-<footer class="footer glow-border">
+<!-- <footer class="footer glow-border">
   <p>
     English (UK) • &copy; <span id="currentYear"></span>
     <span style="color:#22d3ee;">JobLink Kenya</span>. All rights reserved.
   </p>
-</footer>
+</footer> -->
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
