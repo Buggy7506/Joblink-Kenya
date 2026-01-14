@@ -3,62 +3,66 @@
 {% block content %}
 
 <div class="container my-4">
-  <h2 class="text-center fw-semibold">Employer Verification</h2>
-  <p class="text-center text-muted mb-4">
-    Upload verification documents below. Multiple files supported.
-  </p>
+  <div class="glass-card mx-auto p-4">
 
-  <!-- Upload Form (AJAX will catch this) -->
-  <form id="uploadForm" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
+    <h2 class="text-center fw-semibold">Employer Verification</h2>
+    <p class="text-center text-muted mb-3">
+      Upload one or more verification documents to activate your employer account.
+    </p>
 
-    <!-- Drag & Drop / Click Zone -->
-    <div id="dropZone"
-         class="border border-primary border-2 rounded-4 p-4 text-center upload-zone mb-3">
-      <i class="bi bi-cloud-arrow-up fs-1"></i>
-      <p class="mt-2 mb-1 fw-semibold">Drag & drop files</p>
-      <small class="text-muted">or click to browse</small>
-      <p id="fileCount" class="mt-2 small text-primary d-none"></p>
-    </div>
+    <!-- Upload Form (AJAX) -->
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
 
-    <!-- Hidden multi file input -->
-    <input id="fileInput"
-           type="file"
-           name="file"
-           class="d-none"
-           multiple
-           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+      <!-- Drag & Drop Zone -->
+      <div id="dropZone"
+           class="border border-primary border-2 rounded-4 p-4 text-center upload-zone mb-3">
+        <i class="bi bi-cloud-arrow-up fs-1"></i>
+        <p class="mt-2 mb-1 fw-semibold">Drag & drop files</p>
+        <small class="text-muted">or tap to browse</small>
+        <p id="fileCount" class="mt-2 small text-primary d-none"></p>
+      </div>
 
-    <!-- Document type -->
-    <div class="mb-3">
-      {{ form.document_type|as_widget:class="form-select" }}
-    </div>
+      <!-- Hidden multiple upload input -->
+      <input id="fileInput"
+             type="file"
+             name="file"
+             class="d-none"
+             multiple
+             accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
-    <button type="submit"
-            class="btn btn-primary py-2 fw-semibold w-100">
-      Upload Selected Files
-    </button>
+      <!-- Select document type -->
+      <div class="mb-3">
+        {{ form.document_type|as_widget:class="form-select" }}
+      </div>
 
-    <!-- Progress container -->
-    <div id="progressWrap" class="mt-3 d-none"></div>
-  </form>
+      <button type="submit" class="btn btn-primary py-2 fw-semibold w-100">
+        Upload Selected Files
+      </button>
 
-  <hr class="my-4">
-  <h4 class="fw-semibold mb-3">Your Uploaded Documents</h4>
+      <!-- Progress feedback -->
+      <div id="progressWrap" class="mt-3 d-none"></div>
+    </form>
 
-  <ul id="docList" class="list-group">
-    {% for doc in documents %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span>{{ doc.get_document_type_display }}</span>
-        <a href="{{ doc.file.url }}" target="_blank"
-           class="btn btn-sm btn-outline-primary">View</a>
-      </li>
-    {% empty %}
-      <li class="list-group-item text-center fst-italic text-muted">
-        No documents uploaded yet.
-      </li>
-    {% endfor %}
-  </ul>
+    <hr class="my-4">
+
+    <h4 class="fw-semibold mb-3">Your Uploaded Documents</h4>
+
+    <ul id="docList" class="list-group glass-sub-list">
+      {% for doc in documents %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ doc.get_document_type_display }}</span>
+          <a href="{{ doc.file.url }}" target="_blank"
+             class="btn btn-sm btn-outline-primary">View</a>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-center fst-italic text-muted">
+          No documents uploaded yet.
+        </li>
+      {% endfor %}
+    </ul>
+
+  </div>
 </div>
 
 <!-- AJAX Upload Script -->
@@ -70,18 +74,16 @@ const form = document.getElementById("uploadForm");
 const progressWrap = document.getElementById("progressWrap");
 const docList = document.getElementById("docList");
 
-// CLICK & DRAG UI
+// Drag UI
 dropZone.addEventListener("click", () => fileInput.click());
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
-  dropZone.classList.add("bg-primary", "text-white");
+  dropZone.classList.add("glass-drop");
 });
-dropZone.addEventListener("dragleave", () =>
-  dropZone.classList.remove("bg-primary", "text-white")
-);
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
-  dropZone.classList.remove("bg-primary", "text-white");
+  dropZone.classList.remove("glass-drop");
   fileInput.files = e.dataTransfer.files;
   updateCounter();
 });
@@ -94,12 +96,12 @@ function updateCounter() {
   }
 }
 
-// AJAX submit
+// AJAX upload
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (!fileInput.files.length) {
-    alert("Please select at least one document.");
+    alert("Select at least one document.");
     return;
   }
 
@@ -110,14 +112,13 @@ form.addEventListener("submit", async (e) => {
   const docType = form.querySelector("select[name=document_type]").value;
 
   for (let file of fileInput.files) {
-    uploadSingle(file, csrf, docType);
+    uploadOne(file, csrf, docType);
   }
-
   fileInput.value = "";
   fileCount.classList.add("d-none");
 });
 
-function uploadSingle(file, csrf, docType) {
+function uploadOne(file, csrf, docType) {
   const row = document.createElement("div");
   row.className = "mb-2";
   row.innerHTML = `
@@ -132,7 +133,7 @@ function uploadSingle(file, csrf, docType) {
 
   xhr.upload.addEventListener("progress", e => {
     if (e.lengthComputable) {
-      let percent = (e.loaded / e.total) * 100;
+      const percent = (e.loaded / e.total) * 100;
       bar.style.width = percent.toFixed(0) + "%";
       bar.textContent = percent.toFixed(0) + "%";
     }
@@ -141,23 +142,17 @@ function uploadSingle(file, csrf, docType) {
   xhr.onload = () => {
     bar.style.width = "100%";
     bar.textContent = "Done";
-
-    if (xhr.status === 200) {
-      refreshDocs();
-    } else {
-      bar.classList.add("bg-danger");
-      bar.textContent = "Error";
-    }
+    if (xhr.status === 200) refreshDocs();
+    else bar.classList.add("bg-danger");
   };
 
   xhr.open("POST", "", true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
 
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("document_type", docType);
-
-  xhr.send(formData);
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("document_type", docType);
+  xhr.send(fd);
 }
 
 function refreshDocs() {
@@ -166,19 +161,45 @@ function refreshDocs() {
     .then(html => {
       const tmp = document.createElement("div");
       tmp.innerHTML = html;
-      const newList = tmp.querySelector("#docList");
-      docList.innerHTML = newList.innerHTML;
+      docList.innerHTML = tmp.querySelector("#docList").innerHTML;
     });
 }
 </script>
 
 <style>
+/* 🌫 GLASS CARD */
+.glass-card {
+  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.25);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+/* Slight glass on list group */
+.glass-sub-list .list-group-item {
+  backdrop-filter: blur(6px);
+  background: rgba(255,255,255,0.35);
+}
+
+/* Drag zone */
 .upload-zone {
   cursor: pointer;
-  transition: 0.25s ease;
+  transition: 0.25s;
+  background: rgba(255,255,255,0.2);
 }
 .upload-zone:hover {
-  background: #e9f3ff;
+  background: rgba(255,255,255,0.3);
+}
+.glass-drop {
+  background: rgba(0,120,255,0.25) !important;
+  color: white !important;
+  border-color: rgba(255,255,255,0.7) !important;
+}
+
+/* Mobile tweaks */
+@media(max-width: 576px){
+  h2 { font-size: 20px; }
 }
 </style>
 
