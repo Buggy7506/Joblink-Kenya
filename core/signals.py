@@ -13,6 +13,8 @@ from .utils import (
     send_sms_otp
 )
 
+User = get_user_model()
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_employer_company(sender, instance, created, **kwargs):
     """
@@ -25,10 +27,6 @@ def create_employer_company(sender, instance, created, **kwargs):
     # If user signup role = employer → create blank company entry
     if hasattr(instance, "profile") and instance.profile.role == "employer":
         EmployerCompany.objects.get_or_create(user=instance)
-
-
-User = get_user_model()
-
 
 # -------------------------
 # Profile creation signal
