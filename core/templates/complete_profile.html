@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .wrapper-employer-setup {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        font-family: Arial, sans-serif;
+    }
+
+    .wrapper-employer-setup h2 {
+        margin-bottom: 20px;
+        font-size: 26px;
+        color: #222;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .wrapper-employer-setup label {
+        margin-top: 12px;
+        font-weight: bold;
+    }
+
+    .wrapper-employer-setup input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
+        margin-bottom: 15px;
+    }
+
+    .wrapper-employer-setup button {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: #0b6efd;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        font-size: 16px;
+        margin-top: 10px;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+    .wrapper-employer-setup button:hover {
+        background: #004ecb;
+    }
+
+    .wrapper-employer-setup .note {
+        text-align: center;
+        font-size: 14px;
+        margin-top: 15px;
+        color: #555;
+    }
+</style>
+
+<div class="wrapper-employer-setup">
+    <h2>Complete Employer Profile</h2>
+    <p style="text-align:center;">We need a few details to activate your hiring account.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <small style="color:red;">{{ field.errors|striptags }}</small>
+            {% endif %}
+        {% endfor %}
+
+        <button type="submit">Save & Continue</button>
+    </form>
+
+    <p class="note">Business emails (e.g. john@company.com) unlock instant verification.</p>
+</div>
+{% endblock %}
