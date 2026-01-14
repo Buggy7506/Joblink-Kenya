@@ -863,7 +863,6 @@ User = get_user_model()
 def home(request):
     return render(request, 'home.html')
 
-
 def signup_view(request):
     """
     User signup view with Google reCAPTCHA verification
@@ -930,6 +929,7 @@ def signup_view(request):
             # =========================
             user = form.save()
 
+            # Create or get profile
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.role = role if role in ["applicant", "employer"] else "applicant"
             profile.save(update_fields=["role"])
@@ -939,15 +939,16 @@ def signup_view(request):
             # =========================
             if profile.role == "employer":
                 EmployerCompany.objects.create(
-                    user=user,
+                    owner=user,
                     company_name=company_name,
                     business_email=company_email,
                     company_website=company_website,
-                    status="pending",  # 🔒 ADMIN APPROVAL REQUIRED
+                    is_active=True,
+                    is_verified=False,  # 🔒 ADMIN APPROVAL REQUIRED
                 )
 
             # =========================
-            # LOGIN
+            # LOGIN USER
             # =========================
             login(request, user)
 
@@ -969,16 +970,8 @@ def signup_view(request):
     return render(request, 'signup.html', {'form': form})
 
 #User Login
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
-from django.utils import timezone
-from datetime import timedelta
-
 MAX_WRONG_ROLE_ATTEMPTS = 3
 ROLE_LOCK_MINUTES = 30
-
 
 def login_view(request):
     """
@@ -1100,11 +1093,11 @@ def login_view(request):
 
         # 🛡 WRONG ROLE ATTEMPT
         if selected_role and selected_role != actual_role:
-            profile.wrong_role_attempts += 1
+            profile.role_failed_attempts += 1  # updated
 
-            if profile.wrong_role_attempts >= MAX_WRONG_ROLE_ATTEMPTS:
+            if profile.role_failed_attempts >= MAX_WRONG_ROLE_ATTEMPTS:
                 profile.role_lock_until = timezone.now() + timedelta(minutes=ROLE_LOCK_MINUTES)
-                profile.wrong_role_attempts = 0
+                profile.role_failed_attempts = 0  # updated
                 profile.save()
 
                 messages.error(
@@ -1122,7 +1115,7 @@ def login_view(request):
             return render(request, 'login.html')
 
         # ✅ RESET ROLE ATTEMPTS
-        profile.wrong_role_attempts = 0
+        profile.role_failed_attempts = 0  # updated
         profile.role_lock_until = None
         profile.save()
 
