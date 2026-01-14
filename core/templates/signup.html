@@ -545,6 +545,7 @@ body {
 
     </section>
 </main>
+
 <script>
 /* ========================================
    PASSWORD STRENGTH + MATCHING
@@ -627,12 +628,24 @@ const hideFields = [
 function syncEmployerFields() {
     const uname = document.getElementById("id_username");
     const cname = document.getElementById("company_name");
+
     const companyEmail = document.getElementById("company_email");
     const companyPhone = document.getElementById("company_phone");
 
-    if (cname) uname.value = cname.value.toLowerCase().replace(/\s+/g, "_") || "";
-    if (companyEmail) document.getElementById("id_email").value = companyEmail.value || "";
-    if (companyPhone) document.getElementById("id_phone").value = companyPhone.value || "";
+    const hiddenEmail = document.getElementById("id_email");
+    const hiddenPhone = document.getElementById("id_phone");
+
+    if (cname && uname) {
+        uname.value = cname.value.toLowerCase().replace(/\s+/g, "_") || "";
+    }
+
+    if (companyEmail && hiddenEmail) {
+        hiddenEmail.value = companyEmail.value.toLowerCase() || "";
+    }
+
+    if (companyPhone && hiddenPhone) {
+        hiddenPhone.value = companyPhone.value || "";
+    }
 }
 
 function updateForm() {
