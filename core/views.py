@@ -865,15 +865,20 @@ def home(request):
 
 def signup_view(request):
     """
-    User signup view with Google reCAPTCHA verification
-    Supports Applicant & Employer signup
+    User signup view with Google reCAPTCHA verification.
+    Supports Applicant & Employer signup with dynamic role-based fields.
     """
+
+    role = "applicant"  # default role
+    company_name = ""
+    company_email = ""
+    company_website = ""
 
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         recaptcha_response = request.POST.get('g-recaptcha-response')
 
-        role = request.POST.get("role")  # applicant | employer
+        role = request.POST.get("role", "applicant")  # applicant | employer
 
         # Employer-only fields
         company_name = request.POST.get("company_name", "").strip()
@@ -885,7 +890,13 @@ def signup_view(request):
         # =========================
         if not recaptcha_response:
             messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'signup.html', {'form': form})
+            return render(request, 'signup.html', {
+                'form': form,
+                'role': role,
+                'company_name': company_name,
+                'company_email': company_email,
+                'company_website': company_website
+            })
 
         r = requests.post(
             "https://www.google.com/recaptcha/api/siteverify",
@@ -896,7 +907,13 @@ def signup_view(request):
         )
         if not r.json().get("success"):
             messages.error(request, "reCAPTCHA verification failed.")
-            return render(request, 'signup.html', {'form': form})
+            return render(request, 'signup.html', {
+                'form': form,
+                'role': role,
+                'company_name': company_name,
+                'company_email': company_email,
+                'company_website': company_website
+            })
 
         # =========================
         # FORM VALIDATION
@@ -907,14 +924,25 @@ def signup_view(request):
             # EMPLOYER STRICT CHECKS
             # -------------------------
             if role == "employer":
-
                 if not company_name:
                     messages.error(request, "Company name is required.")
-                    return render(request, 'signup.html', {'form': form})
+                    return render(request, 'signup.html', {
+                        'form': form,
+                        'role': role,
+                        'company_name': company_name,
+                        'company_email': company_email,
+                        'company_website': company_website
+                    })
 
                 if not company_email:
                     messages.error(request, "Business email is required.")
-                    return render(request, 'signup.html', {'form': form})
+                    return render(request, 'signup.html', {
+                        'form': form,
+                        'role': role,
+                        'company_name': company_name,
+                        'company_email': company_email,
+                        'company_website': company_website
+                    })
 
                 if not is_business_email(company_email):
                     messages.error(
@@ -922,7 +950,13 @@ def signup_view(request):
                         "Please use a business/admin email address "
                         "(Gmail, Yahoo, etc. are not allowed)."
                     )
-                    return render(request, 'signup.html', {'form': form})
+                    return render(request, 'signup.html', {
+                        'form': form,
+                        'role': role,
+                        'company_name': company_name,
+                        'company_email': company_email,
+                        'company_website': company_website
+                    })
 
             # =========================
             # CREATE USER
@@ -957,7 +991,7 @@ def signup_view(request):
                     request,
                     "Your employer account is pending admin verification."
                 )
-                return redirect("dashboard")  # or employer dashboard later
+                return redirect("dashboard")
 
             messages.success(request, "Signup successful!")
             return redirect("dashboard")
@@ -967,7 +1001,13 @@ def signup_view(request):
     else:
         form = CustomUserCreationForm()
 
-    return render(request, 'signup.html', {'form': form})
+    return render(request, 'signup.html', {
+        'form': form,
+        'role': role,
+        'company_name': company_name,
+        'company_email': company_email,
+        'company_website': company_website
+    })
 
 #User Login
 MAX_WRONG_ROLE_ATTEMPTS = 3
