@@ -1,3 +1,5 @@
+from .models import EmployerCompany
+
 def employer_badge(request):
     """
     Adds `company_verified` to the template context.
