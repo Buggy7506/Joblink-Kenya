@@ -1236,16 +1236,12 @@ def logout_success(request):
 def dashboard(request):
     user = request.user
 
-    # Count unread chat messages
+    # Count unread messages + notifications
     unread_messages_count = get_unread_messages(user)
-
-    # Count standard notifications for this user
     notifications_count = Notification.objects.filter(user=user, is_read=False).count()
+    total_notifications = unread_messages_count + notifications_count
 
-    # Total notifications (notifications + unread messages)
-    total_notifications = notifications_count + unread_messages_count
-
-    # If admin, redirect to admin dashboard
+    # Admin dashboard
     if user.is_superuser or getattr(user, "role", None) == "admin":
         return redirect("admin_dashboard")
 
@@ -1253,39 +1249,78 @@ def dashboard(request):
     if getattr(user, "role", None) == "applicant":
         applications = Application.objects.filter(applicant=user)
         premium_jobs = applications.filter(job__is_premium=True).count()
-
-        # Count deleted applications for Recycle Bin badge
         deleted_apps_count = applications.filter(is_deleted=True).count()
 
         return render(request, "applicant_dashboard.html", {
             "applications": applications,
             "premium_jobs": premium_jobs,
-            "notifications_count": total_notifications,  # total notifications
-            "deleted_apps_count": deleted_apps_count,    # Recycle Bin badge
+            "deleted_apps_count": deleted_apps_count,
+            "notifications_count": total_notifications,
         })
 
     # Employer dashboard
     elif getattr(user, "role", None) == "employer":
+        # Check employer verification
+        company = getattr(user, "employer_company", None)
+        if not company or not company.is_verified:
+            messages.warning(request, "⏳ Please verify your company to unlock full employer access.")
+            return redirect("upload_company_docs")  # Send to docs upload
+
         posted_jobs_count = Job.objects.filter(employer=user).count()
         active_jobs = Job.objects.filter(employer=user, is_active=True).count()
-        
-        # Only count applications that are not soft-deleted by applicants
         applicants_count = Application.objects.filter(
             job__employer=user,
             is_deleted=False
         ).count()
-    
+
         return render(request, "employer_dashboard.html", {
             "posted_jobs_count": posted_jobs_count,
             "active_jobs": active_jobs,
             "applicants_count": applicants_count,
-            "notifications_count": total_notifications,  # total notifications
+            "notifications_count": total_notifications,
         })
-
 
     # Fallback → unknown role
     return redirect("login")
 
+@login_required
+def upload_company_docs(request):
+    user = request.user
+
+    # Only employers can access
+    if getattr(user, "role", None) != "employer":
+        messages.error(request, "❌ Only employers can upload verification documents.")
+        return redirect('dashboard')
+
+    company = getattr(user, "employer_company", None)
+
+    # Safety: create company if missing (rare edge case)
+    if not company:
+        company = EmployerCompany.objects.create(user=user, company_name=user.username)
+
+    # Already verified → redirect to dashboard
+    if company.is_verified:
+        messages.success(request, "🎉 Your company is already verified. You now have full access!")
+        return redirect('dashboard')
+
+    # Handle file uploads
+    if request.method == "POST":
+        form = CompanyDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            doc = form.save(commit=False)
+            doc.company = company
+            doc.save()  # your model auto-verifies company here ✔
+            messages.success(request, "📄 Document uploaded! Verification updated.")
+            return redirect('dashboard')  # now company becomes verified
+    else:
+        form = CompanyDocumentForm()
+
+    return render(request, "upload_company_docs.html", {
+        "form": form,
+        "company": company,
+        "documents": company.documents.all(),
+    })
+    
 @login_required
 def profile_view(request):
     user = request.user  # CustomUser instance
@@ -1465,9 +1500,21 @@ def edit_profile(request):
 
     return render(request, 'change_credentials.html', context)
     
-#Job Posting
+# Job Posting
 @login_required
 def post_job(request):
+    # 1️⃣ Only employers can post jobs
+    if request.user.profile.role != "employer":
+        messages.error(request, "❌ Only employers can post jobs.")
+        return redirect('job_list')
+
+    # 2️⃣ Employer must be verified
+    company = getattr(request.user, "employer_company", None)
+    if not company or not company.is_verified:
+        messages.warning(request, "⏳ Your company is not verified yet. Upload documents to continue.")
+        return redirect('upload_company_docs')
+
+    # 3️⃣ Handle job posting
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
@@ -1475,10 +1522,7 @@ def post_job(request):
             job.employer = request.user
 
             # --- Auto-set premium based on salary ---
-            if job.salary and job.salary > 30000:
-                job.is_premium = True
-            else:
-                job.is_premium = False
+            job.is_premium = bool(job.salary and job.salary > 30000)
             # ---------------------------------------
 
             job.save()
@@ -1516,12 +1560,12 @@ def post_job(request):
                 )
             # -----------------------------------------------------
 
-            messages.success(request, "Job posted, email alerts & notifications sent.")
+            messages.success(request, "🎉 Job posted successfully & alerts sent!")
             return redirect('dashboard')
     else:
         form = JobForm()
-    return render(request, 'post_job.html', {'form': form})
 
+    return render(request, 'post_job.html', {'form': form})
 
 @login_required
 def edit_job(request, job_id):
@@ -1549,7 +1593,7 @@ def edit_job(request, job_id):
 
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
-# Apply Job View with reCAPTCHA
+# Apply Job View with reCAPTCHA (NO VERIFICATION CHECK)
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -1608,11 +1652,7 @@ def apply_job(request, job_id):
             return redirect('apply_job_success', job_id=job.id, applied=applied_status)
 
         # ---------- PREMIUM JOB FLOW ----------
-        # Optionally, prevent applications if employer is not verified
-        if not job.employer.company.is_verified:
-            messages.error(request, "⚠️ You cannot apply to premium jobs from unverified employers.")
-            return redirect('job_list')
-
+        # NO VERIFICATION CHECK — can apply regardless
         amount = 200 * 100  # KES 200 in cents
         try:
             checkout_session = stripe.checkout.Session.create(
