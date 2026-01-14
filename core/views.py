@@ -1448,16 +1448,20 @@ def company_profile(request):
     company = None
     is_verified = False
 
+    # Try to fetch the EmployerCompany associated with the logged-in user
     try:
         company = EmployerCompany.objects.get(user=request.user)
         is_verified = company.is_verified
     except EmployerCompany.DoesNotExist:
+        # Handle case where user doesn't have an employer company yet
         pass
 
+    # Adding relevant context for the template
     context = {
         "company": company,
         "company_verified": is_verified
     }
+
     return render(request, "company_profile.html", context)
 
 @login_required
