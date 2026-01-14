@@ -105,10 +105,14 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                # ⭐ CUSTOM JOBLINK PROCESSORS
+                'core.context_processors.employer_badge',
             ],
         },
     },
 ]
+
 
 # WSGI & ASGI
 WSGI_APPLICATION = 'joblink.wsgi.application'
