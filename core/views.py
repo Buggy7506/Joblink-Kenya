@@ -45,7 +45,7 @@ from .models import (
     JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser, EmployerCompany, CompanyDocument
 )
 from .forms import (
-    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, 
+    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm,
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm, CompanyDocumentForm
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
@@ -1170,21 +1170,22 @@ def login_view(request):
         profile.save()
 
         # ==========================
-        # EMPLOYER APPROVAL CHECK
+        # EMPLOYER SELF-VERIFICATION CHECK
         # ==========================
         if actual_role == "employer":
-            company = EmployerCompany.objects.filter(
-                user=user,
-                status=EmployerCompany.STATUS_VERIFIED
-            ).first()
-
-            if not company:
-                messages.info(
-                    request,
-                    "Your employer account is pending admin approval. "
-                    "You will be notified once approved."
-                )
-                return redirect("employer_verification_pending")
+            company, created = EmployerCompany.objects.get_or_create(user=user)
+        
+            # Newly created → auto_verify will run in save()
+            if created:
+                company.save()
+        
+            # If missing data → force setup page
+            if not company.company_name or not company.business_email:
+                return redirect("complete_employer_profile")
+        
+            # Auto-reverify if pending (fix silently)
+            if company.status == EmployerCompany.STATUS_PENDING:
+                company.save()
 
         # ✅ DIRECT LOGIN (DEVICE VERIFICATION BYPASSED)
         login(request, user)
@@ -1208,6 +1209,26 @@ def login_view(request):
         return redirect("dashboard")
 
     return render(request, 'login.html')
+
+@login_required
+def complete_employer_profile(request):
+    if request.user.profile.role != "employer":
+        messages.error(request, "Only employers can access this page.")
+        return redirect("dashboard")
+
+    company, _ = EmployerCompany.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = EmployerCompanyForm(request.POST, instance=company)
+        if form.is_valid():
+            form.save()  # auto_verify runs inside save()
+            messages.success(request, "Company profile completed!")
+            return redirect("employer_control_panel")
+    else:
+        form = EmployerCompanyForm(instance=company)
+
+    return render(request, "complete_profile.html", {"form": form})
+    
 
 @login_required
 def employer_verification_pending(request):
