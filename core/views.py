@@ -1238,6 +1238,7 @@ def logout_success(request):
 
 # Dashboard
 @login_required
+@employer_verified_required
 def dashboard(request):
     user = request.user
 
@@ -1507,6 +1508,7 @@ def edit_profile(request):
     
 # Job Posting
 @login_required
+@employer_verified_required
 def post_job(request):
     # 1️⃣ Only employers can post jobs
     if request.user.profile.role != "employer":
@@ -1573,6 +1575,7 @@ def post_job(request):
     return render(request, 'post_job.html', {'form': form})
 
 @login_required
+@employer_verified_required
 def edit_job(request, job_id):
     job = get_object_or_404(Job, id=job_id, employer=request.user)  # only employer can edit
 
