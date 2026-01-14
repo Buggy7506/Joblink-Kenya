@@ -26,6 +26,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 from django.utils.timezone import now
+from django.utils.text import slugify
 
 # Third-party libraries
 import pdfkit
