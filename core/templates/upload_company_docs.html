@@ -2,106 +2,183 @@
 
 {% block content %}
 
-<div class="verify-box">
-    <h2 class="verify-title">Employer Verification</h2>
+<div class="container my-4">
+  <h2 class="text-center fw-semibold">Employer Verification</h2>
+  <p class="text-center text-muted mb-4">
+    Upload verification documents below. Multiple files supported.
+  </p>
 
-    <p class="verify-desc">
-        Upload at least one verification document to activate your employer account.
-    </p>
+  <!-- Upload Form (AJAX will catch this) -->
+  <form id="uploadForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 
-    <form method="post" enctype="multipart/form-data" class="verify-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="verify-btn">Upload</button>
-    </form>
+    <!-- Drag & Drop / Click Zone -->
+    <div id="dropZone"
+         class="border border-primary border-2 rounded-4 p-4 text-center upload-zone mb-3">
+      <i class="bi bi-cloud-arrow-up fs-1"></i>
+      <p class="mt-2 mb-1 fw-semibold">Drag & drop files</p>
+      <small class="text-muted">or click to browse</small>
+      <p id="fileCount" class="mt-2 small text-primary d-none"></p>
+    </div>
 
-    <h3 class="verify-subtitle">Your Uploaded Documents:</h3>
+    <!-- Hidden multi file input -->
+    <input id="fileInput"
+           type="file"
+           name="file"
+           class="d-none"
+           multiple
+           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
-    <ul class="verify-doc-list">
-        {% for doc in documents %}
-        <li class="verify-doc-item">
-            <span class="doc-type">{{ doc.get_document_type_display }}</span>
-            <span class="doc-date">Uploaded {{ doc.uploaded_at|date:"M j, Y" }}</span>
-        </li>
-        {% empty %}
-        <li class="verify-doc-item empty">No documents uploaded yet.</li>
-        {% endfor %}
-    </ul>
+    <!-- Document type -->
+    <div class="mb-3">
+      {{ form.document_type|as_widget:class="form-select" }}
+    </div>
 
+    <button type="submit"
+            class="btn btn-primary py-2 fw-semibold w-100">
+      Upload Selected Files
+    </button>
+
+    <!-- Progress container -->
+    <div id="progressWrap" class="mt-3 d-none"></div>
+  </form>
+
+  <hr class="my-4">
+  <h4 class="fw-semibold mb-3">Your Uploaded Documents</h4>
+
+  <ul id="docList" class="list-group">
+    {% for doc in documents %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>{{ doc.get_document_type_display }}</span>
+        <a href="{{ doc.file.url }}" target="_blank"
+           class="btn btn-sm btn-outline-primary">View</a>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center fst-italic text-muted">
+        No documents uploaded yet.
+      </li>
+    {% endfor %}
+  </ul>
 </div>
 
+<!-- AJAX Upload Script -->
+<script>
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+const fileCount = document.getElementById("fileCount");
+const form = document.getElementById("uploadForm");
+const progressWrap = document.getElementById("progressWrap");
+const docList = document.getElementById("docList");
+
+// CLICK & DRAG UI
+dropZone.addEventListener("click", () => fileInput.click());
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropZone.classList.add("bg-primary", "text-white");
+});
+dropZone.addEventListener("dragleave", () =>
+  dropZone.classList.remove("bg-primary", "text-white")
+);
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("bg-primary", "text-white");
+  fileInput.files = e.dataTransfer.files;
+  updateCounter();
+});
+fileInput.addEventListener("change", updateCounter);
+
+function updateCounter() {
+  if (fileInput.files.length > 0) {
+    fileCount.innerText = fileInput.files.length + " file(s) selected";
+    fileCount.classList.remove("d-none");
+  }
+}
+
+// AJAX submit
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!fileInput.files.length) {
+    alert("Please select at least one document.");
+    return;
+  }
+
+  progressWrap.innerHTML = "";
+  progressWrap.classList.remove("d-none");
+
+  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
+  const docType = form.querySelector("select[name=document_type]").value;
+
+  for (let file of fileInput.files) {
+    uploadSingle(file, csrf, docType);
+  }
+
+  fileInput.value = "";
+  fileCount.classList.add("d-none");
+});
+
+function uploadSingle(file, csrf, docType) {
+  const row = document.createElement("div");
+  row.className = "mb-2";
+  row.innerHTML = `
+    <div class="small fw-semibold">${file.name}</div>
+    <div class="progress rounded">
+      <div class="progress-bar" role="progressbar" style="width:0%">0%</div>
+    </div>`;
+  progressWrap.appendChild(row);
+
+  const xhr = new XMLHttpRequest();
+  const bar = row.querySelector(".progress-bar");
+
+  xhr.upload.addEventListener("progress", e => {
+    if (e.lengthComputable) {
+      let percent = (e.loaded / e.total) * 100;
+      bar.style.width = percent.toFixed(0) + "%";
+      bar.textContent = percent.toFixed(0) + "%";
+    }
+  });
+
+  xhr.onload = () => {
+    bar.style.width = "100%";
+    bar.textContent = "Done";
+
+    if (xhr.status === 200) {
+      refreshDocs();
+    } else {
+      bar.classList.add("bg-danger");
+      bar.textContent = "Error";
+    }
+  };
+
+  xhr.open("POST", "", true);
+  xhr.setRequestHeader("X-CSRFToken", csrf);
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("document_type", docType);
+
+  xhr.send(formData);
+}
+
+function refreshDocs() {
+  fetch(window.location.href)
+    .then(r => r.text())
+    .then(html => {
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      const newList = tmp.querySelector("#docList");
+      docList.innerHTML = newList.innerHTML;
+    });
+}
+</script>
+
 <style>
-/* ====== Employer Verification Wrapper Styles ====== */
-.verify-box {
-    max-width: 600px;
-    margin: 30px auto;
-    padding: 25px 30px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-    font-family: inherit;
+.upload-zone {
+  cursor: pointer;
+  transition: 0.25s ease;
 }
-
-/* Headings */
-.verify-title {
-    text-align: center;
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-.verify-subtitle {
-    margin-top: 25px;
-    font-size: 18px;
-}
-
-/* Form */
-.verify-form p {
-    margin-bottom: 15px;
-}
-.verify-form input,
-.verify-form select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-}
-.verify-btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 10px 18px;
-    background: #0073ff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.verify-btn:hover {
-    background: #005fd1;
-}
-
-/* List */
-.verify-doc-list {
-    list-style-type: none;
-    padding-left: 0;
-    margin-top: 12px;
-}
-.verify-doc-item {
-    background: #f7f9fc;
-    padding: 12px 14px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-.verify-doc-item .doc-type {
-    font-weight: 600;
-}
-.verify-doc-item .doc-date {
-    float: right;
-    color: #555;
-}
-.verify-doc-item.empty {
-    text-align: center;
-    font-style: italic;
-    color: #777;
+.upload-zone:hover {
+  background: #e9f3ff;
 }
 </style>
 
