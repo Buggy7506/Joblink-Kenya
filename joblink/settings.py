@@ -87,6 +87,11 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
+MIDDLEWARE += [
+    "core.middleware.employer_verification.EmployerVerificationMiddleware",
+]
+
+
 ROOT_URLCONF = 'joblink.urls'
 
 TEMPLATES = [
