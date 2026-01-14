@@ -1227,29 +1227,8 @@ def complete_employer_profile(request):
         form = EmployerCompanyForm(instance=company)
 
     return render(request, "complete_profile.html", {"form": form})
-    
-
-@login_required
-def employer_verification_pending(request):
-    user = request.user
-
-    # Safety: only employers can access
-    if not hasattr(user, "profile") or user.profile.role != "employer":
-        return redirect("dashboard")
-
-    # EmployerCompany is OPTIONAL at this stage
-    company = EmployerCompany.objects.filter(user=user).first()
-
-    return render(
-        request,
-        "employer_verification_pending.html",
-        {
-            "company": company
-        }
-    )
-    
+        
 #User Logout
-
 def logout_view(request):
     logout(request)
     return redirect('logout_success')
@@ -1554,26 +1533,33 @@ def post_job(request):
         messages.error(request, "❌ Only employers can post jobs.")
         return redirect('job_list')
 
-    # 2️⃣ Employer must be verified
-    company = getattr(request.user, "employer_company", None)
+    # 2️⃣ Get company tied to USER (not owner) — safe lookup
+    try:
+        company = request.user.employer_company
+    except EmployerCompany.DoesNotExist:
+        company = None
+
+    # 3️⃣ Block unverified employer
     if not company or not company.is_verified:
-        messages.warning(request, "⏳ Your company is not verified yet. Upload documents to continue.")
+        messages.warning(
+            request,
+            "⏳ Your company is not verified yet. Upload required documents to continue."
+        )
         return redirect('upload_company_docs')
 
-    # 3️⃣ Handle job posting
+    # 4️⃣ Handle job posting
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
-            job.employer = request.user
+            job.employer = request.user  # Correct employer assignment
 
-            # --- Auto-set premium based on salary ---
+            # 🔥 Auto-tag premium if salary is high
             job.is_premium = bool(job.salary and job.salary > 30000)
-            # ---------------------------------------
 
             job.save()
 
-            # ---- send email notifications to matching alerts ----
+            # 5️⃣ Send email + app notifications to matching alerts
             matches = JobAlert.objects.filter(
                 job_title__icontains=job.title,
                 location__iexact=job.location
@@ -1584,7 +1570,7 @@ def post_job(request):
             )
 
             for alert in matches:
-                # send email
+                # 📩 Email
                 html_content = render_to_string('job_alert_email.html', {
                     'user': alert.user,
                     'job': job,
@@ -1598,19 +1584,20 @@ def post_job(request):
                 msg.attach_alternative(html_content, "text/html")
                 msg.send()
 
-                # create in-app notification
+                # 🔔 App Notification
                 Notification.objects.create(
                     user=alert.user,
                     title="New Job Alert",
                     message=f"A new job '{job.title}' has been posted in {job.location}.",
                 )
-            # -----------------------------------------------------
 
             messages.success(request, "🎉 Job posted successfully & alerts sent!")
             return redirect('dashboard')
+
     else:
         form = JobForm()
 
+    # 6️⃣ Render template normally
     return render(request, 'post_job.html', {'form': form})
 
 @login_required
