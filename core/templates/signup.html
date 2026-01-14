@@ -384,23 +384,22 @@ body {
                         {{ form.password1 }}
                         <span class="toggle-eye" onclick="togglePassword('id_password1', this)">👁️</span>
                     </div>
-            
-                    <!-- PASSWORD STRENGTH STAYS EXACTLY UNDER PASSWORD1 -->
+
                     <div class="password-strength">
                         <div class="strength-bar"></div>
                     </div>
-            
+
                     <ul class="password-rules">
                         <li id="len">At least 8 characters</li>
                         <li id="upper">Contains an uppercase letter (A–Z)</li>
                         <li id="num">Contains a number (0–9)</li>
                         <li id="special">Contains a special character (!@#$...)</li>
                     </ul>
-            
+
                     <div id="capsWarning" class="caps-warning" style="display:none;">
                         Caps Lock is ON
                     </div>
-            
+
                     {% if form.password1.errors %}
                         <ul class="errorlist">
                             {% for error in form.password1.errors %}
@@ -417,9 +416,9 @@ body {
                         {{ form.password2 }}
                       <span class="toggle-eye" onclick="togglePassword('id_password2', this)">👁️</span>
                     </div>
-            
+
                     <div id="matchStatus" class="match-status"></div>
-            
+
                     {% if form.password2.errors %}
                         <ul class="errorlist">
                             {% for error in form.password2.errors %}
@@ -442,24 +441,18 @@ body {
                     {% endif %}
                 </p>
             
-               <!-- Location with OpenStreetMap Autocomplete -->
+               <!-- Location -->
                 <p class="form-field">
                     <label for="locationInput">Location</label>
-                    
-                    <!-- Visible location input for user search -->
+
                     <input id="locationInput" 
                            name="location" 
                            placeholder="Search location" 
-                           class="form-input location-input" 
-                           data-lat-input="latitudeInput" 
-                           data-lon-input="longitudeInput"
-                           value="{{ user.location|default:'' }}">
-                    
-                    <!-- Hidden inputs for latitude and longitude -->
-                    <input type="hidden" id="latitudeInput" name="latitude" value="{{ user.latitude|default:'' }}">
-                    <input type="hidden" id="longitudeInput" name="longitude" value="{{ user.longitude|default:'' }}">
-                    
-                    <!-- Display form errors if any -->
+                           class="form-input location-input">
+
+                    <input type="hidden" id="latitudeInput" name="latitude">
+                    <input type="hidden" id="longitudeInput" name="longitude">
+
                     {% if form.location.errors %}
                         <ul class="errorlist">
                             {% for error in form.location.errors %}
@@ -469,7 +462,6 @@ body {
                     {% endif %}
                 </p>
 
-            
                 <!-- Role -->
                 <p>
                     {{ form.role.label_tag }}
@@ -482,7 +474,8 @@ body {
                         </ul>
                     {% endif %}
                 </p>
-            <!-- Employer Company Fields -->
+
+                <!-- Employer Company Fields -->
                 <div id="employerFields" style="display:none; margin-top:20px;">
                 
                     <h4>Company Information</h4>
@@ -521,16 +514,16 @@ body {
                                id="company_website"
                                placeholder="https://company.com">
                     </p>
-                
+
+                    <!-- THIS LINE IS REPLACED -->
                     <p class="info-note">
-                        ⚠ Employer accounts require admin verification before posting jobs.
+                        ✅ Employer verification is automatic after signup.
                     </p>
                 
                 </div>
 
             </div>
 
-                        
                 <p class="legal">
                     People using JobLink may upload your contact info. <a href="/learn-more/">Learn more</a>.
                 </p>
@@ -541,12 +534,15 @@ body {
                     <a href="/privacy/">Privacy Policy</a>, 
                     and <a href="/cookies/">Cookies Policy</a>.
                 </p>
+
                 <div class="g-recaptcha"
                      data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS">
                 </div>
+
                 <p class="verify-note">
-                    Employers must be verified before posting jobs.
+                    Employers must provide business details.
                 </p>
+
                 <button type="submit" class="signup-btn" id="signupBtn">Sign Up</button>
             </form>
         </div>
