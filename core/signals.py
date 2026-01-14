@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from .models import Profile, TrustedDevice, DeviceVerification
+from .models import Profile, TrustedDevice, DeviceVerification, EmployerCompany
 from .utils import (
     get_device_fingerprint,
     get_client_ip,
@@ -12,6 +12,20 @@ from .utils import (
     send_whatsapp_otp,
     send_sms_otp
 )
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_employer_company(sender, instance, created, **kwargs):
+    """
+    Auto-create EmployerCompany when a user becomes an employer
+    OR when they update role to employer later.
+    """
+    if not created:
+        return
+
+    # If user signup role = employer → create blank company entry
+    if hasattr(instance, "profile") and instance.profile.role == "employer":
+        EmployerCompany.objects.get_or_create(user=instance)
+
 
 User = get_user_model()
 
