@@ -5,6 +5,10 @@ from django.utils import timezone
 from cloudinary.models import CloudinaryField
 from datetime import timedelta
 
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
 class EmployerCompany(models.Model):
     STATUS_PENDING = "pending"
     STATUS_VERIFIED = "verified"
@@ -16,14 +20,18 @@ class EmployerCompany(models.Model):
         (STATUS_REJECTED, "Rejected"),
     )
 
+    # Tied strictly to user (not owner)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="employer_company"
     )
 
-    company_name = models.CharField(max_length=255)
+    # Company details
+    company_name = models.CharField(max_length=255, blank=True, null=True)
     business_email = models.EmailField(
+        blank=True,
+        null=True,
         help_text="Must be a business email (no Gmail, Yahoo, etc.)"
     )
     company_website = models.URLField(blank=True, null=True)
@@ -34,6 +42,7 @@ class EmployerCompany(models.Model):
         help_text="Optional company registration / certificate number"
     )
 
+    # Verification status
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -43,38 +52,44 @@ class EmployerCompany(models.Model):
     rejection_reason = models.TextField(blank=True, null=True)
     reviewed_at = models.DateTimeField(blank=True, null=True)
 
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # -------------------------
+    # -------------------------------------------------------------
     # AUTO VERIFICATION LOGIC
-    # -------------------------
-
+    # -------------------------------------------------------------
     def auto_verify(self):
-        """Verify automatically using business email domain rule."""
+        """Auto verify based on business email domain + name provided."""
         free_domains = [
             "gmail.com", "yahoo.com", "hotmail.com",
             "outlook.com", "icloud.com"
         ]
 
+        if not self.business_email:
+            self.status = self.STATUS_PENDING
+            self.rejection_reason = None
+            self.reviewed_at = None
+            return
+
         domain = self.business_email.split("@")[-1].lower()
 
-        # Rule: corporate email + valid company name → verified
-        if domain not in free_domains and self.company_name.strip():
+        if domain not in free_domains and self.company_name and self.company_name.strip():
             self.status = self.STATUS_VERIFIED
             self.rejection_reason = None
             self.reviewed_at = timezone.now()
         else:
-            # Still pending — but no admin needed ever
             self.status = self.STATUS_PENDING
             self.rejection_reason = None
             self.reviewed_at = None
 
     def save(self, *args, **kwargs):
-        # Always auto-check verification before saving
         self.auto_verify()
         super().save(*args, **kwargs)
 
+    # -------------------------------------------------------------
+    # Helpers / Badge Properties
+    # -------------------------------------------------------------
     @property
     def is_verified(self):
         return self.status == self.STATUS_VERIFIED
@@ -96,7 +111,7 @@ class EmployerCompany(models.Model):
         return "rejected"
 
     def __str__(self):
-        return f"{self.company_name} [{self.get_status_display()}]"
+        return f"{self.company_name or 'Unnamed Company'} [{self.get_status_display()}]"
 
 class CompanyDocument(models.Model):
     DOCUMENT_TYPES = (
