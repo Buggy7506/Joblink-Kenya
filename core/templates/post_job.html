@@ -21,16 +21,20 @@
     {% for field in form %}
       <div class="form-group">
         <label class="form-label">{{ field.label }}</label>
-
-        {# Add classes and data attributes for location field #}
+    
         {% if field.name == "location" %}
           {{ field|add_class:"form-input location-input" }}
           <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default:'' }}">
           <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default:'' }}">
+    
+        {% elif field.name == "salary" %}
+          <strong>{{ field.value|floatformat:2|intcomma }}</strong>
+          {{ field }}
+    
         {% else %}
           {{ field }}
         {% endif %}
-
+    
         {% for error in field.errors %}
           <div class="error">{{ error }}</div>
         {% endfor %}
