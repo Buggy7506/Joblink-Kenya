@@ -924,6 +924,7 @@ def signup_view(request):
             # EMPLOYER STRICT CHECKS
             # -------------------------
             if role == "employer":
+
                 if not company_name:
                     messages.error(request, "Company name is required.")
                     return render(request, "signup.html", {
@@ -975,11 +976,11 @@ def signup_view(request):
             # =========================
             if profile.role == "employer":
                 EmployerCompany.objects.create(
-                    user=user,  # corrected field
+                    user=user,
                     company_name=company_name,
                     business_email=company_email,
                     company_website=company_website,
-                    status=EmployerCompany.STATUS_PENDING  # pending admin approval
+                    status=EmployerCompany.STATUS_PENDING
                 )
 
             # =========================
@@ -987,12 +988,16 @@ def signup_view(request):
             # =========================
             login(request, user)
 
+            # =========================
+            # POST SIGNUP REDIRECTS
+            # =========================
             if profile.role == "employer":
                 messages.info(
                     request,
-                    "Your employer account is pending admin verification."
+                    "Your employer account is pending verification. "
+                    "Upload your company documents to continue."
                 )
-                return redirect("dashboard")
+                return redirect("upload_company_docs")
 
             messages.success(request, "Signup successful!")
             return redirect("dashboard")
