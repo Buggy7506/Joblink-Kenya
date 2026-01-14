@@ -151,6 +151,73 @@ body {
   border-radius: 4px;
   margin-left: 6px;
 }
+
+/* Employer Verification Styles */
+.verification-box {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f8f9fa;
+  border: 1px solid #e6e6e6;
+}
+
+/* General badge style */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+/* Verified */
+.badge-success {
+  background-color: #28a745;  /* green */
+  color: white;
+}
+
+/* Pending */
+.badge-warning {
+  background-color: #ffc107;  /* yellow */
+  color: #333;
+}
+
+/* Small navbar badge */
+.nav-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+/* Pending version for small badge */
+.nav-badge.pending {
+  background-color: #ff9800;
+  color: white;
+}
+
+/* Alert box */
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #ffeeba;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Button inside alert */
+.alert-warning .btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  text-decoration: none;
+}
 </style>
 
 
@@ -166,11 +233,31 @@ body {
     </div>
   {% endif %}
   
-  {% if company_verified %}
-  <span class="verified-badge">
-    ✔ Verified Employer
-  </span>
-  {% endif %}
+{% if request.user.is_authenticated and request.user.profile.role == "employer" %}
+  <div class="verification-box">
+
+    {% if company_verified %}
+      <!-- VERIFIED BADGE -->
+      <span class="badge badge-success">✔ Verified Employer</span>
+      <span class="nav-badge">Verified</span>
+
+    {% else %}
+      <!-- PENDING BADGE -->
+      <span class="badge badge-warning">⏳ Awaiting Verification</span>
+      <span class="nav-badge pending">Not Verified</span>
+
+      <!-- ALERT WITH BUTTON -->
+      <div class="alert alert-warning" style="margin-top: 8px;">
+        Complete your company profile to become verified!
+        <a href="{% url 'complete_employer_profile' %}" class="btn btn-primary btn-sm" style="margin-left: 10px;">
+          Complete Profile
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+{% endif %}
+
 
   <!-- Action Buttons -->
   <div class="dashboard-actions">
