@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load widget_tweaks %}
 
 {% block title %}Company Profile Setup{% endblock %}
 
@@ -93,7 +94,7 @@
 
             <!-- Select document type -->
             <div class="mb-3">
-                {{ form.document_type|as_widget:class="form-select" }}
+                {{ form.document_type|add_class:"form-select" }}
             </div>
 
             <button type="submit" class="btn btn-primary py-2 fw-semibold w-100">Upload Selected Files</button>
