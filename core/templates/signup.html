@@ -313,6 +313,10 @@ body {
             <div class="divider"><span>OR</span></div>
 
             <form id="signupForm" method="post" action="{% url 'signup' %}">
+                <style>
+                    #id_username { pointer-events:none; background:#f0f0f0; }
+                </style>
+
                 {% csrf_token %}
 
                 {% if messages %}
@@ -620,25 +624,49 @@ pass2.addEventListener("keyup", () => {
     }
 });
 
-/* ================================
-   ROLE TOGGLE (APPLICANT / EMPLOYER)
-================================ */
+/* ========================================
+   ROLE TOGGLE — Employer exclusive mode
+======================================== */
 
 const roleField = document.getElementById("id_role");
 const employerFields = document.getElementById("employerFields");
 
-function toggleEmployerFields() {
-    if (!roleField || !employerFields) return;
+const hideFields = [
+    "id_username", "id_email", "id_first_name", "id_last_name",
+    "id_password1", "id_password2", "id_phone", "locationInput"
+];
 
-    employerFields.style.display =
-        roleField.value === "employer" ? "block" : "none";
+function updateForm() {
+    const isEmployer = roleField.value === "employer";
+
+    // Hide or show standard fields
+    hideFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const wrapper = el.closest("p") || el.parentElement;
+        wrapper.style.display = isEmployer ? "none" : "block";
+    });
+
+    // Toggle employer section
+    employerFields.style.display = isEmployer ? "block" : "none";
+
+    // Auto-fill username with company name
+    if (isEmployer) {
+        const uname = document.getElementById("id_username");
+        const cname = document.getElementById("company_name");
+
+        // Update username when typing company name
+        cname.addEventListener("input", () => {
+            uname.value = cname.value.toLowerCase().replace(/\s+/g, "_");
+        });
+    }
 }
 
 if (roleField) {
-    roleField.addEventListener("change", toggleEmployerFields);
-    toggleEmployerFields(); // run on page load
+    roleField.addEventListener("change", updateForm);
+    updateForm(); // run on load
 }
-
+    
 /* Submit button loading */
 const signupForm = document.getElementById('signupForm');
 const signupBtn = document.getElementById('signupBtn');
