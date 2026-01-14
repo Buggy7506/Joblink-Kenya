@@ -52,6 +52,7 @@ urlpatterns = [
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path("profile/quick-update/", views.quick_profile_update, name="quick_profile_update"),
     path('employer/profile/', views.employer_profile, name='employer_profile'),
+    path('employer/company-profile/', views.company_profile, name='company_profile'),
 
     # -------------------------
     # Job / Applications
