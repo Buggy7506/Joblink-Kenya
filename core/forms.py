@@ -8,7 +8,6 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
 
-
 class EmployerCompanyForm(forms.ModelForm):
     class Meta:
         model = EmployerCompany
@@ -16,12 +15,17 @@ class EmployerCompanyForm(forms.ModelForm):
 
     def clean_business_email(self):
         email = self.cleaned_data.get('business_email')
+
+        # List of common free email domains
         free_domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"]
 
+        # Extract the domain part of the email
         domain = email.split("@")[-1].lower()
+
+        # If the domain is part of free domains, raise validation error
         if domain in free_domains:
             raise forms.ValidationError(
-                "Please use a business/company email. Free emails are not accepted."
+                "Please use a business/company email. Free emails (e.g., Gmail, Yahoo, etc.) are not accepted."
             )
         return email
 
