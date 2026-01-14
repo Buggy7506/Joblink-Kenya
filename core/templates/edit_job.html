@@ -168,11 +168,18 @@
         <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default_if_none:'' }}">
     </div>
 
-    <div class="form-group">
-      <label for="salary">Salary (KES)</label>
-      <input type="number" id="salary" name="salary" value="{{ form.salary.value }}">
-      <small>Jobs with salary > 30,000 KES will automatically be premium.</small>
-    </div>
+  <div class="form-group">
+    <label for="salary">Salary (KES)</label>
+  
+    {% if form.salary.value %}
+      <strong style="display:block; margin-bottom:4px;">
+        {{ form.salary.value|floatformat:2|intcomma }}
+      </strong>
+    {% endif %}
+  
+    <input type="number" id="salary" name="salary" value="{{ form.salary.value }}">
+    <small>Jobs with salary > 30,000 KES will automatically be premium.</small>
+  </div>
 
     <div class="form-group">
       <label for="premium-status">Current Status</label>
