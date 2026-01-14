@@ -531,9 +531,9 @@ body {
                     and <a href="/cookies/">Cookies Policy</a>.
                 </p>
 
-                <div class="g-recaptcha"
+               <!-- <div class="g-recaptcha"
                      data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS">
-                </div>
+                </div> -->
 
                 <p class="verify-note">
                     Employers must provide business details.
@@ -659,6 +659,17 @@ function updateForm() {
             uname.value = cname.value.toLowerCase().replace(/\s+/g, "_");
         });
     }
+}
+
+if (isEmployer) {
+    document.getElementById("id_username").value =
+        document.getElementById("company_name").value.toLowerCase().replace(/\s+/g, "_");
+
+    document.getElementById("id_email").value =
+        document.getElementById("company_email").value;
+
+    document.getElementById("id_phone").value =
+        document.getElementById("company_phone").value;
 }
 
 if (roleField) {
