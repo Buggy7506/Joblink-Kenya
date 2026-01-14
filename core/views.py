@@ -888,6 +888,18 @@ def signup_view(request):
         company_name = request.POST.get("company_name", "").strip()
         company_email = request.POST.get("company_email", "").strip()
         company_website = request.POST.get("company_website", "").strip()
+        
+        # =========================
+        # FOR EMPLOYER: Auto-sluggify username based on company name
+        # =========================
+        if role == "employer" and company_name:
+            # Replace username in POST data
+            request.POST._mutable = True  # allow mutation
+            request.POST["username"] = slugify(company_name)[:150]
+            request.POST._mutable = False
+            
+            # Re-bind the form with updated POST
+            form = CustomUserCreationForm(request.POST)
 
         # =========================
         # RECAPTCHA VERIFICATION
