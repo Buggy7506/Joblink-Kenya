@@ -351,8 +351,8 @@ class CustomUserCreationForm(TooltipFormMixin, UserCreationForm):
 
         # Set specific fields as required
         self.fields['username'].required = True
-        self.fields['email'].required = True
-        self.fields['phone'].required = True
+        self.fields['email'].required = False
+        self.fields['phone'].required = False
         self.fields['role'].required = True
 
         # Set non-required fields
