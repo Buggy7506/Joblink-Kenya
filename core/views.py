@@ -879,29 +879,32 @@ def signup_view(request):
     company_website = ""
 
     if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
         recaptcha_response = request.POST.get("g-recaptcha-response")
-
-        # Role selected by user
         role = request.POST.get("role", "applicant").lower()
 
-        # Employer-specific fields
         company_name = request.POST.get("company_name", "").strip()
         company_email = request.POST.get("company_email", "").strip()
         company_website = request.POST.get("company_website", "").strip()
-        
-        # =========================
-        # FOR EMPLOYER: Auto-sluggify username based on company name
-        # =========================
-        if role == "employer" and company_name:
-            # Replace username in POST data
-            request.POST._mutable = True  # allow mutation
-            request.POST["username"] = slugify(company_name)[:150]
-            request.POST._mutable = False
-            
-            # Re-bind the form with updated POST
-            form = CustomUserCreationForm(request.POST)
 
+        # ============================================
+        # FORCE EMAIL + USERNAME FOR EMPLOYERS
+        # ============================================
+        
+        if role == "employer":
+            request.POST._mutable = True
+            # set username if missing
+            if company_name:
+                request.POST["username"] = slugify(company_name)[:150]
+
+            # set user email
+            if company_email:
+                request.POST["email"] = company_email.lower()
+
+            request.POST._mutable = False
+
+        # Now bind form AFTER mutation
+        form = CustomUserCreationForm(request.POST)
+             
         # =========================
         # RECAPTCHA VERIFICATION
         # =========================
