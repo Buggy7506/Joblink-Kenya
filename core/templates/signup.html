@@ -549,7 +549,6 @@ body {
 
     </section>
 </main>
-
 <script>
 const pass1 = document.getElementById("id_password1");
 const pass2 = document.getElementById("id_password2");
@@ -631,12 +630,20 @@ const hideFields = [
 function updateForm() {
     const isEmployer = roleField.value === "employer";
 
-    // Hide or show standard fields
+    // Hide or show standard fields and disable them when hidden
     hideFields.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         const wrapper = el.closest("p") || el.parentElement;
-        wrapper.style.display = isEmployer ? "none" : "block";
+        if (isEmployer) {
+            // Hide the field and disable it
+            wrapper.style.display = "none";
+            el.disabled = true;
+        } else {
+            // Show the field and enable it
+            wrapper.style.display = "block";
+            el.disabled = false;
+        }
     });
 
     // Toggle employer section
@@ -682,7 +689,5 @@ document.querySelectorAll('.msgs .msg').forEach(msg => {
         setTimeout(() => msg.remove(), 500);
     }, 3000);
 });
-    
 </script>
-
 {% endblock %}
