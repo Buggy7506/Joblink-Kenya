@@ -3,10 +3,15 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
 from django.contrib.auth import get_user_model
 from django.forms.widgets import ClearableFileInput 
-from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory
+from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory, CompanyDocument
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
+
+class CompanyDocumentForm(forms.ModelForm):
+    class Meta:
+        model = CompanyDocument
+        fields = ["document_type", "file"]
 
 class AccountSettingsForm(PasswordChangeForm):
     username = forms.CharField(
