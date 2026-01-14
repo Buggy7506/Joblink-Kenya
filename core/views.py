@@ -863,56 +863,56 @@ User = get_user_model()
 def home(request):
     return render(request, 'home.html')
 
+
 def signup_view(request):
     """
     User signup view with Google reCAPTCHA verification.
     Supports Applicant & Employer signup with dynamic role-based fields.
     """
 
-    role = "applicant"  # default role
+    # Default template variables
+    role = "applicant"
     company_name = ""
     company_email = ""
     company_website = ""
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
-        recaptcha_response = request.POST.get('g-recaptcha-response')
+        recaptcha_response = request.POST.get("g-recaptcha-response")
 
-        role = request.POST.get("role", "applicant")  # applicant | employer
+        # Role selected by user
+        role = request.POST.get("role", "applicant").lower()
 
-        # Employer-only fields
+        # Employer-specific fields
         company_name = request.POST.get("company_name", "").strip()
         company_email = request.POST.get("company_email", "").strip()
         company_website = request.POST.get("company_website", "").strip()
 
         # =========================
-        # RECAPTCHA
+        # RECAPTCHA VERIFICATION
         # =========================
         if not recaptcha_response:
             messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'signup.html', {
-                'form': form,
-                'role': role,
-                'company_name': company_name,
-                'company_email': company_email,
-                'company_website': company_website
+            return render(request, "signup.html", {
+                "form": form,
+                "role": role,
+                "company_name": company_name,
+                "company_email": company_email,
+                "company_website": company_website
             })
 
         r = requests.post(
             "https://www.google.com/recaptcha/api/siteverify",
-            data={
-                "secret": RECAPTCHA_SECRET,
-                "response": recaptcha_response,
-            },
+            data={"secret": RECAPTCHA_SECRET, "response": recaptcha_response}
         )
         if not r.json().get("success"):
             messages.error(request, "reCAPTCHA verification failed.")
-            return render(request, 'signup.html', {
-                'form': form,
-                'role': role,
-                'company_name': company_name,
-                'company_email': company_email,
-                'company_website': company_website
+            return render(request, "signup.html", {
+                "form": form,
+                "role": role,
+                "company_name": company_name,
+                "company_email": company_email,
+                "company_website": company_website
             })
 
         # =========================
@@ -926,22 +926,22 @@ def signup_view(request):
             if role == "employer":
                 if not company_name:
                     messages.error(request, "Company name is required.")
-                    return render(request, 'signup.html', {
-                        'form': form,
-                        'role': role,
-                        'company_name': company_name,
-                        'company_email': company_email,
-                        'company_website': company_website
+                    return render(request, "signup.html", {
+                        "form": form,
+                        "role": role,
+                        "company_name": company_name,
+                        "company_email": company_email,
+                        "company_website": company_website
                     })
 
                 if not company_email:
                     messages.error(request, "Business email is required.")
-                    return render(request, 'signup.html', {
-                        'form': form,
-                        'role': role,
-                        'company_name': company_name,
-                        'company_email': company_email,
-                        'company_website': company_website
+                    return render(request, "signup.html", {
+                        "form": form,
+                        "role": role,
+                        "company_name": company_name,
+                        "company_email": company_email,
+                        "company_website": company_website
                     })
 
                 if not is_business_email(company_email):
@@ -950,12 +950,12 @@ def signup_view(request):
                         "Please use a business/admin email address "
                         "(Gmail, Yahoo, etc. are not allowed)."
                     )
-                    return render(request, 'signup.html', {
-                        'form': form,
-                        'role': role,
-                        'company_name': company_name,
-                        'company_email': company_email,
-                        'company_website': company_website
+                    return render(request, "signup.html", {
+                        "form": form,
+                        "role": role,
+                        "company_name": company_name,
+                        "company_email": company_email,
+                        "company_website": company_website
                     })
 
             # =========================
@@ -963,7 +963,9 @@ def signup_view(request):
             # =========================
             user = form.save()
 
-            # Create or get profile
+            # =========================
+            # CREATE OR UPDATE PROFILE
+            # =========================
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.role = role if role in ["applicant", "employer"] else "applicant"
             profile.save(update_fields=["role"])
@@ -973,12 +975,11 @@ def signup_view(request):
             # =========================
             if profile.role == "employer":
                 EmployerCompany.objects.create(
-                    owner=user,
+                    user=user,  # corrected field
                     company_name=company_name,
                     business_email=company_email,
                     company_website=company_website,
-                    is_active=True,
-                    is_verified=False,  # 🔒 ADMIN APPROVAL REQUIRED
+                    status=EmployerCompany.STATUS_PENDING  # pending admin approval
                 )
 
             # =========================
@@ -996,19 +997,21 @@ def signup_view(request):
             messages.success(request, "Signup successful!")
             return redirect("dashboard")
 
+        # Form invalid
         messages.error(request, "Please correct the errors below.")
 
     else:
         form = CustomUserCreationForm()
 
-    return render(request, 'signup.html', {
-        'form': form,
-        'role': role,
-        'company_name': company_name,
-        'company_email': company_email,
-        'company_website': company_website
+    # Render form with context
+    return render(request, "signup.html", {
+        "form": form,
+        "role": role,
+        "company_name": company_name,
+        "company_email": company_email,
+        "company_website": company_website
     })
-
+    
 #User Login
 MAX_WRONG_ROLE_ATTEMPTS = 3
 ROLE_LOCK_MINUTES = 30
@@ -1133,11 +1136,11 @@ def login_view(request):
 
         # 🛡 WRONG ROLE ATTEMPT
         if selected_role and selected_role != actual_role:
-            profile.role_failed_attempts += 1  # updated
+            profile.role_failed_attempts += 1
 
             if profile.role_failed_attempts >= MAX_WRONG_ROLE_ATTEMPTS:
                 profile.role_lock_until = timezone.now() + timedelta(minutes=ROLE_LOCK_MINUTES)
-                profile.role_failed_attempts = 0  # updated
+                profile.role_failed_attempts = 0
                 profile.save()
 
                 messages.error(
@@ -1155,7 +1158,7 @@ def login_view(request):
             return render(request, 'login.html')
 
         # ✅ RESET ROLE ATTEMPTS
-        profile.role_failed_attempts = 0  # updated
+        profile.role_failed_attempts = 0
         profile.role_lock_until = None
         profile.save()
 
@@ -1163,13 +1166,16 @@ def login_view(request):
         # EMPLOYER APPROVAL CHECK
         # ==========================
         if actual_role == "employer":
-            company = EmployerCompany.objects.filter(owner=user, is_active=True).first()
+            company = EmployerCompany.objects.filter(
+                user=user,
+                status=EmployerCompany.STATUS_VERIFIED
+            ).first()
 
-            if not company or not company.is_verified:
+            if not company:
                 messages.info(
                     request,
                     "Your employer account is pending admin approval. "
-                    "You will be notified once verified."
+                    "You will be notified once approved."
                 )
                 return redirect("employer_verification_pending")
 
