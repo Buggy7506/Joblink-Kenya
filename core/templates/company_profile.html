@@ -5,67 +5,94 @@
 
 {% block content %}
 <style>
-/* --- COMPANY PROFILE PAGE SCOPED STYLES --- */
+/* ==============================================
+   COMPANY PROFILE (THEME AWARE)
+============================================== */
+
 .company-section-wrapper {
-    max-width: 800px;
+    max-width: 850px;
     margin: 30px auto;
     font-family: inherit;
 }
 
+/* Card inherits your base colors */
 .company-card {
-    background: #fff;
-    padding: 20px 25px;
-    border-radius: 12px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-    border: 1px solid #e5e5e5;
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 22px 28px;
+    border-radius: 1rem;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+    border: 1px solid var(--text-muted);
 }
 
+/* Headings */
 .company-card h2 {
-    margin-bottom: 15px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-accent);
+    text-align: center;
 }
 
+/* Info text */
 .company-card p {
     margin: 6px 0;
+    font-size: 15px;
 }
 
-/* tags */
+/* =========================
+   BADGES
+========================= */
 .verified-badge {
-    background: #28a745;
+    background: #16a34a;
     color: white;
-    padding: 5px 10px;
-    border-radius: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
     font-size: 14px;
+    font-weight: 600;
 }
 
 .pending-badge {
-    background: #ffc107;
+    background: #f59e0b;
     color: black;
-    padding: 5px 10px;
-    border-radius: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
     font-size: 14px;
+    font-weight: 600;
 }
 
+/* Warning box (theme aware) */
 .warning-box {
-    background: #fff3cd;
-    border-left: 3px solid #ffc107;
+    background: rgba(255, 200, 0, 0.18);
+    border-left: 4px solid #f59e0b;
     padding: 10px 15px;
     margin-top: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-main);
 }
 
-/* button */
+/* =========================
+   CTA BUTTON
+========================= */
 .primary-btn {
     display: inline-block;
-    margin-top: 15px;
-    padding: 8px 15px;
-    background: #0069d9;
-    color: white !important;
-    border-radius: 6px;
+    margin-top: 20px;
+    padding: 10px 18px;
+    background: var(--text-accent);
+    color: var(--bg-card) !important;
+    border-radius: 10px;
     text-decoration: none;
-    font-size: 14px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.25s ease;
 }
 .primary-btn:hover {
-    opacity: 0.9;
+    filter: brightness(1.15);
+}
+
+/* Light mode fix: Yellow text on badge readability */
+body.light-mode .pending-badge {
+    color: #222;
 }
 </style>
 
@@ -86,8 +113,8 @@
             {% else %}
                 <span class="pending-badge">⏳ Awaiting Verification</span>
                 <div class="warning-box">
-                    Your company is not verified yet.
-                    Complete all details and wait for approval.
+                    Your company is not verified yet.  
+                    Complete your employer setup and wait for approval.
                 </div>
             {% endif %}
 
