@@ -277,6 +277,26 @@ body {
 .toggle-eye:hover {
     color: var(--text-main);
 }
+
+/* Make signup page reCAPTCHA scale properly */
+.signup-card .g-recaptcha {
+  transform: scale(1);
+  transform-origin: 0 0;
+}
+
+/* Slight shrink on small phones */
+@media (max-width: 480px) {
+  .signup-card .g-recaptcha {
+    transform: scale(0.85);
+  }
+}
+
+/* Extra tiny screens */
+@media (max-width: 360px) {
+  .signup-card .g-recaptcha {
+    transform: scale(0.75);
+  }
+}
 </style>
 
 {% endblock %}
