@@ -476,6 +476,48 @@ body.light-mode .active-link {
   font-size: 0.75rem;
   cursor: pointer;
 }
+
+/* ------- THEME DROPDOWN UI ------- */
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease;
+  font-size: 0.9rem;
+}
+
+/* Hover states */
+.theme-toggle-btn:hover {
+  background: var(--hover-bg-color, rgba(255,255,255,0.1));
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* Light mode tweaks */
+.light-mode .theme-toggle-btn {
+  background: transparent;
+  border-color: rgba(0,0,0,0.15);
+}
+.light-mode .theme-toggle-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.theme-toggle-btn span {
+  line-height: 1;
+}
+
+/* Section label in dropdown menus */
+.dropdown-section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
 </style>
 
 </head>
@@ -653,11 +695,15 @@ body.light-mode .active-link {
                      class="danger-link">
                     🗑 Delete Account
                   </a>
-                   <!-- Theme Toggle -->
-                    <button class="theme-toggle-btn" id="darkModeToggleDesktop">
-                    <span id="desktopThemeIcon">🌙</span>
-                    <span id="desktopThemeText">Dark Mode</span>
-                  </button>
+                   <!-- Theme Section -->
+                  <li class="dropdown-section-title">Theme</li>
+                  <li>
+                    <button class="theme-toggle-btn w-full text-left flex items-center gap-2"
+                            id="darkModeToggleDesktop">
+                      <span id="desktopThemeIcon">🌙</span>
+                      <span id="desktopThemeText">Dark Mode</span>
+                    </button>
+                  </li>
                 </div>
             
               </div>
@@ -790,7 +836,11 @@ body.light-mode .active-link {
           <a href="{% url 'change_username_password' %}#security">
             🔐 Security
           </a>
-            <button class="theme-toggle-btn" id="darkModeToggleMobile">
+            <!-- Theme Section -->
+            <p class="dropdown-section-title mt-3">Theme</p>
+            
+            <button id="darkModeToggleMobile"
+                    class="w-full flex items-center gap-2 py-2">
               <span id="mobileThemeIcon">🌙</span>
               <span id="mobileThemeText">Dark Mode</span>
             </button>
