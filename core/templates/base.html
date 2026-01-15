@@ -655,8 +655,9 @@ body.light-mode .active-link {
                   </a>
                    <!-- Theme Toggle -->
                     <button class="theme-toggle-btn" id="darkModeToggleDesktop">
-                      🌙 <span>Toggle Theme</span>
-                    </button>
+                    <span id="desktopThemeIcon">🌙</span>
+                    <span id="desktopThemeText">Dark Mode</span>
+                  </button>
                 </div>
             
               </div>
@@ -877,38 +878,47 @@ document
     });
   }
 
-  // ---------------------------
-  // Theme toggle (desktop & mobile)
-  // ---------------------------
-  const toggleDesktop = document.getElementById('darkModeToggleDesktop');
-  const toggleMobile = document.getElementById('darkModeToggleMobile');
-  const mobileIcon = document.getElementById('mobileThemeIcon');
-  const mobileText = document.getElementById('mobileThemeText');
-  const body = document.body;
+ // ---------------------------
+// Theme toggle (desktop & mobile)
+// ---------------------------
+const toggleDesktop = document.getElementById('darkModeToggleDesktop');
+const toggleMobile = document.getElementById('darkModeToggleMobile');
+const mobileIcon = document.getElementById('mobileThemeIcon');
+const mobileText = document.getElementById('mobileThemeText');
+const body = document.body;
 
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light') {
+function applyTheme(isLight) {
+  // Flip body class
+  if (isLight) {
     body.classList.add('light-mode');
-    if (toggleDesktop) toggleDesktop.textContent = '☀️';
-    if (mobileIcon) mobileIcon.textContent = '☀️';
-    if (mobileText) mobileText.textContent = 'Light Mode';
   } else {
-    if (toggleDesktop) toggleDesktop.textContent = '🌙';
-    if (mobileIcon) mobileIcon.textContent = '🌙';
-    if (mobileText) mobileText.textContent = 'Dark Mode';
+    body.classList.remove('light-mode');
   }
 
-  function toggleTheme() {
-    body.classList.toggle('light-mode');
-    const isLight = body.classList.contains('light-mode');
-    if (toggleDesktop) toggleDesktop.textContent = isLight ? '☀️' : '🌙';
-    if (mobileIcon) mobileIcon.textContent = isLight ? '☀️' : '🌙';
-    if (mobileText) mobileText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  // Desktop button: icon + label
+  if (toggleDesktop) {
+    toggleDesktop.textContent = isLight ? '☀️ Light Mode' : '🌙 Dark Mode';
   }
 
-  if (toggleDesktop) toggleDesktop.addEventListener('click', toggleTheme);
-  if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
+  // Mobile icon + text
+  if (mobileIcon) mobileIcon.textContent = isLight ? '☀️' : '🌙';
+  if (mobileText) mobileText.textContent = isLight ? 'Light Mode' : 'Dark Mode';
+
+  // Save
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
+// Load saved theme
+applyTheme(localStorage.getItem('theme') === 'light');
+
+// Toggle action
+function toggleTheme() {
+  const isLight = !body.classList.contains('light-mode');
+  applyTheme(isLight);
+}
+
+if (toggleDesktop) toggleDesktop.addEventListener('click', toggleTheme);
+if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
 
   // ---------------------------
   // Background slideshow
