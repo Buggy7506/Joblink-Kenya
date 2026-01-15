@@ -729,6 +729,7 @@ NotificationItem = namedtuple("NotificationItem", ["title", "message", "timestam
 
 
 @login_required
+@employer_verified_required
 def notifications(request):
     user = request.user
 
@@ -1382,6 +1383,7 @@ def profile_view(request):
     return render(request, template_name, context)
 
 @login_required
+@employer_verified_required
 def view_posted_jobs(request):
     if not request.user.is_superuser and request.user.role != 'employer':
         return redirect('login')
@@ -1406,6 +1408,7 @@ def view_posted_jobs(request):
     })
 
 @login_required
+@employer_verified_required
 def view_applicants(request):
     job_id = request.GET.get("job_id")  # Check if employer is filtering for a specific job
 
@@ -1494,6 +1497,7 @@ def admin_profile(request):
     })
 
 @login_required
+@employer_verified_required
 def edit_profile(request):
     user = request.user
 
