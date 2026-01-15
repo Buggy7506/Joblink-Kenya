@@ -861,7 +861,6 @@ def process_application(request, app_id):
 User = get_user_model()
 
 #Home Page
-
 def home(request):
     return render(request, 'home.html')
 
@@ -1338,7 +1337,7 @@ def upload_company_docs(request):
     else:
         form = CompanyDocumentForm()
 
-    return render(request, "upload_company_docs.html", {
+    return render(request, "complete_profile.html", {
         "form": form,
         "company": company,
         "documents": company.documents.all(),
@@ -1454,12 +1453,14 @@ def employer_control_panel_view(request):
     })
   
 @login_required
+@employer_verified_required
 def employer_profile(request):
     return render(request, 'employer_profile.html', {
         'user': request.user
     })
 
 @login_required
+@employer_verified_required
 def company_profile(request):
     company = None
     is_verified = False
@@ -2116,6 +2117,7 @@ def payment_cancelled(request):
     return redirect('dashboard')
     
 @login_required
+@employer_verified_required
 def change_username_password(request):
     """
     Change username and password view with Google reCAPTCHA verification
