@@ -534,6 +534,25 @@ body.light-mode .active-link {
 #desktopThemeIcon {
   font-size: 1rem !important;
 }
+/* Fix dropdown clipping */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-menu {
+  left: auto;          /* stop forced left anchor */
+  right: 0;            /* anchor menu to the right edge of its parent */
+  transform: none;     /* avoid accidental shifts */
+  max-width: 280px;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* Prevent dropdown from going off top when too close */
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+  z-index: 9999;
+}
 </style>
 
 </head>
@@ -734,7 +753,7 @@ body.light-mode .active-link {
     </div>
       <!-- Mobile toggle -->
     <div class="mobile-toggle">
-      <button id="menuToggle" style="font-size:1.5rem; color:white;"><i class="fas fa-bars"></i></button>
+      <button id="menuToggle" style="font-size:1.7rem; color:white; font-weight:bold;">☰</button>
     </div>
   </div>
       
@@ -754,7 +773,7 @@ body.light-mode .active-link {
         <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
         <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
       {% endif %}
-      <a href="{% url 'change_username_password' %}" class="hover-glow">Account Settings</a>
+      <a href="{% url 'change_username_password' %}" class="hover-glow">Settings</a>
       <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
       <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
