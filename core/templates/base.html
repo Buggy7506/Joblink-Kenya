@@ -732,14 +732,13 @@ body.light-mode .active-link {
       </nav>
 
     </div>
-
-    <!-- Mobile toggle -->
+      <!-- Mobile toggle -->
     <div class="mobile-toggle">
       <button id="menuToggle" style="font-size:1.5rem; color:white;"><i class="fas fa-bars"></i></button>
     </div>
   </div>
-
-  <!-- Mobile Menu -->
+      
+    <!-- Mobile Menu -->
   <div id="mobileMenu" class="mobile-menu">
     {% if user.is_authenticated %}
       {% if user.is_superuser or user.role == 'admin' %}
@@ -748,130 +747,26 @@ body.light-mode .active-link {
         <a href="{% url 'admin_profile' %}" class="hover-glow">Profile</a>
       {% elif user.role == 'employer' and not profile_verification %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-        <div class="mobile-dropdown">
-              <div class="mobile-dropdown-toggle">
-                <a href="{% url 'dashboard' %}" class="dropdown-main-link">
-                  Dashboard
-                </a>
-                <i class="fas fa-chevron-down dropdown-arrow"></i>
-              </div>
-            
-              <div class="mobile-dropdown-menu">
-            
-                <span class="dropdown-title">Jobs</span>
-                <a href="{% url 'post_job' %}">➕ Post Job</a>
-                <a href="{% url 'view_posted_jobs' %}">📄 My Jobs</a>
-            
-                <span class="dropdown-title">Applicants</span>
-                <a href="{% url 'view_applicants' %}">👥 Applicants</a>
-            
-                <span class="dropdown-title">Alerts</span>
-                <a href="{% url 'notifications' %}">🔔 Notifications</a>
-            
-              </div>
-            </div>
-       <div class="mobile-dropdown">
-              <div class="mobile-dropdown-toggle">
-                <a href="{% url 'employer_profile' %}" class="dropdown-main-link">
-                  Profile
-                </a>
-                <i class="fas fa-chevron-down dropdown-arrow"></i>
-              </div>
-            
-              <div class="mobile-dropdown-menu">
-                <span class="dropdown-title">Company</span>
-                <a href="{% url 'company_profile' %}">🏢 Company Profile</a>
-                <a href="{% url 'employer_profile' %}">🏢 View Profile</a>
-                <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
-            
-                <span class="dropdown-title">Account</span>
-                <a href="{% url 'logout' %}">🚪 Logout</a>
-              </div>
-            </div>
+        <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+        <a href="{% url 'employer_profile' %}" class="hover-glow">Profile</a>
       {% else %}
         <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-       <div class="mobile-dropdown">
-              <div class="mobile-dropdown-toggle">
-                <a href="{% url 'dashboard' %}" class="dropdown-main-link">
-                  Dashboard
-                </a>
-                <i class="fas fa-chevron-down dropdown-arrow"></i>
-              </div>
-            
-              <div class="mobile-dropdown-menu">
-            
-                <span class="dropdown-title">Jobs</span>
-                <a href="{% url 'job_list' %}">Browse Jobs</a>
-                <a href="{% url 'job_suggestions' %}">Job Suggestions</a>
-                <a href="{% url 'applied_jobs' %}">Applied Jobs</a>
-                <a href="{% url 'job_alerts' %}">Job Alerts</a>
-            
-                <span class="dropdown-title">Resume</span>
-                <a href="{% url 'build_resume' %}">Resume Builder</a>
-                <a href="{% url 'view_resume' %}">View Resume</a>
-            
-                <span class="dropdown-title">Other</span>
-                <a href="{% url 'resources' %}">Career Resources</a>
-                <a href="{% url 'notifications' %}">Notifications</a>
-                <a href="{% url 'recycle_bin' %}">Recycle Bin</a>
-            
-              </div>
-            </div>
-        <div class="mobile-dropdown">
-              <div class="mobile-dropdown-toggle">
-                <a href="{% url 'profile' %}" class="dropdown-main-link">
-                  Profile
-                </a>
-                <i class="fas fa-chevron-down dropdown-arrow"></i>
-              </div>
-            
-              <div class="mobile-dropdown-menu">
-                <span class="dropdown-title">Profile</span>
-                <a href="{% url 'profile' %}">👤 View Profile</a>
-                <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
-            
-                <span class="dropdown-title">Documents</span>
-                <a href="{% url 'view_resume' %}">📄 View Resume</a>
-            
-                <span class="dropdown-title">Account</span>
-                <a href="{% url 'logout' %}">🚪 Logout</a>
-              </div>
-            </div>
+        <a href="{% url 'dashboard' %}" class="hover-glow">Dashboard</a>
+        <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
       {% endif %}
-      <div class="mobile-dropdown">
-        <div class="mobile-dropdown-toggle">
-          <a href="{% url 'change_username_password' %}" class="dropdown-main-link">
-            Settings
-          </a>
-          <i class="fas fa-chevron-down dropdown-arrow"></i>
-        </div>
-      
-        <div class="mobile-dropdown-menu">
-      
-          <span class="dropdown-title">Account</span>
-          <a href="{% url 'change_username_password' %}#security">
-            🔐 Security
-          </a>
-            <!-- Theme Section -->
-            <p class="dropdown-section-title mt-3">Theme</p>
-            
-            <button id="darkModeToggleMobile"
-                    class="w-full flex items-center gap-2 py-2">
-              <span id="mobileThemeIcon">🌙</span>
-              <span id="mobileThemeText">Dark Mode</span>
-            </button>
-          <span class="dropdown-title danger">Danger Zone</span>
-          <a href="{% url 'change_username_password' %}#danger"
-             class="danger-link">
-            🗑 Delete Account
-          </a>
-        </div>
-      </div>
+      <a href="{% url 'change_username_password' %}" class="hover-glow">Account Settings</a>
+      <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
     {% else %}
       <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
       <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
       <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
     {% endif %}
+
+    <!-- Mobile Theme Toggle -->
+    <button id="darkModeToggleMobile">
+      <span id="mobileThemeIcon">🌙</span>
+      <span id="mobileThemeText">Dark Mode</span>
+    </button>
   </div>
 </header>
 
