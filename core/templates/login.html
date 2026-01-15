@@ -201,6 +201,26 @@
   #login-page .auth { order: 1; width: 100%; max-width: 100%; }
   #login-page .auth-card { width: 100%; padding: 20px; }
 }
+
+/* Make reCAPTCHA responsive on login */
+#login-page .g-recaptcha {
+  transform: scale(1);
+  transform-origin: 0 0;
+}
+
+/* Smaller phones */
+@media (max-width: 480px) {
+  #login-page .g-recaptcha {
+    transform: scale(0.85);
+  }
+}
+
+/* Very narrow screens */
+@media (max-width: 360px) {
+  #login-page .g-recaptcha {
+    transform: scale(0.75);
+  }
+}
 </style>
 {% endblock %}
 
