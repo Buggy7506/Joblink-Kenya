@@ -7,155 +7,153 @@
 {% block content %}
 
 <style>
-/* 🌫 GLASS CARD */
-.glass-card {
-  backdrop-filter: blur(14px);
-  background: rgba(255,255,255,0.25);
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+/* ===========================
+   EMPLOYER FORM – THEME AWARE
+=========================== */
+
+/* Title + section intro */
+h2.section-title {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--text-accent);
+}
+.section-sub {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
 }
 
-/* Slight glass on list group */
-.glass-sub-list .list-group-item {
-  backdrop-filter: blur(6px);
-  background: rgba(255,255,255,0.35);
+/* Form container */
+#companyFullForm {
+  background: var(--bg-card);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
 }
 
-/* 📦 GLASS INPUT FIELDS */
-form input[type="text"],
-form input[type="email"],
-form input[type="url"],
-form input[type="number"],
-form select,
-form textarea {
+/* Inputs */
+#companyFullForm input,
+#companyFullForm select,
+#companyFullForm textarea {
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 14px;
-  border: 1px solid rgba(255,255,255,0.6);
+  border: 1px solid var(--text-muted);
   border-radius: 12px;
-  background: rgba(255,255,255,0.35);
-  font-size: 15px;
-  color: #222;
-  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-main);
+  backdrop-filter: blur(8px);
   transition: all 0.25s ease;
 }
 
-/* Placeholder tint */
-form input::placeholder,
-form textarea::placeholder {
-  color: rgba(0,0,0,0.45) !important;
+#companyFullForm input::placeholder,
+#companyFullForm textarea::placeholder {
+  color: var(--text-muted);
 }
 
-/* Focus state glass pop */
-form input:focus,
-form select:focus,
-form textarea:focus {
-  border-color: rgba(0,120,255,0.8);
-  background: rgba(255,255,255,0.6);
-  box-shadow: 0 0 0 3px rgba(0,120,255,0.25);
+/* Focus */
+#companyFullForm input:focus,
+#companyFullForm select:focus,
+#companyFullForm textarea:focus {
+  border-color: var(--text-accent);
+  background: rgba(255,255,255,0.16);
+  box-shadow: 0 0 0 3px rgba(0,200,255,0.25);
   outline: none;
 }
 
 /* Labels */
-form label {
+#companyFullForm label {
   font-weight: 600;
   margin-bottom: 4px;
   display: block;
-  color: #042444;
+  color: var(--text-main);
 }
 
 /* Error text */
-form small {
+#companyFullForm small {
   display: block;
   font-size: 13px;
   margin-top: -10px;
   margin-bottom: 8px;
-  color: #dc3545 !important;
-}
-
-/* Submit Button */
-form button[type="submit"] {
-  border-radius: 12px;
-  font-size: 16px;
-  margin-top: 2px;
-  backdrop-filter: blur(4px);
+  color: var(--text-danger) !important;
 }
 
 /* Drag zone */
 .upload-zone {
   cursor: pointer;
   transition: 0.25s;
-  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px dashed var(--text-accent);
+  color: var(--text-main);
 }
 .upload-zone:hover {
-  background: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.18);
 }
 .glass-drop {
-  background: rgba(0,120,255,0.25) !important;
+  background: rgba(0,200,255,0.25) !important;
   color: white !important;
-  border-color: rgba(255,255,255,0.7) !important;
+  border-color: var(--text-accent) !important;
 }
 
-/* Remove Chrome yellow autofill */
-input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px rgba(255,255,255,0.4) inset !important;
-  box-shadow: 0 0 0 30px rgba(255,255,255,0.4) inset !important;
+/* Submit */
+#companyFullForm button[type="submit"] {
   border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 2px;
+  width: 100%;
 }
 
-/* Mobile tweaks */
-@media(max-width: 576px){
-  h2 { font-size: 20px; }
+/* Progress */
+#progressWrap .progress {
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
 }
+
 </style>
+
+<h2 class="section-title">Employer Verification</h2>
+<p class="section-sub">
+  Upload required verification documents to activate your employer account.
+</p>
 
 <form id="companyFullForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    <!-- Company profile fields -->
     {% for field in form %}
         {% if field.name != 'document_type' %}
             <label>{{ field.label }}</label>
             {{ field }}
             {% if field.errors %}
-                <small style="color:red;">{{ field.errors|striptags }}</small>
+                <small>{{ field.errors|striptags }}</small>
             {% endif %}
         {% endif %}
     {% endfor %}
 
-    <p class="note">Business emails (e.g. john@company.com) unlock instant verification.</p>
+    <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
 
-    <hr class="my-4">
-
-    <!-- Verification Section -->
-    <h2 class="text-center fw-semibold mt-5">Employer Verification</h2>
-    <p class="text-center text-muted mb-3">
-        Upload one or more verification documents to activate your employer account.
-    </p>
-
-    <!-- Drag & Drop Zone -->
-    <div id="dropZone" class="border border-primary border-2 rounded-4 p-4 text-center upload-zone mb-3">
+    <!-- Drag Zone -->
+    <div id="dropZone" class="upload-zone text-center p-4 mb-3">
         <i class="bi bi-cloud-arrow-up fs-1"></i>
-        <p class="mt-2 mb-1 fw-semibold">Drag & drop files</p>
+        <p class="fw-semibold">Drag & drop files</p>
         <small class="text-muted">or tap to browse</small>
-        <p id="fileCount" class="mt-2 small text-primary d-none"></p>
+        <p id="fileCount" class="mt-2 small text-accent d-none"></p>
     </div>
 
-    <!-- Hidden multiple upload input -->
-    <input id="fileInput" type="file" name="file" class="d-none" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+    <!-- File input -->
+    <input id="fileInput" type="file" name="file" class="d-none" multiple
+           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
     <div class="mb-3">
         {{ form.document_type|add_class:"form-select" }}
     </div>
 
-    <!-- ONE BUTTON -->
-    <button type="submit" class="btn btn-primary py-2 fw-semibold w-100">
-        Save Profile & Upload Files
-    </button>
+    <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
 
-    <!-- Progress feedback -->
     <div id="progressWrap" class="mt-3 d-none"></div>
 </form>
 
