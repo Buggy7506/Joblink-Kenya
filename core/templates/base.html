@@ -518,6 +518,51 @@ body.light-mode .active-link {
   margin-bottom: 0.25rem;
   font-weight: 600;
 }
+
+/* =========================================================
+   FIX: Prevent dropdowns from being clipped or cut off
+========================================================= */
+
+/* Allow navbar containers to let dropdowns escape */
+header, nav, .desktop-nav {
+  overflow: visible !important;
+}
+
+/* Ensure dropdown parents do NOT hide overflow */
+.nav-dropdown,
+.nav-dropdown-menu,
+.nav-dropdown-toggle {
+  overflow: visible !important;
+}
+
+/* Force menus above all elements */
+.nav-dropdown-menu,
+.mobile-dropdown-menu {
+  z-index: 9999 !important;
+  position: absolute;
+}
+
+/* Allow large menus to scroll instead of clipping */
+.nav-dropdown-menu {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* Scrollbar styling (visible but subtle) */
+.nav-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.nav-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.4);
+  border-radius: 4px;
+}
+
+/* Mobile dropdown safe expansion */
+.mobile-menu,
+.mobile-dropdown-menu {
+  overflow: visible !important;
+  z-index: 9999 !important;
+}
 </style>
 
 </head>
