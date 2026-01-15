@@ -4,13 +4,14 @@
 
 {% block content %}
 <style>
+/* keep everything else exactly the same */
 .popup {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--bg-card); /* theme-aware background */
-  color: var(--text-main); /* main text color */
+  background: var(--bg-card);
+  color: var(--text-main);
   padding: 40px;
   border-radius: 20px;
   text-align: center;
@@ -20,47 +21,49 @@
   z-index: 1000;
   transition: background 0.4s, color 0.4s, box-shadow 0.4s;
 }
-
 .popup h2 {
   font-size: 28px;
   margin-bottom: 10px;
-  color: var(--text-accent); /* accent color for heading */
+  color: var(--text-accent);
   text-shadow: 0 0 5px var(--glow-accent);
   transition: color 0.4s, text-shadow 0.4s;
 }
-
 .popup p {
   font-size: 18px;
-  color: var(--text-muted); /* muted text for description */
+  color: var(--text-muted);
   transition: color 0.4s;
 }
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translate(-50%, -60%); }
   to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
-.btn-home {
-  margin-top: 20px;
-  padding: 10px 25px;
-  border: none;
-  background: var(--text-accent); /* theme-aware button color */
-  color: var(--text-inverse, #000); /* button text */
+/* ONLY NEW BIT: highlight redirect text */
+.redirect-text {
+  color: var(--text-accent);
   font-weight: bold;
-  border-radius: 30px;
-  box-shadow: 0 0 15px var(--glow-accent);
-  cursor: pointer;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-}
-
-.btn-home:hover {
-  background: var(--text-accent-hover, var(--text-accent));
 }
 </style>
 
 <div class="popup">
-  <h2>🚪 You’ve Logged Out</h2>
-  <p>You have successfully ended your session.</p>
-  <a href="{% url 'login' %}"><button class="btn-home">Log In Again</button></a>
+  <h2>You’ve Logged Out</h2>
+  <p>You have successfully ended your session.<br><br>
+     <span class="redirect-text">Redirecting<span id="dots">.</span></span>
+  </p>
 </div>
+
+<script>
+  // animate dots
+  let dotCount = 1;
+  setInterval(() => {
+    dotCount = (dotCount % 3) + 1;
+    document.getElementById("dots").textContent = '.'.repeat(dotCount);
+  }, 500);
+
+  // Redirect after 2 seconds
+  setTimeout(() => {
+    window.location.href = "{% url 'login' %}";
+  }, 2000);
+</script>
+
 {% endblock %}
