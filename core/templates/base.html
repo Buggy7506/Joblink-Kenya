@@ -608,18 +608,18 @@ body.light-mode .active-link {
             
                 <div class="dropdown-group">
                   <span class="dropdown-title">Jobs</span>
-                  <a href="{% url 'post_job' %}">➕ Post Job</a>
-                  <a href="{% url 'view_posted_jobs' %}">📄 My Jobs</a>
+                  <a href="{% url 'post_job' %}">Post Job</a>
+                  <a href="{% url 'view_posted_jobs' %}">Posted Jobs</a>
                 </div>
             
                 <div class="dropdown-group">
                   <span class="dropdown-title">Applicants</span>
-                  <a href="{% url 'view_applicants' %}">👥 Applicants</a>
+                  <a href="{% url 'view_applicants' %}">Applicants</a>
                 </div>
             
                 <div class="dropdown-group">
                   <span class="dropdown-title">Alerts</span>
-                  <a href="{% url 'notifications' %}">🔔 Notifications</a>
+                  <a href="{% url 'notifications' %}">Notifications</a>
                 </div>
             
               </div>
@@ -635,15 +635,19 @@ body.light-mode .active-link {
               <div class="nav-dropdown-menu glass-card">
             
                 <div class="dropdown-group">
-                  <span class="dropdown-title">Company</span>
-                  <a href="{% url 'company_profile' %}">🏢 Company Profile</a>
-                  <a href="{% url 'employer_profile' %}">🏢 Employer Profile</a>
-                  <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+                  <span class="dropdown-title">Employer</span>
+                  <a href="{% url 'employer_profile' %}">Employer Profile</a>
+                  <a href="{% url 'edit_profile' %}">Edit Profile</a>
                 </div>
-            
+                  <div class="dropdown-group">
+                        <span class="dropdown-title">Company</span>
+                        <a href="{% url 'company_profile' %}">Company Profile</a>
+                        <a href="{% url 'complete_employer_profile' %}">Edit Profile</a>
+                  </div>
+                  
                 <div class="dropdown-group">
                   <span class="dropdown-title">Account</span>
-                  <a href="{% url 'logout' %}">🚪 Logout</a>
+                  <a href="{% url 'logout' %}" style="color:red; font-weight:900; text-transform:uppercase; font-size:1.1rem;">Logout</a>
                 </div>
             
               </div>
@@ -696,18 +700,18 @@ body.light-mode .active-link {
             
                 <div class="dropdown-group">
                   <span class="dropdown-title">Profile</span>
-                  <a href="{% url 'profile' %}">👤 View Profile</a>
-                  <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+                  <a href="{% url 'profile' %}">View Profile</a>
+                  <a href="{% url 'edit_profile' %}">Edit Profile</a>
                 </div>
             
                 <div class="dropdown-group">
                   <span class="dropdown-title">Documents</span>
-                  <a href="{% url 'view_resume' %}">📄 View Resume</a>
+                  <a href="{% url 'view_resume' %}">View Resume</a>
                 </div>
             
                 <div class="dropdown-group">
                   <span class="dropdown-title">Account</span>
-                  <a href="{% url 'logout' %}">🚪 Logout</a>
+                  <a href="{% url 'logout' %}" style="color:red; font-weight:900; text-transform:uppercase; font-size:1.1rem;">Logout</a>
                 </div>
             
               </div>
@@ -727,7 +731,7 @@ body.light-mode .active-link {
                 <div class="dropdown-group">
                   <span class="dropdown-title">Account</span>
                   <a href="{% url 'change_username_password' %}#security">
-                    🔐 Security
+                    Security
                   </a>
                 </div>
             
@@ -736,7 +740,7 @@ body.light-mode .active-link {
                   <span class="dropdown-title">Danger Zone</span>
                   <a href="{% url 'change_username_password' %}#danger"
                      class="danger-link">
-                    🗑 Delete Account
+                    Delete Account
                   </a>
                    <!-- Theme Section -->
                   <li class="dropdown-section-title">Theme</li>
@@ -782,7 +786,7 @@ body.light-mode .active-link {
         <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
       {% endif %}
       <a href="{% url 'change_username_password' %}" class="hover-glow">Settings</a>
-      <a href="{% url 'logout' %}" class="hover-glow" style="color:#f87171;">Logout</a>
+      <a href="{% url 'logout' %}" style="color:red; font-weight:900; text-transform:uppercase; font-size:1.1rem;">Logout</a>
     {% else %}
       <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
       <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
