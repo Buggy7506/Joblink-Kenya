@@ -56,37 +56,61 @@ from core.middleware.employer_required import employer_verified_required
 
 # Search + Filter + Pagination + Context
 def available_jobs(request):
-    # Get filters
     search = request.GET.get("search", "")
-    category = request.GET.get("category", "")
-    location = request.GET.get("location", "")
+    sort = request.GET.get("sort", "")
+
+    # MULTI-SELECT
+    category_list = request.GET.getlist("category")
+    location_list = request.GET.getlist("location")
 
     # Base queryset
-    jobs = Job.objects.all().order_by('-created_at')
+    jobs = Job.objects.filter(is_active=True)
 
-    # Apply search
+    # Search
     if search:
         jobs = jobs.filter(title__icontains=search)
 
-    # Apply filters
-    if category:
-        jobs = jobs.filter(category__iexact=category)
+    # Multi-Category
+    if category_list:
+        jobs = jobs.filter(category__in=category_list)
 
-    if location:
-        jobs = jobs.filter(location__iexact=location)
+    # Multi-Location
+    if location_list:
+        jobs = jobs.filter(location__in=location_list)
+
+    # Sort handler
+    if sort == "newest":
+        jobs = jobs.order_by("-posted_date")
+    elif sort == "deadline_asc":
+        jobs = jobs.order_by("deadline")
+    elif sort == "deadline_desc":
+        jobs = jobs.order_by("-deadline")
+    else:
+        jobs = jobs.order_by("-id")
 
     # Pagination
-    paginator = Paginator(jobs, 10)
-    page_number = request.GET.get('page')
-    jobs_page = paginator.get_page(page_number)
+    paginator = Paginator(jobs, 6)
+    page = request.GET.get("page")
+    jobs_page = paginator.get_page(page)
 
-    context = {
-        'jobs': jobs_page,
-        'search': search,
-        'category': category,
-        'location': location,
-    }
-    return render(request, 'available_jobs.html', context)
+    # Show only first 3 Premium
+    premium_jobs = jobs.filter(is_premium=True)[:3]
+
+    # AJAX infinite scroll load
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(request, "job_cards.html", {
+            "jobs": jobs_page,
+        })
+
+    # Normal full page load
+    return render(request, "job_list.html", {
+        "jobs": jobs_page,
+        "premium_jobs": premium_jobs,
+        "search": search,
+        "sort": sort,
+        "category_list": category_list,
+        "location_list": location_list,
+    })
 
 # Ping Page
 def ping(request):
