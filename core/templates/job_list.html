@@ -155,6 +155,52 @@
   font-size: 14px;
   color: #888;
 }
+
+/* ------------------------------------
+   CLEAN RESPONSIVE FILTER BAR
+------------------------------------ */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--bg-card);
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  margin-bottom: 18px;
+}
+
+.filter-bar input,
+.filter-bar select,
+.filter-bar button {
+  flex: 1 1 180px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-glow);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.filter-bar button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  flex: 1 1 120px;
+}
+
+.filter-bar button:hover {
+  opacity: .85;
+}
+
+/* Mobile control */
+@media(max-width: 600px){
+  .filter-bar {
+    flex-direction: column;
+  }
+}
 </style>
 
 <div class="container">
@@ -168,32 +214,35 @@
   {% endif %}
 
   {# 🔍 SEARCH + FILTER CONTROLS #}
-<form method="get" class="filter-bar" id="filterForm">
+ <!-- 🌐 SMART DYNAMIC FILTER BAR -->
+  <form method="get" class="filter-bar" id="filterForm">
 
-  <input type="text" id="searchInput" name="search"
-         placeholder="Search by job title…" value="{{ search }}">
+    <input type="text" id="searchInput" name="search"
+           placeholder="🔍 Search job title…" value="{{ search }}">
 
-  <select name="category" multiple size="3" id="categorySelect">
-    <option value="IT" {% if 'IT' in category_list %}selected{% endif %}>IT</option>
-    <option value="Marketing" {% if 'Marketing' in category_list %}selected{% endif %}>Marketing</option>
-    <option value="Finance" {% if 'Finance' in category_list %}selected{% endif %}>Finance</option>
-  </select>
+    <!-- MULTI SELECT CATEGORY (dynamic)-->
+    <select name="category" multiple id="categorySelect">
+      {% for cat in categories %}
+        <option value="{{ cat }}" {% if cat in category_list %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
 
-  <select name="location" multiple size="3" id="locationSelect">
-    <option value="Nairobi" {% if 'Nairobi' in location_list %}selected{% endif %}>Nairobi</option>
-    <option value="Remote" {% if 'Remote' in location_list %}selected{% endif %}>Remote</option>
-    <option value="Mombasa" {% if 'Mombasa' in location_list %}selected{% endif %}>Mombasa</option>
-  </select>
+    <!-- MULTI SELECT LOCATION (dynamic like OSM sources) -->
+    <select name="location" multiple id="locationSelect">
+      {% for loc in locations %}
+        <option value="{{ loc }}" {% if loc in location_list %}selected{% endif %}>{{ loc }}</option>
+      {% endfor %}
+    </select>
 
-  <select name="sort" id="sortSelect">
-    <option value="">Sort</option>
-    <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest First</option>
-    <option value="deadline_asc" {% if sort == "deadline_asc" %}selected{% endif %}>Deadline (Closest)</option>
-    <option value="deadline_desc" {% if sort == "deadline_desc" %}selected{% endif %}>Deadline (Furthest)</option>
-  </select>
+    <select name="sort" id="sortSelect">
+      <option value="">Sort by</option>
+      <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest First</option>
+      <option value="deadline_asc" {% if sort == "deadline_asc" %}selected{% endif %}>Deadline (Soonest)</option>
+      <option value="deadline_desc" {% if sort == "deadline_desc" %}selected{% endif %}>Deadline (Latest)</option>
+    </select>
 
-  <button type="submit">Search</button>
-</form>
+    <button type="submit">Apply</button>
+  </form>
 
   <h2>🌟 Featured Jobs</h2>
   {% for job in premium_jobs %}
