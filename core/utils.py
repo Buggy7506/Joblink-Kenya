@@ -13,6 +13,16 @@ import time
 
 logger = logging.getLogger(__name__)
 
+# core/utils.py
+import secrets
+
+def long_id(prefix="", length=20):
+    """
+    Generate a readable long ID with a prefix.
+    Example: job-ljWJs9sf9sdf90sdf90KK
+    """
+    return f"{prefix}{secrets.token_urlsafe(length)}"
+
 def employer_verified_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
