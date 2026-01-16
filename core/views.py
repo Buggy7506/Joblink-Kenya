@@ -93,6 +93,10 @@ def available_jobs(request):
     page = request.GET.get("page")
     jobs_page = paginator.get_page(page)
 
+    # 🔥 Grab unique filter items from actual DB
+    categories = Job.objects.values_list("category", flat=True).distinct()
+    locations = Job.objects.values_list("location", flat=True).distinct()
+
     # Show only first 3 Premium
     premium_jobs = jobs.filter(is_premium=True)[:3]
 
@@ -110,6 +114,8 @@ def available_jobs(request):
         "sort": sort,
         "category_list": category_list,
         "location_list": location_list,
+        "categories": categories,
+        "locations": locations,
     })
 
 # Ping Page
