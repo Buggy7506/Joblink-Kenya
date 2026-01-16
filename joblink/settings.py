@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
     "node354a.containers.back4app.com",
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
-    "https://*.onrender.com",
+    "joblink-kenya-4jf3.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
