@@ -433,7 +433,7 @@ document.querySelector("#searchInput").addEventListener("keyup", () => {
 });
 
 /* CHANGE on select/ sort trigger */
-["categorySelect", "locationSelect", "sortSelect"]
+["sortSelect"]
   .forEach(id => document.getElementById(id).addEventListener("change", submitFilters));
 
 /* Load job categories once on page load */
