@@ -220,19 +220,25 @@
     <input type="text" id="searchInput" name="search"
            placeholder="🔍 Search job title…" value="{{ search }}">
 
-    <!-- MULTI SELECT CATEGORY (dynamic)-->
-    <select name="category" multiple id="categorySelect">
-      {% for cat in categories %}
-        <option value="{{ cat }}" {% if cat in category_list %}selected{% endif %}>{{ cat }}</option>
-      {% endfor %}
-    </select>
+    <!-- CATEGORY AUTOCOMPLETE -->
+    <input type="text"
+           name="category"
+           id="categoryInput"
+           list="categoryData"
+           placeholder="Select or type category…"
+           value="{{ category }}">
+    <datalist id="categoryData"></datalist>
+    
+    
+    <!-- LOCATION AUTOCOMPLETE -->
+    <input type="text"
+           name="location"
+           id="locationInput"
+           list="locationData"
+           placeholder="Search location (OSM)…"
+           value="{{ location }}">
+    <datalist id="locationData"></datalist>
 
-    <!-- MULTI SELECT LOCATION (dynamic like OSM sources) -->
-    <select name="location" multiple id="locationSelect">
-      {% for loc in locations %}
-        <option value="{{ loc }}" {% if loc in location_list %}selected{% endif %}>{{ loc }}</option>
-      {% endfor %}
-    </select>
 
     <select name="sort" id="sortSelect">
       <option value="">Sort by</option>
@@ -430,25 +436,30 @@ document.querySelector("#searchInput").addEventListener("keyup", () => {
 ["categorySelect", "locationSelect", "sortSelect"]
   .forEach(id => document.getElementById(id).addEventListener("change", submitFilters));
 
-/* Load categories once */
-fetch("/api/categories/")
+/* Load job categories once on page load */
+fetch("{% url 'api_categories' %}")
   .then(r => r.json())
   .then(data => {
     const box = document.querySelector("#categoryData");
+    box.innerHTML = "";
     data.categories.forEach(c => {
       const o = document.createElement("option");
       o.value = c;
       box.appendChild(o);
     });
-  });
+  })
+  .catch(() => console.log("Category API failed"));
 
 /* Location autocomplete from OSM */
 let lookup;
 document.querySelector("#locationInput").addEventListener("keyup", e => {
-  const term = e.target.value;
+  const term = e.target.value.trim();
+
+  if (term.length < 3) return;   // wait until user types 3+ chars
+
   clearTimeout(lookup);
   lookup = setTimeout(() => {
-    fetch(`/api/locations/?q=${encodeURIComponent(term)}`)
+    fetch("{% url 'api_locations' %}?q=" + encodeURIComponent(term))
       .then(r => r.json())
       .then(data => {
         const box = document.querySelector("#locationData");
@@ -458,10 +469,10 @@ document.querySelector("#locationInput").addEventListener("keyup", e => {
           o.value = loc;
           box.appendChild(o);
         });
-      });
+      })
+      .catch(() => console.log("OSM request failed"));
   }, 300);
 });
-
 </script>
 
 </div><!-- /.available-jobs-page -->
