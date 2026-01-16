@@ -124,19 +124,18 @@ h2.section-title {
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-      {% for field in form %}
-          {% if field.name != 'document_type' %}
-              <label>{{ field.label }}</label>
-              {{ field|add_class:"form-control" }}
-              {% if field.errors %}
-                  <small>{{ field.errors|striptags }}</small>
-              {% endif %}
-          {% endif %}
-      {% endfor %}
+    <!-- Render ALL fields normally -->
+    {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field|add_class:"form-control" }}
+        {% if field.errors %}
+            <small>{{ field.errors|striptags }}</small>
+        {% endif %}
+    {% endfor %}
 
     <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
 
-    <!-- Drag Zone -->
+    <!-- Drag Zone (single hidden file input) -->
     <div id="dropZone" class="upload-zone text-center p-4 mb-3">
         <i class="bi bi-cloud-arrow-up fs-1"></i>
         <p class="fw-semibold">Drag & drop files</p>
@@ -144,24 +143,21 @@ h2.section-title {
         <p id="fileCount" class="mt-2 small text-accent d-none"></p>
     </div>
 
-    <!-- Hidden file input replaces form.file -->
-    <input id="fileInput" type="file" multiple name="file"
-           class="d-none"
+    <input id="fileInput" type="file" class="d-none"
+           multiple name="file"
            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
-    <!-- Now render document type properly -->
-    <div class="mb-3">
-        <label>{{ form.document_type.label }}</label>
-        {{ form.document_type|add_class:"form-select" }}
-        {% if form.document_type.errors %}
-            <small>{{ form.document_type.errors|striptags }}</small>
-        {% endif %}
-    </div>
+    <!-- Manual select dropdown (NOT from form) -->
+    <label class="mt-3">Document Type</label>
+    <select name="document_type" class="form-select">
+        <option value="certificate">Company Certificate</option>
+        <option value="license">Business License</option>
+        <option value="kra">KRA PIN</option>
+    </select>
 
     <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
 
     <div id="progressWrap" class="mt-3 d-none"></div>
-
     <div id="docList" class="mt-4"></div>
 </form>
 
