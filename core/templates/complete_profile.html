@@ -125,9 +125,9 @@ h2.section-title {
     {{ form.non_field_errors }}
 
       {% for field in form %}
-          {% if field.name != 'document_type' and field.name != 'file' %}
+          {% if field.name != 'document_type' %}
               <label>{{ field.label }}</label>
-              {{ field }}
+              {{ field|add_class:"form-control" }}
               {% if field.errors %}
                   <small>{{ field.errors|striptags }}</small>
               {% endif %}
