@@ -118,6 +118,35 @@ def available_jobs(request):
         "locations": locations,
     })
 
+from django.http import JsonResponse
+import requests
+
+def api_job_categories(request):
+    url = "https://raw.githubusercontent.com/dwyl/job-categories/master/job-categories.json"
+    try:
+        r = requests.get(url, timeout=3)
+        data = r.json()
+        categories = sorted(set([x["Category"] for x in data]))
+        return JsonResponse({"categories": categories})
+    except Exception:
+        return JsonResponse({"categories": []})
+
+
+def api_locations(request):
+    q = request.GET.get("q", "")
+    if not q:
+        return JsonResponse({"locations": []})
+
+    url = f"https://nominatim.openstreetmap.org/search?q={q}&format=json&addressdetails=0&limit=8"
+    headers = {"User-Agent": "YourJobApp/1.0"}
+    try:
+        r = requests.get(url, headers=headers, timeout=3)
+        data = r.json()
+        names = sorted(set([x["display_name"] for x in data]))
+        return JsonResponse({"locations": names})
+    except Exception:
+        return JsonResponse({"locations": []})
+
 # Ping Page
 def ping(request):
     return HttpResponse("pong")
