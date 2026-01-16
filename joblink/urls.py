@@ -14,18 +14,28 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+"""
+URL configuration for joblink project with
+per-route random long prefixes.
+"""
 from django.contrib import admin
 from django.urls import path, include
-from django.conf.urls.static import static 
+from django.conf.urls.static import static
 from django.conf import settings
 from django.http import HttpResponse
+import secrets
 
 def healthcheck(request):
     return HttpResponse("OK")
 
+def r():  # random url segment
+    return secrets.token_urlsafe(16)
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),
-] 
+    path(f"{r()}/admin/", admin.site.urls),
+    path(f"{r()}/health/", healthcheck),
+    path(f"{r()}/", include("core.urls")),
+]
+
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
