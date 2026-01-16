@@ -1,24 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Availabe Jobs{% endblock %}
+{% block title %}Available Jobs{% endblock %}
 
 {% block content %}
+<div class="available-jobs-page">
+
 <style>
-/* Page base */
-body {
+.available-jobs-page body {
   background: var(--bg-main);
   font-family: Arial, sans-serif;
   color: var(--text-main);
 }
 
 /* Layout */
-.container {
+.available-jobs-page .container {
   margin-top: 40px;
   padding: 20px;
 }
 
 /* Section titles */
-h2 {
+.available-jobs-page h2 {
   font-size: 24px;
   margin-bottom: 16px;
   color: var(--accent);
@@ -27,8 +28,8 @@ h2 {
 }
 
 /* Job cards */
-.premium-job,
-.normal-job {
+.available-jobs-page .premium-job,
+.available-jobs-page .normal-job {
   padding: 20px;
   border-radius: 14px;
   margin-bottom: 20px;
@@ -38,46 +39,45 @@ h2 {
 }
 
 /* Premium */
-.premium-job {
+.available-jobs-page .premium-job {
   background: linear-gradient(135deg, #6a00ff, #4b0082);
   border-color: gold;
   box-shadow: 0 0 25px rgba(255,215,0,0.35);
 }
 
 /* Normal */
-.normal-job {
+.available-jobs-page .normal-job {
   background: var(--bg-card);
   border-color: var(--accent);
 }
 
 /* Hover */
-.premium-job:hover,
-.normal-job:hover {
+.available-jobs-page .premium-job:hover,
+.available-jobs-page .normal-job:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 35px var(--accent-glow);
 }
 
 /* Titles */
-.job-title {
+.available-jobs-page .job-title {
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 6px;
   color: gold;
 }
-
-.normal-job .job-title {
+.available-jobs-page .normal-job .job-title {
   color: var(--accent);
 }
 
 /* Meta */
-.job-meta {
+.available-jobs-page .job-meta {
   font-size: 14px;
   margin: 3px 0;
   color: var(--text-muted);
 }
 
 /* Apply link */
-.apply-link {
+.available-jobs-page .apply-link {
   display: inline-block;
   margin-top: 10px;
   color: var(--accent);
@@ -86,13 +86,13 @@ h2 {
   transition: all 0.3s ease;
 }
 
-.apply-link:hover {
+.available-jobs-page .apply-link:hover {
   color: var(--text-main);
   border-color: var(--text-main);
 }
 
 /* Premium badge */
-.premium-badge {
+.available-jobs-page .premium-badge {
   background: gold;
   color: #000;
   font-size: 11px;
@@ -103,18 +103,18 @@ h2 {
 }
 
 /* Empty state */
-.no-jobs {
+.available-jobs-page .no-jobs {
   color: var(--text-muted);
   font-style: italic;
 }
 
 /* Messages */
-.messages {
+.available-jobs-page .messages {
   margin-bottom: 20px;
   text-align: center;
 }
 
-.message-text {
+.available-jobs-page .message-text {
   display: inline-block;
   padding: 12px 22px;
   border-radius: 25px;
@@ -126,18 +126,39 @@ h2 {
   margin-bottom: 10px;
 }
 
-.message-text.success {
+.available-jobs-page .message-text.success {
   background: linear-gradient(90deg, var(--success), #00cc66);
 }
 
-.message-text.error {
+.available-jobs-page .message-text.error {
   background: linear-gradient(90deg, var(--error), #ff2a39);
+}
+
+/* Company real image */
+.available-jobs-page .company-logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  object-fit: cover;
+}
+
+/* Icons alignment */
+.available-jobs-page .icon {
+  margin-right: 4px;
+}
+
+/* Infinite scroll loader */
+.available-jobs-page .loader {
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
+  color: #888;
 }
 </style>
 
 <div class="container">
 
-  <!-- Messages -->
   {% if messages %}
     <div class="messages">
       {% for message in messages %}
@@ -147,40 +168,146 @@ h2 {
   {% endif %}
 
   <h2>🌟 Featured Jobs</h2>
-  {% for job in premium_jobs %}
-    <div class="premium-job">
-      <div class="job-title">{{ job.title }} <span class="premium-badge">Premium</span></div>
-      <p class="job-meta">Company: {{ job.company }}</p>
-      <p class="job-meta">Location: {{ job.location }}</p>
-      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+{% for job in premium_jobs %}
+  <div class="premium-job job-card">
+    <div class="company-row">
+      {% if job.logo %}
+        <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
+      {% else %}
+        <div class="company-logo"></div>
+      {% endif %}
+      <p>{{ job.company }}</p>
     </div>
-  {% empty %}
-    <p class="no-jobs">No premium jobs at the moment.</p>
-  {% endfor %}
+
+    <div class="job-title">
+      {{ job.title }} <span class="premium-badge">Premium</span>
+    </div>
+
+    <p class="job-meta">
+      <span class="icon">📍</span> {{ job.location }}
+    </p>
+
+    <div class="apply-info">
+      <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
+      <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
+    </div>
+
+    <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+  </div>
+{% empty %}
+  <p class="no-jobs">No premium jobs at the moment.</p>
+{% endfor %}
 
   <h2>💼 Free Jobs</h2>
-  {% for job in jobs %}
-    <div class="normal-job">
-      <div class="job-title">{{ job.title }}</div>
-      <p class="job-meta">Company: {{ job.company }}</p>
-      <p class="job-meta">Location: {{ job.location }}</p>
-      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+{% for job in jobs %}
+  <div class="normal-job job-card">
+    <div class="company-row">
+      {% if job.logo %}
+        <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
+      {% else %}
+        <div class="company-logo"></div>
+      {% endif %}
+      <p>{{ job.company }}</p>
     </div>
-  {% empty %}
-    <p class="no-jobs">No jobs found at the moment.</p>
-  {% endfor %}
+
+    <div class="job-title">{{ job.title }}</div>
+
+    <p class="job-meta">
+      <span class="icon">📍</span> {{ job.location }}
+    </p>
+
+    <div class="apply-info">
+      <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
+      <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
+    </div>
+
+    <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+  </div>
+{% empty %}
+  <p class="no-jobs">No jobs found at the moment.</p>
+{% endfor %}
 </div>
+  
+{% if jobs.has_next %}
+  <a id="next-page-link"
+     href="?page={{ jobs.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if location %}&location={{ location }}{% endif %}"
+     hidden>
+  </a>
+{% endif %}
 
 <script>
-  // Auto-fade messages
-  setTimeout(function() {
-    const messages = document.querySelectorAll('.message-text');
-    messages.forEach(msg => {
-      msg.style.opacity = '0';
-      msg.style.transform = 'translateY(-10px)';
-      setTimeout(() => msg.remove(), 1000);
+document.addEventListener("DOMContentLoaded", () => {
+  /* -----------------------------
+     1) AUTO-DISMISS FLASH MESSAGES
+  ------------------------------ */
+  const msgs = document.querySelectorAll('.available-jobs-page .message-text');
+  if (msgs.length) {
+    setTimeout(() => {
+      msgs.forEach((msg, index) => {
+        setTimeout(() => {
+          msg.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          msg.style.opacity = '0';
+          msg.style.transform = 'translateY(-12px)';
+          setTimeout(() => msg.remove(), 700);
+        }, index * 120);
+      });
+    }, 3500);
+  }
+
+  /* -----------------------------
+     2) DEADLINE COUNTDOWN
+  ------------------------------ */
+  function updateDeadlines() {
+    const elements = document.querySelectorAll('.available-jobs-page .deadline');
+    elements.forEach(el => {
+      const dateStr = el.dataset.deadline;
+      if (!dateStr) return;
+
+      const deadline = new Date(dateStr);
+      const today = new Date();
+      const diff = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+
+      if (diff > 1) el.textContent = `${diff} days left to apply`;
+      else if (diff === 1) el.textContent = `1 day left to apply`;
+      else if (diff === 0) el.textContent = `Last day to apply`;
+      else el.textContent = `Closed`;
     });
-  }, 4000);
+  }
+  updateDeadlines();
+
+  /* -----------------------------
+     3) INFINITE SCROLL LOADER
+  ------------------------------ */
+  let loading = false;
+  window.addEventListener('scroll', () => {
+    if (loading) return;
+    if ((window.innerHeight + window.scrollY) < document.body.offsetHeight - 300) return;
+
+    const next = document.querySelector('#next-page-link');
+    if (!next) return;
+    loading = true;
+
+    fetch(next.href)
+      .then(r => r.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const cards = doc.querySelectorAll('.job-card');
+        const container = document.querySelector('.available-jobs-page .container');
+        cards.forEach(card => container.appendChild(card));
+
+        const newNext = doc.querySelector('#next-page-link');
+        if (newNext) next.href = newNext.href;
+        else next.remove();
+
+        loading = false;
+        updateDeadlines(); // refresh countdown for newly loaded cards
+      })
+      .catch(() => loading = false);
+  });
+});
 </script>
 
+</div><!-- /.available-jobs-page -->
 {% endblock %}
