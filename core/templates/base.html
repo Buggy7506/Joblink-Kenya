@@ -786,7 +786,10 @@ body.light-mode .active-link {
         <a href="{% url 'profile' %}" class="hover-glow">Profile</a>
       {% endif %}
       <a href="{% url 'change_username_password' %}" class="hover-glow">Settings</a>
-      <a href="{% url 'logout' %}" style="color:red; font-weight:900; text-transform:uppercase; font-size:1.1rem;">Logout</a>
+      <a href="{% url 'logout' %}"
+         style="color:red; font-weight:900; text-transform:uppercase; font-size:clamp(14px, 3vw, 20px);">
+         Logout
+      </a>
     {% else %}
       <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
       <a href="{% url 'login' %}" class="hover-glow guest-link">Login</a>
