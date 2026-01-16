@@ -1,0 +1,155 @@
+{% load static %}
+
+<style>
+/* ================================
+   JOB CARD UI (THEME-AWARE)
+================================ */
+
+.job-card {
+  background: var(--bg-card);
+  border-radius: 1rem;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1.3rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+.company-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.4rem;
+}
+
+.company-logo-img {
+  height: 48px;
+  width: 48px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+
+.company-logo {
+  height: 48px;
+  width: 48px;
+  border-radius: 0.5rem;
+  background: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.job-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0.35rem 0 0.6rem;
+}
+
+.job-meta {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.icon {
+  opacity: 0.8;
+  margin-right: 0.25rem;
+}
+
+.apply-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.8rem;
+}
+
+.deadline {
+  font-weight: 600;
+  color: var(--text-accent);
+}
+
+.deadline.closed {
+  color: var(--text-danger);
+}
+
+.posted {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.apply-link {
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-link);
+  background: rgba(255,255,255,0.08);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.apply-link:hover {
+  background: rgba(255,255,255,0.15);
+  color: var(--text-accent);
+}
+
+/* Premium badge */
+.premium-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  margin-left: 0.4rem;
+  border-radius: 0.4rem;
+  background: linear-gradient(45deg, var(--text-accent), var(--glow-accent));
+  color: #000;
+  font-weight: 600;
+}
+
+/* “No results” section */
+.no-jobs {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+</style>
+
+{% for job in jobs %}
+  <div class="job-card">
+    <div class="company-row">
+
+      {% if job.logo %}
+        <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
+      {% else %}
+        <div class="company-logo"></div>
+      {% endif %}
+
+      <strong>{{ job.company }}</strong>
+    </div>
+
+    <div class="job-title">
+      {{ job.title }}
+      {% if job.is_premium %}
+        <span class="premium-badge">Premium</span>
+      {% endif %}
+    </div>
+
+    <p class="job-meta">
+      <span class="icon">📍</span> {{ job.location }}
+    </p>
+
+    <div class="apply-info">
+      <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
+      <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
+    </div>
+
+    <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+  </div>
+{% empty %}
+  <p class="no-jobs">⚠️ No jobs match your filters.</p>
+{% endfor %}
