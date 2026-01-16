@@ -125,7 +125,7 @@ h2.section-title {
     {{ form.non_field_errors }}
 
       {% for field in form %}
-          {% if field.name != 'document_type' %}
+          {% if field.name != 'document_type' and field.name != 'file' %}
               <label>{{ field.label }}</label>
               {{ field }}
               {% if field.errors %}
