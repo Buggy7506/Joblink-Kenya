@@ -27,6 +27,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.utils.timezone import now
 from django.utils.text import slugify
+from django.core.paginator import Paginator
 
 # Third-party libraries
 import pdfkit
@@ -51,6 +52,41 @@ from .forms import (
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
 from core.middleware.employer_required import employer_verified_required
+
+
+# Search + Filter + Pagination + Context
+def available_jobs(request):
+    # Get filters
+    search = request.GET.get("search", "")
+    category = request.GET.get("category", "")
+    location = request.GET.get("location", "")
+
+    # Base queryset
+    jobs = Job.objects.all().order_by('-created_at')
+
+    # Apply search
+    if search:
+        jobs = jobs.filter(title__icontains=search)
+
+    # Apply filters
+    if category:
+        jobs = jobs.filter(category__iexact=category)
+
+    if location:
+        jobs = jobs.filter(location__iexact=location)
+
+    # Pagination
+    paginator = Paginator(jobs, 10)
+    page_number = request.GET.get('page')
+    jobs_page = paginator.get_page(page_number)
+
+    context = {
+        'jobs': jobs_page,
+        'search': search,
+        'category': category,
+        'location': location,
+    }
+    return render(request, 'available_jobs.html', context)
 
 # Ping Page
 def ping(request):
