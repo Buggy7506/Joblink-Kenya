@@ -1,3 +1,4 @@
+# core/utils.py
 import hashlib
 import logging
 import os
@@ -10,18 +11,12 @@ from django.contrib import messages
 from functools import wraps
 from django.core.files.base import ContentFile
 import time
+import secrets
 
 logger = logging.getLogger(__name__)
 
-# core/utils.py
-import secrets
-
-def long_id(prefix="", length=20):
-    """
-    Generate a readable long ID with a prefix.
-    Example: job-ljWJs9sf9sdf90sdf90KK
-    """
-    return f"{prefix}{secrets.token_urlsafe(length)}"
+def long():
+    return secrets.token_urlsafe(12)
 
 def employer_verified_required(view_func):
     @wraps(view_func)
