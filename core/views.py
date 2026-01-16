@@ -992,14 +992,12 @@ def signup_view(request):
         # ============================================
         # FORCE EMAIL + USERNAME FOR EMPLOYERS
         # ============================================
-        
         if role == "employer":
             request.POST._mutable = True
-            # set username if missing
+
             if company_name:
                 request.POST["username"] = slugify(company_name)[:150]
 
-            # set user email
             if company_email:
                 request.POST["email"] = company_email.lower()
 
@@ -1007,7 +1005,7 @@ def signup_view(request):
 
         # Now bind form AFTER mutation
         form = CustomUserCreationForm(request.POST)
-             
+
         # =========================
         # RECAPTCHA VERIFICATION
         # =========================
@@ -1025,6 +1023,7 @@ def signup_view(request):
             "https://www.google.com/recaptcha/api/siteverify",
             data={"secret": RECAPTCHA_SECRET, "response": recaptcha_response}
         )
+
         if not r.json().get("success"):
             messages.error(request, "reCAPTCHA verification failed.")
             return render(request, "signup.html", {
@@ -1085,16 +1084,20 @@ def signup_view(request):
             user = form.save()
 
             # =========================
-            # CREATE OR UPDATE PROFILE
+            # ASSIGN ROLE DIRECTLY ON USER
             # =========================
-            profile, _ = Profile.objects.get_or_create(user=user)
-            profile.role = role if role in ["applicant", "employer"] else "applicant"
-            profile.save(update_fields=["role"])
+            user.role = role if role in ["applicant", "employer"] else "applicant"
+            user.save(update_fields=["role"])
+
+            # =========================
+            # ENSURE PROFILE EXISTS (no role stored here anymore)
+            # =========================
+            Profile.objects.get_or_create(user=user)
 
             # =========================
             # CREATE EMPLOYER COMPANY
             # =========================
-            if profile.role == "employer":
+            if user.role == "employer":
                 EmployerCompany.objects.create(
                     user=user,
                     company_name=company_name,
@@ -1111,7 +1114,7 @@ def signup_view(request):
             # =========================
             # POST SIGNUP REDIRECTS
             # =========================
-            if profile.role == "employer":
+            if user.role == "employer":
                 messages.info(
                     request,
                     "Your employer account is pending verification. "
@@ -1128,7 +1131,6 @@ def signup_view(request):
     else:
         form = CustomUserCreationForm()
 
-    # Render form with context
     return render(request, "signup.html", {
         "form": form,
         "role": role,
@@ -1192,7 +1194,7 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
-        # Ensure profile exists
+        # Ensure profile exists for lock tracking
         profile, _ = Profile.objects.get_or_create(user=user_obj)
 
         # 🛡 ROLE LOCK CHECK
@@ -1255,9 +1257,9 @@ def login_view(request):
         #     return redirect("choose-verification-method")
 
         # ==========================
-        # 🧠 AUTO-DETECT REAL ROLE
+        # 🧠 AUTO-DETECT REAL ROLE (NOW FROM USER)
         # ==========================
-        actual_role = profile.role
+        actual_role = user_obj.role
 
         # 🛡 WRONG ROLE ATTEMPT
         if selected_role and selected_role != actual_role:
@@ -1270,8 +1272,7 @@ def login_view(request):
 
                 messages.error(
                     request,
-                    "Too many wrong role attempts. "
-                    "Account temporarily locked."
+                    "Too many wrong role attempts. Account temporarily locked."
                 )
                 return render(request, 'login.html')
 
@@ -1292,15 +1293,15 @@ def login_view(request):
         # ==========================
         if actual_role == "employer":
             company, created = EmployerCompany.objects.get_or_create(user=user)
-        
+
             # Newly created → auto_verify will run in save()
             if created:
                 company.save()
-        
+
             # If missing data → force setup page
             if not company.company_name or not company.business_email:
                 return redirect("complete_employer_profile")
-        
+
             # Auto-reverify if pending (fix silently)
             if company.status == EmployerCompany.STATUS_PENDING:
                 company.save()
@@ -1356,7 +1357,6 @@ def logout_view(request):
 def logout_success(request):
     return render(request, 'logout_success.html')
 
-# Dashboard
 @login_required
 @employer_verified_required
 def dashboard(request):
@@ -1368,11 +1368,11 @@ def dashboard(request):
     total_notifications = unread_messages_count + notifications_count
 
     # Admin dashboard
-    if user.is_superuser or getattr(user, "role", None) == "admin":
+    if user.is_superuser or user.role == "admin":
         return redirect("admin_dashboard")
 
     # Applicant dashboard
-    if getattr(user, "role", None) == "applicant":
+    if user.role == "applicant":
         applications = Application.objects.filter(applicant=user)
         premium_jobs = applications.filter(job__is_premium=True).count()
         deleted_apps_count = applications.filter(is_deleted=True).count()
@@ -1385,12 +1385,12 @@ def dashboard(request):
         })
 
     # Employer dashboard
-    elif getattr(user, "role", None) == "employer":
+    elif user.role == "employer":
         # Check employer verification
         company = getattr(user, "employer_company", None)
         if not company or not company.is_verified:
             messages.warning(request, "⏳ Please verify your company to unlock full employer access.")
-            return redirect("upload_company_docs")  # Send to docs upload
+            return redirect("upload_company_docs")
 
         posted_jobs_count = Job.objects.filter(employer=user).count()
         active_jobs = Job.objects.filter(employer=user, is_active=True).count()
