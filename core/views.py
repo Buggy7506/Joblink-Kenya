@@ -52,6 +52,10 @@ from .forms import (
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
 from core.middleware.employer_required import employer_verified_required
 
+# Ping Page
+def ping(request):
+    return HttpResponse("pong")
+    
 # Privacy Policy page
 def privacy_policy(request):
     return render(request, "privacy_policy.html", {"now": timezone.now()})
