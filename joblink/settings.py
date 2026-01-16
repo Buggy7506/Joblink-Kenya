@@ -32,11 +32,10 @@ SECRET_KEY = 'django-insecure-42z8(o&(y1uu&rx*x9s8nzn(_qhfkrh)9ks(d4(5^hm9i*yn=y
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "joblinkkenya-r8akscc3.b4a.run",
-    "node354a.containers.back4app.com",
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
-    "joblink-kenya-4jf3.onrender.com",
+    "joblink-kenya-u2vl.onrender.com",
+    "https://*.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
