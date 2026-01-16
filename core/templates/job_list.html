@@ -429,7 +429,39 @@ document.querySelector("#searchInput").addEventListener("keyup", () => {
 /* CHANGE on select/ sort trigger */
 ["categorySelect", "locationSelect", "sortSelect"]
   .forEach(id => document.getElementById(id).addEventListener("change", submitFilters));
-  
+
+/* Load categories once */
+fetch("/api/categories/")
+  .then(r => r.json())
+  .then(data => {
+    const box = document.querySelector("#categoryData");
+    data.categories.forEach(c => {
+      const o = document.createElement("option");
+      o.value = c;
+      box.appendChild(o);
+    });
+  });
+
+/* Location autocomplete from OSM */
+let lookup;
+document.querySelector("#locationInput").addEventListener("keyup", e => {
+  const term = e.target.value;
+  clearTimeout(lookup);
+  lookup = setTimeout(() => {
+    fetch(`/api/locations/?q=${encodeURIComponent(term)}`)
+      .then(r => r.json())
+      .then(data => {
+        const box = document.querySelector("#locationData");
+        box.innerHTML = "";
+        data.locations.forEach(loc => {
+          const o = document.createElement("option");
+          o.value = loc;
+          box.appendChild(o);
+        });
+      });
+  }, 300);
+});
+
 </script>
 
 </div><!-- /.available-jobs-page -->
