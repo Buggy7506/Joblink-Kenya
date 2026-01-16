@@ -124,18 +124,19 @@ h2.section-title {
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    <!-- Render ALL fields normally -->
     {% for field in form %}
-        <label>{{ field.label }}</label>
-        {{ field|add_class:"form-control" }}
-        {% if field.errors %}
-            <small>{{ field.errors|striptags }}</small>
+        {% if field.name != 'document_type' %}
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <small>{{ field.errors|striptags }}</small>
+            {% endif %}
         {% endif %}
     {% endfor %}
 
     <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
 
-    <!-- Drag Zone (single hidden file input) -->
+    <!-- Drag Zone -->
     <div id="dropZone" class="upload-zone text-center p-4 mb-3">
         <i class="bi bi-cloud-arrow-up fs-1"></i>
         <p class="fw-semibold">Drag & drop files</p>
@@ -143,28 +144,21 @@ h2.section-title {
         <p id="fileCount" class="mt-2 small text-accent d-none"></p>
     </div>
 
-    <input id="fileInput" type="file" class="d-none"
-           multiple name="file"
+    <!-- File input -->
+    <input id="fileInput" type="file" name="file" class="d-none" multiple
            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
-    <!-- Manual select dropdown (NOT from form) -->
-    <label class="mt-3">Document Type</label>
-    <select name="document_type" class="form-select">
-        <option value="certificate">Company Certificate</option>
-        <option value="license">Business License</option>
-        <option value="kra">KRA PIN</option>
-    </select>
+    <div class="mb-3">
+        {{ form.document_type|add_class:"form-select" }}
+    </div>
 
     <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
 
     <div id="progressWrap" class="mt-3 d-none"></div>
-    <div id="docList" class="mt-4"></div>
 </form>
 
 <!-- AJAX Upload Script -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
 const fileCount = document.getElementById("fileCount");
@@ -172,27 +166,19 @@ const form = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
 const docList = document.getElementById("docList");
 
-/* -------------------------
-   Drag & Drop UI
-------------------------- */
+// Drag UI
 dropZone.addEventListener("click", () => fileInput.click());
-
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
   dropZone.classList.add("glass-drop");
 });
-
-dropZone.addEventListener("dragleave", () =>
-  dropZone.classList.remove("glass-drop")
-);
-
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
   dropZone.classList.remove("glass-drop");
   fileInput.files = e.dataTransfer.files;
   updateCounter();
 });
-
 fileInput.addEventListener("change", updateCounter);
 
 function updateCounter() {
@@ -202,19 +188,9 @@ function updateCounter() {
   }
 }
 
-/* -------------------------
-   AJAX Upload Logic
-------------------------- */
+// AJAX upload
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-
-  const docTypeEl = form.querySelector("[name=document_type]");
-  if (!docTypeEl) {
-    alert("Missing Document Type field!");
-    return;
-  }
-
-  const docType = docTypeEl.value;
 
   if (!fileInput.files.length) {
     alert("Select at least one document.");
@@ -225,12 +201,11 @@ form.addEventListener("submit", async (e) => {
   progressWrap.classList.remove("d-none");
 
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
+  const docType = form.querySelector("select[name=document_type]").value;
 
   for (let file of fileInput.files) {
     uploadOne(file, csrf, docType);
   }
-
-  // Reset UI
   fileInput.value = "";
   fileCount.classList.add("d-none");
 });
@@ -278,14 +253,8 @@ function refreshDocs() {
     .then(html => {
       const tmp = document.createElement("div");
       tmp.innerHTML = html;
-      const newList = tmp.querySelector("#docList");
-      if (newList && docList) {
-        docList.innerHTML = newList.innerHTML;
-      }
+      docList.innerHTML = tmp.querySelector("#docList").innerHTML;
     });
 }
-
-});
 </script>
-
 {% endblock %}
