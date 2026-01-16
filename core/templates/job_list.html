@@ -167,72 +167,92 @@
     </div>
   {% endif %}
 
+  {# 🔍 SEARCH + FILTER CONTROLS #}
+  <form method="get" class="mb-3" id="filterForm" style="margin-bottom:20px;">
+    <input type="text" name="search" placeholder="Search by title" value="{{ search }}">
+
+    <select name="category">
+      <option value="">All Categories</option>
+      <option value="IT" {% if category == "IT" %}selected{% endif %}>IT</option>
+      <option value="Marketing" {% if category == "Marketing" %}selected{% endif %}>Marketing</option>
+      <option value="Finance" {% if category == "Finance" %}selected{% endif %}>Finance</option>
+    </select>
+
+    <select name="location">
+      <option value="">Anywhere</option>
+      <option value="Nairobi" {% if location == "Nairobi" %}selected{% endif %}>Nairobi</option>
+      <option value="Remote" {% if location == "Remote" %}selected{% endif %}>Remote</option>
+    </select>
+
+    <button type="submit">Search</button>
+  </form>
+
   <h2>🌟 Featured Jobs</h2>
-{% for job in premium_jobs %}
-  <div class="premium-job job-card">
-    <div class="company-row">
-      {% if job.logo %}
-        <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
-      {% else %}
-        <div class="company-logo"></div>
-      {% endif %}
-      <p>{{ job.company }}</p>
+  {% for job in premium_jobs %}
+    <div class="premium-job job-card">
+      <div class="company-row">
+        {% if job.logo %}
+          <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
+        {% else %}
+          <div class="company-logo"></div>
+        {% endif %}
+        <p>{{ job.company }}</p>
+      </div>
+
+      <div class="job-title">
+        {{ job.title }} <span class="premium-badge">Premium</span>
+      </div>
+
+      <p class="job-meta">
+        <span class="icon">📍</span> {{ job.location }}
+      </p>
+
+      <div class="apply-info">
+        <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
+        <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
+      </div>
+
+      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
-
-    <div class="job-title">
-      {{ job.title }} <span class="premium-badge">Premium</span>
-    </div>
-
-    <p class="job-meta">
-      <span class="icon">📍</span> {{ job.location }}
-    </p>
-
-    <div class="apply-info">
-      <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
-      <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
-    </div>
-
-    <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
-  </div>
-{% empty %}
-  <p class="no-jobs">No premium jobs at the moment.</p>
-{% endfor %}
+  {% empty %}
+    <p class="no-jobs">No premium jobs at the moment.</p>
+  {% endfor %}
 
   <h2>💼 Free Jobs</h2>
-{% for job in jobs %}
-  <div class="normal-job job-card">
-    <div class="company-row">
-      {% if job.logo %}
-        <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
-      {% else %}
-        <div class="company-logo"></div>
-      {% endif %}
-      <p>{{ job.company }}</p>
+  {% for job in jobs %}
+    <div class="normal-job job-card">
+      <div class="company-row">
+        {% if job.logo %}
+          <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
+        {% else %}
+          <div class="company-logo"></div>
+        {% endif %}
+        <p>{{ job.company }}</p>
+      </div>
+
+      <div class="job-title">{{ job.title }}</div>
+
+      <p class="job-meta">
+        <span class="icon">📍</span> {{ job.location }}
+      </p>
+
+      <div class="apply-info">
+        <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
+        <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
+      </div>
+
+      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
-
-    <div class="job-title">{{ job.title }}</div>
-
-    <p class="job-meta">
-      <span class="icon">📍</span> {{ job.location }}
-    </p>
-
-    <div class="apply-info">
-      <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
-      <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
-    </div>
-
-    <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
-  </div>
-{% empty %}
-  <p class="no-jobs">No jobs found at the moment.</p>
-{% endfor %}
+  {% empty %}
+    <p class="no-jobs">No jobs found at the moment.</p>
+  {% endfor %}
 </div>
-  
+
+{# 📄 infinite scroll paging link (includes filters!) #}
 {% if jobs.has_next %}
   <a id="next-page-link"
      href="?page={{ jobs.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if location %}&location={{ location }}{% endif %}"
-     hidden>
-  </a>
+     hidden></a>
 {% endif %}
 
 <script>
