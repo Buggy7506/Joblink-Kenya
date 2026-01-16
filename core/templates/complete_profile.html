@@ -124,21 +124,15 @@ h2.section-title {
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    {% for field in form %}
-        {% if field.name != 'document_type' %}
-             <label>{{ field.label }}</label>
-             {{ field }}
-             {% if field.errors %}
-                 <small>{{ field.errors|striptags }}</small>
-             {% endif %}
-         {% endif %}
-
-        <label>{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-            <small>{{ field.errors|striptags }}</small>
-        {% endif %}
-    {% endfor %}
+      {% for field in form %}
+          {% if field.name != 'document_type' %}
+              <label>{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                  <small>{{ field.errors|striptags }}</small>
+              {% endif %}
+          {% endif %}
+      {% endfor %}
 
     <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
 
