@@ -15,26 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 """
-URL configuration for joblink project with
-per-route random long prefixes.
+URL configuration for joblink project.
 """
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.http import HttpResponse
-import secrets
 
 def healthcheck(request):
     return HttpResponse("OK")
 
-def r():  # random url segment
-    return secrets.token_urlsafe(16)
-
 urlpatterns = [
-    path(f"{r()}/admin/", admin.site.urls),
-    path(f"{r()}/health/", healthcheck),
-    path(f"{r()}/", include("core.urls")),
+    path('admin/', admin.site.urls),
+    path('health/', healthcheck),
+    path('', include('core.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
