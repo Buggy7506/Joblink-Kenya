@@ -125,10 +125,13 @@ h2.section-title {
     {{ form.non_field_errors }}
 
     {% for field in form %}
-        {% if field.name == 'document_type' %}
-            {# skip here, render at bottom #}
-            {% continue %}
-        {% endif %}
+        {% if field.name != 'document_type' %}
+             <label>{{ field.label }}</label>
+             {{ field }}
+             {% if field.errors %}
+                 <small>{{ field.errors|striptags }}</small>
+             {% endif %}
+         {% endif %}
 
         <label>{{ field.label }}</label>
         {{ field }}
