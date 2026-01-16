@@ -168,24 +168,32 @@
   {% endif %}
 
   {# 🔍 SEARCH + FILTER CONTROLS #}
-  <form method="get" class="mb-3" id="filterForm" style="margin-bottom:20px;">
-    <input type="text" name="search" placeholder="Search by title" value="{{ search }}">
+<form method="get" class="filter-bar" id="filterForm">
 
-    <select name="category">
-      <option value="">All Categories</option>
-      <option value="IT" {% if category == "IT" %}selected{% endif %}>IT</option>
-      <option value="Marketing" {% if category == "Marketing" %}selected{% endif %}>Marketing</option>
-      <option value="Finance" {% if category == "Finance" %}selected{% endif %}>Finance</option>
-    </select>
+  <input type="text" id="searchInput" name="search"
+         placeholder="Search by job title…" value="{{ search }}">
 
-    <select name="location">
-      <option value="">Anywhere</option>
-      <option value="Nairobi" {% if location == "Nairobi" %}selected{% endif %}>Nairobi</option>
-      <option value="Remote" {% if location == "Remote" %}selected{% endif %}>Remote</option>
-    </select>
+  <select name="category" multiple size="3" id="categorySelect">
+    <option value="IT" {% if 'IT' in category_list %}selected{% endif %}>IT</option>
+    <option value="Marketing" {% if 'Marketing' in category_list %}selected{% endif %}>Marketing</option>
+    <option value="Finance" {% if 'Finance' in category_list %}selected{% endif %}>Finance</option>
+  </select>
 
-    <button type="submit">Search</button>
-  </form>
+  <select name="location" multiple size="3" id="locationSelect">
+    <option value="Nairobi" {% if 'Nairobi' in location_list %}selected{% endif %}>Nairobi</option>
+    <option value="Remote" {% if 'Remote' in location_list %}selected{% endif %}>Remote</option>
+    <option value="Mombasa" {% if 'Mombasa' in location_list %}selected{% endif %}>Mombasa</option>
+  </select>
+
+  <select name="sort" id="sortSelect">
+    <option value="">Sort</option>
+    <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest First</option>
+    <option value="deadline_asc" {% if sort == "deadline_asc" %}selected{% endif %}>Deadline (Closest)</option>
+    <option value="deadline_desc" {% if sort == "deadline_desc" %}selected{% endif %}>Deadline (Furthest)</option>
+  </select>
+
+  <button type="submit">Search</button>
+</form>
 
   <h2>🌟 Featured Jobs</h2>
   {% for job in premium_jobs %}
@@ -327,6 +335,52 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(() => loading = false);
   });
 });
+
+/* Live filtering + AJAX */
+function submitFilters() {
+  const form = document.querySelector("#filterForm");
+  const url = new URL(window.location.href);
+  const fd = new FormData(form);
+
+  // convert multi selects to multiple params
+  url.search = "";
+  fd.forEach((val, key) => url.searchParams.append(key, val));
+
+  fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+    .then(r => r.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      const cards = doc.querySelectorAll(".job-card");
+      const container = document.querySelector('.available-jobs-page .container');
+
+      // Remove old jobs, keep form + headings
+      container.querySelectorAll(".job-card").forEach(el => el.remove());
+
+      cards.forEach(card => container.appendChild(card));
+
+      // Update next-page-link
+      const next = document.querySelector("#next-page-link");
+      const newNext = doc.querySelector("#next-page-link");
+      if (newNext) next.href = newNext.href;
+      else next.remove();
+
+      updateDeadlines();
+    });
+}
+
+/* LIVE search debounce */
+let typing;
+document.querySelector("#searchInput").addEventListener("keyup", () => {
+  clearTimeout(typing);
+  typing = setTimeout(submitFilters, 400);
+});
+
+/* CHANGE on select/ sort trigger */
+["categorySelect", "locationSelect", "sortSelect"]
+  .forEach(id => document.getElementById(id).addEventListener("change", submitFilters));
+  
 </script>
 
 </div><!-- /.available-jobs-page -->
