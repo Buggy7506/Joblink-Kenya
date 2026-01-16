@@ -4,6 +4,10 @@ from . import views
 
 urlpatterns = [
     # -------------------------
+    # Ping URL
+    # -------------------------
+    path("ping/", views.ping, name="ping"),
+    # -------------------------
     # Resume / CV URLs
     # -------------------------
     path('resume/build/', views.alien_resume_builder, name='build_resume'),
