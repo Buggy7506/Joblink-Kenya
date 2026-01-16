@@ -638,6 +638,10 @@ def set_google_password(request):
         )
         user.set_password(password)
         user.save()
+        
+        profile, created = Profile.objects.get_or_create(user=user)
+        profile.role = role
+        profile.save()
 
         # Optional: Save Google profile picture
         picture_url = google_user.get('picture')
