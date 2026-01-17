@@ -317,7 +317,6 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
         # --- Auto-set premium based on salary ---
         if job.salary and job.salary > 30000:
             job.is_premium = True
-            # Set default premium expiry if not already set
             if not job.premium_expiry:
                 job.premium_expiry = timezone.now() + timedelta(days=30)
         else:
@@ -335,6 +334,15 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
         expiry_date = self.cleaned_data.get('expiry_date')
         if expiry_date:
             job.expiry_date = expiry_date
+        elif not job.expiry_date:
+            # If no expiry date is set, default to 30 days from now
+            job.expiry_date = timezone.now() + timedelta(days=30)
+
+        # --- Automatically set is_active based on expiry ---
+        if job.expiry_date <= timezone.now():
+            job.is_active = False
+        else:
+            job.is_active = True
 
         if commit:
             job.save()
