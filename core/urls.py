@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
 
-    path('test-email/', test_email, name='test_email'),
+    path('test-email/', views.test_email, name='test_email'),
     
     path("api/categories/", views.api_job_categories, name="api_categories"),
     path("api/locations/", views.api_locations, name="api_locations"),
