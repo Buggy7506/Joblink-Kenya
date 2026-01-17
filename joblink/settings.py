@@ -263,14 +263,13 @@ X_FRAME_OPTIONS = "DENY"
 EMAIL_BACKEND = "anymail.backends.mailersend.EmailBackend"
 
 # MailerSend API token (use environment variable)
-import os
 
 ANYMAIL = {
     "MAILERSEND_API_TOKEN": os.environ.get("MAILERSEND_API_TOKEN"),
 }
 
 # Default from email
-DEFAULT_FROM_EMAIL = "support@stepper.dpdns.org"
+DEFAULT_FROM_EMAIL = "linux7506@gmail.com"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
