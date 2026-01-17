@@ -163,7 +163,6 @@ h2.section-title {
     <div id="progressWrap" class="mt-3 d-none"></div>
 </form>
 
-<!-- AJAX Upload Script -->
 <script>
 const DASHBOARD_URL = "{% url 'employer_control_panel' %}";
 const dropZone = document.getElementById("dropZone");
@@ -199,6 +198,8 @@ function updateCounter() {
   if (fileInput.files.length > 0) {
     fileCount.innerText = fileInput.files.length + " file(s) selected";
     fileCount.classList.remove("d-none");
+  } else {
+    fileCount.classList.add("d-none");
   }
 }
 
@@ -209,7 +210,6 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (isUploading) return;
-
   if (!fileInput.files.length) {
     alert("Select at least one document.");
     return;
@@ -217,100 +217,90 @@ form.addEventListener("submit", async (e) => {
 
   isUploading = true;
   submitBtn.disabled = true;
-  submitBtn.innerText = "Uploading…";
+  submitBtn.innerText = "Uploading… please wait";
   uploadStatus.classList.remove("d-none");
-
-  // 1️⃣ Save profile
-  await fetch("", {
-    method: "POST",
-    body: new FormData(form),
-    headers: {
-      "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
-    }
-  });
-
-  // 2️⃣ Upload files
-  progressWrap.innerHTML = "";
-  progressWrap.classList.remove("d-none");
 
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = form.querySelector("select[name=document_type]").value;
+  const files = Array.from(fileInput.files);
+
+  // 1️⃣ Save profile first (normal POST)
+  try {
+    const profileResponse = await fetch("", {
+      method: "POST",
+      body: new FormData(form),
+      headers: {"X-CSRFToken": csrf}
+    });
+    if (!profileResponse.ok) throw new Error("Profile save failed");
+  } catch (err) {
+    alert("Failed to save profile. Try again.");
+    resetFormState();
+    return;
+  }
+
+  // 2️⃣ Upload files async via Django view that enqueues Celery tasks
+  progressWrap.innerHTML = "";
+  progressWrap.classList.remove("d-none");
 
   let completed = 0;
-  const total = fileInput.files.length;
 
-  for (let file of fileInput.files) {
-    uploadWithRetry(file, csrf, docType, 0, () => {
+  files.forEach(file => {
+    enqueueCeleryUpload(file, docType, 0, () => {
       completed++;
-      if (completed === total) {
+      if (completed === files.length) {
         window.location.href = DASHBOARD_URL;
       }
     });
-  }
+  });
+
+  fileInput.value = "";
+  fileCount.classList.add("d-none");
 });
 
 /* =========================
-   UPLOAD WITH RETRY
+   ENQUEUE CELERY UPLOAD
 ========================= */
-function uploadWithRetry(file, csrf, docType, attempt, done) {
-  uploadOne(file, csrf, docType)
-    .then(done)
-    .catch(() => {
-      if (attempt < MAX_RETRIES) {
-        uploadWithRetry(file, csrf, docType, attempt + 1, done);
-      } else {
-        alert(`Failed to upload ${file.name}`);
-      }
-    });
+function enqueueCeleryUpload(file, docType, attempt, done) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("document_type", docType);
+
+  fetch("{% url 'upload_company_docs' %}", {
+    method: "POST",
+    body: formData,
+    headers: {"X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value}
+  })
+  .then(resp => {
+    if (resp.ok) {
+      addProgressRow(file.name, 100, "Queued");
+      done();
+    } else {
+      throw new Error("Upload failed");
+    }
+  })
+  .catch(() => {
+    if (attempt < MAX_RETRIES) {
+      enqueueCeleryUpload(file, docType, attempt + 1, done);
+    } else {
+      alert(`Failed to enqueue ${file.name} after ${MAX_RETRIES} attempts`);
+      addProgressRow(file.name, 100, "Failed", true);
+      done();
+    }
+  });
 }
 
 /* =========================
-   SINGLE FILE UPLOAD
+   PROGRESS ROW UI
 ========================= */
-function uploadOne(file, csrf, docType) {
-  return new Promise((resolve, reject) => {
-    const row = document.createElement("div");
-    row.className = "mb-2";
-    row.innerHTML = `
-      <div class="small fw-semibold">${file.name}</div>
-      <div class="progress rounded">
-        <div class="progress-bar" style="width:0%">0%</div>
-      </div>`;
-    progressWrap.appendChild(row);
-
-    const xhr = new XMLHttpRequest();
-    const bar = row.querySelector(".progress-bar");
-
-    xhr.upload.addEventListener("progress", e => {
-      if (e.lengthComputable) {
-        const percent = (e.loaded / e.total) * 100;
-        bar.style.width = percent.toFixed(0) + "%";
-        bar.textContent = percent.toFixed(0) + "%";
-      }
-    });
-
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        bar.style.width = "100%";
-        bar.textContent = "Done";
-        refreshDocs();
-        resolve();
-      } else {
-        bar.classList.add("bg-danger");
-        reject();
-      }
-    };
-
-    xhr.onerror = reject;
-
-    xhr.open("POST", "", true);
-    xhr.setRequestHeader("X-CSRFToken", csrf);
-
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("document_type", docType);
-    xhr.send(fd);
-  });
+function addProgressRow(name, percent, status, isError=false) {
+  const row = document.createElement("div");
+  row.className = "mb-2";
+  row.innerHTML = `
+    <div class="small fw-semibold">${name} - ${status}</div>
+    <div class="progress rounded">
+      <div class="progress-bar ${isError ? "bg-danger" : ""}" style="width:${percent}%">${percent}%</div>
+    </div>`;
+  progressWrap.appendChild(row);
 }
 
 /* =========================
@@ -322,8 +312,19 @@ function refreshDocs() {
     .then(html => {
       const tmp = document.createElement("div");
       tmp.innerHTML = html;
-      docList.innerHTML = tmp.querySelector("#docList").innerHTML;
+      const newDocList = tmp.querySelector("#docList");
+      if (newDocList) docList.innerHTML = newDocList.innerHTML;
     });
+}
+
+/* =========================
+   RESET FORM STATE
+========================= */
+function resetFormState() {
+  isUploading = false;
+  submitBtn.disabled = false;
+  submitBtn.innerText = "Save Profile & Upload Files";
+  uploadStatus.classList.add("d-none");
 }
 </script>
 {% endblock %}
