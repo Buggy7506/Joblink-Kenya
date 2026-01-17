@@ -1361,23 +1361,18 @@ def complete_employer_profile(request):
     # Get or create the company record
     company, _ = EmployerCompany.objects.get_or_create(user=user)
 
-    # Determine if profile is complete
-    profile_complete = bool(company.company_name and company.business_email)
-
     if request.method == "POST":
         form = EmployerCompanyForm(request.POST, request.FILES, instance=company)
         if form.is_valid():
             with transaction.atomic():  # ensures atomic save if auto_verify updates multiple fields
-                company = form.save()
-            messages.success(request, "Company profile completed!")
-            return redirect("dashboard")  # ✅ Safe redirect after successful save
+                form.save()
+            messages.success(request, "Company profile updated!")
+            return redirect("dashboard")  # Post/Redirect/Get pattern ✅
         else:
             messages.error(request, "Please correct the errors below.")
 
     else:  # GET request
-        # Only redirect completed profiles on GET
-        if profile_complete:
-            return redirect("dashboard")
+        # 💡 Removed the redirect for already-complete profiles
         form = EmployerCompanyForm(instance=company)
 
     return render(request, "complete_profile.html", {"form": form})
@@ -1420,9 +1415,19 @@ def dashboard(request):
 
     # Employer dashboard
     elif user.role == "employer":
-        # Check employer verification
         company = getattr(user, "employer_company", None)
-        if not company or not company.is_verified:
+
+        # ⚠️ Check if company exists and profile is complete
+        if not company:
+            messages.info(request, "Please complete your company profile to continue.")
+            return redirect("complete_employer_profile")
+
+        if not company.is_complete:
+            messages.info(request, "Please complete your company profile to continue.")
+            return redirect("complete_employer_profile")
+
+        # Check employer verification
+        if not company.is_verified:
             messages.warning(request, "⏳ Please verify your company to unlock full employer access.")
             return redirect("upload_company_docs")
 
