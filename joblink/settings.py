@@ -89,6 +89,7 @@ MIDDLEWARE = [
 
 MIDDLEWARE += [
     "core.middleware.employer_verification.EmployerVerificationMiddleware",
+     "core.middleware.PreventCompletedEmployerProfileAccess", 
 ]
 
 
