@@ -54,6 +54,8 @@ from .forms import (
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
 from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 # Search + Filter + Pagination + Context
 def available_jobs(request):
@@ -1681,9 +1683,8 @@ def edit_profile(request):
 @employer_verified_required
 def post_job(request):
     """
-    View to allow verified employers to post jobs.
-    Only users with role='employer' can access this.
-    Sends notifications and emails to matching JobAlert subscribers.
+    Allow verified employers to post jobs.
+    Automatically handles premium tagging, expiry, and notifications to JobAlert subscribers.
     """
 
     # 1️⃣ Only employers can post jobs
@@ -1691,7 +1692,7 @@ def post_job(request):
         messages.error(request, "❌ Only employers can post jobs.")
         return redirect('job_list')
 
-    # 2️⃣ Get company tied to USER (not owner) — safe lookup
+    # 2️⃣ Get company tied to USER
     try:
         company = request.user.employer_company
     except EmployerCompany.DoesNotExist:
@@ -1710,14 +1711,25 @@ def post_job(request):
         form = JobForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
-            job.employer = request.user  # Correct employer assignment
+            job.employer = request.user  # Assign correct employer
 
-            # 🔥 Auto-tag premium if salary is high
-            job.is_premium = bool(job.salary and job.salary > 30000)
+            # --- Auto-set premium & expiry ---
+            if job.salary and job.salary > 30000:
+                job.is_premium = True
+                if not job.premium_expiry:
+                    job.premium_expiry = timezone.now() + timedelta(days=30)
+            else:
+                job.is_premium = False
+                job.premium_expiry = None
 
-            job.save()
+            # --- Ensure expiry_date and is_active ---
+            if not job.expiry_date:
+                job.expiry_date = timezone.now() + timedelta(days=30)
+            job.is_active = True  # Newly posted job is always active
 
-            # 5️⃣ Send email + app notifications to matching alerts
+            job.save()  # Save job
+
+            # 5️⃣ Send email + notifications to matching JobAlert subscribers
             matches = JobAlert.objects.filter(
                 job_title__icontains=job.title,
                 location__iexact=job.location
@@ -1761,25 +1773,36 @@ def post_job(request):
 @login_required
 @employer_verified_required
 def edit_job(request, job_id):
-    job = get_object_or_404(Job, id=job_id, employer=request.user)  # only employer can edit
+    # Only allow the employer who posted the job to edit it
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
 
     if request.method == 'POST':
         form = JobForm(request.POST, instance=job)
         if form.is_valid():
             job = form.save(commit=False)
-            job.employer = request.user  # just to be safe
+            job.employer = request.user  # Ensure correct employer assignment
 
             # --- Auto-set premium based on salary ---
             if job.salary and job.salary > 30000:
                 job.is_premium = True
+                # Set default premium expiry if not set
+                if not job.premium_expiry:
+                    job.premium_expiry = timezone.now() + timedelta(days=30)
             else:
                 job.is_premium = False
-            # ---------------------------------------
+                job.premium_expiry = None
+
+            # --- Ensure expiry_date and is_active ---
+            if not job.expiry_date:
+                job.expiry_date = timezone.now() + timedelta(days=30)
+
+            # Automatically update is_active based on expiry
+            job.is_active = job.expiry_date > timezone.now()
 
             job.save()
 
-            messages.success(request, "Job updated successfully.")
-            return redirect('dashboard')  # or job_detail page
+            messages.success(request, "✅ Job updated successfully.")
+            return redirect('dashboard')  # Or redirect to job_detail page
     else:
         form = JobForm(instance=job)
 
@@ -1936,22 +1959,25 @@ def download_cv(request, cv_id):
         filename=filename
     )
 #Job Listings
+
 def job_list(request):
-    # --- Delete expired jobs automatically ---
+    # --- Automatically delete expired jobs from database (optional) ---
     Job.delete_expired_jobs()
 
     # --- Get current time ---
     now = timezone.now()
 
-    # --- Fetch premium jobs that have not expired ---
+    # --- Fetch active premium jobs ---
     premium_jobs = Job.objects.filter(
         is_premium=True,
+        is_active=True,
         expiry_date__gt=now
     ).order_by('-posted_on')
 
-    # --- Fetch regular jobs that have not expired ---
+    # --- Fetch active regular jobs ---
     regular_jobs = Job.objects.filter(
         is_premium=False,
+        is_active=True,
         expiry_date__gt=now
     ).order_by('-posted_on')
 
