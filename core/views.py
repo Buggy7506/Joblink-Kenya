@@ -40,6 +40,7 @@ import re
 from collections import namedtuple
 from datetime import datetime, timedelta
 import cloudinary.uploader
+from pathlib import Path
 
 # Local apps
 from .models import (
@@ -52,7 +53,7 @@ from .forms import (
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
 from core.middleware.employer_required import employer_verified_required
-
+from .tasks import save_employer_document  # Celery task
 
 # Search + Filter + Pagination + Context
 def available_jobs(request):
@@ -1424,29 +1425,46 @@ def upload_company_docs(request):
         messages.error(request, "❌ Only employers can upload verification documents.")
         return redirect('dashboard')
 
-    company = getattr(user, "employer_company", None)
+    # Get or create company
+    company, _ = EmployerCompany.objects.get_or_create(user=user, defaults={"company_name": user.username})
 
-    # Safety: create company if missing (rare edge case)
-    if not company:
-        company = EmployerCompany.objects.create(user=user, company_name=user.username)
-
-    # Already verified → redirect to dashboard
+    # Already verified → redirect
     if company.is_verified:
         messages.success(request, "🎉 Your company is already verified. You now have full access!")
         return redirect('dashboard')
 
-    # Handle file uploads
+    # Handle POST uploads via AJAX
     if request.method == "POST":
         form = CompanyDocumentForm(request.POST, request.FILES)
         if form.is_valid():
-            doc = form.save(commit=False)
-            doc.company = company
-            doc.save()  # your model auto-verifies company here ✔
-            messages.success(request, "📄 Document uploaded! Verification updated.")
-            return redirect('dashboard')  # now company becomes verified
-    else:
-        form = CompanyDocumentForm()
+            uploaded_file = request.FILES['file']
+            doc_type = form.cleaned_data['document_type']
 
+            # Save temp file
+            temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            temp_path = temp_dir / uploaded_file.name
+
+            with open(temp_path, 'wb+') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+
+            # Enqueue Celery task
+            save_employer_document.delay(user.id, str(temp_path), doc_type)
+
+            # Return JSON immediately for AJAX
+            return JsonResponse({
+                "success": True,
+                "message": "📄 Document uploaded! Verification will run in background."
+            })
+        else:
+            return JsonResponse({
+                "success": False,
+                "errors": form.errors.as_json()
+            }, status=400)
+
+    # GET → render form
+    form = CompanyDocumentForm()
     return render(request, "complete_profile.html", {
         "form": form,
         "company": company,
