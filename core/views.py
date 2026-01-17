@@ -28,6 +28,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.utils.text import slugify
 from django.core.paginator import Paginator
+from django.db import transaction
 
 # Third-party libraries
 import pdfkit
@@ -1350,40 +1351,36 @@ def login_view(request):
 
 @login_required
 def complete_employer_profile(request):
-    # 🔐 Role guard
-    if request.user.profile.role != "employer":
+    user = request.user
+
+    # 🔐 Role guard: only employers can access
+    if user.profile.role != "employer":
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")  # Non-employers go to dashboard
 
     # Get or create the company record
-    company, _ = EmployerCompany.objects.get_or_create(user=request.user)
+    company, _ = EmployerCompany.objects.get_or_create(user=user)
 
-    # 🔒 Prevent re-completion
-    # Only redirect if the profile is truly complete, and only on GET
-    if request.method == "GET" and company.company_name and company.business_email:
-        return redirect("dashboard")  # ✅ Redirect completed profiles to dashboard
+    # Determine if profile is complete
+    profile_complete = bool(company.company_name and company.business_email)
 
     if request.method == "POST":
-        # Include files in the form
-        form = EmployerCompanyForm(
-            request.POST,
-            request.FILES,
-            instance=company
-        )
-
+        form = EmployerCompanyForm(request.POST, request.FILES, instance=company)
         if form.is_valid():
-            company = form.save()  # auto_verify runs inside save()
+            with transaction.atomic():  # ensures atomic save if auto_verify updates multiple fields
+                company = form.save()
             messages.success(request, "Company profile completed!")
-            return redirect("dashboard")  # ✅ Redirect after successful save
+            return redirect("dashboard")  # ✅ Safe redirect after successful save
         else:
             messages.error(request, "Please correct the errors below.")
 
-    else:
+    else:  # GET request
+        # Only redirect completed profiles on GET
+        if profile_complete:
+            return redirect("dashboard")
         form = EmployerCompanyForm(instance=company)
 
-    return render(request, "complete_profile.html", {
-        "form": form
-    })
+    return render(request, "complete_profile.html", {"form": form})
         
 #User Logout
 def logout_view(request):
