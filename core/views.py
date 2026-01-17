@@ -1359,8 +1359,8 @@ def complete_employer_profile(request):
     company, _ = EmployerCompany.objects.get_or_create(user=request.user)
 
     # 🔒 Prevent re-completion
-    # Only redirect if the profile is truly complete
-    if company.company_name and company.business_email:
+    # Only redirect if the profile is truly complete, and only on GET
+    if request.method == "GET" and company.company_name and company.business_email:
         return redirect("dashboard")  # ✅ Redirect completed profiles to dashboard
 
     if request.method == "POST":
