@@ -22,7 +22,7 @@ class EmployerCompany(models.Model):
         (STATUS_REJECTED, "Rejected"),
     )
 
-    # Tied strictly to user (not owner)
+    # Tied strictly to user
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -38,9 +38,7 @@ class EmployerCompany(models.Model):
     )
     company_website = models.URLField(blank=True, null=True)
     
-    # --------------------------
     # Auto-generated unique registration number
-    # --------------------------
     registration_number = models.CharField(
         max_length=20,
         blank=True,
@@ -137,6 +135,18 @@ class EmployerCompany(models.Model):
         if self.is_pending:
             return "pending"
         return "rejected"
+
+    # -------------------------------------------------------------
+    # ✅ NEW: Standardized completeness check
+    # -------------------------------------------------------------
+    @property
+    def is_complete(self):
+        """
+        Returns True if the company profile is considered complete.
+        This is now the single source of truth for redirect checks.
+        """
+        # Only require fields necessary for critical logic
+        return bool(self.company_name and self.business_email)
 
     def __str__(self):
         return f"{self.company_name or 'Unnamed Company'} [{self.get_status_display()}]"
