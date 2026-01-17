@@ -269,7 +269,7 @@ ANYMAIL = {
 }
 
 # Default from email
-DEFAULT_FROM_EMAIL = "linux7506@gmail.com"
+DEFAULT_FROM_EMAIL = "support@stepper.dpdns.org"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
