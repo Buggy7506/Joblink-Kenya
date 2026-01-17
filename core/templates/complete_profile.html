@@ -171,6 +171,11 @@ h2.section-title {
     <div class="mb-3">
         {{ form.document_type|add_class:"form-select" }}
     </div>
+   <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
+       Uploading… please wait
+   </p>
+   
+   <div id="progressWrap" class="mt-3 d-none"></div>
 
     <button id="submitBtn" type="submit" class="btn btn-primary w-100 py-2">
         Save Profile & Upload Documents
