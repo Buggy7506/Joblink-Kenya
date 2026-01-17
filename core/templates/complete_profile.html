@@ -124,88 +124,106 @@ h2.section-title {
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    <!-- Loop through all fields, including the readonly registration number display -->
     {% for field in form %}
         <div class="mb-3">
             <label class="form-label">{{ field.label }}</label>
-            
+
             {% if field.name == "registration_number_display" %}
-                <!-- Show registration number as readonly -->
                 {{ field }}
-                <small class="text-muted">This is your auto-generated registration number.</small>
+                <small class="text-muted">
+                    This is your auto-generated registration number.
+                </small>
             {% else %}
                 {{ field }}
             {% endif %}
 
             {% if field.errors %}
-                <small class="text-danger">{{ field.errors|striptags }}</small>
+                <small class="text-danger">
+                    {{ field.errors|striptags }}
+                </small>
             {% endif %}
         </div>
     {% endfor %}
 
-    <p class="text-muted">Business emails (e.g., john@company.com) unlock instant verification.</p>
+    <p class="text-muted">
+        Business emails (e.g., john@company.com) unlock instant verification.
+    </p>
 
-    <!-- Drag & Drop File Upload Zone -->
+    <!-- Drag & Drop Zone -->
     <div id="dropZone" class="upload-zone text-center p-4 mb-3">
         <i class="bi bi-cloud-arrow-up fs-1"></i>
-        <p class="fw-semibold">Drag & drop files</p>
-        <small class="text-muted">or tap to browse</small>
+        <p class="fw-semibold">Drag & drop documents</p>
+        <small class="text-muted">or click to browse</small>
         <p id="fileCount" class="mt-2 small text-accent d-none"></p>
     </div>
 
-    <!-- Hidden file input for JS drag & drop -->
-    <input id="fileInput" type="file" name="file" class="d-none" multiple
-           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+    <!-- REAL file input -->
+    <input
+        id="fileInput"
+        type="file"
+        name="documents"
+        class="d-none"
+        multiple
+        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+        required
+    >
 
     <div class="mb-3">
         {{ form.document_type|add_class:"form-select" }}
     </div>
 
-    <button id="submitBtn" type="submit" class="btn btn-primary py-2">
-        Save Profile & Upload Files
+    <button type="submit" class="btn btn-primary w-100 py-2">
+        Save Profile & Upload Documents
     </button>
-
-    <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
-        Uploading… please wait
-    </p>
-
-    <div id="progressWrap" class="mt-3 d-none"></div>
 </form>
 
 <script>
 const DASHBOARD_URL = "{% url 'employer_control_panel' %}";
-const dropZone = document.getElementById("dropZone");
-const fileInput = document.getElementById("fileInput");
-const fileCount = document.getElementById("fileCount");
-const form = document.getElementById("companyFullForm");
+
+const dropZone     = document.getElementById("dropZone");
+const fileInput    = document.getElementById("fileInput");
+const fileCount    = document.getElementById("fileCount");
+const form         = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
-const docList = document.getElementById("docList");
-const submitBtn = document.getElementById("submitBtn");
+const submitBtn    = document.getElementById("submitBtn");
 const uploadStatus = document.getElementById("uploadStatus");
 
 const MAX_RETRIES = 3;
 let isUploading = false;
 
 /* =========================
+   CSRF HELPER
+========================= */
+function getCSRFToken() {
+  return document.querySelector("[name=csrfmiddlewaretoken]").value;
+}
+
+/* =========================
    DRAG & DROP
 ========================= */
 dropZone.addEventListener("click", () => fileInput.click());
+
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
   dropZone.classList.add("glass-drop");
 });
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("glass-drop");
+});
+
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
   dropZone.classList.remove("glass-drop");
   fileInput.files = e.dataTransfer.files;
   updateCounter();
 });
+
 fileInput.addEventListener("change", updateCounter);
 
 function updateCounter() {
   if (fileInput.files.length > 0) {
-    fileCount.innerText = fileInput.files.length + " file(s) selected";
+    fileCount.textContent = fileInput.files.length + " file(s) selected";
     fileCount.classList.remove("d-none");
   } else {
     fileCount.classList.add("d-none");
@@ -219,121 +237,124 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (isUploading) return;
+
   if (!fileInput.files.length) {
-    alert("Select at least one document.");
+    alert("Please select at least one document.");
     return;
   }
 
   isUploading = true;
   submitBtn.disabled = true;
-  submitBtn.innerText = "Uploading… please wait";
+  submitBtn.textContent = "Uploading… please wait";
   uploadStatus.classList.remove("d-none");
 
-  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
-  const docType = form.querySelector("select[name=document_type]").value;
+  const csrf = getCSRFToken();
   const files = Array.from(fileInput.files);
 
-  // 1️⃣ Save profile first (normal POST)
+  /* -------------------------
+     1️⃣ SAVE PROFILE (ONCE)
+  -------------------------- */
+  let profileResponse;
+
   try {
-    const profileResponse = await fetch("", {
+    profileResponse = await fetch(window.location.href, {
       method: "POST",
       body: new FormData(form),
-      headers: {"X-CSRFToken": csrf}
+      headers: {
+        "X-CSRFToken": csrf
+      }
     });
-    if (!profileResponse.ok) throw new Error("Profile save failed");
   } catch (err) {
-    alert("Failed to save profile. Try again.");
+    alert("Network error while saving profile.");
     resetFormState();
     return;
   }
 
-  // 2️⃣ Upload files async via Django view that enqueues Celery tasks
+  if (!(profileResponse.status === 200 || profileResponse.status === 302)) {
+    alert("Profile validation failed. Check your inputs.");
+    resetFormState();
+    return;
+  }
+
+  /* -------------------------
+     2️⃣ ENQUEUE FILE UPLOADS
+  -------------------------- */
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
   let completed = 0;
 
   files.forEach(file => {
-    enqueueCeleryUpload(file, docType, 0, () => {
+    enqueueCeleryUpload(file, 0, () => {
       completed++;
       if (completed === files.length) {
         window.location.href = DASHBOARD_URL;
       }
     });
   });
-
-  fileInput.value = "";
-  fileCount.classList.add("d-none");
 });
 
 /* =========================
    ENQUEUE CELERY UPLOAD
 ========================= */
-function enqueueCeleryUpload(file, docType, attempt, done) {
+function enqueueCeleryUpload(file, attempt, done) {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("document_type", docType);
 
   fetch("{% url 'upload_company_docs' %}", {
     method: "POST",
     body: formData,
-    headers: {"X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value}
+    headers: {
+      "X-CSRFToken": getCSRFToken()
+    }
   })
-  .then(resp => {
-    if (resp.ok) {
-      addProgressRow(file.name, 100, "Queued");
-      done();
-    } else {
+  .then(response => {
+    if (!response.ok) {
       throw new Error("Upload failed");
     }
+    addProgressRow(file.name, 100, "Queued");
+    done();
   })
   .catch(() => {
     if (attempt < MAX_RETRIES) {
-      enqueueCeleryUpload(file, docType, attempt + 1, done);
+      enqueueCeleryUpload(file, attempt + 1, done);
     } else {
-      alert(`Failed to enqueue ${file.name} after ${MAX_RETRIES} attempts`);
       addProgressRow(file.name, 100, "Failed", true);
+      alert(`Failed to upload ${file.name}`);
       done();
     }
   });
 }
 
 /* =========================
-   PROGRESS ROW UI
+   PROGRESS UI
 ========================= */
-function addProgressRow(name, percent, status, isError=false) {
+function addProgressRow(name, percent, status, isError = false) {
   const row = document.createElement("div");
   row.className = "mb-2";
+
   row.innerHTML = `
-    <div class="small fw-semibold">${name} - ${status}</div>
+    <div class="small fw-semibold">${name} – ${status}</div>
     <div class="progress rounded">
-      <div class="progress-bar ${isError ? "bg-danger" : ""}" style="width:${percent}%">${percent}%</div>
-    </div>`;
+      <div class="progress-bar ${isError ? "bg-danger" : ""}"
+           style="width:${percent}%">
+        ${percent}%
+      </div>
+    </div>
+  `;
+
   progressWrap.appendChild(row);
 }
 
 /* =========================
-   REFRESH DOC LIST
-========================= */
-function refreshDocs() {
-  fetch(window.location.href)
-    .then(r => r.text())
-    .then(html => {
-      const tmp = document.createElement("div");
-      tmp.innerHTML = html;
-      const newDocList = tmp.querySelector("#docList");
-      if (newDocList) docList.innerHTML = newDocList.innerHTML;
-    });
-}
-
-/* =========================
-   RESET FORM STATE
+   RESET STATE
 ========================= */
 function resetFormState() {
   isUploading = false;
   submitBtn.disabled = false;
-  submitBtn.innerText = "Save Profile & Upload Files";
+  submitBtn.textContent = "Save Profile & Upload Files";
   uploadStatus.classList.add("d-none");
 }
 </script>
+
 {% endblock %}
