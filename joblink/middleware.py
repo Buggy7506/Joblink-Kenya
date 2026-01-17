@@ -1,22 +1,5 @@
 from django.shortcuts import redirect
 
-class PreventCompletedEmployerProfileAccess:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        if (
-            request.user.is_authenticated
-            and request.user.role == "employer"
-            and request.path.startswith("/employer/complete-profile")
-        ):
-            company = EmployerCompany.objects.filter(user=request.user).first()
-
-            if company and company.company_name and company.business_email:
-                return redirect("employer_control_panel")
-
-        return self.get_response(request)
-
 class WwwAndHttpsRedirectMiddleware:
     """
     Redirects:
