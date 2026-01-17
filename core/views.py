@@ -1353,16 +1353,18 @@ def complete_employer_profile(request):
     # 🔐 Role guard
     if request.user.profile.role != "employer":
         messages.error(request, "Only employers can access this page.")
-        return redirect("dashboard")
+        return redirect("dashboard")  # Non-employers go to dashboard
 
+    # Get or create the company record
     company, _ = EmployerCompany.objects.get_or_create(user=request.user)
 
     # 🔒 Prevent re-completion
+    # Only redirect if the profile is truly complete
     if company.company_name and company.business_email:
-        return redirect("employer_control_panel")
+        return redirect("dashboard")  # ✅ Redirect completed profiles to dashboard
 
     if request.method == "POST":
-        # ✅ IMPORTANT: include request.FILES
+        # Include files in the form
         form = EmployerCompanyForm(
             request.POST,
             request.FILES,
@@ -1370,12 +1372,12 @@ def complete_employer_profile(request):
         )
 
         if form.is_valid():
-            company = form.save()  # auto_verify runs here
+            company = form.save()  # auto_verify runs inside save()
             messages.success(request, "Company profile completed!")
-            return redirect("employer_control_panel")
+            return redirect("dashboard")  # ✅ Redirect after successful save
         else:
-            # Optional but VERY helpful during debugging
             messages.error(request, "Please correct the errors below.")
+
     else:
         form = EmployerCompanyForm(instance=company)
 
