@@ -4,15 +4,28 @@
 {% block content %}
 <div class="job-detail-container">
   <div class="job-card glow-card">
-    <h2 class="job-title">{{ job.title }}</h2>
+    <!-- Job Header -->
+    <h2 class="job-title">
+      {{ job.title }}
+      {% if job.is_premium %}
+        <span class="premium-badge">Premium</span>
+      {% endif %}
+    </h2>
+
+    <!-- Job Meta -->
     <p><strong>Company:</strong> {{ job.company }}</p>
     <p><strong>Location:</strong> {{ job.location }}</p>
     <p><strong>Category:</strong> {{ job.category }}</p>
     <p><strong>Posted on:</strong> {{ job.posted_on|date:"F j, Y" }}</p>
+    {% if job.expiry_date %}
+      <p><strong>Expires on:</strong> {{ job.expiry_date|date:"F j, Y" }}</p>
+    {% endif %}
 
+    <!-- Job Description -->
     <h3>Job Description</h3>
     <p>{{ job.description|linebreaks }}</p>
 
+    <!-- Job Actions -->
     <div class="job-actions">
       {% if user.is_authenticated and user.role == "applicant" %}
         {% if application %}
@@ -22,7 +35,9 @@
           </a>
         {% else %}
           <!-- Not yet applied → show apply now -->
-          <a href="{% url 'apply_job' job.id %}" class="btn-glow">⚡ Apply Now</a>
+          <a href="{% url 'apply_job' job.id %}" class="btn-glow">
+            ⚡ Apply Now
+          </a>
         {% endif %}
       {% endif %}
 
