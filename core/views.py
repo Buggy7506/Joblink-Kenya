@@ -1339,6 +1339,10 @@ def complete_employer_profile(request):
 
     company, _ = EmployerCompany.objects.get_or_create(user=request.user)
 
+    # 🔒 PREVENT ACCESS IF PROFILE IS ALREADY COMPLETED
+    if company.company_name and company.business_email:
+        return redirect("employer_control_panel")
+
     if request.method == "POST":
         form = EmployerCompanyForm(request.POST, instance=company)
         if form.is_valid():
