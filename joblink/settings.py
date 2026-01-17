@@ -258,14 +258,19 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
-# SendGrid
-#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-SENDGRID_SANDBOX_MODE_IN_DEBUG = False
-DEFAULT_FROM_EMAIL = "security@stepper.dpdns.org"
-SERVER_EMAIL = "security@stepper.dpdns.org"
-DEFAULT_REPLY_TO_EMAIL = "security@stepper.dpdns.org"
+
+# Use Anymail MailerSend backend
+EMAIL_BACKEND = "anymail.backends.mailersend.EmailBackend"
+
+# MailerSend API token (use environment variable)
+import os
+
+ANYMAIL = {
+    "MAILERSEND_API_TOKEN": os.environ.get("MAILERSEND_API_TOKEN"),
+}
+
+# Default from email
+DEFAULT_FROM_EMAIL = "support@stepper.dpdns.org"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
