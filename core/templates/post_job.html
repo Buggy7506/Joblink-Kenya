@@ -144,35 +144,40 @@ input:focus, select:focus, textarea:focus {
     
     {% for field in form %}
       <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-    
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
         {% if field.name == "location" %}
           {{ field|add_class:"form-input location-input" }}
           <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default:'' }}">
           <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default:'' }}">
-    
+
         {% elif field.name == "salary" %}
           {% if field.value %}
-            <strong>{{ field.value|floatformat:2|intcomma }}</strong>
-          {% else %}
-            <strong>0.00</strong>
+            <strong style="display:block; margin-bottom:4px;">
+              {{ field.value|floatformat:2|intcomma }}
+            </strong>
           {% endif %}
-          {{ field }}
-    
+          {{ field|add_class:"form-input" }}
+
         {% else %}
-          {{ field }}
+          {{ field|add_class:"form-input" }}
         {% endif %}
-    
+
+        {% if field.help_text %}
+          <small>{{ field.help_text }}</small>
+        {% endif %}
+
         {% for error in field.errors %}
           <div class="error">{{ error }}</div>
         {% endfor %}
       </div>
     {% endfor %}
     
-    <button type="submit" class="submit-btn">Post</button>
-</form>
-  
+    <!-- Submit Button -->
+    <button type="submit" class="btn-glow">⚡ Post Job</button>
+  </form>
 </div>
+
 <script>
   // Automatically fade and remove messages
   setTimeout(() => {
