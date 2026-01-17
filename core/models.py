@@ -8,6 +8,8 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+import uuid
+import os
 
 class EmployerCompany(models.Model):
     STATUS_PENDING = "pending"
@@ -35,11 +37,17 @@ class EmployerCompany(models.Model):
         help_text="Must be a business email (no Gmail, Yahoo, etc.)"
     )
     company_website = models.URLField(blank=True, null=True)
+    
+    # --------------------------
+    # Auto-generated unique registration number
+    # --------------------------
     registration_number = models.CharField(
-        max_length=120,
+        max_length=20,
         blank=True,
         null=True,
-        help_text="Optional company registration / certificate number"
+        unique=True,
+        editable=False,
+        help_text="Automatically generated unique company registration number"
     )
 
     # Verification status
@@ -83,9 +91,29 @@ class EmployerCompany(models.Model):
             self.rejection_reason = None
             self.reviewed_at = None
 
+    # -------------------------------------------------------------
+    # SAVE OVERRIDE
+    # -------------------------------------------------------------
     def save(self, *args, **kwargs):
+        # Generate unique registration number if not set
+        if not self.registration_number:
+            self.registration_number = self.generate_unique_registration_number()
+
+        # Auto-verify status
         self.auto_verify()
+
         super().save(*args, **kwargs)
+
+    # -------------------------------------------------------------
+    # UNIQUE REGISTRATION NUMBER GENERATOR
+    # -------------------------------------------------------------
+    @staticmethod
+    def generate_unique_registration_number():
+        """Generate a unique registration number for the employer."""
+        while True:
+            reg_no = f"EMP{uuid.uuid4().hex[:6].upper()}"  # e.g., EMPA1B2C3
+            if not EmployerCompany.objects.filter(registration_number=reg_no).exists():
+                return reg_no
 
     # -------------------------------------------------------------
     # Helpers / Badge Properties
