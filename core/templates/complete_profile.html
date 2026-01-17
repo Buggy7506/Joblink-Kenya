@@ -124,19 +124,28 @@ h2.section-title {
     {% csrf_token %}
     {{ form.non_field_errors }}
 
+    <!-- Loop through all fields, including the readonly registration number display -->
     {% for field in form %}
-        {% if field.name != 'document_type' %}
-            <label>{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <small>{{ field.errors|striptags }}</small>
+        <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            
+            {% if field.name == "registration_number_display" %}
+                <!-- Show registration number as readonly -->
+                {{ field }}
+                <small class="text-muted">This is your auto-generated registration number.</small>
+            {% else %}
+                {{ field }}
             {% endif %}
-        {% endif %}
+
+            {% if field.errors %}
+                <small class="text-danger">{{ field.errors|striptags }}</small>
+            {% endif %}
+        </div>
     {% endfor %}
 
-    <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
+    <p class="text-muted">Business emails (e.g., john@company.com) unlock instant verification.</p>
 
-    <!-- Drag Zone -->
+    <!-- Drag & Drop File Upload Zone -->
     <div id="dropZone" class="upload-zone text-center p-4 mb-3">
         <i class="bi bi-cloud-arrow-up fs-1"></i>
         <p class="fw-semibold">Drag & drop files</p>
@@ -144,7 +153,7 @@ h2.section-title {
         <p id="fileCount" class="mt-2 small text-accent d-none"></p>
     </div>
 
-    <!-- File input -->
+    <!-- Hidden file input for JS drag & drop -->
     <input id="fileInput" type="file" name="file" class="d-none" multiple
            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
@@ -153,12 +162,12 @@ h2.section-title {
     </div>
 
     <button id="submitBtn" type="submit" class="btn btn-primary py-2">
-     Save Profile & Upload Files
-   </button>
+        Save Profile & Upload Files
+    </button>
 
-   <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
-     Uploading… please wait
-   </p>
+    <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
+        Uploading… please wait
+    </p>
 
     <div id="progressWrap" class="mt-3 d-none"></div>
 </form>
