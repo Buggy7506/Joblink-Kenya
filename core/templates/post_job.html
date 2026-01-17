@@ -6,47 +6,6 @@
 {% block title %}Post Job{% endblock %}
 
 {% block content %}
-<div class="post-job-container">
-  <h2 class="glow-heading">Post a Job</h2>
-
-  <!-- Messages Popup -->
-  {% if messages %}
-    <div id="messages-popup">
-      {% for message in messages %}
-        <div class="message {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <form method="POST" class="job-form">
-    {% csrf_token %}
-    
-    {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-    
-        {% if field.name == "location" %}
-          {{ field|add_class:"form-input location-input" }}
-          <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default:'' }}">
-          <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default:'' }}">
-    
-        {% elif field.name == "salary" %}
-          <strong>{{ field.value|floatformat:2|intcomma }}</strong>
-          {{ field }}
-    
-        {% else %}
-          {{ field }}
-        {% endif %}
-    
-        {% for error in field.errors %}
-          <div class="error">{{ error }}</div>
-        {% endfor %}
-      </div>
-    {% endfor %}
-
-    <button type="submit" class="submit-btn">Post</button>
-  </form>
-</div>
 
 <style>
 /* prevent inputs from overflowing */
@@ -168,6 +127,52 @@ input:focus, select:focus, textarea:focus {
 }
 </style>
 
+<div class="post-job-container">
+  <h2 class="glow-heading">Post a Job</h2>
+
+  <!-- Messages Popup -->
+  {% if messages %}
+    <div id="messages-popup">
+      {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="POST" class="job-form">
+    {% csrf_token %}
+    
+    {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+    
+        {% if field.name == "location" %}
+          {{ field|add_class:"form-input location-input" }}
+          <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default:'' }}">
+          <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default:'' }}">
+    
+        {% elif field.name == "salary" %}
+          {% if field.value %}
+            <strong>{{ field.value|floatformat:2|intcomma }}</strong>
+          {% else %}
+            <strong>0.00</strong>
+          {% endif %}
+          {{ field }}
+    
+        {% else %}
+          {{ field }}
+        {% endif %}
+    
+        {% for error in field.errors %}
+          <div class="error">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    
+    <button type="submit" class="submit-btn">Post</button>
+</form>
+  
+</div>
 <script>
   // Automatically fade and remove messages
   setTimeout(() => {
