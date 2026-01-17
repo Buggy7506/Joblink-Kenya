@@ -13,11 +13,30 @@ class EmployerCompanyForm(forms.ModelForm):
         model = EmployerCompany
         fields = ['company_name', 'business_email', 'company_website', 'registration_number']
         widgets = {
-            'company_name': forms.TextInput(attrs={'placeholder': 'Enter your company name'}),
-            'business_email': forms.EmailInput(attrs={'placeholder': 'Enter your business email'}),
-            'company_website': forms.URLInput(attrs={'placeholder': 'https://yourcompany.com'}),
-            'registration_number': forms.TextInput(attrs={'placeholder': 'Company registration number'}),
+            'company_name': forms.TextInput(attrs={
+                'placeholder': 'Enter your company name',
+                'class': 'form-control'
+            }),
+            'business_email': forms.EmailInput(attrs={
+                'placeholder': 'Enter your business email',
+                'class': 'form-control'
+            }),
+            'company_website': forms.URLInput(attrs={
+                'placeholder': 'https://yourcompany.com',
+                'class': 'form-control'
+            }),
+            'registration_number': forms.TextInput(attrs={
+                'placeholder': 'Automatically generated',
+                'class': 'form-control',
+                'readonly': 'readonly'  # Make field non-editable
+            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If instance exists and has registration_number, prefill the readonly field
+        if self.instance and self.instance.registration_number:
+            self.fields['registration_number'].initial = self.instance.registration_number
 
     def clean_business_email(self):
         email = self.cleaned_data.get('business_email')
@@ -34,6 +53,15 @@ class EmployerCompanyForm(forms.ModelForm):
                 "Please use a business/company email. Free emails (e.g., Gmail, Yahoo, etc.) are not accepted."
             )
         return email
+
+    def clean_registration_number(self):
+        """
+        Ensure registration_number is not changed by user input.
+        """
+        # Always use instance's registration_number or auto-generate if missing
+        if self.instance and self.instance.registration_number:
+            return self.instance.registration_number
+        return self.instance.generate_unique_registration_number() if self.instance else None
 
 class CompanyDocumentForm(forms.ModelForm):
     class Meta:
