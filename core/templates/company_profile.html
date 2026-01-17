@@ -102,11 +102,16 @@ body.light-mode .pending-badge {
         <h2>🏢 Company Profile</h2>
 
         {% if company %}
-            <p><strong>Company Name:</strong> {{ company.name }}</p>
-            <p><strong>Email:</strong> {{ company.email }}</p>
-            <p><strong>Phone:</strong> {{ company.phone }}</p>
-            <p><strong>Website:</strong> {{ company.website }}</p>
-            <p><strong>Location:</strong> {{ company.location }}</p>
+            <p><strong>Company Name:</strong> {{ company.company_name|default:"Not provided" }}</p>
+            <p><strong>Business Email:</strong> {{ company.business_email|default:"Not provided" }}</p>
+            <p><strong>Company Website:</strong> 
+                {% if company.company_website %}
+                    <a href="{{ company.company_website }}" target="_blank">{{ company.company_website }}</a>
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+            <p><strong>Registration Number:</strong> {{ company.registration_number|default:"Not generated yet" }}</p>
 
             {% if company_verified %}
                 <span class="verified-badge">✔ Verified Employer</span>
@@ -131,4 +136,5 @@ body.light-mode .pending-badge {
     </div>
 
 </div>
+
 {% endblock %}
