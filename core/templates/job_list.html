@@ -201,6 +201,34 @@
     flex-direction: column;
   }
 }
+/* Apply Now Button Styling */
+.apply-link {
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 25px;
+    background: var(--text-accent); /* Use your accent color */
+    color: var(--text-main);
+    font-weight: bold;
+    font-size: 1rem;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px var(--glow-accent, rgba(0,255,200,0.5)), 
+                0 0 30px var(--glow-accent, rgba(0,255,200,0.3));
+}
+
+.apply-link:hover {
+    background: var(--glow-accent, #00ffc6);
+    color: #000; /* Dark text on glow background */
+    box-shadow: 0 0 25px var(--glow-accent), 
+                0 0 50px var(--glow-accent);
+    transform: translateY(-2px);
+}
+
+.job-card .apply-link {
+    margin-top: 15px;
+    display: inline-block;
+}
 </style>
 
 <div class="container">
@@ -213,14 +241,14 @@
     </div>
   {% endif %}
 
-  {# 🔍 SEARCH + FILTER CONTROLS #}
- <!-- 🌐 SMART DYNAMIC FILTER BAR -->
+  <!-- 🔍 Search & Filter Bar -->
   <form method="get" class="filter-bar" id="filterForm">
 
+    <!-- Search by title -->
     <input type="text" id="searchInput" name="search"
            placeholder="🔍 Search job title…" value="{{ search }}">
 
-    <!-- CATEGORY AUTOCOMPLETE -->
+    <!-- Category -->
     <input type="text"
            name="category"
            id="categoryInput"
@@ -228,37 +256,32 @@
            placeholder="Select or type category…"
            value="{{ category }}">
     <datalist id="categoryData"></datalist>
-    
-    
-    <!-- LOCATION AUTOCOMPLETE -->
+
+    <!-- Location -->
     <input type="text"
            name="location"
            id="locationInput"
            list="locationData"
-           placeholder="Search location (OSM)…"
+           placeholder="Search location…"
            value="{{ location }}">
     <datalist id="locationData"></datalist>
 
-
+    <!-- Sort -->
     <select name="sort" id="sortSelect">
       <option value="">Sort by</option>
       <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest First</option>
-      <option value="deadline_asc" {% if sort == "deadline_asc" %}selected{% endif %}>Deadline (Soonest)</option>
-      <option value="deadline_desc" {% if sort == "deadline_desc" %}selected{% endif %}>Deadline (Latest)</option>
+      <option value="expiry_asc" {% if sort == "expiry_asc" %}selected{% endif %}>Expiry Soonest</option>
+      <option value="expiry_desc" {% if sort == "expiry_desc" %}selected{% endif %}>Expiry Latest</option>
     </select>
 
     <button type="submit">Apply</button>
   </form>
 
+  <!-- 🌟 Premium Jobs -->
   <h2>🌟 Featured Jobs</h2>
   {% for job in premium_jobs %}
-    <div class="premium-job job-card">
+    <div class="job-card premium-job">
       <div class="company-row">
-        {% if job.logo %}
-          <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
-        {% else %}
-          <div class="company-logo"></div>
-        {% endif %}
         <p>{{ job.company }}</p>
       </div>
 
@@ -266,14 +289,23 @@
         {{ job.title }} <span class="premium-badge">Premium</span>
       </div>
 
+      {% if job.category %}
+        <p class="job-category">Category: {{ job.category.name }}</p>
+      {% endif %}
+
       <p class="job-meta">
         <span class="icon">📍</span> {{ job.location }}
       </p>
 
-      <div class="apply-info">
-        <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
-        <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
-      </div>
+      {% if job.salary %}
+        <p class="job-salary">Salary: KES {{ job.salary|intcomma }}</p>
+      {% endif %}
+
+      {% if job.expiry_date %}
+        <p class="job-expiry">Expires on: {{ job.expiry_date|date:"M d, Y" }}</p>
+      {% endif %}
+
+      <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
 
       <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
@@ -281,43 +313,42 @@
     <p class="no-jobs">No premium jobs at the moment.</p>
   {% endfor %}
 
+  <!-- 💼 Regular Jobs -->
   <h2>💼 Free Jobs</h2>
   {% for job in jobs %}
-    <div class="normal-job job-card">
+    <div class="job-card normal-job">
       <div class="company-row">
-        {% if job.logo %}
-          <img src="{{ job.logo.url }}" class="company-logo-img" alt="{{ job.company }}">
-        {% else %}
-          <div class="company-logo"></div>
-        {% endif %}
         <p>{{ job.company }}</p>
       </div>
 
       <div class="job-title">{{ job.title }}</div>
 
+      {% if job.category %}
+        <p class="job-category">Category: {{ job.category.name }}</p>
+      {% endif %}
+
       <p class="job-meta">
         <span class="icon">📍</span> {{ job.location }}
       </p>
 
-      <div class="apply-info">
-        <span class="deadline" data-deadline="{{ job.deadline|date:'Y-m-d' }}">Loading…</span>
-        <span class="posted"><span class="icon">🕒</span> Posted: {{ job.posted_date|date:"M d, Y" }}</span>
-      </div>
+      {% if job.salary %}
+        <p class="job-salary">Salary: KES {{ job.salary|intcomma }}</p>
+      {% endif %}
+
+      {% if job.expiry_date %}
+        <p class="job-expiry">Expires on: {{ job.expiry_date|date:"M d, Y" }}</p>
+      {% endif %}
+
+      <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
 
       <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
   {% empty %}
     <p class="no-jobs">No jobs found at the moment.</p>
   {% endfor %}
+
 </div>
-
-{# 📄 infinite scroll paging link (includes filters!) #}
-{% if jobs.has_next %}
-  <a id="next-page-link"
-     href="?page={{ jobs.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if location %}&location={{ location }}{% endif %}"
-     hidden></a>
-{% endif %}
-
+  
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   /* -----------------------------
