@@ -172,8 +172,15 @@ const fileCount = document.getElementById("fileCount");
 const form = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
 const docList = document.getElementById("docList");
+const submitBtn = document.getElementById("submitBtn");
+const uploadStatus = document.getElementById("uploadStatus");
 
-// Drag UI
+const MAX_RETRIES = 3;
+let isUploading = false;
+
+/* =========================
+   DRAG & DROP
+========================= */
 dropZone.addEventListener("click", () => fileInput.click());
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
@@ -195,89 +202,120 @@ function updateCounter() {
   }
 }
 
-// AJAX upload
+/* =========================
+   FORM SUBMIT
+========================= */
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  if (isUploading) return;
 
   if (!fileInput.files.length) {
     alert("Select at least one document.");
     return;
   }
 
-  // ✅ FIRST: save profile via normal POST
-  const formData = new FormData(form);
+  isUploading = true;
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Uploading…";
+  uploadStatus.classList.remove("d-none");
+
+  // 1️⃣ Save profile
   await fetch("", {
     method: "POST",
-    body: formData,
+    body: new FormData(form),
     headers: {
       "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
     }
   });
 
-  // ✅ THEN: upload files
+  // 2️⃣ Upload files
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = form.querySelector("select[name=document_type]").value;
 
-  let uploaded = 0;
+  let completed = 0;
   const total = fileInput.files.length;
 
   for (let file of fileInput.files) {
-    uploadOne(file, csrf, docType, () => {
-      uploaded++;
-      if (uploaded === total) {
-        // ✅ REDIRECT AFTER LAST FILE
+    uploadWithRetry(file, csrf, docType, 0, () => {
+      completed++;
+      if (completed === total) {
         window.location.href = DASHBOARD_URL;
       }
     });
   }
-
-  fileInput.value = "";
-  fileCount.classList.add("d-none");
 });
 
-function uploadOne(file, csrf, docType, doneCallback) {
-  const row = document.createElement("div");
-  row.className = "mb-2";
-  row.innerHTML = `
-    <div class="small fw-semibold">${file.name}</div>
-    <div class="progress rounded">
-      <div class="progress-bar" role="progressbar" style="width:0%">0%</div>
-    </div>`;
-  progressWrap.appendChild(row);
-
-  const xhr = new XMLHttpRequest();
-  const bar = row.querySelector(".progress-bar");
-
-  xhr.upload.addEventListener("progress", e => {
-    if (e.lengthComputable) {
-      const percent = (e.loaded / e.total) * 100;
-      bar.style.width = percent.toFixed(0) + "%";
-      bar.textContent = percent.toFixed(0) + "%";
-    }
-  });
-
-  xhr.onload = () => {
-    bar.style.width = "100%";
-    bar.textContent = "Done";
-    if (xhr.status === 200) {
-     refreshDocs();
-     if (doneCallback) doneCallback();
-   }
-    else bar.classList.add("bg-danger");
-  };
-
-  xhr.open("POST", "", true);
-  xhr.setRequestHeader("X-CSRFToken", csrf);
-
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("document_type", docType);
-  xhr.send(fd);
+/* =========================
+   UPLOAD WITH RETRY
+========================= */
+function uploadWithRetry(file, csrf, docType, attempt, done) {
+  uploadOne(file, csrf, docType)
+    .then(done)
+    .catch(() => {
+      if (attempt < MAX_RETRIES) {
+        uploadWithRetry(file, csrf, docType, attempt + 1, done);
+      } else {
+        alert(`Failed to upload ${file.name}`);
+      }
+    });
 }
 
+/* =========================
+   SINGLE FILE UPLOAD
+========================= */
+function uploadOne(file, csrf, docType) {
+  return new Promise((resolve, reject) => {
+    const row = document.createElement("div");
+    row.className = "mb-2";
+    row.innerHTML = `
+      <div class="small fw-semibold">${file.name}</div>
+      <div class="progress rounded">
+        <div class="progress-bar" style="width:0%">0%</div>
+      </div>`;
+    progressWrap.appendChild(row);
+
+    const xhr = new XMLHttpRequest();
+    const bar = row.querySelector(".progress-bar");
+
+    xhr.upload.addEventListener("progress", e => {
+      if (e.lengthComputable) {
+        const percent = (e.loaded / e.total) * 100;
+        bar.style.width = percent.toFixed(0) + "%";
+        bar.textContent = percent.toFixed(0) + "%";
+      }
+    });
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        bar.style.width = "100%";
+        bar.textContent = "Done";
+        refreshDocs();
+        resolve();
+      } else {
+        bar.classList.add("bg-danger");
+        reject();
+      }
+    };
+
+    xhr.onerror = reject;
+
+    xhr.open("POST", "", true);
+    xhr.setRequestHeader("X-CSRFToken", csrf);
+
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("document_type", docType);
+    xhr.send(fd);
+  });
+}
+
+/* =========================
+   REFRESH DOC LIST
+========================= */
 function refreshDocs() {
   fetch(window.location.href)
     .then(r => r.text())
