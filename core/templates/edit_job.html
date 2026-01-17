@@ -119,75 +119,115 @@
   }
 </style>
 
-
 <div class="edit-job-container">
   <h2>Edit Job Posting</h2>
   <form method="POST">
     {% csrf_token %}
     
+    <!-- Job Title -->
     <div class="form-group">
       <label for="title">Job Title</label>
-      <input type="text" id="title" name="title" value="{{ form.title.value }}">
+      <input type="text" id="title" name="title" value="{{ form.title.value }}" required>
+      {% for error in form.title.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
     </div>
 
+    <!-- Job Description -->
     <div class="form-group">
       <label for="description">Job Description</label>
-      <textarea id="description" name="description">{{ form.description.value }}</textarea>
+      <textarea id="description" name="description" required>{{ form.description.value }}</textarea>
+      {% for error in form.description.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
     </div>
 
+    <!-- Category -->
     <div class="form-group">
       <label for="category">Category</label>
       {{ form.category }}
+      {% for error in form.category.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
     </div>
-    
+
+    <!-- Custom Category -->
     <div class="form-group">
       <label for="{{ form.custom_category.id_for_label }}">Custom Category</label>
       {{ form.custom_category }}
       {% if form.custom_category.help_text %}
         <small>{{ form.custom_category.help_text }}</small>
       {% endif %}
+      {% for error in form.custom_category.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
     </div>
 
-
+    <!-- Company -->
     <div class="form-group">
       <label for="company">Company</label>
       <input type="text" id="company" name="company" value="{{ form.company.value }}">
+      {% for error in form.company.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
     </div>
 
+    <!-- Location -->
     <div class="form-group" style="position: relative;">
-        <label for="location">Location</label>
-        <input
-            type="text"
-            id="location"
-            name="location"
-            value="{{ form.location.value|default_if_none:'' }}"
-            class="form-input location-input"
-            placeholder="Enter job location"
-            data-lat-input="job-latitude"
-            data-lon-input="job-longitude"
-        >
-        <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default_if_none:'' }}">
-        <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default_if_none:'' }}">
+      <label for="location">Location</label>
+      <input
+          type="text"
+          id="location"
+          name="location"
+          value="{{ form.location.value|default_if_none:'' }}"
+          class="form-input location-input"
+          placeholder="Enter job location"
+          data-lat-input="job-latitude"
+          data-lon-input="job-longitude"
+      >
+      <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default_if_none:'' }}">
+      <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default_if_none:'' }}">
+      {% for error in form.location.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
     </div>
 
-  <div class="form-group">
-    <label for="salary">Salary (KES)</label>
-  
-    {% if form.salary.value %}
-      <strong style="display:block; margin-bottom:4px;">
-        {{ form.salary.value|floatformat:2|intcomma }}
-      </strong>
-    {% endif %}
-  
-    <input type="number" id="salary" name="salary" value="{{ form.salary.value }}">
-    <small>Jobs with salary > 30,000 KES will automatically be premium.</small>
-  </div>
+    <!-- Salary -->
+    <div class="form-group">
+      <label for="salary">Salary (KES)</label>
+      {% if form.salary.value %}
+        <strong style="display:block; margin-bottom:4px;">
+          {{ form.salary.value|floatformat:2|intcomma }}
+        </strong>
+      {% endif %}
+      <input type="number" id="salary" name="salary" value="{{ form.salary.value }}">
+      <small>Jobs with salary > 30,000 KES will automatically be premium.</small>
+      {% for error in form.salary.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
 
+    <!-- Expiry Date -->
+    <div class="form-group">
+      <label for="{{ form.expiry_date.id_for_label }}">Expiry Date</label>
+      {{ form.expiry_date }}
+      {% if form.expiry_date.help_text %}
+        <small>{{ form.expiry_date.help_text }}</small>
+      {% endif %}
+      {% for error in form.expiry_date.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Premium Status Display -->
     <div class="form-group">
       <label for="premium-status">Current Status</label>
-      <input type="text" id="premium-status" value="{% if job.is_premium %}Premium{% else %}Free{% endif %}" readonly style="background:#222; color:#00ffc6;">
+      <input type="text" id="premium-status" 
+             value="{% if job.is_premium %}Premium{% else %}Free{% endif %}" 
+             readonly style="background:#222; color:#00ffc6;">
     </div>
 
+    <!-- Buttons -->
     <button type="submit" class="btn btn-save">💾 Save Changes</button>
     <a href="{% url 'view_posted_jobs' %}" class="btn btn-cancel">❌ Cancel</a>
   </form>
