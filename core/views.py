@@ -1361,21 +1361,32 @@ def complete_employer_profile(request):
     # Get or create the company record
     company, _ = EmployerCompany.objects.get_or_create(user=user)
 
+    # Debug logging: check profile completeness
+    print(f"DEBUG: user={user.username}, company={company}, is_complete={company.is_complete}")
+
     if request.method == "POST":
         form = EmployerCompanyForm(request.POST, request.FILES, instance=company)
         if form.is_valid():
             with transaction.atomic():  # ensures atomic save if auto_verify updates multiple fields
                 form.save()
             messages.success(request, "Company profile updated!")
-            return redirect("dashboard")  # Post/Redirect/Get pattern ✅
+            return redirect("dashboard")  # ✅ Safe redirect after POST
         else:
             messages.error(request, "Please correct the errors below.")
 
     else:  # GET request
-        # 💡 Removed the redirect for already-complete profiles
+        # Always render form for editing, even if profile is complete
         form = EmployerCompanyForm(instance=company)
 
-    return render(request, "complete_profile.html", {"form": form})
+    return render(
+        request,
+        "complete_profile.html",
+        {
+            "form": form,
+            "company": company,  # pass company to template if needed
+            "is_complete": company.is_complete,  # useful for template logic
+        }
+    )
         
 #User Logout
 def logout_view(request):
