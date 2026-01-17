@@ -1350,26 +1350,38 @@ def login_view(request):
 
 @login_required
 def complete_employer_profile(request):
+    # 🔐 Role guard
     if request.user.profile.role != "employer":
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
     company, _ = EmployerCompany.objects.get_or_create(user=request.user)
 
-    # 🔒 PREVENT ACCESS IF PROFILE IS ALREADY COMPLETED
+    # 🔒 Prevent re-completion
     if company.company_name and company.business_email:
         return redirect("employer_control_panel")
 
     if request.method == "POST":
-        form = EmployerCompanyForm(request.POST, instance=company)
+        # ✅ IMPORTANT: include request.FILES
+        form = EmployerCompanyForm(
+            request.POST,
+            request.FILES,
+            instance=company
+        )
+
         if form.is_valid():
-            form.save()  # auto_verify runs inside save()
+            company = form.save()  # auto_verify runs here
             messages.success(request, "Company profile completed!")
             return redirect("employer_control_panel")
+        else:
+            # Optional but VERY helpful during debugging
+            messages.error(request, "Please correct the errors below.")
     else:
         form = EmployerCompanyForm(instance=company)
 
-    return render(request, "complete_profile.html", {"form": form})
+    return render(request, "complete_profile.html", {
+        "form": form
+    })
         
 #User Logout
 def logout_view(request):
