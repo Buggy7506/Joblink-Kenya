@@ -274,9 +274,16 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
         help_text="You may create your own category if not listed."
     )
 
+    expiry_date = forms.DateTimeField(
+        required=False,
+        label="Expiry Date",
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        help_text="Optional: Set a custom expiry date for this job. Default is 30 days from posting."
+    )
+
     class Meta:
         model = Job
-        fields = ['title', 'description', 'category', 'location', 'company', 'salary']  # remove is_premium from form
+        fields = ['title', 'description', 'category', 'location', 'company', 'salary', 'expiry_date']
         help_texts = {
             'title': "Enter the job title.",
             'description': "Provide job details and requirements.",
@@ -284,6 +291,7 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
             'location': "Enter job location.",
             'company': "Enter your company name.",
             'salary': "Enter the salary for this job in KES.",
+            'expiry_date': "Optional: Set a custom expiry date. Default is 30 days from posting."
         }
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Enter job title'}),
@@ -296,6 +304,7 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
             }),
             'company': forms.TextInput(attrs={'placeholder': 'Enter company name'}),
             'salary': forms.NumberInput(attrs={'placeholder': 'Enter salary in KES'}),
+            'expiry_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -308,19 +317,29 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
         # --- Auto-set premium based on salary ---
         if job.salary and job.salary > 30000:
             job.is_premium = True
+            # Set default premium expiry if not already set
+            if not job.premium_expiry:
+                job.premium_expiry = timezone.now() + timedelta(days=30)
         else:
             job.is_premium = False
+            job.premium_expiry = None
         # ---------------------------------------
 
+        # --- Handle custom category ---
         custom_category = self.cleaned_data.get('custom_category')
         if custom_category:
             category, _ = JobCategory.objects.get_or_create(name=custom_category)
             job.category = category
 
+        # --- Handle optional expiry date ---
+        expiry_date = self.cleaned_data.get('expiry_date')
+        if expiry_date:
+            job.expiry_date = expiry_date
+
         if commit:
             job.save()
         return job
-
+        
 # 🔹 CV Upload Form
 class CVUploadForm(TooltipFormMixin, forms.ModelForm):
     class Meta:
