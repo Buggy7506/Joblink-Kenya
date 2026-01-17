@@ -2,7 +2,7 @@
 
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
-from .models import EmployerCompany
+from core.models import EmployerCompany
 
 class PreventCompletedEmployerProfileAccess(MiddlewareMixin):
     """
