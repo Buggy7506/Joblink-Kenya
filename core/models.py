@@ -453,6 +453,7 @@ class Job(models.Model):
     is_premium = models.BooleanField(default=False)
     premium_expiry = models.DateTimeField(null=True, blank=True)
     
+    is_active = models.BooleanField(default=True)  # Keep this for views
     expiry_date = models.DateTimeField(null=True, blank=True)  # Job expiry date
 
     def save(self, *args, **kwargs):
@@ -460,13 +461,18 @@ class Job(models.Model):
         if not self.expiry_date:
             self.expiry_date = timezone.now() + timedelta(days=30)
 
-        # --- Set premium automatically based on salary ---
+        # --- Auto-set premium based on salary ---
         if self.salary and self.salary > 30000:
             self.is_premium = True
             if not self.premium_expiry:
                 self.premium_expiry = timezone.now() + timedelta(days=30)
         else:
             self.is_premium = False
+            self.premium_expiry = None
+
+        # --- Auto-disable job if expired ---
+        if self.expiry_date <= timezone.now():
+            self.is_active = False
 
         super().save(*args, **kwargs)
 
@@ -483,7 +489,7 @@ class Job(models.Model):
     def delete_expired_jobs():
         """
         Delete all jobs whose expiry_date has passed.
-        Call this in your views or querysets to ensure expired jobs are removed automatically.
+        Call this in your views if you want to fully purge expired jobs.
         """
         now = timezone.now()
         expired_jobs = Job.objects.filter(expiry_date__lte=now)
