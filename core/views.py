@@ -1680,8 +1680,14 @@ def edit_profile(request):
 @login_required
 @employer_verified_required
 def post_job(request):
+    """
+    View to allow verified employers to post jobs.
+    Only users with role='employer' can access this.
+    Sends notifications and emails to matching JobAlert subscribers.
+    """
+
     # 1️⃣ Only employers can post jobs
-    if request.user.profile.role != "employer":
+    if getattr(request.user, "role", None) != "employer":
         messages.error(request, "❌ Only employers can post jobs.")
         return redirect('job_list')
 
@@ -1750,7 +1756,7 @@ def post_job(request):
         form = JobForm()
 
     # 6️⃣ Render template normally
-    return render(request, 'post_job.html', {'form': form})
+    return render(request, 'post_job.html', {'form': form, 'company': company})
 
 @login_required
 @employer_verified_required
