@@ -152,13 +152,20 @@ h2.section-title {
         {{ form.document_type|add_class:"form-select" }}
     </div>
 
-    <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
+    <button id="submitBtn" type="submit" class="btn btn-primary py-2">
+     Save Profile & Upload Files
+   </button>
+
+   <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
+     Uploading… please wait
+   </p>
 
     <div id="progressWrap" class="mt-3 d-none"></div>
 </form>
 
 <!-- AJAX Upload Script -->
 <script>
+const DASHBOARD_URL = "{% url 'employer_control_panel' %}";
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
 const fileCount = document.getElementById("fileCount");
@@ -197,20 +204,41 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  // ✅ FIRST: save profile via normal POST
+  const formData = new FormData(form);
+  await fetch("", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
+    }
+  });
+
+  // ✅ THEN: upload files
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = form.querySelector("select[name=document_type]").value;
 
+  let uploaded = 0;
+  const total = fileInput.files.length;
+
   for (let file of fileInput.files) {
-    uploadOne(file, csrf, docType);
+    uploadOne(file, csrf, docType, () => {
+      uploaded++;
+      if (uploaded === total) {
+        // ✅ REDIRECT AFTER LAST FILE
+        window.location.href = DASHBOARD_URL;
+      }
+    });
   }
+
   fileInput.value = "";
   fileCount.classList.add("d-none");
 });
 
-function uploadOne(file, csrf, docType) {
+function uploadOne(file, csrf, docType, doneCallback) {
   const row = document.createElement("div");
   row.className = "mb-2";
   row.innerHTML = `
@@ -234,7 +262,10 @@ function uploadOne(file, csrf, docType) {
   xhr.onload = () => {
     bar.style.width = "100%";
     bar.textContent = "Done";
-    if (xhr.status === 200) refreshDocs();
+    if (xhr.status === 200) {
+     refreshDocs();
+     if (doneCallback) doneCallback();
+   }
     else bar.classList.add("bg-danger");
   };
 
