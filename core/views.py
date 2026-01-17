@@ -1139,7 +1139,7 @@ def signup_view(request):
         "company_website": company_website
     })
     
-#User Login
+# User Login
 MAX_WRONG_ROLE_ATTEMPTS = 3
 ROLE_LOCK_MINUTES = 30
 
@@ -1226,6 +1226,11 @@ def login_view(request):
             messages.error(request, "Invalid credentials")
             return render(request, 'login.html')
 
+        # ==========================
+        # ✅ LOGIN USER FIRST (CRITICAL FIX)
+        # ==========================
+        login(request, user)
+
         # ❌ DEVICE TRUST CHECK (DISABLED)
         # device_hash = get_device_fingerprint(request)
         # device = TrustedDevice.objects.filter(
@@ -1305,9 +1310,6 @@ def login_view(request):
             # Auto-reverify if pending (fix silently)
             if company.status == EmployerCompany.STATUS_PENDING:
                 company.save()
-
-        # ✅ DIRECT LOGIN (DEVICE VERIFICATION BYPASSED)
-        login(request, user)
 
         # ❌ Cleanup verification flags (DEVICE VERIFICATION)
         # request.session.pop("pending_verification", None)
