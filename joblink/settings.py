@@ -201,6 +201,9 @@ SOCIALACCOUNT_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    'prompt': 'consent',
+}
 
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
