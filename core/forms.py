@@ -9,9 +9,21 @@ from django.contrib.auth.models import User
 from .utils import is_business_email
 
 class EmployerCompanyForm(forms.ModelForm):
+    # Display-only field for templates
+    registration_number_display = forms.CharField(
+        label="Registration Number",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Automatically generated',
+            'class': 'form-control',
+            'readonly': 'readonly'
+        })
+    )
+
     class Meta:
         model = EmployerCompany
-        fields = ['company_name', 'business_email', 'company_website', 'registration_number']
+        # Do NOT include 'registration_number' because it's non-editable
+        fields = ['company_name', 'business_email', 'company_website']
         widgets = {
             'company_name': forms.TextInput(attrs={
                 'placeholder': 'Enter your company name',
@@ -25,43 +37,35 @@ class EmployerCompanyForm(forms.ModelForm):
                 'placeholder': 'https://yourcompany.com',
                 'class': 'form-control'
             }),
-            'registration_number': forms.TextInput(attrs={
-                'placeholder': 'Automatically generated',
-                'class': 'form-control',
-                'readonly': 'readonly'  # Make field non-editable
-            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # If instance exists and has registration_number, prefill the readonly field
-        if self.instance and self.instance.registration_number:
-            self.fields['registration_number'].initial = self.instance.registration_number
+        # Prefill the display-only registration number for the template
+        if self.instance:
+            self.fields['registration_number_display'].initial = (
+                self.instance.registration_number
+                or self.instance.generate_unique_registration_number()
+            )
 
     def clean_business_email(self):
         email = self.cleaned_data.get('business_email')
-
-        # List of common free email domains
         free_domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"]
-
-        # Extract the domain part of the email
         domain = email.split("@")[-1].lower()
-
-        # If the domain is part of free domains, raise validation error
         if domain in free_domains:
             raise forms.ValidationError(
                 "Please use a business/company email. Free emails (e.g., Gmail, Yahoo, etc.) are not accepted."
             )
         return email
 
-    def clean_registration_number(self):
+    def save(self, commit=True):
         """
-        Ensure registration_number is not changed by user input.
+        Ensure registration_number is always set before saving.
         """
-        # Always use instance's registration_number or auto-generate if missing
-        if self.instance and self.instance.registration_number:
-            return self.instance.registration_number
-        return self.instance.generate_unique_registration_number() if self.instance else None
+        if self.instance and not self.instance.registration_number:
+            self.instance.registration_number = self.instance.generate_unique_registration_number()
+        return super().save(commit=commit)
+
 
 class CompanyDocumentForm(forms.ModelForm):
     class Meta:
