@@ -112,7 +112,6 @@ h2.section-title {
   background: rgba(255,255,255,0.12);
   border-radius: 10px;
 }
-
 </style>
 
 <h2 class="section-title">Employer Verification</h2>
@@ -171,11 +170,12 @@ h2.section-title {
     <div class="mb-3">
         {{ form.document_type|add_class:"form-select" }}
     </div>
-   <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
+
+    <p id="uploadStatus" class="text-center mt-2 text-muted d-none">
        Uploading… please wait
-   </p>
+    </p>
    
-   <div id="progressWrap" class="mt-3 d-none"></div>
+    <div id="progressWrap" class="mt-3 d-none"></div>
 
     <button id="submitBtn" type="submit" class="btn btn-primary w-100 py-2">
         Save Profile & Upload Documents
@@ -258,7 +258,7 @@ form.addEventListener("submit", async (e) => {
 
   /* -------------------------
      1️⃣ SAVE PROFILE (ONCE)
-  -------------------------- */
+  ------------------------- */
   let profileResponse;
 
   try {
@@ -283,7 +283,7 @@ form.addEventListener("submit", async (e) => {
 
   /* -------------------------
      2️⃣ ENQUEUE FILE UPLOADS
-  -------------------------- */
+  ------------------------- */
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
@@ -357,7 +357,7 @@ function addProgressRow(name, percent, status, isError = false) {
 function resetFormState() {
   isUploading = false;
   submitBtn.disabled = false;
-  submitBtn.textContent = "Save Profile & Upload Files";
+  submitBtn.textContent = "Save Profile & Upload Documents";
   uploadStatus.classList.add("d-none");
 }
 </script>
