@@ -12,6 +12,12 @@ class EmployerCompanyForm(forms.ModelForm):
     class Meta:
         model = EmployerCompany
         fields = ['company_name', 'business_email', 'company_website', 'registration_number']
+        widgets = {
+            'company_name': forms.TextInput(attrs={'placeholder': 'Enter your company name'}),
+            'business_email': forms.EmailInput(attrs={'placeholder': 'Enter your business email'}),
+            'company_website': forms.URLInput(attrs={'placeholder': 'https://yourcompany.com'}),
+            'registration_number': forms.TextInput(attrs={'placeholder': 'Company registration number'}),
+        }
 
     def clean_business_email(self):
         email = self.cleaned_data.get('business_email')
