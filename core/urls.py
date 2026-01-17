@@ -72,8 +72,8 @@ urlpatterns = [
     path('post-job/', views.post_job, name='post_job'),
     path('jobs/suggestions/', views.job_suggestions, name='job_suggestions'),
 
-    path('upgrade-job/<int:job_id>/', views.upgrade_job, name='upgrade_job'),
     path('job/<int:job_id>/upgrade/', views.upgrade_job, name='upgrade_job'),
+    path('job/<int:job_id>/delete/', views.confirm_delete_job, name='confirm_delete'),
 
     path('payment-success/<int:job_id>/<int:plan_id>/', views.payment_success, name='payment_success'),
     path('payment-cancelled/', views.payment_cancelled, name='payment_cancelled'),
