@@ -430,7 +430,12 @@ class JobCategory(models.Model):
 class Job(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    category = models.ForeignKey(JobCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(
+        'JobCategory',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     location = models.CharField(max_length=100)
     employer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -440,26 +445,40 @@ class Job(models.Model):
     posted_on = models.DateTimeField(auto_now_add=True)
     company = models.CharField(max_length=200, blank=True)
     
-    salary = models.PositiveIntegerField(null=True, blank=True, help_text="Enter salary in KES")
+    salary = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Enter salary in KES"
+    )
     is_premium = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
     premium_expiry = models.DateTimeField(null=True, blank=True)
+    
+    expiry_date = models.DateTimeField(null=True, blank=True)  # Job expiry date
 
     def save(self, *args, **kwargs):
-        if self.salary > 30000:
+        # --- Set default expiry date if not provided (30 days from posting) ---
+        if not self.expiry_date:
+            self.expiry_date = timezone.now() + timedelta(days=30)
+
+        # --- Set premium automatically based on salary ---
+        if self.salary and self.salary > 30000:
             self.is_premium = True
+            # Optional: Set premium expiry to 30 days if not already set
+            if not self.premium_expiry:
+                self.premium_expiry = timezone.now() + timedelta(days=30)
         else:
             self.is_premium = False
+
         super().save(*args, **kwargs)
 
     def check_premium_status(self):
+        """Disable premium if premium_expiry passed"""
         if self.is_premium and self.premium_expiry and self.premium_expiry < timezone.now():
             self.is_premium = False
-            self.save()
+            self.save(update_fields=['is_premium'])
 
     def __str__(self):
         return self.title
-
 
 # ======================================================
 # APPLICATIONS
