@@ -111,7 +111,7 @@ body.light-mode .pending-badge {
                     Not provided
                 {% endif %}
             </p>
-            <p><strong>Registration Number:</strong> {{ company.registration_number_display }}</p>
+            <p><strong>Registration Number:</strong> {{ company.registration_number|default:"Not generated yet" }}</p>
 
             {% if company_verified %}
                 <span class="verified-badge">✔ Verified Employer</span>
@@ -132,5 +132,4 @@ body.light-mode .pending-badge {
     </div>
 
 </div>
-
 {% endblock %}
