@@ -1937,8 +1937,24 @@ def download_cv(request, cv_id):
     )
 #Job Listings
 def job_list(request):
-    premium_jobs = Job.objects.filter(is_premium=True).order_by('-posted_on')
-    regular_jobs = Job.objects.filter(is_premium=False).order_by('-posted_on')
+    # --- Delete expired jobs automatically ---
+    Job.delete_expired_jobs()
+
+    # --- Get current time ---
+    now = timezone.now()
+
+    # --- Fetch premium jobs that have not expired ---
+    premium_jobs = Job.objects.filter(
+        is_premium=True,
+        expiry_date__gt=now
+    ).order_by('-posted_on')
+
+    # --- Fetch regular jobs that have not expired ---
+    regular_jobs = Job.objects.filter(
+        is_premium=False,
+        expiry_date__gt=now
+    ).order_by('-posted_on')
+
     return render(request, 'job_list.html', {
         'premium_jobs': premium_jobs,
         'jobs': regular_jobs
