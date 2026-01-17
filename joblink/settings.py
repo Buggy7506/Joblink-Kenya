@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'django.contrib.humanize',
     'core.apps.CoreConfig',
+    'anymail',
 ]
 
 INSTALLED_APPS += ["django_celery_results"]
