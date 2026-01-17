@@ -65,7 +65,7 @@ def test_email(request):
         subject="Hello from Django + MailerSend!",
         message="This is a test email sent via MailerSend API.",
         from_email="support@stepper.dpdns.org",  # your verified email
-        recipient_list=["linux7506@gmail.com"],  # must be a real email
+        recipient_list=["admin@stepper.dpdns.org"],  # must be a real email
         fail_silently=False,
     )
     return HttpResponse("Test email sent successfully!")
