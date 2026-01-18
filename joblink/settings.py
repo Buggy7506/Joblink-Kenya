@@ -95,8 +95,7 @@ MIDDLEWARE = [
 ]
 
 MIDDLEWARE += [
-    "core.middleware.employer_verification.EmployerVerificationMiddleware",
-    "core.middleware.complete_employer_profile_block.PreventCompletedEmployerProfileAccess", 
+    "core.middleware.employer_verification.EmployerVerificationMiddleware", 
 ]
 
 
