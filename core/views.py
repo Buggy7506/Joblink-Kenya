@@ -1348,7 +1348,7 @@ def login_view(request):
         return redirect("dashboard")
 
     return render(request, 'login.html')
-
+    
 @login_required
 def complete_employer_profile(request):
     user = request.user
@@ -1358,22 +1358,21 @@ def complete_employer_profile(request):
         messages.error(request, "❌ Only employers can access this page.")
         return redirect("dashboard")
 
-    # Get or create company
+    # Get or create company instance
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
     )
 
-    # Already verified → redirect to dashboard
-    if company.is_verified:
-        return redirect("dashboard")
-
-    # ============================
+    # ---------------------------
     # POST → Save company + upload document
-    # ============================
+    # ---------------------------
     if request.method == "POST":
+        # If already verified, just return JSON redirect (AJAX-safe)
+        if company.is_verified:
+            return JsonResponse({"success": True, "redirect": reverse("dashboard")})
 
-        # ---- 1. Save company profile ----
+        # ---- 1. Save company profile form ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
         if not company_form.is_valid():
             return JsonResponse({
@@ -1381,9 +1380,9 @@ def complete_employer_profile(request):
                 "errors": company_form.errors.get_json_data()
             }, status=400)
 
-        company = company_form.save()  # auto-verification can run here
+        company = company_form.save()  # auto-verification can trigger here
 
-        # ---- 2. Save document (if uploaded) ----
+        # ---- 2. Save uploaded document ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
@@ -1398,24 +1397,25 @@ def complete_employer_profile(request):
 
             document = doc_form.save(commit=False)
             document.company = company
-            document.save()  # triggers auto-approval in model save()
+            document.save()  # triggers auto-approval and auto-verification
 
-        # ---- 3. Auto-redirect after verification ----
-        company.refresh_from_db()  # get updated is_verified
+        # ---- 3. Auto-redirect if verified ----
+        company.refresh_from_db()
         if company.is_verified:
-            return JsonResponse({
-                "success": True,
-                "redirect": reverse("dashboard")
-            })
+            return JsonResponse({"success": True, "redirect": reverse("dashboard")})
 
         return JsonResponse({
             "success": True,
             "message": "📄 Saved successfully. Verification in progress."
         })
 
-    # ============================
+    # ---------------------------
     # GET → Render forms
-    # ============================
+    # ---------------------------
+    # Redirect GET if already verified
+    if company.is_verified:
+        return redirect("dashboard")
+
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
@@ -1503,15 +1503,16 @@ def upload_company_docs(request):
         defaults={"company_name": user.username}
     )
 
-    # Already verified → redirect immediately
-    if company.is_verified:
+    # ---------------------------
+    # Redirect GET immediately if already verified
+    # ---------------------------
+    if company.is_verified and request.method == "GET":
         return redirect("dashboard")
 
-    # ==========================
-    # HANDLE POST (SAVE + UPLOAD)
-    # ==========================
+    # ---------------------------
+    # POST → Save company + upload document
+    # ---------------------------
     if request.method == "POST":
-
         # ---- 1. Save company profile ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
         if not company_form.is_valid():
@@ -1520,9 +1521,9 @@ def upload_company_docs(request):
                 "errors": company_form.errors.get_json_data()
             }, status=400)
 
-        company = company_form.save()  # auto-verification may trigger here
+        company = company_form.save()  # triggers auto-verification if applicable
 
-        # ---- 2. Save document (if a file was uploaded) ----
+        # ---- 2. Save document if uploaded ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
@@ -1547,10 +1548,10 @@ def upload_company_docs(request):
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
 
-            # Enqueue verification task
+            # Enqueue background verification task
             save_employer_document.delay(user.id, str(temp_path), doc_type)
 
-        # ---- 3. Auto-redirect if company is now verified ----
+        # ---- 3. Auto-redirect if company is verified ----
         company.refresh_from_db()
         if company.is_verified:
             return JsonResponse({
@@ -1558,21 +1559,21 @@ def upload_company_docs(request):
                 "redirect": reverse("dashboard")
             })
 
-        # Otherwise, inform user that verification is in progress
+        # Otherwise, notify user that verification is in progress
         return JsonResponse({
             "success": True,
             "message": "📄 Saved successfully. Verification is in progress."
         })
 
-    # ==========================
-    # GET → Render page with forms
-    # ==========================
+    # ---------------------------
+    # GET → Render forms
+    # ---------------------------
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
     return render(request, "complete_profile.html", {
-        "form": company_form,   # company profile form
-        "doc_form": doc_form,   # document upload form
+        "form": company_form,    # company profile form
+        "doc_form": doc_form,    # document upload form
         "company": company,
         "documents": company.documents.all(),
     })
