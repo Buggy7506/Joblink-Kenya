@@ -85,7 +85,6 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # MEDIA_ROOT = BASE_DIR / 'media'
 
 MIDDLEWARE = [
-    'joblink.middleware.WwwAndHttpsRedirectMiddleware',  # Add this first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -243,7 +242,7 @@ SITE_URL = "https://www.stepper.dpdns.org"
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 
 
 # HTTP Strict Transport Security (HSTS)
