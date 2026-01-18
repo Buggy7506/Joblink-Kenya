@@ -89,13 +89,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.employer_verification.EmployerVerificationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', 
-]
-
-MIDDLEWARE += [
-    "core.middleware.employer_verification.EmployerVerificationMiddleware", 
 ]
 
 
