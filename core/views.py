@@ -1358,20 +1358,18 @@ def complete_employer_profile(request):
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
-    # Get or create company instance using correct related_name
+    # Get or create company instance
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
     )
 
     # ---------------------------
-    # Prevent re-access if already verified
+    # Prevent GET if already verified
     # ---------------------------
-    if company.is_verified:
-        # Allow POST to handle new document uploads, block GET
-        if request.method == "GET":
-            messages.info(request, "Your company is already verified.")
-            return redirect("dashboard")
+    if company.is_verified and request.method == "GET":
+        messages.info(request, "Your company is already verified.")
+        return redirect("dashboard")
 
     # ============================
     # POST → Save company + upload document
@@ -1407,12 +1405,14 @@ def complete_employer_profile(request):
         # ---- Refresh & verify ----
         company.refresh_from_db()
 
+        # Redirect if now verified
         if company.is_verified:
             return JsonResponse({
                 "success": True,
                 "redirect": reverse("dashboard")
             })
 
+        # Pending verification → just notify
         return JsonResponse({
             "success": True,
             "message": "Saved successfully. Verification is in progress."
@@ -1496,6 +1496,7 @@ def dashboard(request):
 
     # Fallback → unknown role
     return redirect("login")
+    
 @login_required
 def upload_company_docs(request):
     user = request.user
@@ -1508,14 +1509,14 @@ def upload_company_docs(request):
         )
         return redirect("dashboard")
 
-    # Get or create company instance using correct related_name
+    # Get or create company instance
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
     )
 
     # ---------------------------
-    # Prevent re-access if already verified (GET only)
+    # Prevent GET if already verified (POST still allowed)
     # ---------------------------
     if company.is_verified and request.method == "GET":
         messages.info(request, "Your company is already verified.")
@@ -1548,6 +1549,7 @@ def upload_company_docs(request):
                     status=400
                 )
 
+            # Save file temporarily for background processing
             uploaded_file = doc_form.cleaned_data["file"]
             doc_type = doc_form.cleaned_data["document_type"]
 
@@ -1566,8 +1568,9 @@ def upload_company_docs(request):
                 doc_type
             )
 
-        # ---- Refresh & check verification ----
+        # ---- Refresh & check verification status ----
         company.refresh_from_db()
+
         if company.is_verified:
             return JsonResponse(
                 {"success": True, "redirect": reverse("dashboard")}
