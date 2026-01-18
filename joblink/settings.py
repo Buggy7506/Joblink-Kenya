@@ -34,8 +34,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
-    "joblink-kenya-u2vl.onrender.com",
-    "https://*.onrender.com",
+    ".onrender.com",
     "localhost",
     "127.0.0.1",
 ]
@@ -242,8 +241,6 @@ SITE_URL = "https://www.stepper.dpdns.org"
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = False
-
 
 # HTTP Strict Transport Security (HSTS)
 SECURE_HSTS_SECONDS = 3600  # Adjust as needed
@@ -255,6 +252,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # If behind a proxy (like Render), tell Django to trust X-Forwarded-Proto
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+SECURE_SSL_REDIRECT = False
+
 
 # Cross-site scripting protection
 SECURE_BROWSER_XSS_FILTER = True
@@ -283,16 +283,12 @@ STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChu
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://joblinkkenya-r8akscc3.b4a.run",
-    "https://node354a.containers.back4app.com",
     "https://www.fazul.dpdns.org",
     "https://fazul.dpdns.org",
     "https://www.stepper.dpdns.org",
     "https://stepper.dpdns.org",
-    "https://joblink-kenya-6vrl.onrender.com",
-    "https://*.onrender.com",
-    "https://*.dpdns.org",
-    "https://*.vercel.app"
+    ".onrender.com",
+    ".dpdns.org",
 ]
 
 
