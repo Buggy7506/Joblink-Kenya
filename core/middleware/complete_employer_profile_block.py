@@ -18,7 +18,7 @@ class PreventCompletedEmployerProfileAccess(MiddlewareMixin):
             and getattr(request.user, "role", None) == "employer"
         ):
             current_path = request.path
-            complete_profile_path = reverse("employer_complete_profile")  # Ensure your URL name
+            complete_profile_path = reverse("complete_employer_profile")  # Ensure your URL name
             dashboard_path = reverse("employer_control_panel")
 
             # Only redirect if accessing the complete-profile page
