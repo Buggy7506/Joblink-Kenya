@@ -1,3 +1,5 @@
+# core/middleware/employer_verification.py
+
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -26,17 +28,17 @@ class EmployerVerificationMiddleware:
             # Fetch the company object if it exists
             company = getattr(request.user, "employercompany", None)
 
-            # Paths employer must be allowed to reach (normalize trailing slashes)
-            allowed_paths = [
-                reverse("complete_employer_profile").rstrip('/'),
-                reverse("upload_company_docs").rstrip('/'),
-                reverse("logout").rstrip('/'),
-                reverse("dashboard").rstrip('/'),
-            ]
+            # Normalize paths (remove trailing slash)
             current_path = request.path.rstrip('/')
+            complete_profile_path = reverse("complete_employer_profile").rstrip('/')
+            upload_docs_path = reverse("upload_company_docs").rstrip('/')
+            dashboard_path = reverse("dashboard").rstrip('/')
+            logout_path = reverse("logout").rstrip('/')
+
+            allowed_paths = [complete_profile_path, upload_docs_path, dashboard_path, logout_path]
 
             # Employer with NO company created yet
-            if not company and current_path not in allowed_paths:
+            if not company and current_path != complete_profile_path:
                 messages.warning(
                     request,
                     "Complete your company profile to unlock full access."
@@ -44,7 +46,7 @@ class EmployerVerificationMiddleware:
                 return redirect("complete_employer_profile")
 
             # Company exists but NOT verified → redirect to docs upload
-            if company and company.status != "verified" and current_path not in allowed_paths:
+            if company and company.status != "verified" and current_path != upload_docs_path:
                 messages.warning(
                     request,
                     "Your company is pending verification. Upload documents."
