@@ -1351,43 +1351,23 @@ def login_view(request):
 
 @login_required
 def complete_employer_profile(request):
-    user = request.user
-
-    # 🔐 Role guard: only employers can access
-    if user.profile.role != "employer":
+    if request.user.profile.role != "employer":
         messages.error(request, "Only employers can access this page.")
-        return redirect("dashboard")  # Non-employers go to dashboard
+        return redirect("dashboard")
 
-    # Get or create the company record
-    company, _ = EmployerCompany.objects.get_or_create(user=user)
-
-    # Debug logging: check profile completeness
-    print(f"DEBUG: user={user.username}, company={company}, is_complete={company.is_complete}")
+    company, _ = EmployerCompany.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        form = EmployerCompanyForm(request.POST, request.FILES, instance=company)
+        form = EmployerCompanyForm(request.POST, instance=company)
         if form.is_valid():
-            with transaction.atomic():  # ensures atomic save if auto_verify updates multiple fields
-                form.save()
-            messages.success(request, "Company profile updated!")
-            return redirect("dashboard")  # ✅ Safe redirect after POST
-        else:
-            messages.error(request, "Please correct the errors below.")
-
-    else:  # GET request
-        # Always render form for editing, even if profile is complete
+            form.save()  # auto_verify runs inside save()
+            messages.success(request, "Company profile completed!")
+            return redirect("employer_control_panel")
+    else:
         form = EmployerCompanyForm(instance=company)
 
-    return render(
-        request,
-        "complete_profile.html",
-        {
-            "form": form,
-            "company": company,  # pass company to template if needed
-            "is_complete": company.is_complete,  # useful for template logic
-        }
-    )
-        
+    return render(request, "complete_profile.html", {"form": form})
+    
 #User Logout
 def logout_view(request):
     logout(request)
@@ -1397,6 +1377,7 @@ def logout_view(request):
 def logout_success(request):
     return render(request, 'logout_success.html')
 
+# Dashboard
 @login_required
 @employer_verified_required
 def dashboard(request):
@@ -1408,11 +1389,11 @@ def dashboard(request):
     total_notifications = unread_messages_count + notifications_count
 
     # Admin dashboard
-    if user.is_superuser or user.role == "admin":
+    if user.is_superuser or getattr(user, "role", None) == "admin":
         return redirect("admin_dashboard")
 
     # Applicant dashboard
-    if user.role == "applicant":
+    if getattr(user, "role", None) == "applicant":
         applications = Application.objects.filter(applicant=user)
         premium_jobs = applications.filter(job__is_premium=True).count()
         deleted_apps_count = applications.filter(is_deleted=True).count()
@@ -1425,25 +1406,12 @@ def dashboard(request):
         })
 
     # Employer dashboard
-    elif user.role == "employer":
+    elif getattr(user, "role", None) == "employer":
+        # Check employer verification
         company = getattr(user, "employer_company", None)
-
-        # Create company if it doesn't exist
-        if not company:
-            company = EmployerCompany.objects.create(user=user)
-
-        # DEBUG LOGGING
-        print(f"DEBUG: user={user.username}, is_complete={company.is_complete}, is_verified={company.is_verified}")
-
-        # Only redirect if profile is incomplete
-        if not company.is_complete:
-            messages.info(request, "Please complete your company profile to continue.")
-            return redirect("complete_employer_profile")
-
-        # Only redirect if company is not verified
-        if not company.is_verified:
+        if not company or not company.is_verified:
             messages.warning(request, "⏳ Please verify your company to unlock full employer access.")
-            return redirect("upload_company_docs")
+            return redirect("upload_company_docs")  # Send to docs upload
 
         posted_jobs_count = Job.objects.filter(employer=user).count()
         active_jobs = Job.objects.filter(employer=user, is_active=True).count()
@@ -1457,11 +1425,9 @@ def dashboard(request):
             "active_jobs": active_jobs,
             "applicants_count": applicants_count,
             "notifications_count": total_notifications,
-            "company": company,  # optional: pass to template
         })
 
     # Fallback → unknown role
-    messages.error(request, "Unknown user role. Please contact support.")
     return redirect("login")
 
 @login_required
@@ -1614,45 +1580,18 @@ def view_applicants(request):
     })
 
 @login_required
-@employer_verified_required
 def employer_control_panel_view(request):
-    user = request.user
+    if not request.user.is_superuser and request.user.role != 'employer':
+        return redirect('login')
 
-    # Role guard: only superuser or employer
-    if not user.is_superuser and user.role != "employer":
-        messages.error(request, "Access denied.")
-        return redirect("login")
+    posted_jobs_count = Job.objects.filter(employer=request.user).count()
+    active_jobs = Job.objects.filter(employer=request.user, is_active=True).count()
+    applicants_count = Application.objects.filter(job__employer=request.user).count()
 
-    # Get the employer company profile
-    company = getattr(user, "employer_company", None)
-
-    # If company profile does not exist, create it
-    if not company:
-        company = EmployerCompany.objects.create(user=user)
-
-    # DEBUG LOGGING
-    print(f"DEBUG: user={user.username}, is_complete={company.is_complete}, is_verified={company.is_verified}")
-
-    # Redirect only if profile is truly incomplete
-    if not company.is_complete:
-        messages.info(request, "Please complete your company profile to access the dashboard.")
-        return redirect("complete_employer_profile")
-
-    # Redirect if not verified yet
-    if not company.is_verified:
-        messages.warning(request, "⏳ Your company is pending verification. Upload required documents to unlock full access.")
-        return redirect("upload_company_docs")  # optional view for document upload
-
-    # Count stats for the dashboard
-    posted_jobs_count = Job.objects.filter(employer=user).count()
-    active_jobs = Job.objects.filter(employer=user, is_active=True).count()
-    applicants_count = Application.objects.filter(job__employer=user, is_deleted=False).count()
-
-    return render(request, "employer_dashboard.html", {
-        "posted_jobs_count": posted_jobs_count,
-        "active_jobs": active_jobs,
-        "applicants_count": applicants_count,
-        "company": company,
+    return render(request, 'employer_dashboard.html', {
+        'posted_jobs_count': posted_jobs_count,
+        'active_jobs': active_jobs,
+        'applicants_count': applicants_count,
     })
   
 @login_required
