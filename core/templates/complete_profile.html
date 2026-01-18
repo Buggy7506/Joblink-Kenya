@@ -147,8 +147,12 @@ h2.section-title {
     <input id="fileInput" type="file" name="file" class="d-none" multiple
            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
+    <!-- Document type -->
     <div class="mb-3">
         {{ form.document_type|add_class:"form-select"|attr:"id:document_type" }}
+        {% if form.document_type.errors %}
+            <small>{{ form.document_type.errors|striptags }}</small>
+        {% endif %}
     </div>
 
     <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
@@ -156,7 +160,6 @@ h2.section-title {
     <div id="progressWrap" class="mt-3 d-none"></div>
 </form>
 
-<!-- AJAX Upload Script -->
 <script>
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
@@ -207,7 +210,6 @@ form.addEventListener("submit", async (e) => {
   }
 
   const docType = docSelect.value;
-
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
@@ -241,10 +243,19 @@ function uploadOne(file, csrf, docType) {
   });
 
   xhr.onload = () => {
-    bar.style.width = "100%";
-    bar.textContent = "Done";
-    if (xhr.status === 200) refreshDocs();
-    else bar.classList.add("bg-danger");
+    if (xhr.status === 200) {
+      bar.style.width = "100%";
+      bar.textContent = "Done";
+      refreshDocs();
+    } else {
+      bar.classList.add("bg-danger");
+      try {
+        const resp = JSON.parse(xhr.responseText);
+        alert("Upload failed: " + JSON.stringify(resp));
+      } catch (err) {
+        alert("Upload failed: " + xhr.responseText);
+      }
+    }
   };
 
   xhr.open("POST", "", true);
