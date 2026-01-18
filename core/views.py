@@ -1351,16 +1351,34 @@ def login_view(request):
 
 @login_required
 def complete_employer_profile(request):
+    # Only employers can access
     if request.user.profile.role != "employer":
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
+    # Get or create company instance
     company, _ = EmployerCompany.objects.get_or_create(user=request.user)
 
-    if request.method == "POST":
+    # ============================
+    # Handle AJAX file uploads
+    # ============================
+    if request.method == "POST" and request.FILES.get("file"):
+        file_form = CompanyDocumentForm(request.POST, request.FILES)
+        if file_form.is_valid():
+            doc = file_form.save(commit=False)
+            doc.company = company
+            doc.save()
+            return JsonResponse({"status": "ok"})
+        else:
+            return JsonResponse({"errors": file_form.errors}, status=400)
+
+    # ============================
+    # Handle regular company form
+    # ============================
+    if request.method == "POST" and not request.FILES.get("file"):
         form = EmployerCompanyForm(request.POST, instance=company)
         if form.is_valid():
-            form.save()  # auto_verify runs inside save()
+            form.save()
             messages.success(request, "Company profile completed!")
             return redirect("employer_control_panel")
     else:
