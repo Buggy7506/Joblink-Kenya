@@ -8,6 +8,14 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
 
+# Define available document types
+DOCUMENT_CHOICES = [
+    ('id', 'ID Card'),
+    ('passport', 'Passport'),
+    ('business_reg', 'Business Registration'),
+    ('tax_cert', 'Tax Certificate'),
+]
+
 class EmployerCompanyForm(forms.ModelForm):
     # Display-only field for templates
     registration_number_display = forms.CharField(
@@ -20,9 +28,16 @@ class EmployerCompanyForm(forms.ModelForm):
         })
     )
 
+    # New field: document type dropdown
+    document_type = forms.ChoiceField(
+        choices=[('', 'Select a document type')] + DOCUMENT_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'document_type'})
+    )
+
     class Meta:
         model = EmployerCompany
-        # Do NOT include 'registration_number' because it's non-editable
+        # Non-editable registration number is not included
         fields = ['company_name', 'business_email', 'company_website']
         widgets = {
             'company_name': forms.TextInput(attrs={
@@ -41,7 +56,7 @@ class EmployerCompanyForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Prefill the display-only registration number for the template
+        # Prefill the display-only registration number
         if self.instance:
             self.fields['registration_number_display'].initial = (
                 self.instance.registration_number
@@ -65,7 +80,6 @@ class EmployerCompanyForm(forms.ModelForm):
         if self.instance and not self.instance.registration_number:
             self.instance.registration_number = self.instance.generate_unique_registration_number()
         return super().save(commit=commit)
-
 
 class CompanyDocumentForm(forms.ModelForm):
     class Meta:
