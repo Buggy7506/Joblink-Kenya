@@ -112,7 +112,6 @@ h2.section-title {
   background: rgba(255,255,255,0.12);
   border-radius: 10px;
 }
-
 </style>
 
 <h2 class="section-title">Employer Verification</h2>
@@ -149,7 +148,7 @@ h2.section-title {
            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
     <div class="mb-3">
-        {{ form.document_type|add_class:"form-select" }}
+        {{ form.document_type|add_class:"form-select"|attr:"id:document_type" }}
     </div>
 
     <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
@@ -164,9 +163,8 @@ const fileInput = document.getElementById("fileInput");
 const fileCount = document.getElementById("fileCount");
 const form = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
-const docList = document.getElementById("docList");
 
-// Drag UI
+// Drag & Drop UI
 dropZone.addEventListener("click", () => fileInput.click());
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
@@ -179,16 +177,19 @@ dropZone.addEventListener("drop", e => {
   fileInput.files = e.dataTransfer.files;
   updateCounter();
 });
+
 fileInput.addEventListener("change", updateCounter);
 
 function updateCounter() {
   if (fileInput.files.length > 0) {
     fileCount.innerText = fileInput.files.length + " file(s) selected";
     fileCount.classList.remove("d-none");
+  } else {
+    fileCount.classList.add("d-none");
   }
 }
 
-// AJAX upload
+// AJAX Upload
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -197,15 +198,23 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
+  const docSelect = document.getElementById("document_type");
+
+  if (!docSelect || !docSelect.value) {
+    alert("Please select a document type.");
+    return;
+  }
+
+  const docType = docSelect.value;
+
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
-
-  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
-  const docType = form.querySelector("select[name=document_type]").value;
 
   for (let file of fileInput.files) {
     uploadOne(file, csrf, docType);
   }
+
   fileInput.value = "";
   fileCount.classList.add("d-none");
 });
@@ -248,13 +257,18 @@ function uploadOne(file, csrf, docType) {
 }
 
 function refreshDocs() {
+  const docList = document.getElementById("docList");
+  if (!docList) return;
+
   fetch(window.location.href)
     .then(r => r.text())
     .then(html => {
       const tmp = document.createElement("div");
       tmp.innerHTML = html;
-      docList.innerHTML = tmp.querySelector("#docList").innerHTML;
+      const newContent = tmp.querySelector("#docList");
+      if (newContent) docList.innerHTML = newContent.innerHTML;
     });
 }
 </script>
+
 {% endblock %}
