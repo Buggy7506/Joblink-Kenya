@@ -1351,40 +1351,81 @@ def login_view(request):
 
 @login_required
 def complete_employer_profile(request):
+    user = request.user
+
     # Only employers can access
-    if request.user.profile.role != "employer":
-        messages.error(request, "Only employers can access this page.")
+    if getattr(user.profile, "role", None) != "employer":
+        messages.error(request, "❌ Only employers can access this page.")
         return redirect("dashboard")
 
-    # Get or create company instance
-    company, _ = EmployerCompany.objects.get_or_create(user=request.user)
+    # Get or create company
+    company, _ = EmployerCompany.objects.get_or_create(
+        user=user,
+        defaults={"company_name": user.username}
+    )
+
+    # Already verified → go to dashboard
+    if company.is_verified:
+        return redirect("dashboard")
 
     # ============================
-    # Handle AJAX file uploads
+    # POST (SAVE + UPLOAD)
     # ============================
-    if request.method == "POST" and request.FILES.get("file"):
-        file_form = CompanyDocumentForm(request.POST, request.FILES)
-        if file_form.is_valid():
-            doc = file_form.save(commit=False)
-            doc.company = company
-            doc.save()
-            return JsonResponse({"status": "ok"})
-        else:
-            return JsonResponse({"errors": file_form.errors}, status=400)
+    if request.method == "POST":
+
+        # ---- 1. SAVE COMPANY PROFILE ----
+        company_form = EmployerCompanyForm(request.POST, instance=company)
+        if not company_form.is_valid():
+            return JsonResponse({
+                "success": False,
+                "errors": company_form.errors.get_json_data()
+            }, status=400)
+
+        company = company_form.save()  # auto-verification can trigger here
+
+        # ---- 2. SAVE DOCUMENT (AJAX UPLOAD) ----
+        if request.FILES.get("file"):
+            doc_form = CompanyDocumentForm(
+                {"document_type": request.POST.get("document_type")},
+                request.FILES
+            )
+
+            if not doc_form.is_valid():
+                return JsonResponse({
+                    "success": False,
+                    "errors": doc_form.errors.get_json_data()
+                }, status=400)
+
+            document = doc_form.save(commit=False)
+            document.company = company
+            document.save()
+
+        # ---- 3. REDIRECT AFTER AUTO VERIFICATION ----
+        company.refresh_from_db()
+
+        if company.is_verified:
+            return JsonResponse({
+                "success": True,
+                "redirect": reverse("dashboard")
+            })
+
+        return JsonResponse({
+            "success": True,
+            "message": "📄 Saved successfully. Verification in progress."
+        })
 
     # ============================
-    # Handle regular company form
+    # GET → RENDER PAGE
     # ============================
-    if request.method == "POST" and not request.FILES.get("file"):
-        form = EmployerCompanyForm(request.POST, instance=company)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Company profile completed!")
-            return redirect("employer_control_panel")
-    else:
-        form = EmployerCompanyForm(instance=company)
+    company_form = EmployerCompanyForm(instance=company)
+    doc_form = CompanyDocumentForm()
 
-    return render(request, "complete_profile.html", {"form": form})
+    return render(request, "complete_profile.html", {
+        "form": company_form,
+        "doc_form": doc_form,
+        "company": company,
+        "documents": company.documents.all(),
+    })
     
 #User Logout
 def logout_view(request):
