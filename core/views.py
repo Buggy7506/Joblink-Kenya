@@ -1470,9 +1470,12 @@ def upload_company_docs(request):
 
     # Handle POST uploads via AJAX
     if request.method == "POST" and request.FILES.get("file"):
-        form = CompanyDocumentForm(request.POST, request.FILES)
+        # Bind only the file and document_type to the form
+        post_data = {"document_type": request.POST.get("document_type")}
+        form = CompanyDocumentForm(post_data, request.FILES)
+        
         if form.is_valid():
-            uploaded_file = request.FILES["file"]
+            uploaded_file = form.cleaned_data["file"]
             doc_type = form.cleaned_data["document_type"]
 
             # Save temporary file
@@ -1492,10 +1495,10 @@ def upload_company_docs(request):
                 "message": "📄 Document uploaded! Verification will run in the background."
             })
         else:
-            # Return errors in a format JS can read
+            # Return errors as JSON
             return JsonResponse({
                 "success": False,
-                "errors": form.errors  # sends a Python dict
+                "errors": form.errors.get_json_data()  # JSON-friendly format
             }, status=400)
 
     # GET → render the profile form + document list
