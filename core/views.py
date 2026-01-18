@@ -1365,11 +1365,13 @@ def complete_employer_profile(request):
     )
 
     # ---------------------------
-    # Redirect GET immediately if already verified
+    # Prevent re-access if already verified
     # ---------------------------
-    if company.is_verified and request.method == "GET":
-        messages.info(request, "Your company is already verified.")
-        return redirect("dashboard")
+    if company.is_verified:
+        # Allow POST to handle new document uploads, block GET
+        if request.method == "GET":
+            messages.info(request, "Your company is already verified.")
+            return redirect("dashboard")
 
     # ============================
     # POST → Save company + upload document
@@ -1402,7 +1404,7 @@ def complete_employer_profile(request):
             document.company = company
             document.save()
 
-        # ---- Refresh & check verification ----
+        # ---- Refresh & verify ----
         company.refresh_from_db()
 
         if company.is_verified:
@@ -1494,7 +1496,6 @@ def dashboard(request):
 
     # Fallback → unknown role
     return redirect("login")
-
 @login_required
 def upload_company_docs(request):
     user = request.user
@@ -1507,14 +1508,14 @@ def upload_company_docs(request):
         )
         return redirect("dashboard")
 
-    # Get or create company instance using correct related_name if needed
+    # Get or create company instance using correct related_name
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
     )
 
     # ---------------------------
-    # Redirect GET immediately if already verified
+    # Prevent re-access if already verified (GET only)
     # ---------------------------
     if company.is_verified and request.method == "GET":
         messages.info(request, "Your company is already verified.")
@@ -1534,7 +1535,7 @@ def upload_company_docs(request):
 
         company = company_form.save()
 
-        # ---- Save document if uploaded ----
+        # ---- Save uploaded document if provided ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
@@ -1565,7 +1566,7 @@ def upload_company_docs(request):
                 doc_type
             )
 
-        # ---- Auto-redirect if verified ----
+        # ---- Refresh & check verification ----
         company.refresh_from_db()
         if company.is_verified:
             return JsonResponse(
