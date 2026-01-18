@@ -8,14 +8,6 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
 
-# Define available document types
-DOCUMENT_CHOICES = [
-    ('id', 'ID Card'),
-    ('passport', 'Passport'),
-    ('business_reg', 'Business Registration'),
-    ('tax_cert', 'Tax Certificate'),
-]
-
 class EmployerCompanyForm(forms.ModelForm):
     # Display-only field for templates
     registration_number_display = forms.CharField(
@@ -26,13 +18,6 @@ class EmployerCompanyForm(forms.ModelForm):
             'class': 'form-control',
             'readonly': 'readonly'
         })
-    )
-
-    # New field: document type dropdown
-    document_type = forms.ChoiceField(
-        choices=[('', 'Select a document type')] + DOCUMENT_CHOICES,
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'document_type'})
     )
 
     class Meta:
@@ -82,6 +67,20 @@ class EmployerCompanyForm(forms.ModelForm):
         return super().save(commit=commit)
 
 class CompanyDocumentForm(forms.ModelForm):
+    # Define the document choices here
+    DOCUMENT_CHOICES = [
+        ('id', 'ID Card'),
+        ('passport', 'Passport'),
+        ('business_reg', 'Business Registration'),
+        ('tax_cert', 'Tax Certificate'),
+    ]
+
+    document_type = forms.ChoiceField(
+        choices=DOCUMENT_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = CompanyDocument
         fields = ["document_type", "file"]
