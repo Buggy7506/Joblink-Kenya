@@ -1354,8 +1354,8 @@ def complete_employer_profile(request):
     user = request.user
 
     # Only employers can access
-    if getattr(user.profile, "role", None) != "employer":
-        messages.error(request, "❌ Only employers can access this page.")
+    if getattr(getattr(user, "profile", None), "role", None) != "employer":
+        messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
     # Get or create company instance
@@ -1368,56 +1368,63 @@ def complete_employer_profile(request):
     # POST → Save company + upload document
     # ============================
     if request.method == "POST":
-        # ---- 1. Save company profile ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
+
         if not company_form.is_valid():
-            return JsonResponse({
-                "success": False,
-                "errors": company_form.errors.get_json_data()
-            }, status=400)
+            return JsonResponse(
+                {"success": False, "errors": company_form.errors.get_json_data()},
+                status=400
+            )
 
-        company = company_form.save()  # triggers auto-verification if applicable
+        company = company_form.save()
 
-        # ---- 2. Save uploaded document (if any) ----
+        # ---- Save uploaded document (optional) ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
                 request.FILES
             )
+
             if not doc_form.is_valid():
-                return JsonResponse({
-                    "success": False,
-                    "errors": doc_form.errors.get_json_data()
-                }, status=400)
+                return JsonResponse(
+                    {"success": False, "errors": doc_form.errors.get_json_data()},
+                    status=400
+                )
 
             document = doc_form.save(commit=False)
             document.company = company
-            document.save()  # triggers auto-approval and auto-verification
+            document.save()
 
-        # ---- 3. Refresh and check verification ----
+        # ---- Refresh & verify ----
         company.refresh_from_db()
+
         if company.is_verified:
-            # Return JSON for JS to handle redirect
-            return JsonResponse({"success": True, "redirect": reverse("dashboard")})
+            return JsonResponse({
+                "success": True,
+                "redirect": reverse("dashboard")
+            })
 
         return JsonResponse({
             "success": True,
-            "message": "📄 Saved successfully. Verification is in progress."
+            "message": "Saved successfully. Verification is in progress."
         })
 
     # ============================
-    # GET → Render page
+    # GET → Render page (NO redirect here)
     # ============================
-    # Note: Do NOT redirect GET automatically to avoid redirect loops
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
-    return render(request, "complete_profile.html", {
-        "form": company_form,
-        "doc_form": doc_form,
-        "company": company,
-        "documents": company.documents.all(),
-    })
+    return render(
+        request,
+        "complete_profile.html",
+        {
+            "form": company_form,
+            "doc_form": doc_form,
+            "company": company,
+            "documents": company.documents.all(),
+        }
+    )
     
 #User Logout
 def logout_view(request):
@@ -1486,8 +1493,11 @@ def upload_company_docs(request):
     user = request.user
 
     # Only employers can access
-    if getattr(user.profile, "role", None) != "employer":
-        messages.error(request, "❌ Only employers can upload verification documents.")
+    if getattr(getattr(user, "profile", None), "role", None) != "employer":
+        messages.error(
+            request,
+            "Only employers can upload verification documents."
+        )
         return redirect("dashboard")
 
     # Get or create company instance
@@ -1506,17 +1516,17 @@ def upload_company_docs(request):
     # POST → Save company + upload document
     # ---------------------------
     if request.method == "POST":
-        # ---- 1. Save company profile ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
+
         if not company_form.is_valid():
-            return JsonResponse({
-                "success": False,
-                "errors": company_form.errors.get_json_data()
-            }, status=400)
+            return JsonResponse(
+                {"success": False, "errors": company_form.errors.get_json_data()},
+                status=400
+            )
 
-        company = company_form.save()  # triggers auto-verification if applicable
+        company = company_form.save()
 
-        # ---- 2. Save document if uploaded ----
+        # ---- Save document if uploaded ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
@@ -1524,12 +1534,11 @@ def upload_company_docs(request):
             )
 
             if not doc_form.is_valid():
-                return JsonResponse({
-                    "success": False,
-                    "errors": doc_form.errors.get_json_data()
-                }, status=400)
+                return JsonResponse(
+                    {"success": False, "errors": doc_form.errors.get_json_data()},
+                    status=400
+                )
 
-            # Save temp file to enqueue background task
             uploaded_file = doc_form.cleaned_data["file"]
             doc_type = doc_form.cleaned_data["document_type"]
 
@@ -1542,21 +1551,26 @@ def upload_company_docs(request):
                     f.write(chunk)
 
             # Enqueue background verification task
-            save_employer_document.delay(user.id, str(temp_path), doc_type)
+            save_employer_document.delay(
+                user.id,
+                str(temp_path),
+                doc_type
+            )
 
-        # ---- 3. Auto-redirect if company is verified ----
+        # ---- Auto-redirect if verified ----
         company.refresh_from_db()
-        if company.is_verified:
-            return JsonResponse({
-                "success": True,
-                "redirect": reverse("dashboard")
-            })
 
-        # Otherwise, notify user that verification is in progress
-        return JsonResponse({
-            "success": True,
-            "message": "📄 Saved successfully. Verification is in progress."
-        })
+        if company.is_verified:
+            return JsonResponse(
+                {"success": True, "redirect": reverse("dashboard")}
+            )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Saved successfully. Verification is in progress."
+            }
+        )
 
     # ---------------------------
     # GET → Render forms
@@ -1564,12 +1578,16 @@ def upload_company_docs(request):
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
-    return render(request, "complete_profile.html", {
-        "form": company_form,    # company profile form
-        "doc_form": doc_form,    # document upload form
-        "company": company,
-        "documents": company.documents.all(),
-    })
+    return render(
+        request,
+        "complete_profile.html",
+        {
+            "form": company_form,
+            "doc_form": doc_form,
+            "company": company,
+            "documents": company.documents.all(),
+        }
+    )
     
 @login_required
 def profile_view(request):
