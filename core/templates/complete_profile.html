@@ -177,7 +177,9 @@ const fileCount = document.getElementById("fileCount");
 const form = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
 
+// ===============================
 // Drag & Drop UI
+// ===============================
 dropZone.addEventListener("click", () => fileInput.click());
 
 dropZone.addEventListener("dragover", e => {
@@ -207,7 +209,9 @@ function updateCounter() {
   }
 }
 
-// AJAX Upload
+// ===============================
+// FORM SUBMIT (SAVE + UPLOAD)
+// ===============================
 form.addEventListener("submit", e => {
   e.preventDefault();
 
@@ -224,19 +228,32 @@ form.addEventListener("submit", e => {
 
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = docSelect.value;
+  const files = Array.from(fileInput.files);
 
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
-  for (const file of fileInput.files) {
-    uploadOne(file, csrf, docType);
-  }
+  let completed = 0;
+
+  files.forEach(file => {
+    uploadOne(file, csrf, docType, () => {
+      completed++;
+
+      // ✅ After ALL uploads finish, backend decides redirect
+      if (completed === files.length) {
+        checkForRedirect();
+      }
+    });
+  });
 
   fileInput.value = "";
   fileCount.classList.add("d-none");
 });
 
-function uploadOne(file, csrf, docType) {
+// ===============================
+// UPLOAD SINGLE FILE
+// ===============================
+function uploadOne(file, csrf, docType, onDone) {
   const row = document.createElement("div");
   row.className = "mb-2";
   row.innerHTML = `
@@ -264,7 +281,13 @@ function uploadOne(file, csrf, docType) {
       resp = JSON.parse(xhr.responseText);
     } catch {
       bar.classList.add("bg-danger");
-      alert("Upload failed.");
+      alert("Upload failed (invalid response).");
+      return;
+    }
+
+    // 🔥 BACKEND CAN FORCE REDIRECT
+    if (resp.redirect) {
+      window.location.href = resp.redirect;
       return;
     }
 
@@ -272,21 +295,39 @@ function uploadOne(file, csrf, docType) {
       bar.style.width = "100%";
       bar.textContent = "Done";
       refreshDocs();
+      onDone();
     } else {
       bar.classList.add("bg-danger");
       alert("Upload failed: " + JSON.stringify(resp.errors || resp.message));
     }
   };
 
-  xhr.open("POST", "{% url 'upload_company_docs' %}", true);
+  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
 
-  const fd = new FormData();
+  // 🔥 SEND COMPANY FORM + DOC FORM TOGETHER
+  const fd = new FormData(form);
   fd.append("file", file);
-  fd.append("document_type", docType);
+  fd.set("document_type", docType);
+
   xhr.send(fd);
 }
 
+// ===============================
+// OPTIONAL: CHECK REDIRECT SAFETY
+// ===============================
+function checkForRedirect() {
+  fetch("{% url 'dashboard' %}", { redirect: "follow" })
+    .then(r => {
+      if (r.redirected) {
+        window.location.href = r.url;
+      }
+    });
+}
+
+// ===============================
+// REFRESH DOCUMENT LIST
+// ===============================
 function refreshDocs() {
   const docList = document.getElementById("docList");
   if (!docList) return;
@@ -301,5 +342,4 @@ function refreshDocs() {
     });
 }
 </script>
-
 {% endblock %}
