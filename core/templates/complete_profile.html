@@ -114,48 +114,66 @@ h2.section-title {
 }
 </style>
 
-<h2 class="section-title">Employer Verification</h2>
+<h2 class="section-title">
+    {% if company.is_verified %}
+        Company Verified
+    {% else %}
+        Employer Verification
+    {% endif %}
+</h2>
 <p class="section-sub">
-  Upload required verification documents to activate your employer account.
+    {% if company.is_verified %}
+        Your company has been successfully verified.
+    {% else %}
+        Upload required verification documents to activate your employer account.
+    {% endif %}
 </p>
 
-<form id="companyFullForm" method="post" enctype="multipart/form-data">
+<form id="companyFullForm"
+      method="post"
+      enctype="multipart/form-data"
+      action="{% if request.path|slice:'-10:' == 'upload-docs/' %}{% url 'upload_company_docs' %}{% else %}{% url 'complete_employer_profile' %}{% endif %}">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    {% for field in form %}
-        <label>{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-            <small>{{ field.errors|striptags }}</small>
-        {% endif %}
-    {% endfor %}
+    {% if not company.is_verified %}
+        {% for field in form %}
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <small>{{ field.errors|striptags }}</small>
+            {% endif %}
+        {% endfor %}
 
-    <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
+        <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
 
-    <!-- Drag Zone -->
-    <div id="dropZone" class="upload-zone text-center p-4 mb-3">
-        <i class="bi bi-cloud-arrow-up fs-1"></i>
-        <p class="fw-semibold">Drag & drop files</p>
-        <small class="text-muted">or tap to browse</small>
-        <p id="fileCount" class="mt-2 small text-accent d-none"></p>
-    </div>
+        <!-- Drag Zone -->
+        <div id="dropZone" class="upload-zone text-center p-4 mb-3">
+            <i class="bi bi-cloud-arrow-up fs-1"></i>
+            <p class="fw-semibold">Drag & drop files</p>
+            <small class="text-muted">or tap to browse</small>
+            <p id="fileCount" class="mt-2 small text-accent d-none"></p>
+        </div>
 
-    <!-- Hidden file input -->
-    <input id="fileInput" type="file" name="file" class="d-none" multiple
-           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+        <!-- Hidden file input -->
+        <input id="fileInput" type="file" name="file" class="d-none" multiple
+               accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
-    <!-- Document type -->
-    <div class="mb-3">
-        {{ doc_form.document_type|add_class:"form-select"|attr:"id:document_type" }}
-        {% if doc_form.document_type.errors %}
-            <small>{{ doc_form.document_type.errors|striptags }}</small>
-        {% endif %}
-    </div>
+        <!-- Document type -->
+        <div class="mb-3">
+            {{ doc_form.document_type|add_class:"form-select"|attr:"id:document_type" }}
+            {% if doc_form.document_type.errors %}
+                <small>{{ doc_form.document_type.errors|striptags }}</small>
+            {% endif %}
+        </div>
 
-    <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
-
-    <div id="progressWrap" class="mt-3 d-none"></div>
+        <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
+        <div id="progressWrap" class="mt-3 d-none"></div>
+    {% else %}
+        <p class="text-center text-success fw-semibold">
+            ✅ Your company profile is already verified. No further action is required.
+        </p>
+    {% endif %}
 
     <!-- Optional: List of already uploaded documents -->
     {% if documents %}
@@ -170,6 +188,7 @@ h2.section-title {
     {% endif %}
 </form>
 
+{% if not company.is_verified %}
 <script>
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
@@ -177,27 +196,16 @@ const fileCount = document.getElementById("fileCount");
 const form = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
 
-// ===============================
-// Drag & Drop UI
-// ===============================
+// Drag & Drop
 dropZone.addEventListener("click", () => fileInput.click());
-
-dropZone.addEventListener("dragover", e => {
-  e.preventDefault();
-  dropZone.classList.add("glass-drop");
-});
-
-dropZone.addEventListener("dragleave", () => {
-  dropZone.classList.remove("glass-drop");
-});
-
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("glass-drop"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
   dropZone.classList.remove("glass-drop");
   fileInput.files = e.dataTransfer.files;
   updateCounter();
 });
-
 fileInput.addEventListener("change", updateCounter);
 
 function updateCounter() {
@@ -209,18 +217,11 @@ function updateCounter() {
   }
 }
 
-// ===============================
-// FORM SUBMIT (SAVE + UPLOAD)
-// ===============================
+// Form Submit
 form.addEventListener("submit", e => {
   e.preventDefault();
-
   const docSelect = document.getElementById("document_type");
-  if (!docSelect || !docSelect.value) {
-    alert("Please select a document type.");
-    return;
-  }
-
+  if (!docSelect || !docSelect.value) { alert("Please select a document type."); return; }
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = docSelect.value;
   const files = Array.from(fileInput.files);
@@ -228,19 +229,13 @@ form.addEventListener("submit", e => {
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
-  // If no files, just save company form only
-  if (files.length === 0) {
-    submitFormOnly(csrf, docType);
-    return;
-  }
+  if (files.length === 0) { submitFormOnly(csrf, docType); return; }
 
   let completed = 0;
   files.forEach(file => {
     uploadOne(file, csrf, docType, () => {
       completed++;
-      if (completed === files.length) {
-        checkForRedirect();
-      }
+      if (completed === files.length) checkForRedirect();
     });
   });
 
@@ -248,54 +243,30 @@ form.addEventListener("submit", e => {
   fileCount.classList.add("d-none");
 });
 
-// ===============================
-// Submit company form only (no files)
-// ===============================
 function submitFormOnly(csrf, docType) {
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
+  xhr.open("POST", form.action, true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
-
   xhr.onload = () => {
     let resp;
-    try {
-      resp = JSON.parse(xhr.responseText);
-    } catch {
-      alert("Save failed (invalid response).");
-      return;
-    }
-
-    if (resp.redirect) {
-      window.location.href = resp.redirect;
-    } else if (resp.success) {
-      alert(resp.message || "Saved successfully!");
-    } else {
-      alert("Error: " + JSON.stringify(resp.errors || resp.message));
-    }
+    try { resp = JSON.parse(xhr.responseText); } catch { alert("Save failed (invalid response)."); return; }
+    if (resp.redirect) { window.location.href = resp.redirect; }
+    else if (resp.success) { alert(resp.message || "Saved successfully!"); }
+    else { alert("Error: " + JSON.stringify(resp.errors || resp.message)); }
   };
-
   const fd = new FormData(form);
-  fd.set("document_type", docType); // still send selected doc type
+  fd.set("document_type", docType);
   xhr.send(fd);
 }
 
-// ===============================
-// Upload a single file + company form
-// ===============================
 function uploadOne(file, csrf, docType, onDone) {
   const row = document.createElement("div");
   row.className = "mb-2";
-  row.innerHTML = `
-    <div class="small fw-semibold">${file.name}</div>
-    <div class="progress rounded">
-      <div class="progress-bar" role="progressbar" style="width:0%">0%</div>
-    </div>
-  `;
+  row.innerHTML = `<div class="small fw-semibold">${file.name}</div><div class="progress rounded"><div class="progress-bar" role="progressbar" style="width:0%">0%</div></div>`;
   progressWrap.appendChild(row);
 
   const bar = row.querySelector(".progress-bar");
   const xhr = new XMLHttpRequest();
-
   xhr.upload.addEventListener("progress", e => {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
@@ -303,68 +274,37 @@ function uploadOne(file, csrf, docType, onDone) {
       bar.textContent = percent + "%";
     }
   });
-
   xhr.onload = () => {
     let resp;
-    try {
-      resp = JSON.parse(xhr.responseText);
-    } catch {
-      bar.classList.add("bg-danger");
-      alert("Upload failed (invalid response).");
-      return;
-    }
-
-    if (resp.redirect) {
-      window.location.href = resp.redirect;
-      return;
-    }
-
-    if (xhr.status === 200 && resp.success) {
-      bar.style.width = "100%";
-      bar.textContent = "Done";
-      refreshDocs();
-      onDone();
-    } else {
-      bar.classList.add("bg-danger");
-      alert("Upload failed: " + JSON.stringify(resp.errors || resp.message));
-    }
+    try { resp = JSON.parse(xhr.responseText); } catch { bar.classList.add("bg-danger"); alert("Upload failed (invalid response)."); return; }
+    if (resp.redirect) { window.location.href = resp.redirect; return; }
+    if (xhr.status === 200 && resp.success) { bar.style.width = "100%"; bar.textContent = "Done"; refreshDocs(); onDone(); }
+    else { bar.classList.add("bg-danger"); alert("Upload failed: " + JSON.stringify(resp.errors || resp.message)); }
   };
-
-  // Send both company form + document in one request
   const fd = new FormData(form);
   fd.append("file", file);
   fd.set("document_type", docType);
-
-  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
+  xhr.open("POST", form.action, true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
   xhr.send(fd);
 }
 
-// ===============================
-// Optional: refresh document list
-// ===============================
 function refreshDocs() {
   const docList = document.getElementById("docList");
   if (!docList) return;
-
-  fetch(window.location.href)
-    .then(r => r.text())
-    .then(html => {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      const updated = temp.querySelector("#docList");
-      if (updated) docList.innerHTML = updated.innerHTML;
-    });
+  fetch(window.location.href).then(r => r.text()).then(html => {
+    const temp = document.createElement("div"); temp.innerHTML = html;
+    const updated = temp.querySelector("#docList");
+    if (updated) docList.innerHTML = updated.innerHTML;
+  });
 }
 
-// ===============================
-// Optional: check redirect safety
-// ===============================
 function checkForRedirect() {
-  fetch("{% url 'dashboard' %}", { redirect: "follow" })
-    .then(r => {
-      if (r.redirected) window.location.href = r.url;
-    });
+  fetch("{% url 'dashboard' %}", { redirect: "follow" }).then(r => {
+    if (r.redirected) window.location.href = r.url;
+  });
 }
 </script>
+{% endif %}
+
 {% endblock %}
