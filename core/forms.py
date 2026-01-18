@@ -67,16 +67,9 @@ class EmployerCompanyForm(forms.ModelForm):
         return super().save(commit=commit)
 
 class CompanyDocumentForm(forms.ModelForm):
-    # Define the document choices here
-    DOCUMENT_CHOICES = [
-        ('id', 'ID Card'),
-        ('passport', 'Passport'),
-        ('business_reg', 'Business Registration'),
-        ('tax_cert', 'Tax Certificate'),
-    ]
-
+    # Use the document choices from the model
     document_type = forms.ChoiceField(
-        choices=DOCUMENT_CHOICES,
+        choices=CompanyDocument.DOCUMENT_TYPES,
         required=True,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
@@ -84,7 +77,7 @@ class CompanyDocumentForm(forms.ModelForm):
     class Meta:
         model = CompanyDocument
         fields = ["document_type", "file"]
-
+        
 class AccountSettingsForm(PasswordChangeForm):
     username = forms.CharField(
         max_length=150,
