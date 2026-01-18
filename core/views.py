@@ -1463,22 +1463,42 @@ def upload_company_docs(request):
         defaults={"company_name": user.username}
     )
 
-    # Already verified → redirect
+    # If already verified → redirect immediately
     if company.is_verified:
-        messages.success(request, "🎉 Your company is already verified. You now have full access!")
         return redirect("dashboard")
 
-    # Handle POST uploads via AJAX
-    if request.method == "POST" and request.FILES.get("file"):
-        # Bind only the file and document_type to the form
-        post_data = {"document_type": request.POST.get("document_type")}
-        form = CompanyDocumentForm(post_data, request.FILES)
-        
-        if form.is_valid():
-            uploaded_file = form.cleaned_data["file"]
-            doc_type = form.cleaned_data["document_type"]
+    # ==========================
+    # HANDLE POST (AJAX SUBMIT)
+    # ==========================
+    if request.method == "POST":
 
-            # Save temporary file
+        # ---- 1. SAVE COMPANY PROFILE FORM ----
+        company_form = EmployerCompanyForm(request.POST, instance=company)
+        if not company_form.is_valid():
+            return JsonResponse({
+                "success": False,
+                "errors": company_form.errors.get_json_data()
+            }, status=400)
+
+        company = company_form.save()  # auto_verify may run here
+
+        # ---- 2. SAVE DOCUMENT (AJAX FILE UPLOAD) ----
+        if request.FILES.get("file"):
+            doc_form = CompanyDocumentForm(
+                {"document_type": request.POST.get("document_type")},
+                request.FILES
+            )
+
+            if not doc_form.is_valid():
+                return JsonResponse({
+                    "success": False,
+                    "errors": doc_form.errors.get_json_data()
+                }, status=400)
+
+            uploaded_file = doc_form.cleaned_data["file"]
+            doc_type = doc_form.cleaned_data["document_type"]
+
+            # Save temp file
             temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
             temp_dir.mkdir(parents=True, exist_ok=True)
             temp_path = temp_dir / uploaded_file.name
@@ -1487,24 +1507,30 @@ def upload_company_docs(request):
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
 
-            # Enqueue Celery task
+            # Background verification
             save_employer_document.delay(user.id, str(temp_path), doc_type)
 
+        # ---- 3. AUTO REDIRECT AFTER VERIFICATION ----
+        if company.is_verified:
             return JsonResponse({
                 "success": True,
-                "message": "📄 Document uploaded! Verification will run in the background."
+                "redirect": reverse("dashboard")
             })
-        else:
-            # Return errors as JSON
-            return JsonResponse({
-                "success": False,
-                "errors": form.errors.get_json_data()  # JSON-friendly format
-            }, status=400)
 
-    # GET → render the profile form + document list
-    form = CompanyDocumentForm()
+        return JsonResponse({
+            "success": True,
+            "message": "📄 Saved successfully. Verification in progress."
+        })
+
+    # ==========================
+    # GET → RENDER PAGE
+    # ==========================
+    company_form = EmployerCompanyForm(instance=company)
+    doc_form = CompanyDocumentForm()
+    
     return render(request, "complete_profile.html", {
-        "form": form,
+        "form": company_form,        # company profile form
+        "doc_form": doc_form,        # document upload form
         "company": company,
         "documents": company.documents.all(),
     })
