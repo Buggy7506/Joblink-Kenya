@@ -7,8 +7,8 @@ from django.contrib import messages
 def employer_verified_required(view_func):
     """
     Allow access ONLY to verified employers.
-    Applicants, admins or non-employers are allowed normally.
-    Pending employers get redirected to upload / complete.
+    Pending employers are redirected to complete/upload profile,
+    but do NOT redirect if already on those pages.
     Verified employers pass without interruption.
     """
     @wraps(view_func)
@@ -21,25 +21,30 @@ def employer_verified_required(view_func):
 
         profile = getattr(user, "profile", None)
 
-        # Restrict only if user is employer
+        # Restrict only if user is an employer
         if profile and profile.role == "employer":
             company = getattr(user, "employer_company", None)
 
-            # No company profile created
+            # Allow access to complete/upload pages to prevent loops
+            path_name = request.resolver_match.view_name
+            if path_name in ["complete_employer_profile", "upload_company_docs"]:
+                return view_func(request, *args, **kwargs)
+
+            # No company profile → redirect to complete profile
             if not company:
                 messages.warning(request, "Complete your company details first.")
                 return redirect("complete_employer_profile")
 
-            # Company exists but NOT verified
-            if company.status != "verified":
+            # Company exists but NOT verified → redirect to upload docs
+            if not company.is_verified:
                 messages.warning(
                     request,
                     "Your company is pending verification. Please upload documents."
                 )
                 return redirect("upload_company_docs")
 
-            # 🎉 Fully verified employer → allow silently
-            # (NO redirect to complete profile or docs)
+            # Verified employer → allow access
+            # (No redirect necessary)
 
         # Other roles → allow access
         return view_func(request, *args, **kwargs)
