@@ -94,10 +94,10 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
-#MIDDLEWARE += [
- #   "core.middleware.employer_verification.EmployerVerificationMiddleware",
-  #  "core.middleware.complete_employer_profile_block.PreventCompletedEmployerProfileAccess", 
-#]
+MIDDLEWARE += [
+    "core.middleware.employer_verification.EmployerVerificationMiddleware",
+    "core.middleware.complete_employer_profile_block.PreventCompletedEmployerProfileAccess", 
+]
 
 
 ROOT_URLCONF = 'joblink.urls'
