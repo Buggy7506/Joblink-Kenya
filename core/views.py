@@ -1364,15 +1364,11 @@ def complete_employer_profile(request):
         defaults={"company_name": user.username}
     )
 
-    # ---------------------------
+    # ============================
     # POST → Save company + upload document
-    # ---------------------------
+    # ============================
     if request.method == "POST":
-        # If already verified, just return JSON redirect (AJAX-safe)
-        if company.is_verified:
-            return JsonResponse({"success": True, "redirect": reverse("dashboard")})
-
-        # ---- 1. Save company profile form ----
+        # ---- 1. Save company profile ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
         if not company_form.is_valid():
             return JsonResponse({
@@ -1380,15 +1376,14 @@ def complete_employer_profile(request):
                 "errors": company_form.errors.get_json_data()
             }, status=400)
 
-        company = company_form.save()  # auto-verification can trigger here
+        company = company_form.save()  # triggers auto-verification if applicable
 
-        # ---- 2. Save uploaded document ----
+        # ---- 2. Save uploaded document (if any) ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
                 request.FILES
             )
-
             if not doc_form.is_valid():
                 return JsonResponse({
                     "success": False,
@@ -1399,29 +1394,27 @@ def complete_employer_profile(request):
             document.company = company
             document.save()  # triggers auto-approval and auto-verification
 
-        # ---- 3. Auto-redirect if verified ----
+        # ---- 3. Refresh and check verification ----
         company.refresh_from_db()
         if company.is_verified:
+            # Return JSON for JS to handle redirect
             return JsonResponse({"success": True, "redirect": reverse("dashboard")})
 
         return JsonResponse({
             "success": True,
-            "message": "📄 Saved successfully. Verification in progress."
+            "message": "📄 Saved successfully. Verification is in progress."
         })
 
-    # ---------------------------
-    # GET → Render forms
-    # ---------------------------
-    # Redirect GET if already verified
-    if company.is_verified:
-        return redirect("dashboard")
-
+    # ============================
+    # GET → Render page
+    # ============================
+    # Note: Do NOT redirect GET automatically to avoid redirect loops
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
     return render(request, "complete_profile.html", {
-        "form": company_form,       # company profile form
-        "doc_form": doc_form,       # document upload form
+        "form": company_form,
+        "doc_form": doc_form,
         "company": company,
         "documents": company.documents.all(),
     })
@@ -1497,7 +1490,7 @@ def upload_company_docs(request):
         messages.error(request, "❌ Only employers can upload verification documents.")
         return redirect("dashboard")
 
-    # Get or create company
+    # Get or create company instance
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
