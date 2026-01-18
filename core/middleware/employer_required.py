@@ -8,14 +8,14 @@ def employer_verified_required(view_func):
     """
     Allow access ONLY to verified employers.
     Pending employers are redirected to complete/upload profile,
-    but do NOT redirect if already on those pages.
+    but do NOT redirect if already on those pages to prevent loops.
     Verified employers pass without interruption.
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         user = request.user
 
-        # If not logged in
+        # Not logged in → redirect to login
         if not user.is_authenticated:
             return redirect("login")
 
@@ -25,8 +25,8 @@ def employer_verified_required(view_func):
         if profile and profile.role == "employer":
             company = getattr(user, "employer_company", None)
 
-            # Allow access to complete/upload pages to prevent loops
-            path_name = request.resolver_match.view_name
+            # Get current view name to avoid redirect loops
+            path_name = getattr(request.resolver_match, "view_name", None)
             if path_name in ["complete_employer_profile", "upload_company_docs"]:
                 return view_func(request, *args, **kwargs)
 
@@ -36,7 +36,7 @@ def employer_verified_required(view_func):
                 return redirect("complete_employer_profile")
 
             # Company exists but NOT verified → redirect to upload docs
-            if not company.is_verified:
+            if not getattr(company, "is_verified", False):
                 messages.warning(
                     request,
                     "Your company is pending verification. Please upload documents."
@@ -44,7 +44,7 @@ def employer_verified_required(view_func):
                 return redirect("upload_company_docs")
 
             # Verified employer → allow access
-            # (No redirect necessary)
+            # (No redirect needed)
 
         # Other roles → allow access
         return view_func(request, *args, **kwargs)
