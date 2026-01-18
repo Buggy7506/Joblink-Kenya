@@ -215,11 +215,6 @@ function updateCounter() {
 form.addEventListener("submit", e => {
   e.preventDefault();
 
-  if (!fileInput.files.length) {
-    alert("Select at least one document.");
-    return;
-  }
-
   const docSelect = document.getElementById("document_type");
   if (!docSelect || !docSelect.value) {
     alert("Please select a document type.");
@@ -233,13 +228,16 @@ form.addEventListener("submit", e => {
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
-  let completed = 0;
+  // If no files, just save company form only
+  if (files.length === 0) {
+    submitFormOnly(csrf, docType);
+    return;
+  }
 
+  let completed = 0;
   files.forEach(file => {
     uploadOne(file, csrf, docType, () => {
       completed++;
-
-      // ✅ After ALL uploads finish, backend decides redirect
       if (completed === files.length) {
         checkForRedirect();
       }
@@ -251,7 +249,38 @@ form.addEventListener("submit", e => {
 });
 
 // ===============================
-// UPLOAD SINGLE FILE
+// Submit company form only (no files)
+// ===============================
+function submitFormOnly(csrf, docType) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
+  xhr.setRequestHeader("X-CSRFToken", csrf);
+
+  xhr.onload = () => {
+    let resp;
+    try {
+      resp = JSON.parse(xhr.responseText);
+    } catch {
+      alert("Save failed (invalid response).");
+      return;
+    }
+
+    if (resp.redirect) {
+      window.location.href = resp.redirect;
+    } else if (resp.success) {
+      alert(resp.message || "Saved successfully!");
+    } else {
+      alert("Error: " + JSON.stringify(resp.errors || resp.message));
+    }
+  };
+
+  const fd = new FormData(form);
+  fd.set("document_type", docType); // still send selected doc type
+  xhr.send(fd);
+}
+
+// ===============================
+// Upload a single file + company form
 // ===============================
 function uploadOne(file, csrf, docType, onDone) {
   const row = document.createElement("div");
@@ -285,7 +314,6 @@ function uploadOne(file, csrf, docType, onDone) {
       return;
     }
 
-    // 🔥 BACKEND CAN FORCE REDIRECT
     if (resp.redirect) {
       window.location.href = resp.redirect;
       return;
@@ -302,31 +330,18 @@ function uploadOne(file, csrf, docType, onDone) {
     }
   };
 
-  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
-  xhr.setRequestHeader("X-CSRFToken", csrf);
-
-  // 🔥 SEND COMPANY FORM + DOC FORM TOGETHER
+  // Send both company form + document in one request
   const fd = new FormData(form);
   fd.append("file", file);
   fd.set("document_type", docType);
 
+  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
+  xhr.setRequestHeader("X-CSRFToken", csrf);
   xhr.send(fd);
 }
 
 // ===============================
-// OPTIONAL: CHECK REDIRECT SAFETY
-// ===============================
-function checkForRedirect() {
-  fetch("{% url 'dashboard' %}", { redirect: "follow" })
-    .then(r => {
-      if (r.redirected) {
-        window.location.href = r.url;
-      }
-    });
-}
-
-// ===============================
-// REFRESH DOCUMENT LIST
+// Optional: refresh document list
 // ===============================
 function refreshDocs() {
   const docList = document.getElementById("docList");
@@ -339,6 +354,16 @@ function refreshDocs() {
       temp.innerHTML = html;
       const updated = temp.querySelector("#docList");
       if (updated) docList.innerHTML = updated.innerHTML;
+    });
+}
+
+// ===============================
+// Optional: check redirect safety
+// ===============================
+function checkForRedirect() {
+  fetch("{% url 'dashboard' %}", { redirect: "follow" })
+    .then(r => {
+      if (r.redirected) window.location.href = r.url;
     });
 }
 </script>
