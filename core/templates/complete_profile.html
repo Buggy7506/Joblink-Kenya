@@ -124,12 +124,10 @@ h2.section-title {
     {{ form.non_field_errors }}
 
     {% for field in form %}
-        {% if field.name != 'document_type' %}
-            <label>{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <small>{{ field.errors|striptags }}</small>
-            {% endif %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+            <small>{{ field.errors|striptags }}</small>
         {% endif %}
     {% endfor %}
 
@@ -149,9 +147,9 @@ h2.section-title {
 
     <!-- Document type -->
     <div class="mb-3">
-        {{ form.document_type|add_class:"form-select"|attr:"id:document_type" }}
-        {% if form.document_type.errors %}
-            <small>{{ form.document_type.errors|striptags }}</small>
+        {{ doc_form.document_type|add_class:"form-select"|attr:"id:document_type" }}
+        {% if doc_form.document_type.errors %}
+            <small>{{ doc_form.document_type.errors|striptags }}</small>
         {% endif %}
     </div>
 
