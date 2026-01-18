@@ -1353,12 +1353,16 @@ def login_view(request):
 def complete_employer_profile(request):
     user = request.user
 
+    # ---------------------------
     # Only employers can access
+    # ---------------------------
     if getattr(getattr(user, "profile", None), "role", None) != "employer":
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
+    # ---------------------------
     # Get or create company instance
+    # ---------------------------
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
@@ -1385,11 +1389,12 @@ def complete_employer_profile(request):
 
         company = company_form.save()
 
-        # ---- Save uploaded document (optional) ----
-        if request.FILES.get("file"):
+        # ---- Save uploaded document if present ----
+        uploaded_file = request.FILES.get("file")
+        if uploaded_file:
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
-                request.FILES
+                {"file": uploaded_file}
             )
 
             if not doc_form.is_valid():
@@ -1398,21 +1403,29 @@ def complete_employer_profile(request):
                     status=400
                 )
 
-            document = doc_form.save(commit=False)
-            document.company = company
-            document.save()
+            # Optionally save file temporarily and enqueue verification
+            temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            temp_path = temp_dir / uploaded_file.name
 
-        # ---- Refresh & verify ----
+            with open(temp_path, "wb+") as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+
+            # Enqueue background verification task
+            save_employer_document.delay(user.id, str(temp_path), doc_form.cleaned_data["document_type"])
+
+        # ---- Refresh company instance ----
         company.refresh_from_db()
 
-        # Redirect if now verified
+        # Redirect immediately if verified
         if company.is_verified:
             return JsonResponse({
                 "success": True,
                 "redirect": reverse("dashboard")
             })
 
-        # Pending verification → just notify
+        # Pending verification → notify
         return JsonResponse({
             "success": True,
             "message": "Saved successfully. Verification is in progress."
@@ -1501,15 +1514,16 @@ def dashboard(request):
 def upload_company_docs(request):
     user = request.user
 
+    # ---------------------------
     # Only employers can access
+    # ---------------------------
     if getattr(getattr(user, "profile", None), "role", None) != "employer":
-        messages.error(
-            request,
-            "Only employers can upload verification documents."
-        )
+        messages.error(request, "Only employers can upload verification documents.")
         return redirect("dashboard")
 
+    # ---------------------------
     # Get or create company instance
+    # ---------------------------
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
@@ -1536,11 +1550,12 @@ def upload_company_docs(request):
 
         company = company_form.save()
 
-        # ---- Save uploaded document if provided ----
-        if request.FILES.get("file"):
+        # ---- Handle uploaded document if present ----
+        uploaded_file = request.FILES.get("file")
+        if uploaded_file:
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
-                request.FILES
+                {"file": uploaded_file}
             )
 
             if not doc_form.is_valid():
@@ -1549,10 +1564,7 @@ def upload_company_docs(request):
                     status=400
                 )
 
-            # Save file temporarily for background processing
-            uploaded_file = doc_form.cleaned_data["file"]
-            doc_type = doc_form.cleaned_data["document_type"]
-
+            # Save temporarily for background verification
             temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
             temp_dir.mkdir(parents=True, exist_ok=True)
             temp_path = temp_dir / uploaded_file.name
@@ -1562,26 +1574,20 @@ def upload_company_docs(request):
                     f.write(chunk)
 
             # Enqueue background verification task
-            save_employer_document.delay(
-                user.id,
-                str(temp_path),
-                doc_type
-            )
+            save_employer_document.delay(user.id, str(temp_path), doc_form.cleaned_data["document_type"])
 
         # ---- Refresh & check verification status ----
         company.refresh_from_db()
 
+        # If verified now, redirect
         if company.is_verified:
-            return JsonResponse(
-                {"success": True, "redirect": reverse("dashboard")}
-            )
+            return JsonResponse({"success": True, "redirect": reverse("dashboard")})
 
-        return JsonResponse(
-            {
-                "success": True,
-                "message": "Saved successfully. Verification is in progress."
-            }
-        )
+        # Pending verification → notify user
+        return JsonResponse({
+            "success": True,
+            "message": "Saved successfully. Verification is in progress."
+        })
 
     # ---------------------------
     # GET → Render forms
