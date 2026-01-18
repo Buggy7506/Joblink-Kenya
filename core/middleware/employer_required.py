@@ -23,7 +23,7 @@ def employer_verified_required(view_func):
 
         # Restrict only if user is employer
         if profile and profile.role == "employer":
-            company = getattr(user, "employercompany", None)
+            company = getattr(user, "employer_company", None)
 
             # No company profile created
             if not company:
