@@ -1453,49 +1453,52 @@ def upload_company_docs(request):
     user = request.user
 
     # Only employers can access
-    if getattr(user, "role", None) != "employer":
+    if getattr(user.profile, "role", None) != "employer":
         messages.error(request, "❌ Only employers can upload verification documents.")
-        return redirect('dashboard')
+        return redirect("dashboard")
 
     # Get or create company
-    company, _ = EmployerCompany.objects.get_or_create(user=user, defaults={"company_name": user.username})
+    company, _ = EmployerCompany.objects.get_or_create(
+        user=user,
+        defaults={"company_name": user.username}
+    )
 
     # Already verified → redirect
     if company.is_verified:
         messages.success(request, "🎉 Your company is already verified. You now have full access!")
-        return redirect('dashboard')
+        return redirect("dashboard")
 
     # Handle POST uploads via AJAX
-    if request.method == "POST":
+    if request.method == "POST" and request.FILES.get("file"):
         form = CompanyDocumentForm(request.POST, request.FILES)
         if form.is_valid():
-            uploaded_file = request.FILES['file']
-            doc_type = form.cleaned_data['document_type']
+            uploaded_file = request.FILES["file"]
+            doc_type = form.cleaned_data["document_type"]
 
-            # Save temp file
+            # Save temporary file
             temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
             temp_dir.mkdir(parents=True, exist_ok=True)
             temp_path = temp_dir / uploaded_file.name
 
-            with open(temp_path, 'wb+') as f:
+            with open(temp_path, "wb+") as f:
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
 
             # Enqueue Celery task
             save_employer_document.delay(user.id, str(temp_path), doc_type)
 
-            # Return JSON immediately for AJAX
             return JsonResponse({
                 "success": True,
-                "message": "📄 Document uploaded! Verification will run in background."
+                "message": "📄 Document uploaded! Verification will run in the background."
             })
         else:
+            # Return errors in a format JS can read
             return JsonResponse({
                 "success": False,
-                "errors": form.errors.as_json()
+                "errors": form.errors  # sends a Python dict
             }, status=400)
 
-    # GET → render form
+    # GET → render the profile form + document list
     form = CompanyDocumentForm()
     return render(request, "complete_profile.html", {
         "form": form,
