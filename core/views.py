@@ -1358,11 +1358,18 @@ def complete_employer_profile(request):
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
-    # Get or create company instance
+    # Get or create company instance using correct related_name
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
     )
+
+    # ---------------------------
+    # Redirect GET immediately if already verified
+    # ---------------------------
+    if company.is_verified and request.method == "GET":
+        messages.info(request, "Your company is already verified.")
+        return redirect("dashboard")
 
     # ============================
     # POST → Save company + upload document
@@ -1395,7 +1402,7 @@ def complete_employer_profile(request):
             document.company = company
             document.save()
 
-        # ---- Refresh & verify ----
+        # ---- Refresh & check verification ----
         company.refresh_from_db()
 
         if company.is_verified:
@@ -1410,7 +1417,7 @@ def complete_employer_profile(request):
         })
 
     # ============================
-    # GET → Render page (NO redirect here)
+    # GET → Render forms
     # ============================
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
@@ -1500,7 +1507,7 @@ def upload_company_docs(request):
         )
         return redirect("dashboard")
 
-    # Get or create company instance
+    # Get or create company instance using correct related_name if needed
     company, _ = EmployerCompany.objects.get_or_create(
         user=user,
         defaults={"company_name": user.username}
@@ -1510,6 +1517,7 @@ def upload_company_docs(request):
     # Redirect GET immediately if already verified
     # ---------------------------
     if company.is_verified and request.method == "GET":
+        messages.info(request, "Your company is already verified.")
         return redirect("dashboard")
 
     # ---------------------------
@@ -1559,7 +1567,6 @@ def upload_company_docs(request):
 
         # ---- Auto-redirect if verified ----
         company.refresh_from_db()
-
         if company.is_verified:
             return JsonResponse(
                 {"success": True, "redirect": reverse("dashboard")}
