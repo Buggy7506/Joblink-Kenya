@@ -14,15 +14,6 @@ class EmployerVerificationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-
-        # Paths employer must be allowed to reach
-        allowed_paths = [
-            reverse("complete_employer_profile"),
-            reverse("upload_company_docs"),
-            reverse("logout"),
-            reverse("dashboard"),
-        ]
-
         # Not logged in → let login_required handle redirects
         if not request.user.is_authenticated:
             return self.get_response(request)
@@ -35,27 +26,32 @@ class EmployerVerificationMiddleware:
             # Fetch the company object if it exists
             company = getattr(request.user, "employercompany", None)
 
+            # Paths employer must be allowed to reach (normalize trailing slashes)
+            allowed_paths = [
+                reverse("complete_employer_profile").rstrip('/'),
+                reverse("upload_company_docs").rstrip('/'),
+                reverse("logout").rstrip('/'),
+                reverse("dashboard").rstrip('/'),
+            ]
+            current_path = request.path.rstrip('/')
+
             # Employer with NO company created yet
-            if not company:
-                if request.path not in allowed_paths:
-                    messages.warning(
-                        request,
-                        "Complete your company profile to unlock full access."
-                    )
-                    return redirect("complete_employer_profile")
-                return self.get_response(request)
+            if not company and current_path not in allowed_paths:
+                messages.warning(
+                    request,
+                    "Complete your company profile to unlock full access."
+                )
+                return redirect("complete_employer_profile")
 
-            # If company exists but NOT verified
-            if company.status != "verified":
-                if request.path not in allowed_paths:
-                    messages.warning(
-                        request,
-                        "Your company is pending verification. Upload documents."
-                    )
-                    return redirect("upload_company_docs")
-                return self.get_response(request)
+            # Company exists but NOT verified → redirect to docs upload
+            if company and company.status != "verified" and current_path not in allowed_paths:
+                messages.warning(
+                    request,
+                    "Your company is pending verification. Upload documents."
+                )
+                return redirect("upload_company_docs")
 
-            # 🎉 Verified employers skip restrictions entirely
+            # Verified employers skip restrictions entirely
 
         # Non-employers pass
         return self.get_response(request)
