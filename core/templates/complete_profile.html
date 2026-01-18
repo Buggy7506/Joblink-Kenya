@@ -179,11 +179,16 @@ const progressWrap = document.getElementById("progressWrap");
 
 // Drag & Drop UI
 dropZone.addEventListener("click", () => fileInput.click());
+
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
   dropZone.classList.add("glass-drop");
 });
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("glass-drop");
+});
+
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
   dropZone.classList.remove("glass-drop");
@@ -195,7 +200,7 @@ fileInput.addEventListener("change", updateCounter);
 
 function updateCounter() {
   if (fileInput.files.length > 0) {
-    fileCount.innerText = fileInput.files.length + " file(s) selected";
+    fileCount.textContent = fileInput.files.length + " file(s) selected";
     fileCount.classList.remove("d-none");
   } else {
     fileCount.classList.add("d-none");
@@ -203,7 +208,7 @@ function updateCounter() {
 }
 
 // AJAX Upload
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", e => {
   e.preventDefault();
 
   if (!fileInput.files.length) {
@@ -211,19 +216,19 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docSelect = document.getElementById("document_type");
-
   if (!docSelect || !docSelect.value) {
     alert("Please select a document type.");
     return;
   }
 
+  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = docSelect.value;
+
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
-  for (let file of fileInput.files) {
+  for (const file of fileInput.files) {
     uploadOne(file, csrf, docType);
   }
 
@@ -238,34 +243,38 @@ function uploadOne(file, csrf, docType) {
     <div class="small fw-semibold">${file.name}</div>
     <div class="progress rounded">
       <div class="progress-bar" role="progressbar" style="width:0%">0%</div>
-    </div>`;
+    </div>
+  `;
   progressWrap.appendChild(row);
 
-  const xhr = new XMLHttpRequest();
   const bar = row.querySelector(".progress-bar");
+  const xhr = new XMLHttpRequest();
 
   xhr.upload.addEventListener("progress", e => {
     if (e.lengthComputable) {
-      const percent = (e.loaded / e.total) * 100;
-      bar.style.width = percent.toFixed(0) + "%";
-      bar.textContent = percent.toFixed(0) + "%";
+      const percent = Math.round((e.loaded / e.total) * 100);
+      bar.style.width = percent + "%";
+      bar.textContent = percent + "%";
     }
   });
 
   xhr.onload = () => {
+    let resp;
     try {
-      const resp = JSON.parse(xhr.responseText);
-      if (xhr.status === 200 && resp.success) {
-        bar.style.width = "100%";
-        bar.textContent = "Done";
-        refreshDocs();
-      } else {
-        bar.classList.add("bg-danger");
-        alert("Upload failed: " + JSON.stringify(resp.errors || resp.message || resp));
-      }
-    } catch(err) {
+      resp = JSON.parse(xhr.responseText);
+    } catch {
       bar.classList.add("bg-danger");
-      alert("Upload failed: " + xhr.responseText);
+      alert("Upload failed.");
+      return;
+    }
+
+    if (xhr.status === 200 && resp.success) {
+      bar.style.width = "100%";
+      bar.textContent = "Done";
+      refreshDocs();
+    } else {
+      bar.classList.add("bg-danger");
+      alert("Upload failed: " + JSON.stringify(resp.errors || resp.message));
     }
   };
 
@@ -285,10 +294,10 @@ function refreshDocs() {
   fetch(window.location.href)
     .then(r => r.text())
     .then(html => {
-      const tmp = document.createElement("div");
-      tmp.innerHTML = html;
-      const newContent = tmp.querySelector("#docList");
-      if (newContent) docList.innerHTML = newContent.innerHTML;
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      const updated = temp.querySelector("#docList");
+      if (updated) docList.innerHTML = updated.innerHTML;
     });
 }
 </script>
