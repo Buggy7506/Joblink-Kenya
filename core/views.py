@@ -1364,16 +1364,16 @@ def complete_employer_profile(request):
         defaults={"company_name": user.username}
     )
 
-    # Already verified → go to dashboard
+    # Already verified → redirect to dashboard
     if company.is_verified:
         return redirect("dashboard")
 
     # ============================
-    # POST (SAVE + UPLOAD)
+    # POST → Save company + upload document
     # ============================
     if request.method == "POST":
 
-        # ---- 1. SAVE COMPANY PROFILE ----
+        # ---- 1. Save company profile ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
         if not company_form.is_valid():
             return JsonResponse({
@@ -1381,9 +1381,9 @@ def complete_employer_profile(request):
                 "errors": company_form.errors.get_json_data()
             }, status=400)
 
-        company = company_form.save()  # auto-verification can trigger here
+        company = company_form.save()  # auto-verification can run here
 
-        # ---- 2. SAVE DOCUMENT (AJAX UPLOAD) ----
+        # ---- 2. Save document (if uploaded) ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
@@ -1398,11 +1398,10 @@ def complete_employer_profile(request):
 
             document = doc_form.save(commit=False)
             document.company = company
-            document.save()
+            document.save()  # triggers auto-approval in model save()
 
-        # ---- 3. REDIRECT AFTER AUTO VERIFICATION ----
-        company.refresh_from_db()
-
+        # ---- 3. Auto-redirect after verification ----
+        company.refresh_from_db()  # get updated is_verified
         if company.is_verified:
             return JsonResponse({
                 "success": True,
@@ -1415,14 +1414,14 @@ def complete_employer_profile(request):
         })
 
     # ============================
-    # GET → RENDER PAGE
+    # GET → Render forms
     # ============================
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
     return render(request, "complete_profile.html", {
-        "form": company_form,
-        "doc_form": doc_form,
+        "form": company_form,       # company profile form
+        "doc_form": doc_form,       # document upload form
         "company": company,
         "documents": company.documents.all(),
     })
@@ -1504,16 +1503,16 @@ def upload_company_docs(request):
         defaults={"company_name": user.username}
     )
 
-    # If already verified → redirect immediately
+    # Already verified → redirect immediately
     if company.is_verified:
         return redirect("dashboard")
 
     # ==========================
-    # HANDLE POST (AJAX SUBMIT)
+    # HANDLE POST (SAVE + UPLOAD)
     # ==========================
     if request.method == "POST":
 
-        # ---- 1. SAVE COMPANY PROFILE FORM ----
+        # ---- 1. Save company profile ----
         company_form = EmployerCompanyForm(request.POST, instance=company)
         if not company_form.is_valid():
             return JsonResponse({
@@ -1521,9 +1520,9 @@ def upload_company_docs(request):
                 "errors": company_form.errors.get_json_data()
             }, status=400)
 
-        company = company_form.save()  # auto_verify may run here
+        company = company_form.save()  # auto-verification may trigger here
 
-        # ---- 2. SAVE DOCUMENT (AJAX FILE UPLOAD) ----
+        # ---- 2. Save document (if a file was uploaded) ----
         if request.FILES.get("file"):
             doc_form = CompanyDocumentForm(
                 {"document_type": request.POST.get("document_type")},
@@ -1536,10 +1535,10 @@ def upload_company_docs(request):
                     "errors": doc_form.errors.get_json_data()
                 }, status=400)
 
+            # Save temp file to enqueue background task
             uploaded_file = doc_form.cleaned_data["file"]
             doc_type = doc_form.cleaned_data["document_type"]
 
-            # Save temp file
             temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
             temp_dir.mkdir(parents=True, exist_ok=True)
             temp_path = temp_dir / uploaded_file.name
@@ -1548,30 +1547,32 @@ def upload_company_docs(request):
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
 
-            # Background verification
+            # Enqueue verification task
             save_employer_document.delay(user.id, str(temp_path), doc_type)
 
-        # ---- 3. AUTO REDIRECT AFTER VERIFICATION ----
+        # ---- 3. Auto-redirect if company is now verified ----
+        company.refresh_from_db()
         if company.is_verified:
             return JsonResponse({
                 "success": True,
                 "redirect": reverse("dashboard")
             })
 
+        # Otherwise, inform user that verification is in progress
         return JsonResponse({
             "success": True,
-            "message": "📄 Saved successfully. Verification in progress."
+            "message": "📄 Saved successfully. Verification is in progress."
         })
 
     # ==========================
-    # GET → RENDER PAGE
+    # GET → Render page with forms
     # ==========================
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
-    
+
     return render(request, "complete_profile.html", {
-        "form": company_form,        # company profile form
-        "doc_form": doc_form,        # document upload form
+        "form": company_form,   # company profile form
+        "doc_form": doc_form,   # document upload form
         "company": company,
         "documents": company.documents.all(),
     })
