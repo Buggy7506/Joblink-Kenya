@@ -262,18 +262,16 @@ SECURE_SSL_REDIRECT = False
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
+# Use Anymail backend for Resend
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 
-# Use Anymail MailerSend backend
-EMAIL_BACKEND = "anymail.backends.mailersend.EmailBackend"
-
-# MailerSend API token (use environment variable)
-
+# Anymail settings with environment variable
 ANYMAIL = {
-    "MAILERSEND_API_TOKEN": os.environ.get("MAILERSEND_API_TOKEN"),
+    "RESEND_API_KEY": os.environ.get("RESEND_API_KEY"),  # reads from Render env
 }
 
-# Default from email
-DEFAULT_FROM_EMAIL = "support@stepper.dpdns.org"
+# Default sender
+DEFAULT_FROM_EMAIL = "no-reply@stepper.dpdns.org"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
