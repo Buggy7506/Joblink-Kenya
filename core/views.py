@@ -60,6 +60,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.forms import PasswordResetForm
 from django.views.generic import FormView
 from .email_backend import send_password_reset
+from django.contrib.auth import views as auth_views
 
 class CustomPasswordResetView(FormView):
     template_name = "password_reset.html"
@@ -73,6 +74,17 @@ class CustomPasswordResetView(FormView):
             send_password_reset(user, self.request)
         return super().form_valid(form)
 
+class CustomPasswordResetView(auth_views.PasswordResetView):
+    template_name = 'password_reset.html'
+
+class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
+    template_name = 'password_reset_done.html'
+
+class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = 'password_reset_confirm.html'
+
+class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
+    template_name = 'password_reset_complete.html'
 
 # Search + Filter + Pagination + Context
 def available_jobs(request):
