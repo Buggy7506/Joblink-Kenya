@@ -2,10 +2,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 
-urlpatterns = [
-
-    path("auth/", views.auth_view, name="auth"),
-    
+urlpatterns = [    
     path("api/categories/", views.api_job_categories, name="api_categories"),
     path("api/locations/", views.api_locations, name="api_locations"),
     # -------------------------
