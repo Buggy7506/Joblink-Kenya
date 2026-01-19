@@ -200,86 +200,161 @@
         </svg>
       </div>
 
-      <!-- STEP 1: Email / Social -->
-      <section id="step-email">
-        <h2>Log in or Sign up</h2>
-        <p>Get smarter responses and access more features</p>
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        {{ form.action }} <!-- hidden action field -->
 
-        <button class="auth-btn" onclick="social('google')">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
-        </button>
-        <button class="auth-btn" onclick="social('apple')">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
-        </button>
-        <button class="auth-btn" onclick="social('microsoft')">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
-        </button>
-        <button class="auth-btn" onclick="social('phone')">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
-        </button>
+        <!-- STEP 1: Email / Social -->
+        <section id="step-email">
+          <h2>Log in or Sign up</h2>
+          <p>Get smarter responses and access more features</p>
 
-        <div class="divider">OR</div>
+          <!-- SOCIAL BUTTONS -->
+          <button type="button" class="auth-btn" onclick="social('google')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
+          </button>
+          <button type="button" class="auth-btn" onclick="social('apple')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
+          </button>
+          <button type="button" class="auth-btn" onclick="social('microsoft')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
+          </button>
+          <button type="button" class="auth-btn" onclick="social('phone')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
+          </button>
 
-        <input id="email" placeholder="Email address" type="email" required>
-        <button class="auth-btn primary" onclick="sendCode()">Continue</button>
-      </section>
+          <div class="divider">OR</div>
 
-      <!-- STEP 2: Code -->
-      <section id="step-code" class="hidden">
-        <h2>Check your inbox</h2>
-        <p>Enter the code sent to <b id="emailLabel"></b></p>
+          <!-- ROLE SELECTION -->
+          <div class="row" style="margin-bottom:1rem;">
+            {% for val, label in form.role.field.choices %}
+              <label>
+                <input type="radio" name="role" value="{{ val }}" {% if form.role.value == val %}checked{% endif %}> {{ label }}
+              </label>
+            {% endfor %}
+          </div>
 
-        <input placeholder="6-digit code" maxlength="6">
-        <button class="auth-btn primary" onclick="toPassword()">Continue</button>
+          <!-- EMPLOYER FIELDS -->
+          <div id="employer-fields" style="display: {% if form.role.value == 'employer' %}block{% else %}none{% endif %};">
+            {{ form.company_name }}
+            {{ form.company_email }}
+            {{ form.company_website }}
+          </div>
 
-        <button class="auth-link" onclick="resend()">Resend email</button>
-        <div class="divider">OR</div>
-        <button class="auth-btn" onclick="toPassword()">Continue with password</button>
-      </section>
+          <!-- COMMON EMAIL FIELD -->
+          {{ form.identifier }}
 
-      <!-- STEP 3: Password -->
-      <section id="step-password" class="hidden">
-        <h2>Enter your password</h2>
+          <!-- RECAPTCHA -->
+          <div style="margin:0.5rem 0;">
+            <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_SITE_KEY }}"></div>
+            {{ form.recaptcha_response }}
+          </div>
 
-        <div class="row">
-          <span id="emailLabel2"></span>
-          <button class="auth-link" onclick="back()">Edit</button>
-        </div>
+          <!-- PRIMARY CONTINUE -->
+          <button type="submit" name="action" value="signup" class="auth-btn primary">Sign up</button>
+          <button type="submit" name="action" value="login" class="auth-btn">Login</button>
 
-        <input type="password" placeholder="Password">
-        <button class="auth-btn primary">Continue</button>
+          <!-- DISPLAY ERRORS -->
+          {% if form.errors %}
+            <ul style="margin-top:1rem; list-style:none; padding:0;">
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
 
-        <button class="auth-link">Forgot password?</button>
-        <div class="divider">OR</div>
-        <button class="auth-btn">Log in with a one-time code</button>
-      </section>
+        </section>
+
+        <!-- STEP 2 & 3: Optional Multi-step -->
+        <!-- These can be updated to use form fields like code/password if you implement magic links -->
+      </form>
 
     </div>
   </div>
 </div>
 
 <script>
-let email = "";
+document.addEventListener("DOMContentLoaded", () => {
+  let email = "";
 
-function sendCode() {
-  email = document.getElementById("email").value.trim();
-  if (!email) return alert("Enter email");
-  document.getElementById("emailLabel").textContent = email;
-  document.getElementById("emailLabel2").textContent = email;
-  show("step-code");
-}
+  // =========================
+  // STEP NAVIGATION
+  // =========================
+  function show(id) {
+    ["step-email", "step-code", "step-password"].forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.classList.add("hidden");
+    });
+    const target = document.getElementById(id);
+    if (target) target.classList.remove("hidden");
+  }
 
-function toPassword() { show("step-password"); }
-function back() { show("step-email"); }
-function resend() { alert("Code resent to " + email); }
-function social(provider) { alert("Auth via " + provider); }
+  window.sendCode = function() {
+    const emailInput = document.querySelector('input[name="identifier"]');
+    if (!emailInput) return;
+    email = emailInput.value.trim();
+    if (!email) return alert("Enter your email address");
+    // Update labels for steps 2 & 3
+    const label1 = document.getElementById("emailLabel");
+    const label2 = document.getElementById("emailLabel2");
+    if (label1) label1.textContent = email;
+    if (label2) label2.textContent = email;
+    show("step-code");
+  };
 
-function show(id) {
-  ["step-email","step-code","step-password"].forEach(s =>
-    document.getElementById(s).classList.add("hidden")
-  );
-  document.getElementById(id).classList.remove("hidden");
-}
+  window.toPassword = function() { show("step-password"); };
+  window.back = function() { show("step-email"); };
+  window.resend = function() {
+    if (!email) return alert("No email entered yet");
+    alert("Code resent to " + email);
+  };
+
+  window.social = function(provider) {
+    alert("Auth via " + provider);
+  };
+
+  // =========================
+  // ROLE TOGGLE (EMPLOYER FIELDS)
+  // =========================
+  const roleRadios = document.querySelectorAll('input[name="role"]');
+  const employerFields = document.getElementById('employer-fields');
+
+  if (roleRadios && employerFields) {
+    roleRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        employerFields.style.display = (radio.value === 'employer') ? 'block' : 'none';
+      });
+      // Initialize on page load
+      if (radio.checked && radio.value === 'employer') {
+        employerFields.style.display = 'block';
+      }
+    });
+  }
+
+  // =========================
+  // Optional: intercept form submission for multi-step
+  // =========================
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', e => {
+      const action = e.submitter?.value; // 'signup' or 'login'
+      // Optional: validate step-email email before submitting
+      if (action === 'signup' || action === 'login') {
+        const emailInput = document.querySelector('input[name="identifier"]');
+        if (!emailInput.value.trim()) {
+          e.preventDefault();
+          alert("Enter your email address before continuing.");
+          show("step-email");
+        }
+      }
+    });
+  }
+});
 </script>
 
 {% endblock %}
