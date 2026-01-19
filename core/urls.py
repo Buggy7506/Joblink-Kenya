@@ -112,7 +112,7 @@ urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin-profile/', views.admin_profile, name='admin_profile'),
     path('admin-only/', views.admin_only_view, name='admin_only'),
-    path('employer/control-panel/', views.employer_control_panel_view, name='employer_control_panel'),
+    path('dashboard/', views.employer_control_panel_view, name='employer_control_panel'),
 
     # -------------------------
     # Miscellaneous / Static
