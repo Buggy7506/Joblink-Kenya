@@ -5,38 +5,40 @@
 
 {% block content %}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 /* =========================================================
-   LOGIN/SIGNUP FORM (THEME-AWARE)
+   LOGIN/SIGNUP FORM (THEME-AWARE & NAMESPACE-WRAPPED)
 ========================================================= */
 
-/* GLOBAL RESET */
-* {
+.auth-page * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
+.auth-page body,
+.auth-page .auth-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+}
+
+.auth-page body {
   background: var(--bg-main);
   color: var(--text-main);
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-.auth-wrapper {
+.auth-page .auth-wrapper {
   min-height: 100vh;
   display: grid;
   place-items: center;
 }
 
 /* AUTH BOX */
-.auth-box {
+.auth-page .auth-box {
   width: 360px;
   background: var(--bg-card);
   padding: 2rem;
@@ -47,13 +49,13 @@ body {
 }
 
 /* LOGO */
-.auth-logo {
+.auth-page .auth-logo {
   display: grid;
   place-items: center;
   margin-bottom: 1rem;
 }
 
-.auth-logo svg {
+.auth-page .auth-logo svg {
   width: 38px;
   height: 38px;
   stroke: var(--text-accent);
@@ -61,7 +63,8 @@ body {
 }
 
 /* HEADINGS */
-.auth-box h1, .auth-box h2 {
+.auth-page .auth-box h1,
+.auth-page .auth-box h2 {
   text-align: center;
   margin-bottom: 0.8rem;
   font-weight: 600;
@@ -69,7 +72,7 @@ body {
   color: var(--text-main);
 }
 
-.auth-box p {
+.auth-page .auth-box p {
   text-align: center;
   margin-bottom: 1.5rem;
   color: var(--text-muted);
@@ -77,7 +80,7 @@ body {
 }
 
 /* INPUTS */
-.auth-box input {
+.auth-page .auth-box input {
   width: 100%;
   padding: 0.6rem;
   margin-bottom: 1rem;
@@ -89,18 +92,18 @@ body {
   transition: border 0.25s ease, box-shadow 0.25s ease;
 }
 
-.auth-box input::placeholder {
+.auth-page .auth-box input::placeholder {
   color: var(--text-muted);
 }
 
-.auth-box input:focus {
+.auth-page .auth-box input:focus {
   outline: none;
   border-color: var(--text-accent);
   box-shadow: 0 0 8px var(--glow-accent);
 }
 
 /* BUTTONS */
-.auth-btn {
+.auth-page .auth-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,27 +120,27 @@ body {
   transition: all 0.25s ease;
 }
 
-.auth-btn:hover {
+.auth-page .auth-btn:hover {
   border-color: var(--text-accent);
   color: var(--text-accent);
   box-shadow: 0 0 8px var(--glow-accent);
 }
 
 /* PRIMARY BUTTON */
-.auth-btn.primary {
+.auth-page .auth-btn.primary {
   background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
   color: var(--text-main);
   border: none;
   font-weight: 600;
 }
 
-.auth-btn.primary:hover {
+.auth-page .auth-btn.primary:hover {
   filter: brightness(1.1);
   box-shadow: 0 0 14px var(--glow-accent);
 }
 
 /* LINKS */
-.auth-link {
+.auth-page .auth-link {
   background: none;
   border: none;
   color: var(--text-link);
@@ -146,12 +149,12 @@ body {
   transition: color 0.25s ease;
 }
 
-.auth-link:hover {
+.auth-page .auth-link:hover {
   color: var(--text-accent);
 }
 
 /* DIVIDER */
-.divider {
+.auth-page .divider {
   display: flex;
   align-items: center;
   text-align: center;
@@ -160,19 +163,19 @@ body {
   color: var(--text-muted);
 }
 
-.divider::before,
-.divider::after {
+.auth-page .divider::before,
+.auth-page .divider::after {
   content: '';
   flex: 1;
   height: 1px;
   background: var(--text-muted);
 }
 
-.divider:not(:empty)::before { margin-right: .5em; }
-.divider:not(:empty)::after { margin-left: .5em; }
+.auth-page .divider:not(:empty)::before { margin-right: .5em; }
+.auth-page .divider:not(:empty)::after { margin-left: .5em; }
 
 /* ROW (FOR PASSWORD STEP) */
-.row {
+.auth-page .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -180,76 +183,78 @@ body {
 }
 
 /* HIDDEN ELEMENTS */
-.hidden {
+.auth-page .hidden {
   display: none;
 }
 </style>
 
-<div class="auth-wrapper">
-  <div class="auth-box">
+<div class="auth-page">
+  <div class="auth-wrapper">
+    <div class="auth-box">
 
-    <!-- LOGO -->
-    <div class="auth-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="9"/>
-        <path d="M12 3v18M3 12h18"/>
-      </svg>
-    </div>
-
-    <!-- STEP 1: Email / Social -->
-    <section id="step-email">
-      <h2>Log in or Sign up</h2>
-      <p>Get smarter responses and access more features</p>
-
-      <button class="auth-btn" onclick="social('google')">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
-      </button>
-      <button class="auth-btn" onclick="social('apple')">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
-      </button>
-      <button class="auth-btn" onclick="social('microsoft')">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
-      </button>
-      <button class="auth-btn" onclick="social('phone')">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
-      </button>
-
-      <div class="divider">OR</div>
-
-      <input id="email" placeholder="Email address" type="email" required>
-      <button class="auth-btn primary" onclick="sendCode()">Continue</button>
-    </section>
-
-    <!-- STEP 2: Code -->
-    <section id="step-code" class="hidden">
-      <h2>Check your inbox</h2>
-      <p>Enter the code sent to <b id="emailLabel"></b></p>
-
-      <input placeholder="6-digit code" maxlength="6">
-      <button class="auth-btn primary" onclick="toPassword()">Continue</button>
-
-      <button class="auth-link" onclick="resend()">Resend email</button>
-      <div class="divider">OR</div>
-      <button class="auth-btn" onclick="toPassword()">Continue with password</button>
-    </section>
-
-    <!-- STEP 3: Password -->
-    <section id="step-password" class="hidden">
-      <h2>Enter your password</h2>
-
-      <div class="row">
-        <span id="emailLabel2"></span>
-        <button class="auth-link" onclick="back()">Edit</button>
+      <!-- LOGO -->
+      <div class="auth-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v18M3 12h18"/>
+        </svg>
       </div>
 
-      <input type="password" placeholder="Password">
-      <button class="auth-btn primary">Continue</button>
+      <!-- STEP 1: Email / Social -->
+      <section id="step-email">
+        <h2>Log in or Sign up</h2>
+        <p>Get smarter responses and access more features</p>
 
-      <button class="auth-link">Forgot password?</button>
-      <div class="divider">OR</div>
-      <button class="auth-btn">Log in with a one-time code</button>
-    </section>
+        <button class="auth-btn" onclick="social('google')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
+        </button>
+        <button class="auth-btn" onclick="social('apple')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
+        </button>
+        <button class="auth-btn" onclick="social('microsoft')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
+        </button>
+        <button class="auth-btn" onclick="social('phone')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
+        </button>
 
+        <div class="divider">OR</div>
+
+        <input id="email" placeholder="Email address" type="email" required>
+        <button class="auth-btn primary" onclick="sendCode()">Continue</button>
+      </section>
+
+      <!-- STEP 2: Code -->
+      <section id="step-code" class="hidden">
+        <h2>Check your inbox</h2>
+        <p>Enter the code sent to <b id="emailLabel"></b></p>
+
+        <input placeholder="6-digit code" maxlength="6">
+        <button class="auth-btn primary" onclick="toPassword()">Continue</button>
+
+        <button class="auth-link" onclick="resend()">Resend email</button>
+        <div class="divider">OR</div>
+        <button class="auth-btn" onclick="toPassword()">Continue with password</button>
+      </section>
+
+      <!-- STEP 3: Password -->
+      <section id="step-password" class="hidden">
+        <h2>Enter your password</h2>
+
+        <div class="row">
+          <span id="emailLabel2"></span>
+          <button class="auth-link" onclick="back()">Edit</button>
+        </div>
+
+        <input type="password" placeholder="Password">
+        <button class="auth-btn primary">Continue</button>
+
+        <button class="auth-link">Forgot password?</button>
+        <div class="divider">OR</div>
+        <button class="auth-btn">Log in with a one-time code</button>
+      </section>
+
+    </div>
   </div>
 </div>
 
@@ -276,4 +281,5 @@ function show(id) {
   document.getElementById(id).classList.remove("hidden");
 }
 </script>
+
 {% endblock %}
