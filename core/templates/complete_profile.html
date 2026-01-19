@@ -183,17 +183,21 @@ const progressWrap = document.getElementById("progressWrap");
 // Drag & Drop UI
 // ===============================
 dropZone.addEventListener("click", () => fileInput.click());
+
 dropZone.addEventListener("dragover", e => {
   e.preventDefault();
   dropZone.classList.add("glass-drop");
 });
+
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
+
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
   dropZone.classList.remove("glass-drop");
   fileInput.files = e.dataTransfer.files;
   updateCounter();
 });
+
 fileInput.addEventListener("change", updateCounter);
 
 function updateCounter() {
@@ -206,7 +210,7 @@ function updateCounter() {
 }
 
 // ===============================
-// Form Submit
+// Form Submit (Company + Files)
 // ===============================
 form.addEventListener("submit", e => {
   e.preventDefault();
@@ -224,48 +228,58 @@ form.addEventListener("submit", e => {
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
-  // If no files, just submit company form
+  // If no files → submit company form only
   if (files.length === 0) {
-    submitForm(csrf, docType);
+    submitCompanyForm(csrf, docType);
     return;
   }
 
+  // Upload files sequentially
   let index = 0;
   function nextFile() {
     if (index >= files.length) return;
-    uploadOne(files[index++], csrf, docType, nextFile);
+    uploadFile(files[index++], csrf, docType, nextFile);
   }
   nextFile();
 });
 
-function submitForm(csrf, docType) {
+// ===============================
+// Submit company form only
+// ===============================
+function submitCompanyForm(csrf, docType) {
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
 
   xhr.onload = () => {
     let resp;
-    try { resp = JSON.parse(xhr.responseText); } 
+    try { resp = JSON.parse(xhr.responseText); }
     catch { alert("Save failed: invalid response"); return; }
 
+    // If backend says redirect → company auto-verified
     if (resp.redirect) {
       window.location.href = resp.redirect;
       return;
     }
 
+    // Success but not verified yet
     if (resp.success) {
       alert(resp.message || "Saved successfully!");
     } else {
-      alert(JSON.stringify(resp.errors || resp.message));
+      alert("Error: " + JSON.stringify(resp.errors || resp.message));
     }
   };
 
   const fd = new FormData(form);
   fd.set("document_type", docType);
+  fd.set("auto_verify", "true"); // trigger backend auto-verification
   xhr.send(fd);
 }
 
-function uploadOne(file, csrf, docType, callback) {
+// ===============================
+// Upload a single file
+// ===============================
+function uploadFile(file, csrf, docType, callback) {
   const row = document.createElement("div");
   row.className = "mb-2";
   row.innerHTML = `
@@ -289,9 +303,10 @@ function uploadOne(file, csrf, docType, callback) {
 
   xhr.onload = () => {
     let resp;
-    try { resp = JSON.parse(xhr.responseText); } 
-    catch { bar.classList.add("bg-danger"); alert("Upload failed"); return; }
+    try { resp = JSON.parse(xhr.responseText); }
+    catch { bar.classList.add("bg-danger"); alert("Upload failed: invalid response"); return; }
 
+    // If backend responds with redirect → company now verified
     if (resp.redirect) {
       window.location.href = resp.redirect;
       return;
@@ -304,19 +319,24 @@ function uploadOne(file, csrf, docType, callback) {
       if (callback) callback();
     } else {
       bar.classList.add("bg-danger");
-      alert(JSON.stringify(resp.errors || resp.message));
+      alert("Upload failed: " + JSON.stringify(resp.errors || resp.message));
+      if (callback) callback();
     }
   };
 
   const fd = new FormData(form);
   fd.append("file", file);
   fd.set("document_type", docType);
+  fd.set("auto_verify", "true"); // trigger backend auto-verification
 
   xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
   xhr.send(fd);
 }
 
+// ===============================
+// Refresh list of uploaded documents
+// ===============================
 function refreshDocs() {
   const docList = document.getElementById("docList");
   if (!docList) return;
