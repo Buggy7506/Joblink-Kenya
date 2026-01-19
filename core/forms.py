@@ -7,6 +7,128 @@ from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCate
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .utils import is_business_email
+from django import forms
+from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from django.utils.text import slugify
+
+
+class UnifiedAuthForm(forms.Form):
+    ROLE_CHOICES = (
+        ("applicant", "Applicant"),
+        ("employer", "Employer"),
+    )
+
+    action = forms.ChoiceField(
+        choices=(("signup", "Sign Up"), ("login", "Login")),
+        widget=forms.HiddenInput(),
+    )
+
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        widget=forms.RadioSelect,
+        initial="applicant"
+    )
+
+    # Employer fields
+    company_name = forms.CharField(
+        max_length=255, required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Company Name"})
+    )
+    company_email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={"placeholder": "Business Email"})
+    )
+    company_website = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"placeholder": "Company Website (optional)"})
+    )
+
+    # Common login/signup fields
+    identifier = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={"placeholder": "Email / Username / Phone"})
+    )
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+    )
+
+    recaptcha_response = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput()
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        action = cleaned_data.get("action")
+        role = cleaned_data.get("role")
+        identifier = cleaned_data.get("identifier")
+        password = cleaned_data.get("password")
+        company_name = cleaned_data.get("company_name")
+        company_email = cleaned_data.get("company_email")
+
+        # SIGNUP VALIDATION
+        if action == "signup":
+            if role == "employer":
+                if not company_name:
+                    self.add_error("company_name", _("Company name is required."))
+                if not company_email:
+                    self.add_error("company_email", _("Business email is required."))
+                elif not is_business_email(company_email):
+                    self.add_error(
+                        "company_email",
+                        _("Please use a valid business email (no Gmail/Yahoo).")
+                    )
+            if not password:
+                self.add_error("password", _("Password is required."))
+
+        # LOGIN VALIDATION
+        elif action == "login":
+            if not identifier:
+                self.add_error("identifier", _("Email, username, or phone is required."))
+            if not password:
+                self.add_error("password", _("Password is required."))
+            else:
+                # Attempt to authenticate if both fields are present
+                user = authenticate(username=identifier, password=password)
+                if user is None:
+                    raise ValidationError(_("Invalid credentials."))
+
+        return cleaned_data
+
+    def save_user(self):
+        """
+        Call only for signup
+        Returns: CustomUser instance
+        """
+        role = self.cleaned_data.get("role")
+        identifier = self.cleaned_data.get("identifier")
+        password = self.cleaned_data.get("password")
+        company_name = self.cleaned_data.get("company_name")
+        company_email = self.cleaned_data.get("company_email")
+        company_website = self.cleaned_data.get("company_website")
+
+        # Determine username
+        if role == "employer" and company_name:
+            username = slugify(company_name)[:150]
+        else:
+            username = identifier.split("@")[0] if "@" in identifier else identifier
+
+        email = company_email.lower() if role == "employer" and company_email else identifier
+
+        user = CustomUser.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role=role
+        )
+
+        # Create profile
+        Profile.objects.get_or_create(user=user)
+
+        return user
 
 class EmployerCompanyForm(forms.ModelForm):
     # Display-only field for templates
