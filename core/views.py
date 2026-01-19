@@ -58,7 +58,6 @@ from .tasks import save_employer_document  # Celery task
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
-
 MAX_WRONG_ROLE_ATTEMPTS = 3
 ROLE_LOCK_MINUTES = 30
 
@@ -71,7 +70,10 @@ def auth_view(request):
     - One shared template
     """
 
+    form = UnifiedAuthForm(request.POST or None)
+
     context = {
+        "form": form,
         "role": "applicant",
         "company_name": "",
         "company_email": "",
@@ -109,29 +111,26 @@ def auth_view(request):
             company_email = request.POST.get("company_email", "").strip()
             company_website = request.POST.get("company_website", "").strip()
 
-            context.update({
-                "company_name": company_name,
-                "company_email": company_email,
-                "company_website": company_website,
-            })
+            context["company_name"] = company_name
+            context["company_email"] = company_email
+            context["company_website"] = company_website
 
             # FORCE EMPLOYER EMAIL / USERNAME
             if role == "employer":
                 request.POST._mutable = True
-
                 if company_name:
                     request.POST["username"] = slugify(company_name)[:150]
-
                 if company_email:
                     request.POST["email"] = company_email.lower()
-
                 request.POST._mutable = False
 
-            form = CustomUserCreationForm(request.POST)
+            # USE UNIFIED FORM
+            form = UnifiedAuthForm(request.POST)
+            context["form"] = form
 
             if not form.is_valid():
                 messages.error(request, "Please correct the errors below.")
-                return render(request, "auth.html", context | {"form": form})
+                return render(request, "auth.html", context)
 
             # EMPLOYER STRICT CHECKS
             if role == "employer":
@@ -151,14 +150,12 @@ def auth_view(request):
                     return render(request, "auth.html", context)
 
             # CREATE USER
-            user = form.save()
-            user.role = role if role in ["applicant", "employer"] else "applicant"
-            user.save(update_fields=["role"])
+            user = form.save(commit=False)
+            user.role = "employer" if role == "employer" else "applicant"
+            user.save()
 
-            # PROFILE
             Profile.objects.get_or_create(user=user)
 
-            # EMPLOYER COMPANY
             if user.role == "employer":
                 EmployerCompany.objects.create(
                     user=user,
@@ -171,10 +168,7 @@ def auth_view(request):
             login(request, user)
 
             if user.role == "employer":
-                messages.info(
-                    request,
-                    "Your employer account is pending verification."
-                )
+                messages.info(request, "Your employer account is pending verification.")
                 return redirect("upload_company_docs")
 
             messages.success(request, "Signup successful!")
@@ -205,10 +199,7 @@ def auth_view(request):
                 minutes = int(
                     (profile.role_lock_until - timezone.now()).total_seconds() / 60
                 )
-                messages.error(
-                    request,
-                    f"Account locked. Try again in {minutes} minutes."
-                )
+                messages.error(request, f"Account locked. Try again in {minutes} minutes.")
                 return render(request, "auth.html", context)
 
             # GOOGLE USERS
@@ -263,7 +254,7 @@ def auth_view(request):
                 if company.status == EmployerCompany.STATUS_PENDING:
                     company.save()
 
-            # REDIRECT
+            # REDIRECTS
             if user.is_superuser:
                 return redirect("admin_dashboard")
 
