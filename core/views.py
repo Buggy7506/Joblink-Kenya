@@ -58,20 +58,6 @@ from .tasks import save_employer_document  # Celery task
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
-
-from django.core.mail import send_mail
-
-def test_email(request):
-    send_mail(
-        subject="Hello from Django + MailerSend!",
-        message="This is a test email sent via MailerSend API.",
-        from_email="support@stepper.dpdns.org",  # your verified email
-        recipient_list=["admin@stepper.dpdns.org"],  # must be a real email
-        fail_silently=False,
-    )
-    return HttpResponse("Test email sent successfully!")
-
-
 # Search + Filter + Pagination + Context
 def available_jobs(request):
     search = request.GET.get("search", "")
