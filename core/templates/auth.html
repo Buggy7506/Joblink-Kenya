@@ -1,196 +1,187 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
 
-{% block title %}Sign In OR Create Account{% endblock %}
+{% block title %}Log In or Sign Up{% endblock %}
 
 {% block content %}
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* =========================================================
-   AUTH COMPONENT (THEME-AWARE EXTENSION)
-========================================================= */
+  /* GLOBAL RESET */
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
-.auth-wrapper {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-}
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f0f2f5;
+  }
 
-.auth-box {
-  width: 360px;
-  background: var(--bg-card);
-  color: var(--text-main);
-  border-radius: 1rem;
-  padding: 1.8rem;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
-}
+  .auth-wrapper {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
 
-/* Optional glow outline */
-.auth-box.glow-border {
-  border: 1px solid transparent;
-}
+  .auth-box {
+    width: 360px;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
 
-/* LOGO */
-.auth-logo {
-  display: grid;
-  place-items: center;
-  margin-bottom: 1rem;
-}
+  /* LOGO */
+  .auth-logo {
+    display: grid;
+    place-items: center;
+    margin-bottom: 1rem;
+  }
 
-.auth-logo svg {
-  width: 38px;
-  height: 38px;
-  stroke: var(--text-accent);
-  filter: drop-shadow(0 0 8px var(--glow-accent));
-}
+  .auth-logo svg {
+    width: 38px;
+    height: 38px;
+  }
 
-/* HEADINGS */
-.auth-box h1 {
-  font-size: 1.35rem;
-  text-align: center;
-  margin-bottom: 0.4rem;
-}
+  /* HEADINGS */
+  .auth-box h1, .auth-box h2 {
+    text-align: center;
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+    font-size: 1.5rem;
+  }
 
-.auth-box p {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin-bottom: 1.2rem;
-}
+  .auth-box p {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #555;
+    font-size: 0.9rem;
+  }
 
-/* INPUTS */
-.auth-box input {
-  width: 100%;
-  height: 44px;
-  border-radius: 0.6rem;
-  background: transparent;
-  border: 1px solid var(--text-muted);
-  color: var(--text-main);
-  padding: 0 0.75rem;
-  font-size: 0.95rem;
-  transition: border 0.25s ease, box-shadow 0.25s ease;
-}
+  /* SOCIAL BUTTONS */
+  .auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    background: #fff;
+    transition: 0.2s;
+    text-decoration: none;
+    color: #333;
+  }
 
-.auth-box input:focus {
-  outline: none;
-  border-color: var(--text-accent);
-  box-shadow: 0 0 8px var(--glow-accent);
-}
+  .auth-btn:hover {
+    background: #f0f0f0;
+  }
 
-/* BUTTONS */
-.auth-btn {
-  width: 100%;
-  height: 44px;
-  border-radius: 0.6rem;
-  border: 1px solid var(--text-muted);
-  background: transparent;
-  color: var(--text-main);
-  cursor: pointer;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.25s ease;
-}
+  .auth-btn.primary {
+    background: #111;
+    color: #fff;
+    border: none;
+  }
 
-.auth-btn:hover {
-  border-color: var(--text-accent);
-  color: var(--text-accent);
-  box-shadow: 0 0 10px var(--glow-accent);
-}
+  .auth-btn.primary:hover {
+    background: #333;
+  }
 
-/* PRIMARY */
-.auth-btn.primary {
-  background: linear-gradient(
-    135deg,
-    var(--text-accent),
-    var(--glow-accent)
-  );
-  color: #000;
-  border: none;
-  font-weight: 600;
-}
+  /* INPUTS */
+  .auth-box input {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
 
-.auth-btn.primary:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 0 14px var(--glow-accent);
-}
+  /* DIVIDER */
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1rem 0;
+  }
 
-/* LINK BUTTON */
-.auth-link {
-  background: none;
-  border: none;
-  color: var(--text-link);
-  font-size: 0.85rem;
-  cursor: pointer;
-}
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #ccc;
+  }
 
-.auth-link:hover {
-  color: var(--text-accent);
-}
+  .divider:not(:empty)::before { margin-right: .5em; }
+  .divider:not(:empty)::after { margin-left: .5em; }
 
-/* UTILS */
-.stack > * { margin-bottom: 0.65rem; }
+  /* HIDDEN */
+  .hidden { display: none; }
 
-.divider {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin: 0.9rem 0;
-}
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+  }
 
-.hidden { display: none; }
+  .auth-link {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-}
+  .auth-link:hover { color: #0056b3; }
 </style>
 
-
-<body>
-
 <div class="auth-wrapper">
-
-  <div class="auth-box glow-border">
+  <div class="auth-box">
 
     <!-- LOGO -->
     <div class="auth-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="12" cy="12" r="9"/>
         <path d="M12 3v18M3 12h18"/>
       </svg>
     </div>
 
-    <!-- STEP 1 -->
+    <!-- STEP 1: Email / Social -->
     <section id="step-email">
-      <h1>Log in or sign up</h1>
-      <p>Access your account securely</p>
+      <h2>Log in or Sign up</h2>
+      <p>Get smarter responses and access more features</p>
 
-      <div class="stack">
-        <button class="auth-btn" onclick="social('google')">🔵 Continue with Google</button>
-        <button class="auth-btn" onclick="social('apple')">⚫ Continue with Apple</button>
-        <button class="auth-btn" onclick="social('microsoft')">🟦 Continue with Microsoft</button>
-        <button class="auth-btn" onclick="social('phone')">📞 Continue with phone</button>
-      </div>
+      <button class="auth-btn" onclick="social('google')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
+      </button>
+      <button class="auth-btn" onclick="social('apple')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
+      </button>
+      <button class="auth-btn" onclick="social('microsoft')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
+      </button>
+      <button class="auth-btn" onclick="social('phone')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
+      </button>
 
       <div class="divider">OR</div>
 
-      <input id="email" placeholder="Email address" />
+      <input id="email" placeholder="Email address" type="email" required>
       <button class="auth-btn primary" onclick="sendCode()">Continue</button>
     </section>
 
-    <!-- STEP 2 -->
+    <!-- STEP 2: Code -->
     <section id="step-code" class="hidden">
-      <h1>Check your inbox</h1>
-      <p>Enter the code sent to<br><b id="emailLabel"></b></p>
+      <h2>Check your inbox</h2>
+      <p>Enter the code sent to <b id="emailLabel"></b></p>
 
-      <input placeholder="6-digit code" maxlength="6" />
+      <input placeholder="6-digit code" maxlength="6">
       <button class="auth-btn primary" onclick="toPassword()">Continue</button>
 
       <button class="auth-link" onclick="resend()">Resend email</button>
@@ -198,16 +189,16 @@
       <button class="auth-btn" onclick="toPassword()">Continue with password</button>
     </section>
 
-    <!-- STEP 3 -->
+    <!-- STEP 3: Password -->
     <section id="step-password" class="hidden">
-      <h1>Enter your password</h1>
+      <h2>Enter your password</h2>
 
       <div class="row">
         <span id="emailLabel2"></span>
         <button class="auth-link" onclick="back()">Edit</button>
       </div>
 
-      <input type="password" placeholder="Password" />
+      <input type="password" placeholder="Password">
       <button class="auth-btn primary">Continue</button>
 
       <button class="auth-link">Forgot password?</button>
@@ -224,15 +215,15 @@ let email = "";
 function sendCode() {
   email = document.getElementById("email").value.trim();
   if (!email) return alert("Enter email");
-  emailLabel.textContent = email;
-  emailLabel2.textContent = email;
+  document.getElementById("emailLabel").textContent = email;
+  document.getElementById("emailLabel2").textContent = email;
   show("step-code");
 }
 
 function toPassword() { show("step-password"); }
 function back() { show("step-email"); }
 function resend() { alert("Code resent to " + email); }
-function social(p) { alert("Auth via " + p); }
+function social(provider) { alert("Auth via " + provider); }
 
 function show(id) {
   ["step-email","step-code","step-password"].forEach(s =>
@@ -241,6 +232,4 @@ function show(id) {
   document.getElementById(id).classList.remove("hidden");
 }
 </script>
-
-</body>
 {% endblock %}
