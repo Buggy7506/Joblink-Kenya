@@ -1,24 +1,54 @@
 # core/middleware/employer_verification.py
 
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import resolve, Resolver404
 from django.contrib import messages
 
 
 class EmployerVerificationMiddleware:
     """
-    Employer access control:
+    Employer access control (loop-safe):
       - No company → force complete profile
       - Company not verified → force upload docs
       - Verified → unrestricted
     """
 
+    SAFE_VIEWS = {
+        "complete_employer_profile",
+        "upload_company_docs",
+        "dashboard",
+        "login",
+        "logout",
+    }
+
+    SAFE_PREFIXES = (
+        "/admin",
+        "/static",
+        "/media",
+    )
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Let authentication middleware handle unauthenticated users
+        # Skip unauthenticated users
         if not request.user.is_authenticated:
+            return self.get_response(request)
+
+        # Skip admin/static/media early
+        path = request.path_info
+        for prefix in self.SAFE_PREFIXES:
+            if path.startswith(prefix):
+                return self.get_response(request)
+
+        # Safely resolve view name
+        try:
+            current_view = resolve(path).url_name
+        except Resolver404:
+            return self.get_response(request)
+
+        # Skip safe views
+        if current_view in self.SAFE_VIEWS:
             return self.get_response(request)
 
         profile = getattr(request.user, "profile", None)
@@ -27,46 +57,29 @@ class EmployerVerificationMiddleware:
 
         company = getattr(request.user, "employercompany", None)
 
-        # Normalize paths
-        current_path = request.path.rstrip("/")
-
-        complete_profile_path = reverse("complete_employer_profile").rstrip("/")
-        upload_docs_path = reverse("upload_company_docs").rstrip("/")
-        dashboard_path = reverse("dashboard").rstrip("/")
-        logout_path = reverse("logout").rstrip("/")
-
-        allowed_paths = {
-            complete_profile_path,
-            upload_docs_path,
-            dashboard_path,
-            logout_path,
-        }
-
         # --------------------------------------------------
-        # Employer has NOT created a company profile
+        # Employer has NO company profile
         # --------------------------------------------------
         if not company:
-            if current_path != complete_profile_path:
+            if not request.session.get("_company_redirected"):
+                request.session["_company_redirected"] = True
                 messages.warning(
                     request,
                     "Complete your company profile to unlock full access."
                 )
-                return redirect("complete_employer_profile")
-
-            return self.get_response(request)
+            return redirect("complete_employer_profile")
 
         # --------------------------------------------------
         # Employer company exists but is NOT verified
         # --------------------------------------------------
         if company.status != "verified":
-            if current_path != upload_docs_path:
+            if not request.session.get("_verification_redirected"):
+                request.session["_verification_redirected"] = True
                 messages.warning(
                     request,
                     "Your company is pending verification. Upload documents."
                 )
-                return redirect("upload_company_docs")
-
-            return self.get_response(request)
+            return redirect("upload_company_docs")
 
         # --------------------------------------------------
         # Verified employer → allow everything
