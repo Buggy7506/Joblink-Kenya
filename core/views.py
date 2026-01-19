@@ -1348,6 +1348,7 @@ def login_view(request):
 
     return render(request, 'login.html')
     
+
 @login_required
 def complete_employer_profile(request):
     user = request.user
@@ -1366,7 +1367,7 @@ def complete_employer_profile(request):
     company = EmployerCompany.objects.filter(user=user).first()
 
     # ---------------------------
-    # If already verified → block page access
+    # If already verified → redirect immediately
     # ---------------------------
     if company and company.is_verified:
         messages.info(request, "Your company is already verified.")
@@ -1376,10 +1377,7 @@ def complete_employer_profile(request):
     # POST → Create/update company + upload document
     # ============================
     if request.method == "POST":
-        company_form = EmployerCompanyForm(
-            request.POST,
-            instance=company
-        )
+        company_form = EmployerCompanyForm(request.POST, instance=company)
 
         if not company_form.is_valid():
             return JsonResponse(
@@ -1387,12 +1385,12 @@ def complete_employer_profile(request):
                 status=400
             )
 
-        # Create company ONLY here
+        # Save company (auto_verify runs inside model save)
         company = company_form.save(commit=False)
         company.user = user
         company.save()
 
-        # ---- Handle document upload ----
+        # ---- Handle document upload if provided ----
         uploaded_file = request.FILES.get("file")
         if uploaded_file:
             doc_form = CompanyDocumentForm(
@@ -1414,6 +1412,7 @@ def complete_employer_profile(request):
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
 
+            # Queue background verification
             save_employer_document.delay(
                 user.id,
                 str(temp_path),
@@ -1422,7 +1421,7 @@ def complete_employer_profile(request):
 
         company.refresh_from_db()
 
-        # ---- JSON responses ONLY (no redirects here) ----
+        # ---- JSON response for JS ----
         if company.is_verified:
             return JsonResponse({
                 "success": True,
@@ -1530,14 +1529,14 @@ def upload_company_docs(request):
     company = EmployerCompany.objects.filter(user=user).first()
 
     # ---------------------------
-    # If already verified → block page access
+    # Already verified → block access
     # ---------------------------
     if company and company.is_verified:
         messages.info(request, "Your company is already verified.")
         return redirect("dashboard")
 
     # ============================
-    # POST → upload documents ONLY
+    # POST → Update company + upload document
     # ============================
     if request.method == "POST":
         if not company:
@@ -1547,15 +1546,11 @@ def upload_company_docs(request):
             )
 
         # ---- Optional company updates ----
-        company_form = EmployerCompanyForm(
-            request.POST,
-            instance=company
-        )
-
+        company_form = EmployerCompanyForm(request.POST, instance=company)
         if company_form.is_valid():
-            company_form.save()
+            company_form.save()  # triggers auto_verify internally
 
-        # ---- Handle document upload ----
+        # ---- Handle uploaded document ----
         uploaded_file = request.FILES.get("file")
         if uploaded_file:
             doc_form = CompanyDocumentForm(
@@ -1577,6 +1572,7 @@ def upload_company_docs(request):
                 for chunk in uploaded_file.chunks():
                     f.write(chunk)
 
+            # Queue background verification
             save_employer_document.delay(
                 user.id,
                 str(temp_path),
@@ -1585,7 +1581,7 @@ def upload_company_docs(request):
 
         company.refresh_from_db()
 
-        # ---- JSON response only ----
+        # ---- JSON response for JS ----
         if company.is_verified:
             return JsonResponse({
                 "success": True,
@@ -1598,7 +1594,7 @@ def upload_company_docs(request):
         })
 
     # ============================
-    # GET → Render safely
+    # GET → Render forms safely
     # ============================
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
