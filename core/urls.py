@@ -42,10 +42,10 @@ urlpatterns = [
     path("upload-docs/", views.upload_company_docs, name="upload_company_docs"),
 
     # Password reset
-    path('password-reset/', CustomPasswordResetView.as_view(), name='password_reset'),
-    path('password-reset/done/', CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('reset/done/', CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('password-reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
+    path('password-reset/done/', views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
         
     #path('password-reset/', auth_views.PasswordResetView.as_view(
     #    template_name='password_reset.html'), name='password_reset'),
