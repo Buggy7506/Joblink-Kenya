@@ -205,68 +205,70 @@
         {{ form.action }} <!-- hidden action field -->
 
         <!-- ================= STEP 1: EMAIL / SOCIAL ================= -->
-        <section id="step-email">
-          <h2>Log in or Sign up</h2>
-          <p>Get smarter responses and access more features</p>
-
-          <!-- SOCIAL BUTTONS -->
-          <button type="button" class="auth-btn" onclick="social('google')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
-          </button>
-          <button type="button" class="auth-btn" onclick="social('apple')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
-          </button>
-          <button type="button" class="auth-btn" onclick="social('microsoft')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
-          </button>
-          <button type="button" class="auth-btn" onclick="social('phone')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
-          </button>
-
-          <div class="divider">OR</div>
-
-          <!-- ROLE SELECTION -->
-          <div class="row" style="margin-bottom:1rem;">
-            {% for val, label in form.role.field.choices %}
-              <label>
-                <input type="radio" name="role" value="{{ val }}" {% if form.role.value == val %}checked{% endif %}> {{ label }}
-              </label>
-            {% endfor %}
-          </div>
-
-          <!-- EMPLOYER FIELDS -->
-          <div id="employer-fields" style="display: {% if form.role.value == 'employer' %}block{% else %}none{% endif %};">
-            {{ form.company_name }}
-            {{ form.company_email }}
-            {{ form.company_website }}
-          </div>
-
-          <!-- COMMON EMAIL FIELD -->
-          {{ form.identifier }}
-
-          <!-- RECAPTCHA -->
-          <div style="margin:0.5rem 0;">
-            <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_SITE_KEY }}"></div>
-            {{ form.recaptcha_response }}
-          </div>
-
-          <!-- PRIMARY CONTINUE -->
-          <button type="submit" name="action" value="send_code" class="auth-btn primary" onclick="sendCode()">Continue</button>
-
-          <!-- DISPLAY ERRORS -->
-          {% if form.errors %}
-            <ul style="margin-top:1rem; list-style:none; padding:0;">
-              {% for field in form %}
-                {% for error in field.errors %}
-                  <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
-                {% endfor %}
-              {% endfor %}
-              {% for error in form.non_field_errors %}
-                <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </section>
+         <section id="step-email">
+           <h2>Log in or Sign up</h2>
+           <p>Get smarter responses and access more features</p>
+         
+           <!-- SOCIAL BUTTONS -->
+           <button type="button" class="auth-btn" onclick="social('google')">
+             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
+           </button>
+           <button type="button" class="auth-btn" onclick="social('apple')">
+             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
+           </button>
+           <button type="button" class="auth-btn" onclick="social('microsoft')">
+             <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
+           </button>
+           <button type="button" class="auth-btn" onclick="social('phone')">
+             <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
+           </button>
+         
+           <div class="divider">OR</div>
+         
+           <!-- COMMON EMAIL FIELD (Placed below social buttons) -->
+           <div style="margin-bottom:1rem;">
+             {{ form.identifier }}
+           </div>
+         
+           <!-- ROLE SELECTION -->
+           <div class="row" style="margin-bottom:1rem;">
+             {% for val, label in form.role.field.choices %}
+               <label>
+                 <input type="radio" name="role" value="{{ val }}" {% if form.role.value == val %}checked{% endif %}> {{ label }}
+               </label>
+             {% endfor %}
+           </div>
+         
+           <!-- EMPLOYER FIELDS -->
+           <div id="employer-fields" style="display: {% if form.role.value == 'employer' %}block{% else %}none{% endif %};">
+             {{ form.company_name }}
+             {{ form.company_email }}
+             {{ form.company_website }}
+           </div>
+         
+           <!-- RECAPTCHA -->
+           <div style="margin:0.5rem 0;">
+             <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_SITE_KEY }}"></div>
+             {{ form.recaptcha_response }}
+           </div>
+         
+           <!-- PRIMARY CONTINUE -->
+           <button type="submit" name="action" value="send_code" class="auth-btn primary" onclick="sendCode()">Continue</button>
+         
+           <!-- DISPLAY ERRORS -->
+           {% if form.errors %}
+             <ul style="margin-top:1rem; list-style:none; padding:0;">
+               {% for field in form %}
+                 {% for error in field.errors %}
+                   <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
+                 {% endfor %}
+               {% endfor %}
+               {% for error in form.non_field_errors %}
+                 <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
+               {% endfor %}
+             </ul>
+           {% endif %}
+         </section>
 
         <!-- ================= STEP 2: CODE VERIFICATION ================= -->
         <section id="step-code" class="hidden">
@@ -280,23 +282,25 @@
           <div class="divider">OR</div>
           <button type="button" class="auth-btn" onclick="toPassword()">Continue with password</button>
         </section>
-
-        <!-- ================= STEP 3: PASSWORD ================= -->
-        <section id="step-password" class="hidden">
-          <h2>Enter your password</h2>
-
-          <div class="row">
-            <span id="emailLabel2"></span>
-            <button type="button" class="auth-link" onclick="back()">Edit</button>
-          </div>
-
-          <input type="password" name="password" placeholder="Password" required>
-          <button type="submit" name="action" value="login_password" class="auth-btn primary">Continue</button>
-
-          <button type="submit" name="action" value="forgot_password" class="auth-link">Forgot password?</button>
-          <div class="divider">OR</div>
-          <button type="submit" name="action" value="magic_link" class="auth-btn">Log in with a one-time code</button>
-        </section>
+         
+         <!-- ================= STEP 3: PASSWORD ================= -->
+         <section id="step-password" class="hidden">
+           <h2>Enter your password</h2>
+         
+           <div class="row">
+             <span id="emailLabel2"></span>
+             <button type="button" class="auth-link" onclick="back()">Edit</button>
+           </div>
+         
+           <input type="password" name="password" placeholder="Password" required>
+           <button type="submit" name="action" value="login_password" class="auth-btn primary">Continue</button>
+         
+           <!-- Updated Forgot Password Link -->
+           <a href="{% url 'password_reset' %}" class="auth-link">Forgot password?</a>
+         
+           <div class="divider">OR</div>
+           <button type="submit" name="action" value="magic_link" class="auth-btn">Log in with a one-time code</button>
+         </section>
 
       </form>
 
