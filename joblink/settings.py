@@ -262,7 +262,7 @@ SECURE_SSL_REDIRECT = False
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 
