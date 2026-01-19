@@ -850,7 +850,6 @@ NotificationItem = namedtuple("NotificationItem", ["title", "message", "timestam
 
 
 @login_required
-@employer_verified_required
 def notifications(request):
     user = request.user
 
@@ -1463,7 +1462,6 @@ def logout_success(request):
 
 # Dashboard
 @login_required
-@employer_verified_required
 def dashboard(request):
     user = request.user
 
@@ -1655,7 +1653,6 @@ def profile_view(request):
     return render(request, template_name, context)
 
 @login_required
-@employer_verified_required
 def view_posted_jobs(request):
     if not request.user.is_superuser and request.user.role != 'employer':
         return redirect('login')
@@ -1680,7 +1677,6 @@ def view_posted_jobs(request):
     })
 
 @login_required
-@employer_verified_required
 def view_applicants(request):
     job_id = request.GET.get("job_id")  # Check if employer is filtering for a specific job
 
@@ -1726,14 +1722,12 @@ def employer_control_panel_view(request):
     })
   
 @login_required
-@employer_verified_required
 def employer_profile(request):
     return render(request, 'employer_profile.html', {
         'user': request.user
     })
 
 @login_required
-@employer_verified_required
 def company_profile(request):
     company = None
     is_verified = False
@@ -1767,7 +1761,6 @@ def admin_profile(request):
     })
 
 @login_required
-@employer_verified_required
 def edit_profile(request):
     user = request.user
 
@@ -1821,7 +1814,6 @@ def edit_profile(request):
     
 # Job Posting
 @login_required
-@employer_verified_required
 def post_job(request):
     """
     Allow verified employers to post jobs.
@@ -1912,7 +1904,6 @@ def post_job(request):
     return render(request, 'post_job.html', {'form': form, 'company': company})
 
 @login_required
-@employer_verified_required
 def edit_job(request, job_id):
     # Only allow the employer who posted the job to edit it
     job = get_object_or_404(Job, id=job_id, employer=request.user)
@@ -2437,7 +2428,6 @@ def payment_cancelled(request):
     return redirect('dashboard')
     
 @login_required
-@employer_verified_required
 def change_username_password(request):
     """
     Change username and password view with Google reCAPTCHA verification
