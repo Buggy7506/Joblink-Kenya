@@ -12,11 +12,22 @@ from functools import wraps
 from django.core.files.base import ContentFile
 import time
 import secrets
+import resend
 
 logger = logging.getLogger(__name__)
 
+resend.api_key = "re_Mb4LSbP9_BRQPDxd3Jy2G2ShL2EXjBWHk"
+
 def long():
     return secrets.token_urlsafe(12)
+
+def send_verification_code(email, code):
+    resend.Emails.send({
+        "from": "Joblink Kenya <no-reply@stepper.dpdns.org>",
+        "to": email,
+        "subject": "Your Verification Code",
+        "html": f"<h2>Your Code: {code}</h2><p>Enter this to continue.</p>",
+    })
 
 def employer_verified_required(view_func):
     @wraps(view_func)
