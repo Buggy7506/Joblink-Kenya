@@ -251,8 +251,7 @@
           </div>
 
           <!-- PRIMARY CONTINUE -->
-          <button type="submit" name="action" value="signup" class="auth-btn primary" onclick="sendCode()">Sign up</button>
-          <button type="submit" name="action" value="login" class="auth-btn" onclick="sendCode()">Login</button>
+          <button type="submit" name="action" value="send_code" class="auth-btn primary" onclick="sendCode()">Continue</button>
 
           <!-- DISPLAY ERRORS -->
           {% if form.errors %}
@@ -383,5 +382,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-
 {% endblock %}
