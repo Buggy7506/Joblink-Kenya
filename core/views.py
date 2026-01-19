@@ -49,7 +49,7 @@ from .models import (
     JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser, EmployerCompany, CompanyDocument
 )
 from .forms import (
-    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm, UnifiedAuthForm,
+    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm,
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm, CompanyDocumentForm
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
