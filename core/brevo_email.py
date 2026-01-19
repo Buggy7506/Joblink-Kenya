@@ -12,7 +12,7 @@ def send_brevo_email(subject, html_content, to_email, text_content=""):
         api_instance = TransactionalEmailsApi(api_client)
 
         email = SendSmtpEmail(
-            sender={"name": "Joblink Kenya", "email": "security@stepper.dpdns.org"},
+            sender={"name": "Joblink Kenya", "email": "support@stepper.dpdns.org"},
             to=[{"email": to_email}],
             subject=subject,
             html_content=html_content,
