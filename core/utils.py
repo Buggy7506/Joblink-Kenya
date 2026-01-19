@@ -12,7 +12,6 @@ from functools import wraps
 from django.core.files.base import ContentFile
 import time
 import secrets
-import resend
 
 logger = logging.getLogger(__name__)
 
