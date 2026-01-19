@@ -12,8 +12,25 @@ from functools import wraps
 from django.core.files.base import ContentFile
 import time
 import secrets
+from sib_api_v3_sdk import ApiClient, Configuration, TransactionalEmailsApi, SendSmtpEmail
 
 logger = logging.getLogger(__name__)
+
+def brevo_send_email(subject, html_body, recipient):
+    config = Configuration()
+    config.api_key["api-key"] = settings.BREVO_API_KEY
+
+    with ApiClient(config) as client:
+        api = TransactionalEmailsApi(client)
+
+        email = SendSmtpEmail(
+            sender={"email": settings.DEFAULT_FROM_EMAIL},
+            to=[{"email": recipient}],
+            subject=subject,
+            html_content=html_body,
+        )
+
+        return api.send_transac_email(email)
 
 def long():
     return secrets.token_urlsafe(12)
