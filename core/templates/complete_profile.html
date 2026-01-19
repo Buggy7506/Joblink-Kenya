@@ -88,6 +88,8 @@ h2.section-title {
   background: rgba(255,255,255,0.08);
   border: 1px dashed var(--text-accent);
   color: var(--text-main);
+  text-align: center;
+  padding: 1.5rem;
 }
 .upload-zone:hover {
   background: rgba(255,255,255,0.18);
@@ -114,68 +116,50 @@ h2.section-title {
 }
 </style>
 
-<h2 class="section-title">
-    {% if company.is_verified %}
-        Company Verified
-    {% else %}
-        Employer Verification
-    {% endif %}
-</h2>
+<h2 class="section-title">Employer Verification</h2>
 <p class="section-sub">
-    {% if company.is_verified %}
-        Your company has been successfully verified.
-    {% else %}
-        Upload required verification documents to activate your employer account.
-    {% endif %}
+  Upload required verification documents to activate your employer account.
 </p>
 
-<form id="companyFullForm"
-      method="post"
-      enctype="multipart/form-data"
-      action="{% if request.path|slice:'-10:' == 'upload-docs/' %}{% url 'upload_company_docs' %}{% else %}{% url 'complete_employer_profile' %}{% endif %}">
+<form id="companyFullForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    {% if not company.is_verified %}
-        {% for field in form %}
-            <label>{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <small>{{ field.errors|striptags }}</small>
-            {% endif %}
-        {% endfor %}
+    {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+            <small>{{ field.errors|striptags }}</small>
+        {% endif %}
+    {% endfor %}
 
-        <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
+    <p class="text-muted">Business emails (e.g. john@company.com) unlock instant verification.</p>
 
-        <!-- Drag Zone -->
-        <div id="dropZone" class="upload-zone text-center p-4 mb-3">
-            <i class="bi bi-cloud-arrow-up fs-1"></i>
-            <p class="fw-semibold">Drag & drop files</p>
-            <small class="text-muted">or tap to browse</small>
-            <p id="fileCount" class="mt-2 small text-accent d-none"></p>
-        </div>
+    <!-- Drag Zone -->
+    <div id="dropZone" class="upload-zone">
+        <i class="bi bi-cloud-arrow-up fs-1"></i>
+        <p class="fw-semibold">Drag & drop files</p>
+        <small class="text-muted">or click to browse</small>
+        <p id="fileCount" class="mt-2 small text-accent d-none"></p>
+    </div>
 
-        <!-- Hidden file input -->
-        <input id="fileInput" type="file" name="file" class="d-none" multiple
-               accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+    <!-- Hidden file input -->
+    <input id="fileInput" type="file" name="file" class="d-none" multiple
+           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
-        <!-- Document type -->
-        <div class="mb-3">
-            {{ doc_form.document_type|add_class:"form-select"|attr:"id:document_type" }}
-            {% if doc_form.document_type.errors %}
-                <small>{{ doc_form.document_type.errors|striptags }}</small>
-            {% endif %}
-        </div>
+    <!-- Document type -->
+    <div class="mb-3">
+        {{ doc_form.document_type|add_class:"form-select"|attr:"id:document_type" }}
+        {% if doc_form.document_type.errors %}
+            <small>{{ doc_form.document_type.errors|striptags }}</small>
+        {% endif %}
+    </div>
 
-        <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
-        <div id="progressWrap" class="mt-3 d-none"></div>
-    {% else %}
-        <p class="text-center text-success fw-semibold">
-            ✅ Your company profile is already verified. No further action is required.
-        </p>
-    {% endif %}
+    <button type="submit" class="btn btn-primary py-2">Save Profile & Upload Files</button>
 
-    <!-- Optional: List of already uploaded documents -->
+    <div id="progressWrap" class="mt-3 d-none"></div>
+
+    <!-- List of already uploaded documents -->
     {% if documents %}
         <h5 class="mt-4">Uploaded Documents</h5>
         <ul id="docList">
@@ -188,7 +172,6 @@ h2.section-title {
     {% endif %}
 </form>
 
-{% if not company.is_verified %}
 <script>
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
@@ -196,9 +179,14 @@ const fileCount = document.getElementById("fileCount");
 const form = document.getElementById("companyFullForm");
 const progressWrap = document.getElementById("progressWrap");
 
-// Drag & Drop
+// ===============================
+// Drag & Drop UI
+// ===============================
 dropZone.addEventListener("click", () => fileInput.click());
-dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("glass-drop"); });
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropZone.classList.add("glass-drop");
+});
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
@@ -217,11 +205,18 @@ function updateCounter() {
   }
 }
 
+// ===============================
 // Form Submit
+// ===============================
 form.addEventListener("submit", e => {
   e.preventDefault();
+
   const docSelect = document.getElementById("document_type");
-  if (!docSelect || !docSelect.value) { alert("Please select a document type."); return; }
+  if (!docSelect || !docSelect.value) {
+    alert("Please select a document type.");
+    return;
+  }
+
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const docType = docSelect.value;
   const files = Array.from(fileInput.files);
@@ -229,44 +224,61 @@ form.addEventListener("submit", e => {
   progressWrap.innerHTML = "";
   progressWrap.classList.remove("d-none");
 
-  if (files.length === 0) { submitFormOnly(csrf, docType); return; }
+  // If no files, just submit company form
+  if (files.length === 0) {
+    submitForm(csrf, docType);
+    return;
+  }
 
-  let completed = 0;
-  files.forEach(file => {
-    uploadOne(file, csrf, docType, () => {
-      completed++;
-      if (completed === files.length) checkForRedirect();
-    });
-  });
-
-  fileInput.value = "";
-  fileCount.classList.add("d-none");
+  let index = 0;
+  function nextFile() {
+    if (index >= files.length) return;
+    uploadOne(files[index++], csrf, docType, nextFile);
+  }
+  nextFile();
 });
 
-function submitFormOnly(csrf, docType) {
+function submitForm(csrf, docType) {
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", form.action, true);
+  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
+
   xhr.onload = () => {
     let resp;
-    try { resp = JSON.parse(xhr.responseText); } catch { alert("Save failed (invalid response)."); return; }
-    if (resp.redirect) { window.location.href = resp.redirect; }
-    else if (resp.success) { alert(resp.message || "Saved successfully!"); }
-    else { alert("Error: " + JSON.stringify(resp.errors || resp.message)); }
+    try { resp = JSON.parse(xhr.responseText); } 
+    catch { alert("Save failed: invalid response"); return; }
+
+    if (resp.redirect) {
+      window.location.href = resp.redirect;
+      return;
+    }
+
+    if (resp.success) {
+      alert(resp.message || "Saved successfully!");
+    } else {
+      alert(JSON.stringify(resp.errors || resp.message));
+    }
   };
+
   const fd = new FormData(form);
   fd.set("document_type", docType);
   xhr.send(fd);
 }
 
-function uploadOne(file, csrf, docType, onDone) {
+function uploadOne(file, csrf, docType, callback) {
   const row = document.createElement("div");
   row.className = "mb-2";
-  row.innerHTML = `<div class="small fw-semibold">${file.name}</div><div class="progress rounded"><div class="progress-bar" role="progressbar" style="width:0%">0%</div></div>`;
+  row.innerHTML = `
+    <div class="small fw-semibold">${file.name}</div>
+    <div class="progress rounded">
+      <div class="progress-bar" role="progressbar" style="width:0%">0%</div>
+    </div>
+  `;
   progressWrap.appendChild(row);
 
   const bar = row.querySelector(".progress-bar");
   const xhr = new XMLHttpRequest();
+
   xhr.upload.addEventListener("progress", e => {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
@@ -274,17 +286,33 @@ function uploadOne(file, csrf, docType, onDone) {
       bar.textContent = percent + "%";
     }
   });
+
   xhr.onload = () => {
     let resp;
-    try { resp = JSON.parse(xhr.responseText); } catch { bar.classList.add("bg-danger"); alert("Upload failed (invalid response)."); return; }
-    if (resp.redirect) { window.location.href = resp.redirect; return; }
-    if (xhr.status === 200 && resp.success) { bar.style.width = "100%"; bar.textContent = "Done"; refreshDocs(); onDone(); }
-    else { bar.classList.add("bg-danger"); alert("Upload failed: " + JSON.stringify(resp.errors || resp.message)); }
+    try { resp = JSON.parse(xhr.responseText); } 
+    catch { bar.classList.add("bg-danger"); alert("Upload failed"); return; }
+
+    if (resp.redirect) {
+      window.location.href = resp.redirect;
+      return;
+    }
+
+    if (xhr.status === 200 && resp.success) {
+      bar.style.width = "100%";
+      bar.textContent = "Done";
+      refreshDocs();
+      if (callback) callback();
+    } else {
+      bar.classList.add("bg-danger");
+      alert(JSON.stringify(resp.errors || resp.message));
+    }
   };
+
   const fd = new FormData(form);
   fd.append("file", file);
   fd.set("document_type", docType);
-  xhr.open("POST", form.action, true);
+
+  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
   xhr.setRequestHeader("X-CSRFToken", csrf);
   xhr.send(fd);
 }
@@ -292,19 +320,16 @@ function uploadOne(file, csrf, docType, onDone) {
 function refreshDocs() {
   const docList = document.getElementById("docList");
   if (!docList) return;
-  fetch(window.location.href).then(r => r.text()).then(html => {
-    const temp = document.createElement("div"); temp.innerHTML = html;
-    const updated = temp.querySelector("#docList");
-    if (updated) docList.innerHTML = updated.innerHTML;
-  });
-}
 
-function checkForRedirect() {
-  fetch("{% url 'dashboard' %}", { redirect: "follow" }).then(r => {
-    if (r.redirected) window.location.href = r.url;
-  });
+  fetch(window.location.href)
+    .then(r => r.text())
+    .then(html => {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      const updated = temp.querySelector("#docList");
+      if (updated) docList.innerHTML = updated.innerHTML;
+    });
 }
 </script>
-{% endif %}
 
 {% endblock %}
