@@ -265,6 +265,113 @@ def auth_view(request):
 
     return render(request, "auth.html", context)
 
+def send_code(request):
+    if request.method != "POST":
+        return redirect("auth_view")
+
+    form = UnifiedAuthForm(request.POST)
+    if not form.is_valid():
+        return render(request, "auth.html", {"form": form, "auth_step": "send_code"})
+
+    email = form.cleaned_data["email"]
+    recaptcha_token = form.cleaned_data["recaptcha_token"]
+
+    if not verify_recaptcha(recaptcha_token):
+        form.add_error(None, "Recaptcha failed.")
+        return render(request, "auth.html", {"form": form, "auth_step": "send_code"})
+
+    # Create or get user
+    user, created = User.objects.get_or_create(email=email, defaults={"username": email.split("@")[0]})
+
+    # Generate OTP
+    code = get_random_string(6, allowed_chars="0123456789")
+    request.session["otp"] = code
+    request.session["email"] = email
+    request.session["otp_time"] = int(time.time()) + 180
+
+    send_verification_code(email, code)
+
+    return render(request, "auth.html", {"form": UnifiedAuthForm(), "auth_step": "verify_code"})
+
+def verify_code(request):
+    if request.method != "POST":
+        return redirect("auth_view")
+
+    form = UnifiedAuthForm(request.POST)
+    if not form.is_valid():
+        return render(request, "auth.html", {"form": form, "auth_step": "verify_code"})
+
+    email = request.session.get("email")
+    code = request.session.get("otp")
+    expiry = request.session.get("otp_time")
+    typed = form.cleaned_data["code"]
+
+    if not email or not code:
+        return redirect("auth_view")
+
+    if int(time.time()) > expiry:
+        form.add_error(None, "Code expired.")
+        return render(request, "auth.html", {"form": form, "auth_step": "send_code"})
+
+    if typed != code:
+        form.add_error("code", "Wrong code.")
+        return render(request, "auth.html", {"form": form, "auth_step": "verify_code"})
+
+    user = User.objects.get(email=email)
+    login(request, user)
+
+    # Ensure profile exists
+    profile, created = Profile.objects.get_or_create(user=user)
+
+    # Business detection
+    if is_business_email(email) and not profile.is_employer:
+        profile.is_employer = True
+        slug = slugify(email.split("@")[1].split(".")[0])
+        EmployerCompany.objects.get_or_create(user=user, defaults={"company_name": slug})
+        profile.save()
+
+    # Clean session
+    for k in ("otp", "email", "otp_time"):
+        request.session.pop(k, None)
+
+    return redirect("dashboard")
+
+from django.contrib.auth.hashers import check_password
+
+def login_password(request):
+    if request.method != "POST":
+        return redirect("auth_view")
+
+    form = UnifiedAuthForm(request.POST)
+    if not form.is_valid():
+        return render(request, "auth.html", {
+            "form": form,
+            "auth_step": "login_password"
+        })
+
+    email = form.cleaned_data["email"]
+    password = form.cleaned_data["password"]
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        form.add_error(None, "Account not found.")
+        return render(request, "auth.html", {
+            "form": form,
+            "auth_step": "login_password"
+        })
+
+    # User exists → check password
+    if not user.check_password(password):
+        form.add_error("password", "Wrong password.")
+        return render(request, "auth.html", {
+            "form": form,
+            "auth_step": "login_password"
+        })
+
+    login(request, user)
+    return redirect("dashboard")
+
 # Search + Filter + Pagination + Context
 def available_jobs(request):
     search = request.GET.get("search", "")
