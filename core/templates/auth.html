@@ -1,8 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Auth</title>
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Sign In OR Create Account{% endblock %}
+
+{% block content %}
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
@@ -150,7 +151,7 @@
   font-size: 0.85rem;
 }
 </style>
-</head>
+
 
 <body>
 
@@ -242,4 +243,4 @@ function show(id) {
 </script>
 
 </body>
-</html>
+{% endblock %}
