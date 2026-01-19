@@ -97,39 +97,41 @@ body.light-mode .pending-badge {
 </style>
 
 <div class="company-section-wrapper">
+<div class="company-card">
+    <h2>🏢 Company Profile</h2>
 
-    <div class="company-card">
-        <h2>🏢 Company Profile</h2>
-
-        {% if company %}
-            <p><strong>Company Name:</strong> {{ company.company_name|default:"Not provided" }}</p>
-            <p><strong>Business Email:</strong> {{ company.business_email|default:"Not provided" }}</p>
-            <p><strong>Company Website:</strong> 
-                {% if company.company_website %}
-                    <a href="{{ company.company_website }}" target="_blank">{{ company.company_website }}</a>
-                {% else %}
-                    Not provided
-                {% endif %}
-            </p>
-            <p><strong>Registration Number:</strong> {{ company.registration_number|default:"Not generated yet" }}</p>
-
-            {% if company_verified %}
-                <span class="verified-badge">✔ Verified Employer</span>
+    {% if company %}
+        <p><strong>Company Name:</strong> {{ company.company_name|default:"Not provided" }}</p>
+        <p><strong>Business Email:</strong> {{ company.business_email|default:"Not provided" }}</p>
+        <p><strong>Company Website:</strong>
+            {% if company.company_website %}
+                <a href="{{ company.company_website }}" target="_blank">{{ company.company_website }}</a>
             {% else %}
-                <span class="pending-badge">⏳ Awaiting Verification</span>
-                <div class="warning-box">
-                    Your company is not verified yet.  
-                    Complete your employer setup and wait for approval.
-                </div>
+                Not provided
             {% endif %}
+        </p>
+        <p><strong>Registration Number:</strong> {{ company.registration_number|default:"Not generated yet" }}</p>
 
+        {% if company_verified %}
+            <span class="verified-badge">✔ Verified Employer</span>
         {% else %}
-            <p>No company profile found.</p>
+            <span class="pending-badge">⏳ Awaiting Verification</span>
+            <div class="warning-box">
+                Your company is not verified yet.  
+                Complete your employer setup to get approved.
+            </div>
             <a href="{% url 'complete_employer_profile' %}" class="primary-btn">
-                ➕ Create Company Profile
+                Complete Profile
             </a>
         {% endif %}
-    </div>
-
+        
+    {% else %}
+        <p>No company profile found.</p>
+        <a href="{% url 'complete_employer_profile' %}" class="primary-btn">
+            ➕ Create Company Profile
+        </a>
+    {% endif %}
 </div>
+</div>
+
 {% endblock %}
