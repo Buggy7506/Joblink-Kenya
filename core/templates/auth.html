@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Auth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+/* =========================================================
+   AUTH COMPONENT (THEME-AWARE EXTENSION)
+========================================================= */
+
+.auth-wrapper {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.auth-box {
+  width: 360px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border-radius: 1rem;
+  padding: 1.8rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
+
+/* Optional glow outline */
+.auth-box.glow-border {
+  border: 1px solid transparent;
+}
+
+/* LOGO */
+.auth-logo {
+  display: grid;
+  place-items: center;
+  margin-bottom: 1rem;
+}
+
+.auth-logo svg {
+  width: 38px;
+  height: 38px;
+  stroke: var(--text-accent);
+  filter: drop-shadow(0 0 8px var(--glow-accent));
+}
+
+/* HEADINGS */
+.auth-box h1 {
+  font-size: 1.35rem;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.auth-box p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+/* INPUTS */
+.auth-box input {
+  width: 100%;
+  height: 44px;
+  border-radius: 0.6rem;
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  color: var(--text-main);
+  padding: 0 0.75rem;
+  font-size: 0.95rem;
+  transition: border 0.25s ease, box-shadow 0.25s ease;
+}
+
+.auth-box input:focus {
+  outline: none;
+  border-color: var(--text-accent);
+  box-shadow: 0 0 8px var(--glow-accent);
+}
+
+/* BUTTONS */
+.auth-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 0.6rem;
+  border: 1px solid var(--text-muted);
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+}
+
+.auth-btn:hover {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+  box-shadow: 0 0 10px var(--glow-accent);
+}
+
+/* PRIMARY */
+.auth-btn.primary {
+  background: linear-gradient(
+    135deg,
+    var(--text-accent),
+    var(--glow-accent)
+  );
+  color: #000;
+  border: none;
+  font-weight: 600;
+}
+
+.auth-btn.primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 14px var(--glow-accent);
+}
+
+/* LINK BUTTON */
+.auth-link {
+  background: none;
+  border: none;
+  color: var(--text-link);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  color: var(--text-accent);
+}
+
+/* UTILS */
+.stack > * { margin-bottom: 0.65rem; }
+
+.divider {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.9rem 0;
+}
+
+.hidden { display: none; }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+</style>
+</head>
+
+<body>
+
+<div class="auth-wrapper">
+
+  <div class="auth-box glow-border">
+
+    <!-- LOGO -->
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 3v18M3 12h18"/>
+      </svg>
+    </div>
+
+    <!-- STEP 1 -->
+    <section id="step-email">
+      <h1>Log in or sign up</h1>
+      <p>Access your account securely</p>
+
+      <div class="stack">
+        <button class="auth-btn" onclick="social('google')">🔵 Continue with Google</button>
+        <button class="auth-btn" onclick="social('apple')">⚫ Continue with Apple</button>
+        <button class="auth-btn" onclick="social('microsoft')">🟦 Continue with Microsoft</button>
+        <button class="auth-btn" onclick="social('phone')">📞 Continue with phone</button>
+      </div>
+
+      <div class="divider">OR</div>
+
+      <input id="email" placeholder="Email address" />
+      <button class="auth-btn primary" onclick="sendCode()">Continue</button>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="step-code" class="hidden">
+      <h1>Check your inbox</h1>
+      <p>Enter the code sent to<br><b id="emailLabel"></b></p>
+
+      <input placeholder="6-digit code" maxlength="6" />
+      <button class="auth-btn primary" onclick="toPassword()">Continue</button>
+
+      <button class="auth-link" onclick="resend()">Resend email</button>
+      <div class="divider">OR</div>
+      <button class="auth-btn" onclick="toPassword()">Continue with password</button>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="step-password" class="hidden">
+      <h1>Enter your password</h1>
+
+      <div class="row">
+        <span id="emailLabel2"></span>
+        <button class="auth-link" onclick="back()">Edit</button>
+      </div>
+
+      <input type="password" placeholder="Password" />
+      <button class="auth-btn primary">Continue</button>
+
+      <button class="auth-link">Forgot password?</button>
+      <div class="divider">OR</div>
+      <button class="auth-btn">Log in with a one-time code</button>
+    </section>
+
+  </div>
+</div>
+
+<script>
+let email = "";
+
+function sendCode() {
+  email = document.getElementById("email").value.trim();
+  if (!email) return alert("Enter email");
+  emailLabel.textContent = email;
+  emailLabel2.textContent = email;
+  show("step-code");
+}
+
+function toPassword() { show("step-password"); }
+function back() { show("step-email"); }
+function resend() { alert("Code resent to " + email); }
+function social(p) { alert("Auth via " + p); }
+
+function show(id) {
+  ["step-email","step-code","step-password"].forEach(s =>
+    document.getElementById(s).classList.add("hidden")
+  );
+  document.getElementById(id).classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
