@@ -13,7 +13,7 @@ def send_password_reset(user, request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     reset_url = request.build_absolute_uri(f"/reset/{uid}/{token}/")
 
-    html = render_to_string("password_reset_email.html", {
+    html = render_to_string("password_reset.html", {
         "user": user,
         "reset_url": reset_url,
     })
