@@ -15,8 +15,6 @@ import secrets
 
 logger = logging.getLogger(__name__)
 
-resend.api_key = "re_Mb4LSbP9_BRQPDxd3Jy2G2ShL2EXjBWHk"
-
 def long():
     return secrets.token_urlsafe(12)
 
