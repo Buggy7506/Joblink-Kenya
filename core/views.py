@@ -61,17 +61,25 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.views.generic import FormView
 from .email_backend import send_password_reset
 from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
 
 class CustomPasswordResetView(FormView):
     template_name = "password_reset.html"
     form_class = PasswordResetForm
-    success_url = "/password-reset/done/"
+    success_url = reverse_lazy("password_reset_done")
 
     def form_valid(self, form):
+        """
+        Sends password reset email using Brevo for every valid user
+        matching the submitted email.
+        """
         email = form.cleaned_data["email"]
+        # get_users returns iterable of active users matching the email
         users = form.get_users(email)
+
         for user in users:
             send_password_reset(user, self.request)
+
         return super().form_valid(form)
 
 class CustomPasswordResetView(auth_views.PasswordResetView):
