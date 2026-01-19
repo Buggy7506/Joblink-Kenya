@@ -233,31 +233,6 @@ body {
     </div>
   {% endif %}
   
-{% if request.user.is_authenticated and request.user.profile.role == "employer" %}
-  <div class="verification-box">
-
-    {% if company_verified %}
-      <!-- VERIFIED BADGE -->
-      <span class="badge badge-success">✔ Verified Employer</span>
-
-    {% else %}
-      <!-- PENDING BADGE -->
-      <span class="badge badge-warning">⏳ Awaiting Verification</span>
-      <span class="nav-badge pending">Not Verified</span>
-
-      <!-- ALERT WITH BUTTON -->
-      <div class="alert alert-warning" style="margin-top: 8px;">
-        Complete your company profile to become verified!
-        <a href="{% url 'complete_employer_profile' %}" class="btn btn-primary btn-sm" style="margin-left: 10px;">
-          Complete Profile
-        </a>
-      </div>
-    {% endif %}
-
-  </div>
-{% endif %}
-
-
   <!-- Action Buttons -->
   <div class="dashboard-actions">
     <a href="{% url 'post_job' %}" class="btn-glow">➕ Post Job</a>
