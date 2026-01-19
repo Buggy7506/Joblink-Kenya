@@ -3,6 +3,9 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+
+    path("auth/", views.auth_view, name="auth"),
+    
     path("api/categories/", views.api_job_categories, name="api_categories"),
     path("api/locations/", views.api_locations, name="api_locations"),
     # -------------------------
@@ -25,10 +28,10 @@ urlpatterns = [
     # -------------------------
     # Authentication / Account
     # -------------------------
-    path('signup/', views.signup_view, name='signup'),
-    path('login/', views.login_view, name='login'),
-    path('login/applicant/', views.login_view, {'role': 'applicant'}, name='login_applicant'),
-    path('login/employer/', views.login_view, {'role': 'employer'}, name='login_employer'),
+    #path('signup/', views.signup_view, name='signup'),
+    #path('login/', views.login_view, name='login'),
+    #path('login/applicant/', views.login_view, {'role': 'applicant'}, name='login_applicant'),
+    #path('login/employer/', views.login_view, {'role': 'employer'}, name='login_employer'),
     path('login/google/', views.google_login, name='google_login'),
     path('google/callback/', views.google_callback, name='google_callback'),
     path('google/set-password/', views.set_google_password, name='set_google_password'),
