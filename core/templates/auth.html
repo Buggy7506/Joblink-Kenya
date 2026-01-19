@@ -226,9 +226,9 @@
            <div class="divider">OR</div>
          
            <!-- COMMON EMAIL FIELD (Placed below social buttons) -->
-           <div style="margin-bottom:1rem;">
-             {{ form.identifier }}
-           </div>
+            <div style="margin-bottom:1rem;">
+              <input type="email" name="{{ form.identifier.name }}" value="{{ form.identifier.value }}" placeholder="Email address" class="auth-input" required>
+            </div>
          
            <!-- ROLE SELECTION -->
            <div class="row" style="margin-bottom:1rem;">
