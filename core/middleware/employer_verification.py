@@ -8,8 +8,8 @@ from django.contrib import messages
 class EmployerVerificationMiddleware:
     """
     Employer access control (loop-safe):
-      - No company → force complete profile
-      - Company not verified → force upload docs
+      - No company or incomplete → force complete profile
+      - Complete but not verified → force upload docs
       - Verified → unrestricted access
     """
 
@@ -37,25 +37,19 @@ class EmployerVerificationMiddleware:
         if not request.user.is_authenticated:
             return self.get_response(request)
 
-        # -----------------------------
-        # Skip admin/static/media early
-        # -----------------------------
         path = request.path_info
         for prefix in self.SAFE_PREFIXES:
             if path.startswith(prefix):
                 return self.get_response(request)
 
         # -----------------------------
-        # Safely resolve view name
+        # Resolve view name safely
         # -----------------------------
         try:
             current_view = resolve(path).url_name
         except Resolver404:
             return self.get_response(request)
 
-        # -----------------------------
-        # Skip safe views
-        # -----------------------------
         if current_view in self.SAFE_VIEWS:
             return self.get_response(request)
 
@@ -66,12 +60,12 @@ class EmployerVerificationMiddleware:
         if not profile or profile.role != "employer":
             return self.get_response(request)
 
-        company = getattr(request.user, "employercompany", None)
+        company = getattr(request.user, "employer_company", None)
 
         # --------------------------------------------------
-        # Employer has NO company profile → redirect to complete profile
+        # No company or incomplete → force complete profile
         # --------------------------------------------------
-        if not company:
+        if not company or not company.is_complete:
             if current_view != "complete_employer_profile":
                 messages.warning(
                     request,
@@ -81,9 +75,9 @@ class EmployerVerificationMiddleware:
             return self.get_response(request)
 
         # --------------------------------------------------
-        # Company exists but NOT verified → redirect to upload docs
+        # Company exists but NOT verified → force upload docs
         # --------------------------------------------------
-        if not getattr(company, "is_verified", False):
+        if not company.is_verified:
             if current_view != "upload_company_docs":
                 messages.warning(
                     request,
