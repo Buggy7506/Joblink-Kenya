@@ -45,5 +45,5 @@ def send_password_reset(user, request):
         subject=subject,
         html_content=html_content,
         to_email=user.email,
-        from_email="security@stepper.dpdns.org",
+        from_email="support@stepper.dpdns.org",
     )
