@@ -57,6 +57,22 @@ from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.contrib.auth.forms import PasswordResetForm
+from django.views.generic import FormView
+from .email_backend import send_password_reset
+
+class CustomPasswordResetView(FormView):
+    template_name = "password_reset.html"
+    form_class = PasswordResetForm
+    success_url = "/password-reset/done/"
+
+    def form_valid(self, form):
+        email = form.cleaned_data["email"]
+        users = form.get_users(email)
+        for user in users:
+            send_password_reset(user, self.request)
+        return super().form_valid(form)
+
 
 # Search + Filter + Pagination + Context
 def available_jobs(request):
