@@ -42,6 +42,7 @@ urlpatterns = [
     path("upload-docs/", views.upload_company_docs, name="upload_company_docs"),
 
     # Password reset
+    path("password-reset/", views.CustomPasswordResetView.as_view(), name="password_reset"),
     path('password-reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
