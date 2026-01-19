@@ -262,13 +262,8 @@ SECURE_SSL_REDIRECT = False
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
-# Use Anymail backend for Resend
-EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 
-# Anymail settings with environment variable
-ANYMAIL = {
-    "RESEND_API_KEY": os.environ.get("RESEND_API_KEY"),  # reads from Render env
-}
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 
 # Default sender
 DEFAULT_FROM_EMAIL = "no-reply@stepper.dpdns.org"
