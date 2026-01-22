@@ -549,7 +549,7 @@
         <section id="step-password" class="hidden">
           <h2>Enter your password</h2>
 
-          <p>{{ request.session.auth_email }}</p>
+          <p><b>{{ request.session.auth_email|slice:":3" }}***@***</b></p>
 
           <div class="password-field">
             <input
@@ -628,7 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (remaining <= 0) {
         clearInterval(resendTimer);
         resendBtn.disabled = false;
-        resendBtn.textContent = "Resend code";
+        resendBtn.innerHTML = 'Resend code (<span id="countdown">30</span>s)';
       }
     }, 1000);
   }
