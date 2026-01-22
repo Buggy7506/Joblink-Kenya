@@ -12,7 +12,6 @@ from django.contrib import messages
 from functools import wraps
 from django.core.files.base import ContentFile
 
-from twilio.rest import Client
 from sib_api_v3_sdk import ApiClient, Configuration, TransactionalEmailsApi, SendSmtpEmail
 
 from .models import DeviceVerification
@@ -28,9 +27,9 @@ def generate_code():
     return f"{secrets.randbelow(900000) + 100000}"
 
 
-def otp_recently_sent(email, fingerprint):
+def otp_recently_sent(identifier, fingerprint):
     return DeviceVerification.objects.filter(
-        email=email,
+        email=identifier,
         device_fingerprint=fingerprint,
         created_at__gte=timezone.now() - timedelta(seconds=settings.OTP_RESEND_COOLDOWN)
     ).exists()
@@ -40,10 +39,9 @@ def otp_recently_sent(email, fingerprint):
 # BREVO EMAIL (ONLY EMAIL PROVIDER)
 # ======================================================
 
-def brevo_send_email(subject, html_content, recipient):
+def brevo_send_email(subject, recipient, html_content):
     """
-    Send transactional email using Brevo shared sender.
-    DO NOT set sender.email (important for deliverability).
+    Send transactional email using Brevo shared sender
     """
     config = Configuration()
     config.api_key["api-key"] = settings.BREVO_API_KEY
@@ -66,7 +64,6 @@ def brevo_send_email(subject, html_content, recipient):
 
 
 def send_otp_email(email, code):
-    """OTP email wrapper"""
     return brevo_send_email(
         subject="Your Joblink Kenya login code",
         recipient=email,
@@ -109,12 +106,8 @@ def employer_verified_required(view_func):
 # ======================================================
 
 FREE_EMAIL_DOMAINS = {
-    "gmail.com",
-    "yahoo.com",
-    "outlook.com",
-    "hotmail.com",
-    "icloud.com",
-    "aol.com",
+    "gmail.com", "yahoo.com", "outlook.com",
+    "hotmail.com", "icloud.com", "aol.com",
 }
 
 def is_business_email(email: str) -> bool:
@@ -181,8 +174,9 @@ def get_location_from_ip(ip):
 
 
 # ======================================================
-# INFINIREACH AND WHAPI.CLOUD
+# INFINIREACH (SMS)
 # ======================================================
+
 def send_sms_infini(phone, message):
     url = "https://api.infinireach.io/v1/sms/send"
 
@@ -197,8 +191,13 @@ def send_sms_infini(phone, message):
     response.raise_for_status()
     return response.json()
 
+
+# ======================================================
+# WHAPI.CLOUD (WHATSAPP)
+# ======================================================
+
 def send_whatsapp_whapi(phone, message):
-    url = f"https://gate.whapi.cloud/messages/text"
+    url = "https://gate.whapi.cloud/messages/text"
     headers = {
         "Authorization": f"Bearer {settings.WHAPI_TOKEN}",
         "Content-Type": "application/json",
@@ -213,8 +212,13 @@ def send_whatsapp_whapi(phone, message):
     response.raise_for_status()
     return response.json()
 
+
+# ======================================================
+# UNIFIED OTP DISPATCHER
+# ======================================================
+
 def send_otp(channel, destination, code):
-    message = f"Your Joblink verification code is {code}. Valid for 5 minutes."
+    message = f"Your Joblink verification code is {code}. Valid for {settings.OTP_EXPIRY_MINUTES} minutes."
 
     if channel == "sms":
         return send_sms_infini(destination, message)
@@ -223,11 +227,6 @@ def send_otp(channel, destination, code):
         return send_whatsapp_whapi(destination, message)
 
     if channel == "email":
-        from .email import send_brevo_email
-        return send_brevo_email(
-            subject="Your Joblink login code",
-            to_email=destination,
-            html_content=f"<h2>{code}</h2>"
-        )
+        return send_otp_email(destination, code)
 
     raise ValueError("Invalid OTP channel")
