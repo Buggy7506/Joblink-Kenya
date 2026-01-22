@@ -340,6 +340,61 @@
   /* subtle glow to match your theme */
   filter: drop-shadow(0 0 6px var(--glow-accent));
 }
+/* =========================================
+   ROLE SELECTOR (APPLICANT / EMPLOYER)
+========================================= */
+
+.auth-page .role-group {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.auth-page .role-option {
+  flex: 1;
+  cursor: pointer;
+}
+
+.auth-page .role-option input {
+  display: none;
+}
+
+.auth-page .role-option span {
+  display: block;
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  border-radius: 0.6rem;
+  border: 1px solid var(--text-muted);
+
+  background: transparent;
+  color: var(--text-muted);
+
+  transition: all 0.25s ease;
+}
+
+/* Selected */
+.auth-page .role-option input:checked + span {
+  color: var(--text-main);
+  border-color: var(--text-accent);
+  box-shadow: 0 0 8px var(--glow-accent);
+}
+
+/* Applicant accent */
+.auth-page .role-option.applicant input:checked + span {
+  background: rgba(34, 211, 238, 0.15);
+  border-color: var(--text-accent);
+}
+
+/* Employer accent */
+.auth-page .role-option.employer input:checked + span {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: #f97316;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.6);
+}
 </style>
 
 <div class="auth-page">
@@ -419,17 +474,19 @@
           >
 
           <!-- ROLE -->
-          <div class="row">
-            {% for val, label in form.role.field.choices %}
-              <label>
-                <input type="radio"
-                       name="role"
-                       value="{{ val }}"
-                       {% if form.role.value == val %}checked{% endif %}>
-                {{ label }}
-              </label>
-            {% endfor %}
-          </div>
+         <div class="role-group">
+           {% for val, label in form.role.field.choices %}
+             <label class="role-option {{ val }}">
+               <input
+                 type="radio"
+                 name="role"
+                 value="{{ val }}"
+                 {% if form.role.value == val %}checked{% endif %}
+               >
+               <span>{{ label }}</span>
+             </label>
+           {% endfor %}
+         </div>
 
           <!-- EMPLOYER FIELDS -->
           <div id="employer-fields"
