@@ -181,40 +181,53 @@ def get_location_from_ip(ip):
 
 
 # ======================================================
-# TWILIO — WHATSAPP / SMS
+# INFINIREACH AND WHAPI.CLOUD
 # ======================================================
+def send_sms_infini(phone, message):
+    url = "https://api.infinireach.io/v1/sms/send"
 
-def send_whatsapp_otp(phone, code):
-    try:
-        client = Client(
-            settings.TWILIO_ACCOUNT_SID,
-            settings.TWILIO_AUTH_TOKEN
-        )
-        message = client.messages.create(
-            body=f"Joblink Kenya OTP: {code}",
-            from_=settings.TWILIO_WHATSAPP_NUMBER,
-            to=f"whatsapp:{phone}"
-        )
-        logger.info(f"WhatsApp OTP sent to {phone} ({message.sid})")
-        return True
-    except Exception as e:
-        logger.error(f"WhatsApp OTP failed: {e}")
-        return False
+    payload = {
+        "apiKey": settings.INFINIREACH_API_KEY,
+        "to": phone,
+        "sender": settings.INFINIREACH_SENDER_ID,
+        "message": message,
+    }
 
+    response = requests.post(url, json=payload, timeout=15)
+    response.raise_for_status()
+    return response.json()
 
-def send_sms_otp(phone, code):
-    try:
-        client = Client(
-            settings.TWILIO_ACCOUNT_SID,
-            settings.TWILIO_AUTH_TOKEN
+def send_whatsapp_whapi(phone, message):
+    url = f"https://gate.whapi.cloud/messages/text"
+    headers = {
+        "Authorization": f"Bearer {settings.WHAPI_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "to": phone,
+        "body": message,
+    }
+
+    response = requests.post(url, json=payload, headers=headers, timeout=15)
+    response.raise_for_status()
+    return response.json()
+
+def send_otp(channel, destination, code):
+    message = f"Your Joblink verification code is {code}. Valid for 5 minutes."
+
+    if channel == "sms":
+        return send_sms_infini(destination, message)
+
+    if channel == "whatsapp":
+        return send_whatsapp_whapi(destination, message)
+
+    if channel == "email":
+        from .email import send_brevo_email
+        return send_brevo_email(
+            subject="Your Joblink login code",
+            to_email=destination,
+            html_content=f"<h2>{code}</h2>"
         )
-        message = client.messages.create(
-            body=f"Joblink Kenya OTP: {code}",
-            from_=settings.TWILIO_PHONE_NUMBER,
-            to=phone
-        )
-        logger.info(f"SMS OTP sent to {phone} ({message.sid})")
-        return True
-    except Exception as e:
-        logger.error(f"SMS OTP failed: {e}")
-        return False
+
+    raise ValueError("Invalid OTP channel")
