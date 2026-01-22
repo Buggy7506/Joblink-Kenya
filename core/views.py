@@ -3,13 +3,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse, JsonResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
+from django.views.generic import FormView
 
 # Django auth
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib import messages
 
 # Django core utilities
@@ -28,7 +32,9 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.utils.text import slugify
 from django.core.paginator import Paginator
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from django.urls import reverse_lazy
 
 # Third-party libraries
 import pdfkit
@@ -42,6 +48,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import cloudinary.uploader
 from pathlib import Path
+import random
 
 # Local apps
 from .models import (
@@ -49,19 +56,179 @@ from .models import (
     JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser, EmployerCompany, CompanyDocument
 )
 from .forms import (
-    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm,
+    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm, UnifiedAuthForm,
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm, CompanyDocumentForm
 )
 from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
 from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.contrib.auth.forms import PasswordResetForm
-from django.views.generic import FormView
 from .email_backend import send_password_reset
-from django.contrib.auth import views as auth_views
-from django.urls import reverse_lazy
+
+
+# -----------------------------------
+# HELPERS
+# -----------------------------------
+def generate_code():
+    return str(random.randint(100000, 999999))
+
+
+def get_device_data(request):
+    return {
+        "device_fingerprint": request.META.get("HTTP_USER_AGENT", "")[:255],
+        "user_agent": request.META.get("HTTP_USER_AGENT", ""),
+        "ip_address": request.META.get("REMOTE_ADDR", ""),
+    }
+
+
+# -----------------------------------
+# MAIN AUTH VIEW
+# -----------------------------------
+@csrf_protect
+def unified_auth_view(request):
+    form = UnifiedAuthForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        action = request.POST.get("action")
+        email = form.cleaned_data["identifier"].lower()
+        role = form.cleaned_data["role"]
+
+        # ===============================
+        # STEP 1 — SEND CODE
+        # ===============================
+        if action == "send_code":
+            DeviceVerification.objects.filter(
+                email=email,
+                is_used=False
+            ).update(is_used=True)
+
+            code = generate_code()
+
+            DeviceVerification.objects.create(
+                email=email,
+                code=code,
+                verified_via="email",
+                **get_device_data(request)
+            )
+
+            send_brevo_email(
+                subject="Your Joblink login code",
+                to_email=email,
+                html_content=f"""
+                <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+                    <h2>Joblink Kenya Login</h2>
+                    <p>Your one-time login code is:</p>
+                    <h1 style="letter-spacing:4px;">{code}</h1>
+                    <p><b>This code expires in 5 minutes.</b></p>
+                    <p>If you did not request this, you can safely ignore this email.</p>
+                </div>
+                """
+            )
+
+            request.session["auth_email"] = email
+            request.session["auth_role"] = role
+
+            messages.success(request, "Verification code sent to your email.")
+            return render(request, "auth.html", {"form": form})
+
+        # ===============================
+        # STEP 2 — VERIFY CODE
+        # ===============================
+        if action == "verify_code":
+            code = form.cleaned_data["code"]
+
+            verification = DeviceVerification.objects.filter(
+                email=email,
+                code=code,
+                is_used=False,
+                created_at__gte=timezone.now() - timedelta(minutes=5)
+            ).first()
+
+            if not verification:
+                messages.error(request, "Invalid or expired code.")
+                return render(request, "auth.html", {"form": form})
+
+            verification.is_used = True
+            verification.save(update_fields=["is_used"])
+
+            user, created = CustomUser.objects.get_or_create(
+                email=email,
+                defaults={
+                    "username": email,
+                    "role": role,
+                    "password": make_password(None),
+                }
+            )
+
+            Profile.objects.get_or_create(
+                user=user,
+                defaults={
+                    "full_name": email.split("@")[0],
+                    "role": role
+                }
+            )
+
+            if role == "employer":
+                EmployerCompany.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        "company_name": form.cleaned_data["company_name"],
+                        "business_email": form.cleaned_data["company_email"],
+                        "company_website": form.cleaned_data["company_website"],
+                    }
+                )
+
+            login(request, user)
+            return redirect("dashboard")
+
+        # ===============================
+        # STEP 3 — PASSWORD LOGIN
+        # ===============================
+        if action == "login_password":
+            password = form.cleaned_data["password"]
+
+            user = authenticate(request, username=email, password=password)
+            if not user:
+                messages.error(request, "Invalid email or password.")
+                return render(request, "auth.html", {"form": form})
+
+            login(request, user)
+            return redirect("dashboard")
+
+        # ===============================
+        # MAGIC LINK (OTP EMAIL)
+        # ===============================
+        if action == "magic_link":
+            DeviceVerification.objects.filter(
+                email=email,
+                is_used=False
+            ).update(is_used=True)
+
+            code = generate_code()
+
+            DeviceVerification.objects.create(
+                email=email,
+                code=code,
+                verified_via="email",
+                **get_device_data(request)
+            )
+
+            send_brevo_email(
+                subject="Your Joblink one-time login code",
+                to_email=email,
+                html_content=f"""
+                <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+                    <h2>Joblink Kenya One-Time Login</h2>
+                    <p>Use this code to log in:</p>
+                    <h1 style="letter-spacing:4px;">{code}</h1>
+                    <p><b>Valid for 5 minutes.</b></p>
+                </div>
+                """
+            )
+
+            messages.success(request, "One-time login code sent to your email.")
+            return render(request, "auth.html", {"form": form})
+
+    return render(request, "auth.html", {"form": form})
 
 class CustomPasswordResetView(FormView):
     template_name = "password_reset.html"
