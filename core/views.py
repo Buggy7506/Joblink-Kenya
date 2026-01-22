@@ -66,11 +66,10 @@ from .utils import (
 from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
 from .email_backend import send_password_reset
+
 # -----------------------------------
 # MAIN AUTH VIEW
 # -----------------------------------
-
-
 @csrf_protect
 def unified_auth_view(request):
     form = UnifiedAuthForm(request.POST or None)
@@ -88,7 +87,11 @@ def unified_auth_view(request):
         if email:
             email = email.lower()
 
-        role = form.cleaned_data.get("role") or request.session.get("auth_role")
+        role = (
+            form.cleaned_data.get("role")
+            or request.session.get("auth_role")
+            or "applicant"
+        )
 
         channel = request.POST.get(
             "channel",
@@ -184,6 +187,11 @@ def unified_auth_view(request):
                 }
             )
 
+            # Ensure role stays in sync
+            if user.role != role:
+                user.role = role
+                user.save(update_fields=["role"])
+
             Profile.objects.get_or_create(
                 user=user,
                 defaults={
@@ -191,16 +199,6 @@ def unified_auth_view(request):
                     "role": role,
                 }
             )
-
-            if role == "employer":
-                EmployerCompany.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "company_name": form.cleaned_data.get("company_name"),
-                        "business_email": form.cleaned_data.get("company_email"),
-                        "company_website": form.cleaned_data.get("company_website"),
-                    }
-                )
 
             login(request, user)
             return redirect("dashboard")
