@@ -463,15 +463,16 @@
           </div>
 
           <!-- PHONE (SMS / WHATSAPP ONLY) -->
-          <input
-            type="text"
-            name="phone"
-            id="phoneInput"
-            placeholder="+254 7XX XXX XXX"
-            class="auth-input"
-            autocomplete="tel"
-            style="display:none;"
-          >
+         <input
+           type="text"
+           name="{{ form.phone.name }}"
+           value="{{ form.phone.value|default:'' }}"
+           id="phoneInput"
+           placeholder="+254 7XX XXX XXX"
+           class="auth-input"
+           autocomplete="tel"
+           style="display:none;"
+         >
 
           <!-- ROLE -->
          <div class="role-group">
