@@ -39,6 +39,7 @@ def otp_recently_sent(identifier, fingerprint):
 # BREVO EMAIL (ONLY EMAIL PROVIDER)
 # ======================================================
 
+
 def brevo_send_email(subject, recipient, html_content):
     """
     Send transactional email using Brevo shared sender
@@ -46,22 +47,21 @@ def brevo_send_email(subject, recipient, html_content):
     config = Configuration()
     config.api_key["api-key"] = settings.BREVO_API_KEY
 
-    with ApiClient(config) as client:
-        api = TransactionalEmailsApi(client)
+    client = ApiClient(config)
+    api = TransactionalEmailsApi(client)
 
-        email = SendSmtpEmail(
-            sender={"name": "Joblink Kenya"},
-            to=[{"email": recipient}],
-            subject=subject,
-            html_content=html_content,
-            reply_to={
-                "email": "support@stepper.dpdns.org",
-                "name": "Joblink Kenya Support"
-            }
-        )
+    email = SendSmtpEmail(
+        sender={"name": "Joblink Kenya"},
+        to=[{"email": recipient}],
+        subject=subject,
+        html_content=html_content,
+        reply_to={
+            "email": "support@stepper.dpdns.org",
+            "name": "Joblink Kenya Support"
+        }
+    )
 
-        return api.send_transac_email(email)
-
+    return api.send_transac_email(email)
 
 def send_otp_email(email, code):
     return brevo_send_email(
