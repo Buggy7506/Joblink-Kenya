@@ -60,7 +60,7 @@ from .forms import (
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm, CompanyDocumentForm
 )
 from .utils import (
-    send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, 
+    send_whatsapp_otp, send_sms_otp, generate_code, 
     get_client_ip, get_device_fingerprint, is_business_email, brevo_send_email, otp_recently_sent, get_location_from_ip,
 )
 from core.middleware.employer_required import employer_verified_required
