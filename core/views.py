@@ -79,9 +79,14 @@ def unified_auth_view(request):
         email = form.cleaned_data["identifier"].lower()
         role = form.cleaned_data["role"]
 
+        channel = request.POST.get("channel", "email")  # email | sms | whatsapp
+        phone = form.cleaned_data.get("phone")
+
         device_fingerprint = get_device_fingerprint(request)
         ip_address = get_client_ip(request)
         location = get_location_from_ip(ip_address)
+
+        destination = email if channel == "email" else phone
 
         # ===============================
         # STEP 1 — SEND CODE
@@ -95,6 +100,7 @@ def unified_auth_view(request):
                 )
                 return render(request, "auth.html", {"form": form})
 
+            # Invalidate previous unused OTPs for this device
             DeviceVerification.objects.filter(
                 email=email,
                 device_fingerprint=device_fingerprint,
@@ -106,30 +112,22 @@ def unified_auth_view(request):
             DeviceVerification.objects.create(
                 email=email,
                 code=code,
-                verified_via="email",
+                verified_via=channel,
                 device_fingerprint=device_fingerprint,
                 ip_address=ip_address,
                 location=location,
             )
 
-            brevo_send_email(
-                subject="Your Joblink login code",
-                recipient=email,
-                html_body=f"""
-                <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
-                    <h2>Joblink Kenya Login</h2>
-                    <p>Your one-time login code is:</p>
-                    <h1 style="letter-spacing:4px;">{code}</h1>
-                    <p><b>This code expires in 5 minutes.</b></p>
-                    <p>If you did not request this, you can safely ignore this email.</p>
-                </div>
-                """
-            )
+            send_otp(channel, destination, code)
 
             request.session["auth_email"] = email
             request.session["auth_role"] = role
+            request.session["otp_channel"] = channel
 
-            messages.success(request, "Verification code sent to your email.")
+            messages.success(
+                request,
+                f"Verification code sent via {channel.upper()}."
+            )
             return render(request, "auth.html", {"form": form})
 
         # ===============================
@@ -203,7 +201,7 @@ def unified_auth_view(request):
             return redirect("dashboard")
 
         # ===============================
-        # MAGIC LINK (OTP EMAIL)
+        # MAGIC LINK / OTP RESEND
         # ===============================
         if action == "magic_link":
 
@@ -225,26 +223,18 @@ def unified_auth_view(request):
             DeviceVerification.objects.create(
                 email=email,
                 code=code,
-                verified_via="email",
+                verified_via=channel,
                 device_fingerprint=device_fingerprint,
                 ip_address=ip_address,
                 location=location,
             )
 
-            brevo_send_email(
-                subject="Your Joblink one-time login code",
-                recipient=email,
-                html_body=f"""
-                <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
-                    <h2>Joblink Kenya One-Time Login</h2>
-                    <p>Use this code to log in:</p>
-                    <h1 style="letter-spacing:4px;">{code}</h1>
-                    <p><b>Valid for 5 minutes.</b></p>
-                </div>
-                """
-            )
+            send_otp(channel, destination, code)
 
-            messages.success(request, "One-time login code sent to your email.")
+            messages.success(
+                request,
+                f"One-time login code sent via {channel.upper()}."
+            )
             return render(request, "auth.html", {"form": form})
 
     return render(request, "auth.html", {"form": form})
