@@ -587,8 +587,8 @@
 </div>
 
 <script>
+<script>
 document.addEventListener("DOMContentLoaded", () => {
-  let email = "";
   let resendCooldown = 30; // seconds
   let resendTimer = null;
 
@@ -596,10 +596,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // STEP NAVIGATION
   // =========================
   function show(id) {
-    ["step-email", "step-code", "step-password"].forEach(s => {
-      const el = document.getElementById(s);
+    ["step-email", "step-code", "step-password"].forEach(step => {
+      const el = document.getElementById(step);
       if (el) el.classList.add("hidden");
     });
+
     const target = document.getElementById(id);
     if (target) target.classList.remove("hidden");
   }
@@ -617,7 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resendBtn.disabled = true;
     countdown.textContent = remaining;
 
-    resendTimer && clearInterval(resendTimer);
+    if (resendTimer) clearInterval(resendTimer);
 
     resendTimer = setInterval(() => {
       remaining--;
@@ -626,7 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (remaining <= 0) {
         clearInterval(resendTimer);
         resendBtn.disabled = false;
-        resendBtn.innerHTML = "Resend code";
+        resendBtn.textContent = "Resend code";
       }
     }, 1000);
   }
@@ -657,44 +658,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (channelRadios.length && phoneInput) {
-    channelRadios.forEach(radio => {
-      radio.addEventListener("change", syncPhoneVisibility);
-    });
+    channelRadios.forEach(radio =>
+      radio.addEventListener("change", syncPhoneVisibility)
+    );
 
-    // Run once on page load (important for POST reloads)
+    // Important for POST reloads
     syncPhoneVisibility();
   }
-
-  // =========================
-  // STEP 1 → SEND CODE
-  // =========================
-  window.sendCode = function () {
-    const emailInput = document.querySelector('input[name="identifier"]');
-    const channel = document.querySelector('input[name="channel"]:checked')?.value;
-    const phone = phoneInput?.value.trim();
-
-    if (!emailInput) return;
-
-    email = emailInput.value.trim();
-    if (!email) {
-      alert("Enter your email address");
-      return;
-    }
-
-    if ((channel === "sms" || channel === "whatsapp") && !phone) {
-      alert("Enter your phone number for SMS or WhatsApp");
-      return;
-    }
-
-    show("step-code");
-    startResendCooldown();
-  };
-
-  // =========================
-  // STEP NAV SHORTCUTS
-  // =========================
-  window.toPassword = () => show("step-password");
-  window.back = () => show("step-email");
 
   // =========================
   // FORM SUBMIT VALIDATION
@@ -704,14 +674,20 @@ document.addEventListener("DOMContentLoaded", () => {
   if (form) {
     form.addEventListener("submit", e => {
       const action = e.submitter?.value;
-      const channel = document.querySelector('input[name="channel"]:checked')?.value;
+      const channel = document.querySelector(
+        'input[name="{{ form.channel.name }}"]:checked'
+      )?.value;
       const phone = phoneInput?.value.trim();
 
-      // STEP 1 validation
+      // =========================
+      // STEP 1 → SEND CODE
+      // =========================
       if (action === "send_code") {
-        const emailInput = document.querySelector('input[name="identifier"]');
+        const emailInput = document.querySelector(
+          'input[name="{{ form.identifier.name }}"]'
+        );
 
-        if (!emailInput.value.trim()) {
+        if (!emailInput || !emailInput.value.trim()) {
           e.preventDefault();
           alert("Enter your email address before continuing.");
           show("step-email");
@@ -727,20 +703,30 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(startResendCooldown, 300);
       }
 
-      // STEP 2 validation
+      // =========================
+      // STEP 2 → VERIFY CODE
+      // =========================
       if (action === "verify_code") {
-        const code = document.querySelector('input[name="code"]');
-        if (!code.value.trim()) {
+        const codeInput = document.querySelector(
+          'input[name="{{ form.code.name }}"]'
+        );
+
+        if (!codeInput || !codeInput.value.trim()) {
           e.preventDefault();
           alert("Enter the 6-digit code.");
           return;
         }
       }
 
-      // STEP 3 validation
+      // =========================
+      // STEP 3 → PASSWORD LOGIN
+      // =========================
       if (action === "login_password") {
-        const pass = document.querySelector('input[name="password"]');
-        if (!pass.value.trim()) {
+        const passInput = document.querySelector(
+          'input[name="{{ form.password.name }}"]'
+        );
+
+        if (!passInput || !passInput.value.trim()) {
           e.preventDefault();
           alert("Enter your password.");
         }
@@ -749,5 +735,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+
 
 {% endblock %}
