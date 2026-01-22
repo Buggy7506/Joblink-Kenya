@@ -446,24 +446,26 @@
 
          <!-- OTP CHANNEL -->
          <div class="channel-group">
-           {% for value, label in form.channel.field.choices %}
-             <label class="{% if value == 'sms' %}sms{% elif value == 'whatsapp' %}whatsapp{% endif %}">
-               <input
-                 type="radio"
-                 name="{{ form.channel.name }}"
-                 value="{{ value }}"
-                 {% if form.channel.value|default:'email' == value %}checked{% endif %}
-               >
-               <span>{{ label }}</span>
-             </label>
-           {% endfor %}
+           <label>
+             <input type="radio" name="channel" value="email" checked>
+             <span>Email</span>
+           </label>
+         
+           <label class="sms">
+             <input type="radio" name="channel" value="sms">
+             <span>SMS</span>
+           </label>
+         
+           <label class="whatsapp">
+             <input type="radio" name="channel" value="whatsapp">
+             <span>WhatsApp</span>
+           </label>
          </div>
          
          <!-- PHONE (SMS / WHATSAPP ONLY) -->
          <input
            type="text"
-           name="{{ form.phone.name }}"
-           value="{{ form.phone.value|default:'' }}"
+           name="phone"
            id="phoneInput"
            placeholder="+254 7XX XXX XXX"
            class="auth-input"
@@ -471,7 +473,7 @@
            style="display:none;"
          >
 
-          <!-- ROLE -->
+           <!-- ROLE -->
          <div class="role-group">
            {% for val, label in form.role.field.choices %}
              <label class="role-option {{ val }}">
@@ -587,7 +589,6 @@
 </div>
 
 <script>
-<script>
 document.addEventListener("DOMContentLoaded", () => {
   let resendCooldown = 30; // seconds
   let resendTimer = null;
@@ -635,36 +636,34 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // OTP CHANNEL TOGGLE
   // =========================
-  const channelRadios = document.querySelectorAll(
-    'input[name="{{ form.channel.name }}"]'
-  );
-  const phoneInput = document.getElementById("phoneInput");
-
-  function syncPhoneVisibility() {
-    const checked = document.querySelector(
-      'input[name="{{ form.channel.name }}"]:checked'
-    );
-
-    if (!checked || !phoneInput) return;
-
-    if (checked.value === "email") {
-      phoneInput.style.display = "none";
-      phoneInput.required = false;
-      phoneInput.value = "";
-    } else {
-      phoneInput.style.display = "block";
-      phoneInput.required = true;
-    }
-  }
-
-  if (channelRadios.length && phoneInput) {
-    channelRadios.forEach(radio =>
-      radio.addEventListener("change", syncPhoneVisibility)
-    );
-
-    // Important for POST reloads
-    syncPhoneVisibility();
-  }
+   const channelRadios = document.querySelectorAll(
+     'input[name="channel"]'
+   );
+   const phoneInput = document.getElementById("phoneInput");
+   
+   function syncPhoneVisibility() {
+     const checked = document.querySelector(
+       'input[name="channel"]:checked'
+     );
+   
+     if (!checked || !phoneInput) return;
+   
+     if (checked.value === "email") {
+       phoneInput.style.display = "none";
+       phoneInput.required = false;
+       phoneInput.value = "";
+     } else {
+       phoneInput.style.display = "block";
+       phoneInput.required = true;
+     }
+   }
+   
+   channelRadios.forEach(radio =>
+     radio.addEventListener("change", syncPhoneVisibility)
+   );
+   
+   // Run once on load (CRITICAL)
+   syncPhoneVisibility()
 
   // =========================
   // FORM SUBMIT VALIDATION
@@ -675,7 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", e => {
       const action = e.submitter?.value;
       const channel = document.querySelector(
-        'input[name="{{ form.channel.name }}"]:checked'
+        'input[name="channel"]:checked'
       )?.value;
       const phone = phoneInput?.value.trim();
 
@@ -735,6 +734,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-
 
 {% endblock %}
