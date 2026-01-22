@@ -85,7 +85,7 @@ def unified_auth_view(request):
             or request.session.get("auth_email")
         )
         if email:
-            email = email.lower()
+            email = email.lower().strip()
 
         role = (
             form.cleaned_data.get("role")
@@ -106,7 +106,7 @@ def unified_auth_view(request):
         location = get_location_from_ip(ip_address)
 
         # ===============================
-        # STEP 1 — SEND CODE
+        # STEP 1 — SEND CODE (LOGIN OR SIGNUP)
         # ===============================
         if action == "send_code":
 
@@ -155,10 +155,10 @@ def unified_auth_view(request):
             return render(request, "auth.html", {"form": form})
 
         # ===============================
-        # STEP 2 — VERIFY CODE
+        # STEP 2 — VERIFY CODE (LOGIN OR SIGNUP)
         # ===============================
         if action == "verify_code":
-            code = form.cleaned_data["code"]
+            code = form.cleaned_data.get("code")
 
             verification = DeviceVerification.objects.filter(
                 email=email,
@@ -178,19 +178,25 @@ def unified_auth_view(request):
             verification.is_used = True
             verification.save(update_fields=["is_used"])
 
-            user, created = CustomUser.objects.get_or_create(
-                email=email,
-                defaults={
-                    "username": email,
-                    "role": role,
-                    "password": make_password(None),
-                }
-            )
+            # ===== USER RESOLUTION (LOGIN VS SIGNUP) =====
+            user = CustomUser.objects.filter(email=email).first()
 
-            # Ensure role stays in sync
-            if user.role != role:
-                user.role = role
-                user.save(update_fields=["role"])
+            if user:
+                # Existing user → LOGIN
+                if user.role != role:
+                    messages.error(
+                        request,
+                        "This email is already registered with a different role."
+                    )
+                    return render(request, "auth.html", {"form": form})
+            else:
+                # New user → SIGNUP
+                user = CustomUser.objects.create(
+                    email=email,
+                    username=email,
+                    role=role,
+                    password=make_password(None),
+                )
 
             Profile.objects.get_or_create(
                 user=user,
@@ -204,10 +210,10 @@ def unified_auth_view(request):
             return redirect("dashboard")
 
         # ===============================
-        # STEP 3 — PASSWORD LOGIN
+        # STEP 3 — PASSWORD LOGIN (EXISTING USERS ONLY)
         # ===============================
         if action == "login_password":
-            password = form.cleaned_data["password"]
+            password = form.cleaned_data.get("password")
 
             user = authenticate(
                 request,
