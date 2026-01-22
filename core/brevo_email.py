@@ -3,7 +3,7 @@ from django.conf import settings
 
 def send_brevo_email(subject, html_content, to_email, text_content=""):
     """
-    Sends a fully rendered HTML email with an optional text fallback using Brevo.
+    Sends an email using Brevo SHARED sender (best Gmail deliverability).
     """
     configuration = Configuration()
     configuration.api_key['api-key'] = settings.BREVO_API_KEY
@@ -12,11 +12,18 @@ def send_brevo_email(subject, html_content, to_email, text_content=""):
         api_instance = TransactionalEmailsApi(api_client)
 
         email = SendSmtpEmail(
-            sender={"name": "Joblink Kenya", "email": "support@stepper.dpdns.org"},
+            # 🚫 DO NOT SET sender.email
+            sender={
+                "name": "Joblink Kenya"
+            },
             to=[{"email": to_email}],
             subject=subject,
             html_content=html_content,
-            text_content=text_content or None,  # only attach if non-empty
+            text_content=text_content or None,
+            reply_to={
+                "email": "support@stepper.dpdns.org",
+                "name": "Joblink Kenya Support"
+            }
         )
 
         api_instance.send_transac_email(email)
