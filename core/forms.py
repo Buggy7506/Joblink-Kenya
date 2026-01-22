@@ -13,6 +13,38 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 
+ROLE_CHOICES = (
+    ('applicant', 'Applicant'),
+    ('employer', 'Employer'),
+)
+
+class UnifiedAuthForm(forms.Form):
+    identifier = forms.EmailField(required=True)
+    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
+
+    # Employer fields
+    company_name = forms.CharField(required=False)
+    company_email = forms.EmailField(required=False)
+    company_website = forms.URLField(required=False)
+
+    # Step fields
+    code = forms.CharField(required=False, max_length=6)
+    password = forms.CharField(required=False, widget=forms.PasswordInput)
+
+    # hidden
+    action = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        role = cleaned.get("role")
+
+        if role == "employer":
+            if not cleaned.get("company_name"):
+                self.add_error("company_name", "Company name is required.")
+            if not cleaned.get("company_email"):
+                self.add_error("company_email", "Business email is required.")
+        return cleaned
+
 class EmployerCompanyForm(forms.ModelForm):
     # Display-only field for templates
     registration_number_display = forms.CharField(
