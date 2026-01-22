@@ -488,35 +488,6 @@
            {% endfor %}
          </div>
 
-          <!-- EMPLOYER FIELDS -->
-          <div id="employer-fields"
-               style="display:{% if form.role.value == 'employer' %}block{% else %}none{% endif %};">
-
-            <input
-              type="text"
-              name="company_name"
-              placeholder="Company name"
-              class="auth-input"
-              autocomplete="organization"
-            >
-
-            <input
-              type="email"
-              name="company_email"
-              placeholder="Company contact email"
-              class="auth-input"
-              autocomplete="email"
-            >
-
-            <input
-              type="url"
-              name="company_website"
-              placeholder="Company website (optional)"
-              class="auth-input"
-              autocomplete="url"
-            >
-          </div>
-
           <button type="submit"
                   name="action"
                   value="send_code"
@@ -713,25 +684,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   window.toPassword = () => show("step-password");
   window.back = () => show("step-email");
-
-  // =========================
-  // ROLE TOGGLE (EMPLOYER FIELDS)
-  // =========================
-  const roleRadios = document.querySelectorAll('input[name="role"]');
-  const employerFields = document.getElementById("employer-fields");
-
-  if (roleRadios && employerFields) {
-    roleRadios.forEach(radio => {
-      radio.addEventListener("change", () => {
-        employerFields.style.display =
-          radio.value === "employer" ? "block" : "none";
-      });
-
-      if (radio.checked && radio.value === "employer") {
-        employerFields.style.display = "block";
-      }
-    });
-  }
 
   // =========================
   // FORM SUBMIT VALIDATION
