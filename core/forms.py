@@ -20,30 +20,30 @@ ROLE_CHOICES = (
 
 class UnifiedAuthForm(forms.Form):
     identifier = forms.EmailField(required=True)
-    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
 
-    # Employer fields
-    company_name = forms.CharField(required=False)
-    company_email = forms.EmailField(required=False)
-    company_website = forms.URLField(required=False)
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        widget=forms.RadioSelect,
+        required=True
+    )
 
-    # Step fields
-    code = forms.CharField(required=False, max_length=6)
-    password = forms.CharField(required=False, widget=forms.PasswordInput)
+    # OTP verification
+    code = forms.CharField(
+        required=False,
+        max_length=6
+    )
 
-    # hidden
-    action = forms.CharField(widget=forms.HiddenInput, required=False)
+    # Password login
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput
+    )
 
-    def clean(self):
-        cleaned = super().clean()
-        role = cleaned.get("role")
-
-        if role == "employer":
-            if not cleaned.get("company_name"):
-                self.add_error("company_name", "Company name is required.")
-            if not cleaned.get("company_email"):
-                self.add_error("company_email", "Business email is required.")
-        return cleaned
+    # Hidden action controller
+    action = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False
+    )
 
 class EmployerCompanyForm(forms.ModelForm):
     # Display-only field for templates
