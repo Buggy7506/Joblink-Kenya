@@ -1,0 +1,136 @@
+{% if form.errors or messages %}
+<style>
+/* =========================================================
+   FORM ERRORS — SELF CONTAINED & THEME AWARE
+========================================================= */
+
+.form-errors-wrapper {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Base alert */
+.form-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.85rem;
+
+  background: rgba(248, 113, 113, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+
+  color: var(--text-main);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+
+  animation: formErrorFade 0.35s ease;
+}
+
+/* Error specific */
+.alert-error {
+  border-color: var(--text-danger);
+}
+
+/* Success / info support */
+.alert-success {
+  background: rgba(34, 211, 238, 0.14);
+  border-color: var(--text-accent);
+}
+
+/* Icon */
+.alert-icon {
+  font-size: 1.1rem;
+  line-height: 1.2;
+  color: var(--text-danger);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+/* Text */
+.alert-text {
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.alert-text strong {
+  display: block;
+  font-weight: 600;
+}
+
+.alert-text p {
+  margin: 0.25rem 0 0;
+}
+
+/* Light mode tuning */
+body.light-mode .form-alert {
+  background: rgba(220, 38, 38, 0.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+/* Subtle glow border when needed */
+.glow-border {
+  border: 1px solid transparent;
+  border-image: linear-gradient(
+    45deg,
+    var(--text-danger),
+    var(--glow-accent)
+  );
+  border-image-slice: 1;
+}
+
+/* Animation */
+@keyframes formErrorFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+<div class="form-errors-wrapper">
+
+  {# ===== DJANGO MESSAGES ===== #}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="form-alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-error{% endif %}">
+        <span class="alert-icon">⚠</span>
+        <span class="alert-text">{{ message }}</span>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {# ===== NON-FIELD ERRORS ===== #}
+  {% if form.non_field_errors %}
+    <div class="form-alert alert-error glow-border">
+      <span class="alert-icon">✖</span>
+      <div class="alert-text">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {# ===== FIELD ERRORS ===== #}
+  {% for field in form %}
+    {% if field.errors %}
+      <div class="form-alert alert-error">
+        <span class="alert-icon">•</span>
+        <div class="alert-text">
+          <strong>{{ field.label }}</strong>
+          {% for error in field.errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+</div>
+{% endif %}
