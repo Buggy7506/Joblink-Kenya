@@ -769,8 +769,7 @@ body.light-mode .active-link {
             </div>
         {% else %}
           <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-            <a href="{% url 'login' %}" class="hover-glow guest-link">Sign In</a>
-            <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
+            <a href="{% url 'unified_auth' %}" class="hover-glow guest-link">Sign In OR Sign Up</a>
         {% endif %}
       </nav>
 
@@ -804,8 +803,7 @@ body.light-mode .active-link {
       </a>
     {% else %}
       <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
-      <a href="{% url 'login' %}" class="hover-glow guest-link">Sign In</a>
-      <a href="{% url 'signup' %}" class="hover-glow guest-link">Sign Up</a>
+      <a href="{% url 'unified_auth' %}" class="hover-glow guest-link">Sign In OR Sign Up</a>
     {% endif %}
 
     <!-- Mobile Theme Toggle -->
