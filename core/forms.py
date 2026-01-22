@@ -18,8 +18,21 @@ ROLE_CHOICES = (
     ('employer', 'Employer'),
 )
 
+CHANNEL_CHOICES = (
+    ('email', 'Email'),
+    ('sms', 'SMS'),
+    ('whatsapp', 'WhatsApp'),
+)
+
+
 class UnifiedAuthForm(forms.Form):
-    identifier = forms.EmailField(required=True)
+    # =========================
+    # COMMON IDENTIFIER
+    # =========================
+    identifier = forms.EmailField(
+        required=True,
+        label="Email address"
+    )
 
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
@@ -27,23 +40,85 @@ class UnifiedAuthForm(forms.Form):
         required=True
     )
 
-    # OTP verification
+    channel = forms.ChoiceField(
+        choices=CHANNEL_CHOICES,
+        required=False
+    )
+
+    phone = forms.CharField(
+        required=False,
+        label="Phone number"
+    )
+
+    # =========================
+    # OTP VERIFICATION
+    # =========================
     code = forms.CharField(
         required=False,
-        max_length=6
+        max_length=6,
+        label="Verification code"
     )
 
-    # Password login
+    # =========================
+    # PASSWORD LOGIN
+    # =========================
     password = forms.CharField(
         required=False,
-        widget=forms.PasswordInput
+        widget=forms.PasswordInput,
+        label="Password"
     )
 
-    # Hidden action controller
+    # =========================
+    # ACTION CONTROLLER
+    # =========================
     action = forms.CharField(
         widget=forms.HiddenInput,
         required=False
     )
+
+    # =========================
+    # GLOBAL VALIDATION
+    # =========================
+    def clean(self):
+        cleaned = super().clean()
+
+        action = cleaned.get("action")
+        channel = cleaned.get("channel")
+        phone = cleaned.get("phone")
+        code = cleaned.get("code")
+        password = cleaned.get("password")
+
+        # -------------------------
+        # SEND OTP (SIGNUP / LOGIN)
+        # -------------------------
+        if action == "send_code":
+            if channel in ("sms", "whatsapp") and not phone:
+                self.add_error(
+                    "phone",
+                    "Phone number is required for SMS or WhatsApp verification."
+                )
+
+        # -------------------------
+        # VERIFY OTP
+        # -------------------------
+        if action == "verify_code":
+            if not code:
+                self.add_error(
+                    "code",
+                    "Verification code is required."
+                )
+
+        # -------------------------
+        # PASSWORD LOGIN
+        # -------------------------
+        if action == "login_password":
+            if not password:
+                self.add_error(
+                    "password",
+                    "Password is required."
+                )
+
+        return cleaned
 
 class EmployerCompanyForm(forms.ModelForm):
     # Display-only field for templates
