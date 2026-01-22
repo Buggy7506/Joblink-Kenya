@@ -186,6 +186,43 @@
 .auth-page .hidden {
   display: none;
 }
+
+/* =========================================
+   RESEND OTP BUTTON (COOLDOWN-AWARE)
+========================================= */
+
+.auth-page .resend-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 0.75rem;
+
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  color: var(--text-muted);
+  cursor: not-allowed;
+
+  transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+/* Enabled state */
+.auth-page .resend-btn:not(:disabled) {
+  color: var(--text-link);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Hover when enabled */
+.auth-page .resend-btn:not(:disabled):hover {
+  color: var(--text-accent);
+  text-shadow: 0 0 6px var(--glow-accent);
+}
+
+/* Disabled state */
+.auth-page .resend-btn:disabled {
+  opacity: 0.6;
+}
 </style>
 
 <div class="auth-page">
@@ -200,110 +237,129 @@
         </svg>
       </div>
 
-      <form method="POST" novalidate>
+      <form method="POST" action="{% url 'unified_auth' %}" novalidate>
         {% csrf_token %}
-        {{ form.action }} <!-- hidden action field -->
 
-        <!-- ================= STEP 1: EMAIL / SOCIAL ================= -->
+        <!-- ================= STEP 1: EMAIL ================= -->
         <section id="step-email">
           <h2>Log in or Sign up</h2>
           <p>Get smarter responses and access more features</p>
 
-          <!-- SOCIAL BUTTONS -->
-          <button type="button" class="auth-btn" onclick="social('google')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" alt="Google"> Continue with Google
-          </button>
-          <button type="button" class="auth-btn" onclick="social('apple')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" alt="Apple"> Continue with Apple
-          </button>
-          <button type="button" class="auth-btn" onclick="social('microsoft')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="18" alt="Microsoft"> Continue with Microsoft
-          </button>
-          <button type="button" class="auth-btn" onclick="social('phone')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Phone_font_awesome.svg" width="18" alt="Phone"> Continue with phone
+          <!-- SOCIAL -->
+          <button type="button" class="auth-btn" onclick="location.href='{% url 'social:begin' 'google-oauth2' %}'">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18"> Continue with Google
           </button>
 
           <div class="divider">OR</div>
 
-          <!-- EMAIL FIELD -->
-          <div style="margin-bottom:1rem;">
-            <input type="email" name="{{ form.identifier.name }}" value="{{ form.identifier.value }}" placeholder="Email address" class="auth-input" required>
-          </div>
+          <input
+            type="email"
+            name="{{ form.identifier.name }}"
+            value="{{ form.identifier.value|default:'' }}"
+            placeholder="Email address"
+            class="auth-input"
+            required
+          >
 
-          <!-- ROLE SELECTION -->
-          <div class="row" style="margin-bottom:1rem;">
+          <!-- ROLE -->
+          <div class="row">
             {% for val, label in form.role.field.choices %}
               <label>
-                <input type="radio" name="role" value="{{ val }}" {% if form.role.value == val %}checked{% endif %}> {{ label }}
+                <input type="radio" name="role" value="{{ val }}"
+                  {% if form.role.value == val %}checked{% endif %}>
+                {{ label }}
               </label>
             {% endfor %}
           </div>
 
           <!-- EMPLOYER FIELDS -->
-          <div id="employer-fields" style="display: {% if form.role.value == 'employer' %}block{% else %}none{% endif %};">
+          <div id="employer-fields"
+               style="display:{% if form.role.value == 'employer' %}block{% else %}none{% endif %};">
             {{ form.company_name }}
             {{ form.company_email }}
             {{ form.company_website }}
           </div>
 
-          <!-- RECAPTCHA -->
-          <div style="margin:0.5rem 0;">
-            <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
-            {{ form.recaptcha_response }}
-          </div>
+          <button type="submit"
+                  name="action"
+                  value="send_code"
+                  class="auth-btn primary">
+            Continue
+          </button>
 
-          <!-- PRIMARY CONTINUE -->
-          <button type="submit" name="action" value="send_code" class="auth-btn primary" onclick="sendCode()">Continue</button>
-
-          <!-- ERRORS -->
-          {% if form.errors %}
-            <ul style="margin-top:1rem; list-style:none; padding:0;">
-              {% for field in form %}
-                {% for error in field.errors %}
-                  <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
-                {% endfor %}
-              {% endfor %}
-              {% for error in form.non_field_errors %}
-                <li style="color: var(--text-danger); font-size:0.85rem;">{{ error }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
+          {% include "partials/form_errors.html" %}
         </section>
 
-        <!-- ================= STEP 2: CODE VERIFICATION ================= -->
-        <section id="step-code" class="hidden">
+        <!-- ================= STEP 2: OTP ================= -->
+        <section id="step-code" class="{% if request.POST.action != 'send_code' %}hidden{% endif %}">
           <h2>Check your inbox</h2>
-          <p>Enter the code sent to <b id="emailLabel"></b></p>
+          <p>Enter the code sent to <b>{{ request.session.auth_email }}</b></p>
 
-          <input type="text" name="code" maxlength="6" placeholder="6-digit code" required>
-          <button type="submit" name="action" value="verify_code" class="auth-btn primary">Continue</button>
+          <input type="text"
+                 name="code"
+                 maxlength="6"
+                 placeholder="6-digit code"
+                 class="auth-input"
+                 required>
 
-          <button type="button" class="auth-link" onclick="resend()">Resend email</button>
+          <button type="submit"
+                  name="action"
+                  value="verify_code"
+                  class="auth-btn primary">
+            Verify
+          </button>
+
+         <button
+           type="submit"
+           name="action"
+           value="send_code"
+           id="resendBtn"
+           class="resend-btn"
+           disabled>
+           Resend code (<span id="countdown">30</span>s)
+         </button>
+
           <div class="divider">OR</div>
-          <button type="button" class="auth-btn" onclick="toPassword()">Continue with password</button>
+
+          <button type="button"
+                  class="auth-btn"
+                  onclick="showPassword()">
+            Continue with password
+          </button>
         </section>
 
         <!-- ================= STEP 3: PASSWORD ================= -->
         <section id="step-password" class="hidden">
           <h2>Enter your password</h2>
 
-          <div class="row">
-            <span id="emailLabel2"></span>
-            <button type="button" class="auth-link" onclick="back()">Edit</button>
-          </div>
+          <p>{{ request.session.auth_email }}</p>
 
-          <input type="password" name="password" placeholder="Password" required>
-          <button type="submit" name="action" value="login_password" class="auth-btn primary">Continue</button>
+          <input type="password"
+                 name="password"
+                 placeholder="Password"
+                 class="auth-input"
+                 required>
 
-          <!-- Forgot password -->
+          <button type="submit"
+                  name="action"
+                  value="login_password"
+                  class="auth-btn primary">
+            Continue
+          </button>
+
           <a href="{% url 'password_reset' %}" class="auth-link">Forgot password?</a>
 
           <div class="divider">OR</div>
-          <button type="submit" name="action" value="magic_link" class="auth-btn">Log in with a one-time code</button>
+
+          <button type="submit"
+                  name="action"
+                  value="magic_link"
+                  class="auth-btn">
+            Log in with one-time code
+          </button>
         </section>
 
       </form>
-
     </div>
   </div>
 </div>
@@ -311,6 +367,8 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   let email = "";
+  let resendCooldown = 30; // seconds
+  let resendTimer = null;
 
   // =========================
   // STEP NAVIGATION
@@ -324,27 +382,68 @@ document.addEventListener("DOMContentLoaded", () => {
     if (target) target.classList.remove("hidden");
   }
 
-  window.sendCode = function() {
+  // =========================
+  // RESEND COOLDOWN HANDLER
+  // =========================
+  function startResendCooldown() {
+    const resendBtn = document.getElementById("resendBtn");
+    const countdown = document.getElementById("countdown");
+
+    if (!resendBtn || !countdown) return;
+
+    let remaining = resendCooldown;
+    resendBtn.disabled = true;
+    resendBtn.classList.add("disabled");
+    countdown.textContent = remaining;
+
+    resendTimer && clearInterval(resendTimer);
+
+    resendTimer = setInterval(() => {
+      remaining--;
+      countdown.textContent = remaining;
+
+      if (remaining <= 0) {
+        clearInterval(resendTimer);
+        resendBtn.disabled = false;
+        resendBtn.classList.remove("disabled");
+        resendBtn.innerHTML = "Resend code";
+      }
+    }, 1000);
+  }
+
+  // =========================
+  // STEP 1 → SEND CODE
+  // =========================
+  window.sendCode = function () {
     const emailInput = document.querySelector('input[name="identifier"]');
     if (!emailInput) return;
+
     email = emailInput.value.trim();
-    if (!email) return alert("Enter your email address");
+    if (!email) {
+      alert("Enter your email address");
+      return;
+    }
+
     // Update labels for steps 2 & 3
     const label1 = document.getElementById("emailLabel");
     const label2 = document.getElementById("emailLabel2");
     if (label1) label1.textContent = email;
     if (label2) label2.textContent = email;
+
     show("step-code");
+    startResendCooldown();
   };
 
-  window.toPassword = function() { show("step-password"); };
-  window.back = function() { show("step-email"); };
-  window.resend = function() {
-    if (!email) return alert("No email entered yet");
-    alert("A new code has been sent to " + email);
-  };
+  // =========================
+  // STEP NAV SHORTCUTS
+  // =========================
+  window.toPassword = () => show("step-password");
+  window.back = () => show("step-email");
 
-  window.social = function(provider) {
+  // =========================
+  // SOCIAL PLACEHOLDER
+  // =========================
+  window.social = function (provider) {
     alert("Auth via " + provider);
   };
 
@@ -352,54 +451,60 @@ document.addEventListener("DOMContentLoaded", () => {
   // ROLE TOGGLE (EMPLOYER FIELDS)
   // =========================
   const roleRadios = document.querySelectorAll('input[name="role"]');
-  const employerFields = document.getElementById('employer-fields');
+  const employerFields = document.getElementById("employer-fields");
 
   if (roleRadios && employerFields) {
     roleRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        employerFields.style.display = (radio.value === 'employer') ? 'block' : 'none';
+      radio.addEventListener("change", () => {
+        employerFields.style.display =
+          radio.value === "employer" ? "block" : "none";
       });
 
-      // Initialize on page load
-      if (radio.checked && radio.value === 'employer') {
-        employerFields.style.display = 'block';
+      if (radio.checked && radio.value === "employer") {
+        employerFields.style.display = "block";
       }
     });
   }
 
   // =========================
-  // SUBMIT VALIDATION (UPDATED FOR NEW ACTIONS)
+  // FORM SUBMIT VALIDATION
   // =========================
-  const form = document.querySelector('form');
-  if (form) {
-    form.addEventListener('submit', e => {
-      const action = e.submitter?.value; // send_code, verify_code, login_password, magic_link
+  const form = document.querySelector("form");
 
-      // BLOCK invalid email for step 1
-      if (action === 'send_code') {
+  if (form) {
+    form.addEventListener("submit", e => {
+      const action = e.submitter?.value;
+
+      // STEP 1 validation
+      if (action === "send_code") {
         const emailInput = document.querySelector('input[name="identifier"]');
         if (!emailInput.value.trim()) {
           e.preventDefault();
           alert("Enter your email address before continuing.");
           show("step-email");
+          return;
         }
+
+        // ensure cooldown starts even on server response
+        setTimeout(startResendCooldown, 300);
       }
 
-      // BLOCK empty password on password login
-      if (action === 'login_password') {
-        const pass = document.querySelector('input[name="password"]');
-        if (!pass.value.trim()) {
-          e.preventDefault();
-          alert("Enter your password.");
-        }
-      }
-
-      // BLOCK empty code on verify step
-      if (action === 'verify_code') {
+      // STEP 2 validation
+      if (action === "verify_code") {
         const code = document.querySelector('input[name="code"]');
         if (!code.value.trim()) {
           e.preventDefault();
           alert("Enter the 6-digit code.");
+          return;
+        }
+      }
+
+      // STEP 3 validation
+      if (action === "login_password") {
+        const pass = document.querySelector('input[name="password"]');
+        if (!pass.value.trim()) {
+          e.preventDefault();
+          alert("Enter your password.");
         }
       }
     });
