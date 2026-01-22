@@ -70,28 +70,49 @@ from .email_backend import send_password_reset
 # MAIN AUTH VIEW
 # -----------------------------------
 
+
 @csrf_protect
 def unified_auth_view(request):
     form = UnifiedAuthForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
         action = request.POST.get("action")
-        email = form.cleaned_data["identifier"].lower()
-        role = form.cleaned_data["role"]
 
-        channel = request.POST.get("channel", "email")  # email | sms | whatsapp
+        # ===============================
+        # CONTEXT (SESSION-SAFE)
+        # ===============================
+        email = (
+            form.cleaned_data.get("identifier")
+            or request.session.get("auth_email")
+        )
+        if email:
+            email = email.lower()
+
+        role = form.cleaned_data.get("role") or request.session.get("auth_role")
+
+        channel = request.POST.get(
+            "channel",
+            request.session.get("otp_channel", "email")
+        )
+
         phone = form.cleaned_data.get("phone")
+        destination = email if channel == "email" else phone
 
         device_fingerprint = get_device_fingerprint(request)
         ip_address = get_client_ip(request)
         location = get_location_from_ip(ip_address)
 
-        destination = email if channel == "email" else phone
-
         # ===============================
         # STEP 1 — SEND CODE
         # ===============================
         if action == "send_code":
+
+            if channel in ["sms", "whatsapp"] and not phone:
+                messages.error(
+                    request,
+                    "Phone number is required for SMS or WhatsApp verification."
+                )
+                return render(request, "auth.html", {"form": form})
 
             if otp_recently_sent(email, device_fingerprint):
                 messages.warning(
@@ -100,7 +121,7 @@ def unified_auth_view(request):
                 )
                 return render(request, "auth.html", {"form": form})
 
-            # Invalidate previous unused OTPs for this device
+            # Invalidate previous unused OTPs
             DeviceVerification.objects.filter(
                 email=email,
                 device_fingerprint=device_fingerprint,
@@ -145,7 +166,10 @@ def unified_auth_view(request):
             ).first()
 
             if not verification:
-                messages.error(request, "Invalid or expired verification code.")
+                messages.error(
+                    request,
+                    "Invalid or expired verification code."
+                )
                 return render(request, "auth.html", {"form": form})
 
             verification.is_used = True
@@ -194,7 +218,10 @@ def unified_auth_view(request):
             )
 
             if not user:
-                messages.error(request, "Invalid email or password.")
+                messages.error(
+                    request,
+                    "Invalid email or password."
+                )
                 return render(request, "auth.html", {"form": form})
 
             login(request, user)
@@ -230,6 +257,8 @@ def unified_auth_view(request):
             )
 
             send_otp(channel, destination, code)
+
+            request.session["otp_channel"] = channel
 
             messages.success(
                 request,
