@@ -13,17 +13,15 @@ User = get_user_model()
 
 def send_password_reset(user, request):
     """
-    Generate a secure, branded password reset email using Brevo.
+    Generate a secure, Gmail-safe password reset email using Brevo shared sender.
     """
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-    # Pull domain from Site framework (safer & recommended)
     site = get_current_site(request)
     domain = site.domain
     protocol = "https" if request.is_secure() else "http"
 
-    # Construct the reset URL
     reset_url = f"{protocol}://{domain}{reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})}"
 
     context = {
@@ -32,18 +30,15 @@ def send_password_reset(user, request):
         "reset_url": reset_url,
         "domain": domain,
         "protocol": protocol,
-        "site_name": "JobLink",
+        "site_name": "JobLink Kenya",
     }
 
-    # Subject line comes from plain text template
     subject = render_to_string("password_reset_subject.txt", context).strip()
-
-    # Beautiful HTML body
     html_content = render_to_string("password_reset_email.html", context)
 
+    # ✅ NO from_email
     send_brevo_email(
         subject=subject,
         html_content=html_content,
         to_email=user.email,
-        from_email="support@stepper.dpdns.org",
     )
