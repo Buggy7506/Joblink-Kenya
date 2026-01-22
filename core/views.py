@@ -59,30 +59,17 @@ from .forms import (
     EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm, UnifiedAuthForm,
     CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm, CompanyDocumentForm
 )
-from .utils import send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, get_client_ip, get_device_fingerprint, is_business_email
+from .utils import (
+    send_verification_email, send_whatsapp_otp, send_sms_otp, generate_code, 
+    get_client_ip, get_device_fingerprint, is_business_email, brevo_send_email, otp_recently_sent, get_location_from_ip,
+)
 from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
 from .email_backend import send_password_reset
-
-
-# -----------------------------------
-# HELPERS
-# -----------------------------------
-def generate_code():
-    return str(random.randint(100000, 999999))
-
-
-def get_device_data(request):
-    return {
-        "device_fingerprint": request.META.get("HTTP_USER_AGENT", "")[:255],
-        "user_agent": request.META.get("HTTP_USER_AGENT", ""),
-        "ip_address": request.META.get("REMOTE_ADDR", ""),
-    }
-
-
 # -----------------------------------
 # MAIN AUTH VIEW
 # -----------------------------------
+
 @csrf_protect
 def unified_auth_view(request):
     form = UnifiedAuthForm(request.POST or None)
@@ -92,12 +79,25 @@ def unified_auth_view(request):
         email = form.cleaned_data["identifier"].lower()
         role = form.cleaned_data["role"]
 
+        device_fingerprint = get_device_fingerprint(request)
+        ip_address = get_client_ip(request)
+        location = get_location_from_ip(ip_address)
+
         # ===============================
         # STEP 1 — SEND CODE
         # ===============================
         if action == "send_code":
+
+            if otp_recently_sent(email, device_fingerprint):
+                messages.warning(
+                    request,
+                    "Please wait before requesting another verification code."
+                )
+                return render(request, "auth.html", {"form": form})
+
             DeviceVerification.objects.filter(
                 email=email,
+                device_fingerprint=device_fingerprint,
                 is_used=False
             ).update(is_used=True)
 
@@ -107,13 +107,15 @@ def unified_auth_view(request):
                 email=email,
                 code=code,
                 verified_via="email",
-                **get_device_data(request)
+                device_fingerprint=device_fingerprint,
+                ip_address=ip_address,
+                location=location,
             )
 
-            send_brevo_email(
+            brevo_send_email(
                 subject="Your Joblink login code",
-                to_email=email,
-                html_content=f"""
+                recipient=email,
+                html_body=f"""
                 <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
                     <h2>Joblink Kenya Login</h2>
                     <p>Your one-time login code is:</p>
@@ -139,12 +141,13 @@ def unified_auth_view(request):
             verification = DeviceVerification.objects.filter(
                 email=email,
                 code=code,
+                device_fingerprint=device_fingerprint,
                 is_used=False,
-                created_at__gte=timezone.now() - timedelta(minutes=5)
+                created_at__gte=timezone.now() - timedelta(minutes=5),
             ).first()
 
             if not verification:
-                messages.error(request, "Invalid or expired code.")
+                messages.error(request, "Invalid or expired verification code.")
                 return render(request, "auth.html", {"form": form})
 
             verification.is_used = True
@@ -163,7 +166,7 @@ def unified_auth_view(request):
                 user=user,
                 defaults={
                     "full_name": email.split("@")[0],
-                    "role": role
+                    "role": role,
                 }
             )
 
@@ -171,9 +174,9 @@ def unified_auth_view(request):
                 EmployerCompany.objects.get_or_create(
                     user=user,
                     defaults={
-                        "company_name": form.cleaned_data["company_name"],
-                        "business_email": form.cleaned_data["company_email"],
-                        "company_website": form.cleaned_data["company_website"],
+                        "company_name": form.cleaned_data.get("company_name"),
+                        "business_email": form.cleaned_data.get("company_email"),
+                        "company_website": form.cleaned_data.get("company_website"),
                     }
                 )
 
@@ -186,7 +189,12 @@ def unified_auth_view(request):
         if action == "login_password":
             password = form.cleaned_data["password"]
 
-            user = authenticate(request, username=email, password=password)
+            user = authenticate(
+                request,
+                username=email,
+                password=password
+            )
+
             if not user:
                 messages.error(request, "Invalid email or password.")
                 return render(request, "auth.html", {"form": form})
@@ -198,8 +206,17 @@ def unified_auth_view(request):
         # MAGIC LINK (OTP EMAIL)
         # ===============================
         if action == "magic_link":
+
+            if otp_recently_sent(email, device_fingerprint):
+                messages.warning(
+                    request,
+                    "Please wait before requesting another code."
+                )
+                return render(request, "auth.html", {"form": form})
+
             DeviceVerification.objects.filter(
                 email=email,
+                device_fingerprint=device_fingerprint,
                 is_used=False
             ).update(is_used=True)
 
@@ -209,13 +226,15 @@ def unified_auth_view(request):
                 email=email,
                 code=code,
                 verified_via="email",
-                **get_device_data(request)
+                device_fingerprint=device_fingerprint,
+                ip_address=ip_address,
+                location=location,
             )
 
-            send_brevo_email(
+            brevo_send_email(
                 subject="Your Joblink one-time login code",
-                to_email=email,
-                html_content=f"""
+                recipient=email,
+                html_body=f"""
                 <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
                     <h2>Joblink Kenya One-Time Login</h2>
                     <p>Use this code to log in:</p>
@@ -229,7 +248,7 @@ def unified_auth_view(request):
             return render(request, "auth.html", {"form": form})
 
     return render(request, "auth.html", {"form": form})
-
+    
 class CustomPasswordResetView(FormView):
     template_name = "password_reset.html"
     form_class = PasswordResetForm
