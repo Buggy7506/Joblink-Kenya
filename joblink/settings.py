@@ -238,6 +238,11 @@ MESSAGE_TAGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+OTP_EXPIRY_MINUTES = 5
+OTP_RESEND_COOLDOWN = 60        # seconds
+OTP_MAX_ATTEMPTS = 5
+TRUSTED_DEVICE_DAYS = 30
+
 # Security / Domain
 SITE_URL = "https://www.stepper.dpdns.org"
 
