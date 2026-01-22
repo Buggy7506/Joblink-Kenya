@@ -267,7 +267,7 @@ EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 
 # Default sender
-DEFAULT_FROM_EMAIL = "support@stepper.dpdns.org"
+DEFAULT_FROM_EMAIL = "Joblink Kenya <noreply@brevo.com>"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
