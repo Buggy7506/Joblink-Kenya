@@ -38,8 +38,6 @@ def otp_recently_sent(identifier, fingerprint):
 # ======================================================
 # BREVO EMAIL (ONLY EMAIL PROVIDER)
 # ======================================================
-
-
 def brevo_send_email(subject, recipient, html_content):
     """
     Send transactional email using Brevo shared sender
@@ -51,7 +49,10 @@ def brevo_send_email(subject, recipient, html_content):
     api = TransactionalEmailsApi(client)
 
     email = SendSmtpEmail(
-        sender={"name": "Joblink Kenya"},
+        sender={
+            "name": "Joblink Kenya",
+            "email": "support@stepper.dpdns.org",  # ✅ REQUIRED by Brevo
+        },
         to=[{"email": recipient}],
         subject=subject,
         html_content=html_content,
@@ -65,20 +66,39 @@ def brevo_send_email(subject, recipient, html_content):
 
 def send_otp_email(email, code):
     return brevo_send_email(
-        subject="Your Joblink Kenya login code",
+        subject="Your Joblink Kenya Login Code",
         recipient=email,
         html_content=f"""
-        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
-            <h2>Joblink Kenya</h2>
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:20px">
+            <h2 style="color:#0f172a">Joblink Kenya</h2>
+
             <p>Your one-time login code is:</p>
-            <h1 style="letter-spacing:4px">{code}</h1>
-            <p><b>This code expires in {settings.OTP_EXPIRY_MINUTES} minutes.</b></p>
-            <p>If you did not request this, you can safely ignore this email.</p>
+
+            <div style="
+                font-size:32px;
+                font-weight:bold;
+                letter-spacing:6px;
+                margin:20px 0;
+                text-align:center;
+            ">
+                {code}
+            </div>
+
+            <p><strong>This code expires in {settings.OTP_EXPIRY_MINUTES} minutes.</strong></p>
+
+            <p style="color:#475569;font-size:14px">
+                If you did not request this login, you can safely ignore this email.
+            </p>
+
+            <hr style="margin-top:30px;border:none;border-top:1px solid #e5e7eb">
+
+            <p style="font-size:12px;color:#64748b">
+                Joblink Kenya • Secure Authentication
+            </p>
         </div>
         """
     )
-
-
+    
 # ======================================================
 # EMPLOYER ACCESS GUARD
 # ======================================================
