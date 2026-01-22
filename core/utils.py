@@ -6,15 +6,26 @@ import secrets
 import requests
 from twilio.rest import Client
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 from django.shortcuts import redirect
 from django.contrib import messages
 from functools import wraps
 from django.core.files.base import ContentFile
+from .models import DeviceVerification
 import time
 import secrets
 from sib_api_v3_sdk import ApiClient, Configuration, TransactionalEmailsApi, SendSmtpEmail
 
 logger = logging.getLogger(__name__)
+
+def otp_recently_sent(email, fingerprint):
+    return DeviceVerification.objects.filter(
+        email=email,
+        device_fingerprint=fingerprint,
+        created_at__gte=timezone.now() - timedelta(seconds=settings.OTP_RESEND_COOLDOWN)
+    ).exists()
+
 
 def brevo_send_email(subject, html_body, recipient):
     config = Configuration()
