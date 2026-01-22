@@ -223,6 +223,99 @@
 .auth-page .resend-btn:disabled {
   opacity: 0.6;
 }
+
+/* =========================================
+   OTP CHANNEL SELECTOR (EMAIL / SMS / WHATSAPP)
+========================================= */
+
+.auth-page .channel-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.auth-page .channel-group label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.auth-page .channel-group input {
+  display: none;
+}
+
+.auth-page .channel-group span {
+  display: block;
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+
+  border-radius: 0.6rem;
+  border: 1px solid var(--text-muted);
+
+  color: var(--text-muted);
+  background: transparent;
+
+  transition: all 0.25s ease;
+}
+
+/* Selected state */
+.auth-page .channel-group input:checked + span {
+  border-color: var(--text-accent);
+  color: var(--text-main);
+  box-shadow: 0 0 6px var(--glow-accent);
+}
+
+/* WhatsApp highlight */
+.auth-page .channel-group .whatsapp input:checked + span {
+  background: rgba(37, 211, 102, 0.15);
+  border-color: #25D366;
+  box-shadow: 0 0 8px rgba(37, 211, 102, 0.6);
+}
+
+/* SMS highlight */
+.auth-page .channel-group .sms input:checked + span {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: #2563eb;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+}
+
+/* =========================================
+   PHONE INPUT (SMS / WHATSAPP)
+========================================= */
+
+.auth-page #phoneInput {
+  display: none;
+  animation: fadeSlideIn 0.25s ease forwards;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   SMALL UX POLISH
+========================================= */
+
+/* Make OTP input feel intentional */
+.auth-page input[name="code"] {
+  letter-spacing: 0.35em;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Disabled resend clarity */
+.auth-page .resend-btn:disabled {
+  opacity: 0.45;
+  text-decoration: none;
+}
 </style>
 
 <div class="auth-page">
@@ -240,18 +333,23 @@
       <form method="POST" action="{% url 'unified_auth' %}" novalidate>
         {% csrf_token %}
 
-        <!-- ================= STEP 1: EMAIL ================= -->
+        <!-- ================= STEP 1: IDENTIFIER ================= -->
         <section id="step-email">
           <h2>Log in or Sign up</h2>
           <p>Get smarter responses and access more features</p>
 
           <!-- SOCIAL -->
-          <button type="button" class="auth-btn" onclick="location.href='{% url 'social:begin' 'google-oauth2' %}'">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18"> Continue with Google
+          <button type="button"
+                  class="auth-btn"
+                  onclick="location.href='{% url 'social:begin' 'google-oauth2' %}'">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
+                 width="18">
+            Continue with Google
           </button>
 
           <div class="divider">OR</div>
 
+          <!-- EMAIL -->
           <input
             type="email"
             name="{{ form.identifier.name }}"
@@ -261,12 +359,42 @@
             required
           >
 
+          <!-- OTP CHANNEL -->
+          <div class="channel-group">
+            <label>
+              <input type="radio" name="channel" value="email" checked>
+              <span>Email</span>
+            </label>
+
+            <label class="sms">
+              <input type="radio" name="channel" value="sms">
+              <span>SMS</span>
+            </label>
+
+            <label class="whatsapp">
+              <input type="radio" name="channel" value="whatsapp">
+              <span>WhatsApp</span>
+            </label>
+          </div>
+
+          <!-- PHONE (SMS / WHATSAPP ONLY) -->
+          <input
+            type="text"
+            name="phone"
+            id="phoneInput"
+            placeholder="+2547XXXXXXXX"
+            class="auth-input"
+            style="display:none;"
+          >
+
           <!-- ROLE -->
           <div class="row">
             {% for val, label in form.role.field.choices %}
               <label>
-                <input type="radio" name="role" value="{{ val }}"
-                  {% if form.role.value == val %}checked{% endif %}>
+                <input type="radio"
+                       name="role"
+                       value="{{ val }}"
+                       {% if form.role.value == val %}checked{% endif %}>
                 {{ label }}
               </label>
             {% endfor %}
@@ -291,16 +419,23 @@
         </section>
 
         <!-- ================= STEP 2: OTP ================= -->
-        <section id="step-code" class="{% if request.POST.action != 'send_code' %}hidden{% endif %}">
-          <h2>Check your inbox</h2>
-          <p>Enter the code sent to <b>{{ request.session.auth_email }}</b></p>
+        <section id="step-code"
+                 class="{% if request.POST.action != 'send_code' %}hidden{% endif %}">
 
-          <input type="text"
-                 name="code"
-                 maxlength="6"
-                 placeholder="6-digit code"
-                 class="auth-input"
-                 required>
+          <h2>Check your messages</h2>
+          <p>
+            Enter the code sent to
+            <b>{{ request.session.auth_email }}</b>
+          </p>
+
+          <input
+            type="text"
+            name="code"
+            maxlength="6"
+            placeholder="6-digit code"
+            class="auth-input"
+            required
+          >
 
           <button type="submit"
                   name="action"
@@ -309,15 +444,15 @@
             Verify
           </button>
 
-         <button
-           type="submit"
-           name="action"
-           value="send_code"
-           id="resendBtn"
-           class="resend-btn"
-           disabled>
-           Resend code (<span id="countdown">30</span>s)
-         </button>
+          <button
+            type="submit"
+            name="action"
+            value="send_code"
+            id="resendBtn"
+            class="resend-btn"
+            disabled>
+            Resend code (<span id="countdown">30</span>s)
+          </button>
 
           <div class="divider">OR</div>
 
@@ -334,11 +469,13 @@
 
           <p>{{ request.session.auth_email }}</p>
 
-          <input type="password"
-                 name="password"
-                 placeholder="Password"
-                 class="auth-input"
-                 required>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            class="auth-input"
+            required
+          >
 
           <button type="submit"
                   name="action"
@@ -347,7 +484,9 @@
             Continue
           </button>
 
-          <a href="{% url 'password_reset' %}" class="auth-link">Forgot password?</a>
+          <a href="{% url 'password_reset' %}" class="auth-link">
+            Forgot password?
+          </a>
 
           <div class="divider">OR</div>
 
@@ -393,7 +532,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let remaining = resendCooldown;
     resendBtn.disabled = true;
-    resendBtn.classList.add("disabled");
     countdown.textContent = remaining;
 
     resendTimer && clearInterval(resendTimer);
@@ -405,10 +543,30 @@ document.addEventListener("DOMContentLoaded", () => {
       if (remaining <= 0) {
         clearInterval(resendTimer);
         resendBtn.disabled = false;
-        resendBtn.classList.remove("disabled");
         resendBtn.innerHTML = "Resend code";
       }
     }, 1000);
+  }
+
+  // =========================
+  // OTP CHANNEL TOGGLE
+  // =========================
+  const channelRadios = document.querySelectorAll('input[name="channel"]');
+  const phoneInput = document.getElementById("phoneInput");
+
+  if (channelRadios && phoneInput) {
+    channelRadios.forEach(radio => {
+      radio.addEventListener("change", () => {
+        if (radio.value === "email") {
+          phoneInput.style.display = "none";
+          phoneInput.required = false;
+          phoneInput.value = "";
+        } else {
+          phoneInput.style.display = "block";
+          phoneInput.required = true;
+        }
+      });
+    });
   }
 
   // =========================
@@ -416,6 +574,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   window.sendCode = function () {
     const emailInput = document.querySelector('input[name="identifier"]');
+    const channel = document.querySelector('input[name="channel"]:checked')?.value;
+    const phone = phoneInput?.value.trim();
+
     if (!emailInput) return;
 
     email = emailInput.value.trim();
@@ -424,11 +585,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Update labels for steps 2 & 3
-    const label1 = document.getElementById("emailLabel");
-    const label2 = document.getElementById("emailLabel2");
-    if (label1) label1.textContent = email;
-    if (label2) label2.textContent = email;
+    if ((channel === "sms" || channel === "whatsapp") && !phone) {
+      alert("Enter your phone number for SMS or WhatsApp");
+      return;
+    }
 
     show("step-code");
     startResendCooldown();
@@ -439,13 +599,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   window.toPassword = () => show("step-password");
   window.back = () => show("step-email");
-
-  // =========================
-  // SOCIAL PLACEHOLDER
-  // =========================
-  window.social = function (provider) {
-    alert("Auth via " + provider);
-  };
 
   // =========================
   // ROLE TOGGLE (EMPLOYER FIELDS)
@@ -474,10 +627,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (form) {
     form.addEventListener("submit", e => {
       const action = e.submitter?.value;
+      const channel = document.querySelector('input[name="channel"]:checked')?.value;
+      const phone = phoneInput?.value.trim();
 
       // STEP 1 validation
       if (action === "send_code") {
         const emailInput = document.querySelector('input[name="identifier"]');
+
         if (!emailInput.value.trim()) {
           e.preventDefault();
           alert("Enter your email address before continuing.");
@@ -485,7 +641,12 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // ensure cooldown starts even on server response
+        if ((channel === "sms" || channel === "whatsapp") && !phone) {
+          e.preventDefault();
+          alert("Phone number is required for SMS or WhatsApp OTP.");
+          return;
+        }
+
         setTimeout(startResendCooldown, 300);
       }
 
