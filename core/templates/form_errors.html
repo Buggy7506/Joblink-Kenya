@@ -140,37 +140,34 @@ body.light-mode .alert-success {
     transform: translateY(0);
   }
 }
+.form-alert.fade-out {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
 </style>
 
-<div class="form-errors-wrapper">
+<div class="form-errors-wrapper" id="formAlerts">
 
-  {# =======================
-     DJANGO MESSAGES
-     ======================= #}
-  {% if messages %}
-    {% for message in messages %}
-      <div class="form-alert
-        {% if 'success' in message.tags %}alert-success
-        {% elif 'warning' in message.tags %}alert-warning
-        {% elif 'error' in message.tags %}alert-error
-        {% else %}alert-info{% endif %}
-      ">
-        <span class="alert-icon">
-          {% if 'success' in message.tags %}✔
-          {% elif 'warning' in message.tags %}⚠
-          {% elif 'error' in message.tags %}✖
-          {% else %}ℹ{% endif %}
-        </span>
-        <span class="alert-text">{{ message }}</span>
-      </div>
-    {% endfor %}
-  {% endif %}
+  {% for message in messages %}
+    <div class="form-alert
+      {% if 'success' in message.tags %}alert-success
+      {% elif 'warning' in message.tags %}alert-warning
+      {% elif 'error' in message.tags %}alert-error
+      {% else %}alert-info{% endif %}
+    ">
+      <span class="alert-icon">
+        {% if 'success' in message.tags %}✔
+        {% elif 'warning' in message.tags %}⚠
+        {% elif 'error' in message.tags %}✖
+        {% else %}ℹ{% endif %}
+      </span>
+      <span class="alert-text">{{ message }}</span>
+    </div>
+  {% endfor %}
 
-  {# =======================
-     NON-FIELD ERRORS
-     ======================= #}
   {% if form.non_field_errors %}
-    <div class="form-alert alert-error glow-border">
+    <div class="form-alert alert-error">
       <span class="alert-icon">✖</span>
       <div class="alert-text">
         {% for error in form.non_field_errors %}
@@ -180,22 +177,37 @@ body.light-mode .alert-success {
     </div>
   {% endif %}
 
-  {# =======================
-     FIELD ERRORS
-     ======================= #}
   {% for field in form %}
-    {% if field.errors %}
+    {% for error in field.errors %}
       <div class="form-alert alert-error">
         <span class="alert-icon">•</span>
         <div class="alert-text">
           <strong>{{ field.label }}</strong>
-          {% for error in field.errors %}
-            <p>{{ error }}</p>
-          {% endfor %}
+          <p>{{ error }}</p>
         </div>
       </div>
-    {% endif %}
+    {% endfor %}
   {% endfor %}
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const alerts = document.querySelectorAll(".form-alert");
+
+  alerts.forEach(alert => {
+    // Auto fade after 5 seconds
+    setTimeout(() => {
+      alert.classList.add("fade-out");
+      setTimeout(() => alert.remove(), 400);
+    }, 5000);
+
+    // Click to dismiss
+    alert.addEventListener("click", () => {
+      alert.classList.add("fade-out");
+      setTimeout(() => alert.remove(), 400);
+    });
+  });
+});
+</script>
 {% endif %}
