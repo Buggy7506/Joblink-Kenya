@@ -331,6 +331,15 @@
 .auth-page .google-btn svg {
   flex-shrink: 0;
 }
+.auth-logo-img {
+  width: 48px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+
+  /* subtle glow to match your theme */
+  filter: drop-shadow(0 0 6px var(--glow-accent));
+}
 </style>
 
 <div class="auth-page">
@@ -339,10 +348,11 @@
 
       <!-- LOGO -->
       <div class="auth-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="9"/>
-          <path d="M12 3v18M3 12h18"/>
-        </svg>
+        <img
+          src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png"
+          alt="Joblink Kenya"
+          class="auth-logo-img"
+        />
       </div>
 
       <form method="POST" action="{% url 'unified_auth' %}" novalidate>
