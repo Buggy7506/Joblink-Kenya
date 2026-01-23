@@ -391,6 +391,7 @@ class DeviceVerification(models.Model):
         null=True,
         blank=True
     )
+    identifier = models.CharField(max_length=255, db_index=True)
     email = models.EmailField(null=True, blank=True)  # store email if pre-login
     code = models.CharField(max_length=6)  # OTP code
     device_fingerprint = models.CharField(max_length=255)
