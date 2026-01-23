@@ -602,8 +602,8 @@ body.light-mode .active-link {
     <!-- Desktop Navigation -->
     <div style="display:flex; align-items:center;">
       <nav class="desktop-nav">
+            {% if user.is_authenticated %}
             {% if user.is_superuser or user.role == 'admin' %}
-            
               <a href="{% url 'home' %}" class="hover-glow guest-link">Home</a>
             
               <!-- Admin Dashboard Dropdown -->
