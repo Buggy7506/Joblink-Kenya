@@ -98,7 +98,11 @@ def unified_auth_view(request):
             request.session.get("otp_channel", "email")
         )
 
-        phone = form.cleaned_data.get("phone")
+        phone = (
+            form.cleaned_data.get("phone")
+            or request.session.get("auth_phone")
+        )
+
         destination = email if channel == "email" else phone
 
         device_fingerprint = get_device_fingerprint(request)
@@ -147,6 +151,7 @@ def unified_auth_view(request):
             request.session["auth_email"] = email
             request.session["auth_role"] = role
             request.session["otp_channel"] = channel
+            request.session["auth_phone"] = phone
 
             messages.success(
                 request,
@@ -163,6 +168,7 @@ def unified_auth_view(request):
             verification = DeviceVerification.objects.filter(
                 email=email,
                 code=code,
+                verified_via=channel,
                 device_fingerprint=device_fingerprint,
                 is_used=False,
                 created_at__gte=timezone.now() - timedelta(minutes=5),
@@ -178,11 +184,12 @@ def unified_auth_view(request):
             verification.is_used = True
             verification.save(update_fields=["is_used"])
 
+            request.session["otp_verified"] = True
+
             # ===== USER RESOLUTION (LOGIN VS SIGNUP) =====
             user = CustomUser.objects.filter(email=email).first()
 
             if user:
-                # Existing user → LOGIN
                 if user.role != role:
                     messages.error(
                         request,
@@ -190,7 +197,6 @@ def unified_auth_view(request):
                     )
                     return render(request, "auth.html", {"form": form})
             else:
-                # New user → SIGNUP
                 user = CustomUser.objects.create(
                     email=email,
                     username=email,
@@ -215,54 +221,59 @@ def unified_auth_view(request):
         if action == "login_password":
             password = form.cleaned_data.get("password")
             confirm_password = request.POST.get("confirm_password")
-        
-            # Try authenticating existing user
+
+            if not request.session.get("otp_verified"):
+                messages.error(
+                    request,
+                    "Please verify your device before logging in."
+                )
+                return render(request, "auth.html", {"form": form})
+
             user = authenticate(
                 request,
                 username=email,
                 password=password
             )
-        
+
             # ===============================
             # EXISTING USER → LOGIN
             # ===============================
             if user:
                 login(request, user)
                 return redirect("dashboard")
-        
+
             # ===============================
             # USER DOES NOT EXIST → SIGNUP FLOW
             # ===============================
             existing_user = CustomUser.objects.filter(email=email).first()
-        
+
             if not existing_user:
-                # First attempt → ask for confirm password
                 if not confirm_password:
                     messages.info(
                         request,
                         "New account detected. Please confirm your password to continue."
                     )
-                    response = render(request, "auth.html", {"form": form})
-                    response["new_user"] = "true"   # flag for frontend
-                    return response
-        
-                # Passwords must match
+                    return render(
+                        request,
+                        "auth.html",
+                        {"form": form, "new_user": True}
+                    )
+
                 if password != confirm_password:
                     messages.error(request, "Passwords do not match.")
-                    response = render(request, "auth.html", {"form": form})
-                    response["new_user"] = "true"
-                    return response
-        
-                # ===============================
-                # CREATE USER
-                # ===============================
+                    return render(
+                        request,
+                        "auth.html",
+                        {"form": form, "new_user": True}
+                    )
+
                 user = CustomUser.objects.create_user(
                     username=email,
                     email=email,
                     password=password,
                     role=role
                 )
-        
+
                 Profile.objects.get_or_create(
                     user=user,
                     defaults={
@@ -270,13 +281,10 @@ def unified_auth_view(request):
                         "role": role,
                     }
                 )
-        
+
                 login(request, user)
                 return redirect("dashboard")
-        
-            # ===============================
-            # USER EXISTS BUT PASSWORD WRONG
-            # ===============================
+
             messages.error(request, "Invalid email or password.")
             return render(request, "auth.html", {"form": form})
 
@@ -312,6 +320,7 @@ def unified_auth_view(request):
             send_otp(channel, destination, code)
 
             request.session["otp_channel"] = channel
+            request.session["auth_phone"] = phone
 
             messages.success(
                 request,
