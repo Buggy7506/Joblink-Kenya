@@ -530,7 +530,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     # 🚫 Block access unless verification is pending
 #     if not request.session.get("pending_verification"):
 #         messages.error(request, "Unauthorized access.")
-#         return redirect("login")
+#         return redirect("unified_auth_view")
 
 #     # 🔐 Ensure user is NOT authenticated (only if they are not in verification process)
 #     if request.user.is_authenticated:
@@ -540,7 +540,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     user_id = request.session.get("verify_device_user_id")
 #     if not user_id:
 #         messages.error(request, "Session expired. Please login again.")
-#         return redirect("login")
+#         return redirect("unified_auth_view")
 
 #     # Retrieve the user from the database
 #     user = get_object_or_404(CustomUser, id=user_id)
@@ -558,7 +558,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     # If no methods are available, show an error
 #     if not options:
 #         messages.error(request, "No verification method available. Please contact support.")
-#         return redirect("login")
+#         return redirect("unified_auth_view")
 
 #     # Handle POST request for method selection
 #     if request.method == "POST":
@@ -598,7 +598,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     user_id = request.session.get('verify_device_user_id')
 #     if not user_id:
 #         messages.error(request, "Session expired. Please login again.")
-#         return redirect("login")
+#         return redirect("unified_auth_view")
 
 #     user = get_object_or_404(CustomUser, id=user_id)
 #     profile, _ = Profile.objects.get_or_create(user=user)
@@ -673,7 +673,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     user_id = request.session.get("verify_device_user_id")
 #     if not user_id:
 #         messages.error(request, "Session expired. Please login again.")
-#         return redirect("login")
+#         return redirect("unified_auth_view")
 
 #     # Use a SAFE variable name (NOT 'user')
 #     pending_user = get_object_or_404(CustomUser, id=user_id)
@@ -747,7 +747,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #                 request,
 #                 "Device verified successfully. Please log in."
 #             )
-#             return redirect("login")
+#             return redirect("unified_auth_view")
 
 #         messages.error(request, "Invalid OTP. Please try again.")
 
@@ -911,7 +911,7 @@ def delete_account(request):
     user.delete()
     logout(request)
     messages.success(request, "Your account has been permanently deleted.")
-    return redirect(reverse("login"))
+    return redirect(reverse("unified_auth_view"))
 
 
 
@@ -965,7 +965,7 @@ def set_google_password(request):
         email = google_user['email']
         if CustomUser.objects.filter(email=email).exists():
             messages.error(request, "An account with this email already exists. Please log in.")
-            return redirect('login')
+            return redirect('unified_auth_view')
 
         # -------------------------
         # 3️⃣ Create user
@@ -1843,7 +1843,7 @@ def dashboard(request):
         })
 
     # Fallback → unknown role
-    return redirect("login")
+    return redirect("unified_auth_view")
     
 @login_required
 def upload_company_docs(request):
@@ -1985,7 +1985,7 @@ def profile_view(request):
 @login_required
 def view_posted_jobs(request):
     if not request.user.is_superuser and request.user.role != 'employer':
-        return redirect('login')
+        return redirect('unified_auth_view')
     jobs = Job.objects.all().order_by('-posted_on')
     posted_jobs = Job.objects.filter(employer=request.user).order_by('-posted_on')
     posted_jobs_count = posted_jobs.count()
@@ -2039,7 +2039,7 @@ def view_applicants(request):
 @login_required
 def employer_control_panel_view(request):
     if not request.user.is_superuser and request.user.role != 'employer':
-        return redirect('login')
+        return redirect('unified_auth_view')
 
     posted_jobs_count = Job.objects.filter(employer=request.user).count()
     active_jobs = Job.objects.filter(employer=request.user, is_active=True).count()
