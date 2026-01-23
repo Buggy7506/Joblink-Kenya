@@ -412,6 +412,7 @@
 
       <form method="POST" action="{% url 'unified_auth' %}" novalidate>
         {% csrf_token %}
+         <input type="hidden" name="ui_step" id="uiStep" value="email">
 
         <!-- ================= STEP 1: IDENTIFIER ================= -->
         <section id="step-email">
@@ -537,19 +538,29 @@
 
           <div class="divider">OR</div>
 
-          <button type="button"
-                  class="auth-btn"
-                  onclick="document.getElementById('step-code').classList.add('hidden');
-                           document.getElementById('step-password').classList.remove('hidden');">
-            Continue with password
-          </button>
+         <button type="submit"
+                 name="action"
+                 value="password_option"
+                 class="auth-btn">
+           Continue with password
+         </button>
+           
         </section>
 
         <!-- ================= STEP 3: PASSWORD ================= -->
         <section id="step-password" class="hidden">
           <h2>Enter your password</h2>
 
-          <p><b>{{ request.session.auth_email|slice:":3" }}***@***</b></p>
+          <p><b>
+              {% if request.session.otp_channel == "email" %}
+                {{ request.session.auth_email|slice:":3" }}***@***
+              {% elif request.session.auth_phone and request.session.auth_phone|length >= 8 %}
+                {{ request.session.auth_phone|slice:":5" }}***{{ request.session.auth_phone|slice:"-3:" }}
+              {% else %}
+                your phone number
+              {% endif %}
+            </b>
+            </p>
 
           <div class="password-field">
             <input
@@ -603,20 +614,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // CONFIG
   // =========================
-  const RESEND_COOLDOWN = 30; // seconds
+  const RESEND_COOLDOWN = 30;
   let resendTimer = null;
 
   // =========================
-  // HELPERS
+  // STEP HANDLING
   // =========================
-  function show(id) {
-    ["step-email", "step-code", "step-password"].forEach(step => {
-      const el = document.getElementById(step);
-      if (el) el.classList.add("hidden");
-    });
+  const steps = {
+    email: document.getElementById("step-email"),
+    code: document.getElementById("step-code"),
+    password: document.getElementById("step-password"),
+  };
 
-    const target = document.getElementById(id);
-    if (target) target.classList.remove("hidden");
+  function show(step) {
+    Object.values(steps).forEach(el => el && el.classList.add("hidden"));
+    steps[step]?.classList.remove("hidden");
   }
 
   // =========================
@@ -650,16 +662,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // OTP CHANNEL TOGGLE
   // =========================
-  const channelRadios = document.querySelectorAll(
-    'input[name="channel"]'
-  );
+  const channelRadios = document.querySelectorAll('input[name="channel"]');
   const phoneInput = document.getElementById("phoneInput");
 
   function syncPhoneVisibility() {
-    const checked = document.querySelector(
-      'input[name="channel"]:checked'
-    );
-
+    const checked = document.querySelector('input[name="channel"]:checked');
     if (!checked || !phoneInput) return;
 
     if (checked.value === "email") {
@@ -675,8 +682,6 @@ document.addEventListener("DOMContentLoaded", () => {
   channelRadios.forEach(radio =>
     radio.addEventListener("change", syncPhoneVisibility)
   );
-
-  // Run once on load
   syncPhoneVisibility();
 
   // =========================
@@ -688,10 +693,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (confirmInput && isNewUser) {
     confirmInput.classList.remove("hidden");
     confirmInput.required = true;
+    show("password");
   }
 
   // =========================
-  // FORM VALIDATION
+  // FORM CONTROL
   // =========================
   const form = document.querySelector("form");
   if (!form) return;
@@ -706,32 +712,35 @@ document.addEventListener("DOMContentLoaded", () => {
     // STEP 1 → SEND CODE
     // =========================
     if (action === "send_code") {
-      const emailInput = document.querySelector(
+      const emailInput = form.querySelector(
         'input[name="{{ form.identifier.name }}"]'
       );
       const phone = phoneInput?.value.trim();
 
       if (!emailInput || !emailInput.value.trim()) {
         e.preventDefault();
-        alert("Enter your email address before continuing.");
-        show("step-email");
+        alert("Enter your email address.");
+        show("email");
         return;
       }
 
       if ((channel === "sms" || channel === "whatsapp") && !phone) {
         e.preventDefault();
-        alert("Phone number is required for SMS or WhatsApp OTP.");
+        alert("Phone number is required for SMS or WhatsApp.");
         return;
       }
 
+      // 🔥 IMMEDIATELY MOVE UI FORWARD
+      show("code");
       setTimeout(startResendCooldown, 300);
+      return;
     }
 
     // =========================
     // STEP 2 → VERIFY CODE
     // =========================
     if (action === "verify_code") {
-      const codeInput = document.querySelector(
+      const codeInput = form.querySelector(
         'input[name="{{ form.code.name }}"]'
       );
 
@@ -740,6 +749,15 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Enter the 6-digit code.");
         return;
       }
+    }
+
+    // =========================
+    // STEP 2 → PASSWORD OPTION
+    // =========================
+    if (action === "password_option") {
+      e.preventDefault();
+      show("password");
+      return;
     }
 
     // =========================
@@ -758,17 +776,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (
         confirmInput &&
-        !confirmInput.classList.contains("hidden")
+        !confirmInput.classList.contains("hidden") &&
+        passInput.value !== confirmInput.value
       ) {
-        if (passInput.value !== confirmInput.value) {
-          e.preventDefault();
-          alert("Passwords do not match.");
-        }
+        e.preventDefault();
+        alert("Passwords do not match.");
       }
     }
   });
 });
 </script>
-
 
 {% endblock %}
