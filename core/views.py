@@ -155,14 +155,14 @@ def unified_auth_view(request):
         # STEP 2 — VERIFY CODE
         # ===============================
         if action == "verify_code":
-            ui_step = "code"
+            ui_step = "password"
             code = request.POST.get("code")
             identifier = request.session.get("auth_identifier")
-
+        
             if not code:
                 messages.error(request, "Please enter the verification code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
-
+        
             verification = DeviceVerification.objects.filter(
                 identifier=identifier,
                 code=code,
@@ -171,23 +171,25 @@ def unified_auth_view(request):
                 is_used=False,
                 created_at__gte=timezone.now() - timedelta(minutes=5),
             ).first()
-
+        
             if not verification:
                 messages.error(request, "Invalid or expired verification code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
-
+        
             verification.is_used = True
-
-            # Bind verification to user if exists
-            user = CustomUser.objects.filter(username=identifier).first()
-            if user:
-                verification.user = user
-
-            verification.save(update_fields=["is_used", "user"] if user else ["is_used"])
-
+            verification.save(update_fields=["is_used"])
+        
             request.session["otp_verified"] = True
             request.session["otp_verified_at"] = timezone.now().isoformat()
-
+        
+            # Automatically log in user if exists
+            user = CustomUser.objects.filter(username=identifier).first()
+            if user:
+                login(request, user)  # Direct login, bypass password
+                messages.success(request, "Logged in via OTP.")
+                return redirect("dashboard")
+        
+            # Otherwise, go to password setup for new user
             return render(request, "auth.html", {"form": form, "ui_step": "password"})
 
         # ===============================
