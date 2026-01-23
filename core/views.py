@@ -72,12 +72,12 @@ from .email_backend import send_password_reset
 # -----------------------------------
 @csrf_protect
 def unified_auth_view(request):
-    form = UnifiedAuthForm(request.POST or None)
+    form = UnifiedAuthForm()
 
     # DEFAULT UI STEP
     ui_step = "email"
 
-    if request.method == "POST" and form.is_valid():
+    if request.method == "POST" :
         action = request.POST.get("action")
         ui_step = request.POST.get("ui_step", "email")
 
