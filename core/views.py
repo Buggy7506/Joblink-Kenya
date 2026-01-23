@@ -218,6 +218,7 @@ def unified_auth_view(request):
             verification.save(update_fields=["is_used"])
 
             request.session["otp_verified"] = True
+            request.session["otp_verified_at"] = timezone.now().isoformat()
 
             user = CustomUser.objects.filter(email=email).first()
 
@@ -248,7 +249,6 @@ def unified_auth_view(request):
                 }
             )
 
-            request.session["otp_verified"] = True
             return render(
                 request,
                 "auth.html",
@@ -260,6 +260,17 @@ def unified_auth_view(request):
         # ===============================
         if action == "login_password":
             ui_step = "password"
+            verified_at = request.session.get("otp_verified_at")
+
+            if not verified_at or timezone.now() - parse_datetime(verified_at) > timedelta(minutes=10):
+                messages.error(request, "Verification expired. Please verify again.")
+                request.session.pop("otp_verified", None)
+                request.session.pop("otp_verified_at", None)
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "email"}
+                )
 
             password = request.POST.get("password")
             confirm_password = request.POST.get("confirm_password")
@@ -346,7 +357,9 @@ def unified_auth_view(request):
         if action == "magic_link":
             ui_step = "code"
 
-            if otp_recently_sent(email, device_fingerprint):
+            rate_key = email if channel == "email" else phone
+
+            if otp_recently_sent(rate_key, device_fingerprint):
                 messages.warning(
                     request,
                     "Please wait before requesting another code."
