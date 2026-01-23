@@ -210,26 +210,75 @@ def unified_auth_view(request):
             return redirect("dashboard")
 
         # ===============================
-        # STEP 3 — PASSWORD LOGIN (EXISTING USERS ONLY)
+        # STEP 3 — PASSWORD LOGIN / SIGNUP
         # ===============================
         if action == "login_password":
             password = form.cleaned_data.get("password")
-
+            confirm_password = request.POST.get("confirm_password")
+        
+            # Try authenticating existing user
             user = authenticate(
                 request,
                 username=email,
                 password=password
             )
-
-            if not user:
-                messages.error(
-                    request,
-                    "Invalid email or password."
+        
+            # ===============================
+            # EXISTING USER → LOGIN
+            # ===============================
+            if user:
+                login(request, user)
+                return redirect("dashboard")
+        
+            # ===============================
+            # USER DOES NOT EXIST → SIGNUP FLOW
+            # ===============================
+            existing_user = CustomUser.objects.filter(email=email).first()
+        
+            if not existing_user:
+                # First attempt → ask for confirm password
+                if not confirm_password:
+                    messages.info(
+                        request,
+                        "New account detected. Please confirm your password to continue."
+                    )
+                    response = render(request, "auth.html", {"form": form})
+                    response["new_user"] = "true"   # flag for frontend
+                    return response
+        
+                # Passwords must match
+                if password != confirm_password:
+                    messages.error(request, "Passwords do not match.")
+                    response = render(request, "auth.html", {"form": form})
+                    response["new_user"] = "true"
+                    return response
+        
+                # ===============================
+                # CREATE USER
+                # ===============================
+                user = CustomUser.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=password,
+                    role=role
                 )
-                return render(request, "auth.html", {"form": form})
-
-            login(request, user)
-            return redirect("dashboard")
+        
+                Profile.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        "full_name": email.split("@")[0],
+                        "role": role,
+                    }
+                )
+        
+                login(request, user)
+                return redirect("dashboard")
+        
+            # ===============================
+            # USER EXISTS BUT PASSWORD WRONG
+            # ===============================
+            messages.error(request, "Invalid email or password.")
+            return render(request, "auth.html", {"form": form})
 
         # ===============================
         # MAGIC LINK / OTP RESEND
