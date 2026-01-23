@@ -270,6 +270,7 @@ X_FRAME_OPTIONS = "DENY"
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+TEXTBELT_API_KEY = os.getenv("TEXTBELT_API_KEY", "textbelt")
 
 # Default sender
 DEFAULT_FROM_EMAIL = "Joblink Kenya <support@stepper.dpdns.org>"
