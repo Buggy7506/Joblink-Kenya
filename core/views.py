@@ -83,10 +83,10 @@ def unified_auth_view(request):
         # ===============================
         # CONTEXT (SESSION-SAFE)
         # ===============================
-        channel = request.POST.get(
-            "channel",
-            request.session.get("otp_channel", "email")
-        )
+        if action in ["verify_code", "login_password", "magic_link"]:
+            channel = request.session.get("otp_channel")
+        else:
+            channel = request.POST.get("channel", "email")
 
         raw_identifier = request.POST.get("identifier", "").strip()
         email = raw_identifier.lower() if raw_identifier else request.session.get("auth_email")
