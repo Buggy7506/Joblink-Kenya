@@ -528,7 +528,7 @@
           <h2>Check your messages</h2>
           <p>
             Enter the code sent to
-            <b>{{ request.session.auth_email }}</b>
+            <b>{{ request.session.auth_identifier }}</b>
           </p>
 
           <input
@@ -565,7 +565,7 @@
           <button
             type="submit"
             name="action"
-            value="password_option"
+            value="login_password"
             class="auth-btn"
           >
             Continue with password
@@ -750,47 +750,46 @@ document.addEventListener("DOMContentLoaded", () => {
   syncChannelFields();
 
   // =========================
-  // PASSWORD CONFIRM (NEW USER)
+  // PASSWORD CONFIRM (NEW USER ONLY – NO STEP FORCE)
   // =========================
   const isNewUser = document.body.dataset.newUser === "true";
   if (confirmInput && isNewUser) {
     confirmInput.classList.remove("hidden");
-    setStep("password");
   }
 
   // =========================
   // FORM SUBMIT CONTROL
   // =========================
-     form.addEventListener("submit", e => {
-       const action = e.submitter?.value;
-       const channel = document.querySelector(
-         'input[name="channel"]:checked'
-       )?.value;
-   
-       // =========================
-       // SEND CODE
-       // =========================
-   if (action === "send_code") {
-   
-     if (channel === "email" && !emailInput.value.trim()) {
-       e.preventDefault();
-       alert("Email is required for email verification.");
-       setStep("email");
-       return;
-     }
-   
-     if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
-       e.preventDefault();
-       alert("Phone number is required for SMS or WhatsApp.");
-       setStep("email");
-       return;
-     }
-   
-     // ✅ DO NOT STOP SUBMISSION
-     setStep("code");
-     setTimeout(startResendCooldown, 300);
-     return; // ← allowed because no preventDefault
-   }
+  form.addEventListener("submit", e => {
+    const action = e.submitter?.value;
+    const channel = document.querySelector(
+      'input[name="channel"]:checked'
+    )?.value;
+
+    // =========================
+    // SEND CODE
+    // =========================
+    if (action === "send_code") {
+
+      if (channel === "email" && !emailInput.value.trim()) {
+        e.preventDefault();
+        alert("Email is required for email verification.");
+        setStep("email");
+        return;
+      }
+
+      if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
+        e.preventDefault();
+        alert("Phone number is required for SMS or WhatsApp.");
+        setStep("email");
+        return;
+      }
+
+      // allow submit → backend sends OTP
+      setStep("code");
+      setTimeout(startResendCooldown, 300);
+      return;
+    }
 
     // =========================
     // VERIFY CODE
@@ -804,16 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // allow submit → backend verifies
-    }
-
-    // =========================
-    // PASSWORD OPTION
-    // =========================
-    if (action === "password_option") {
-      e.preventDefault();
-      setStep("password");
-      return;
+      // allow submit → backend verifies OTP
     }
 
     // =========================
@@ -838,11 +828,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // allow submit → backend handles auth
+      // ✅ DO NOT preventDefault
+      // backend handles login vs signup
     }
   });
 
 });
 </script>
+
 
 {% endblock %}
