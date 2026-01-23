@@ -423,7 +423,12 @@
         >
 
         <!-- ================= STEP 1: IDENTIFIER ================= -->
-        <section id="step-email" data-step="email">
+        <section
+           id="step-email"
+           data-step="email"
+           class="{% if ui_step != 'email' %}hidden{% endif %}"
+         >
+
           <h2>Log in or Sign up</h2>
           <p>Sign up and connect to job opportunities.</p>
 
@@ -514,7 +519,12 @@
         </section>
 
         <!-- ================= STEP 2: OTP ================= -->
-        <section id="step-code" data-step="code" class="hidden">
+        <section
+           id="step-code"
+           data-step="code"
+           class="{% if ui_step != 'code' %}hidden{% endif %}"
+         >
+
           <h2>Check your messages</h2>
           <p>
             Enter the code sent to
@@ -542,7 +552,7 @@
           <button
             type="submit"
             name="action"
-            value="send_code"
+            value="magic_link"
             id="resendBtn"
             class="resend-btn"
             disabled
@@ -563,7 +573,12 @@
         </section>
 
         <!-- ================= STEP 3: PASSWORD ================= -->
-        <section id="step-password" data-step="password" class="hidden">
+        <section
+           id="step-password"
+           data-step="password"
+           class="{% if ui_step != 'password' %}hidden{% endif %}"
+         >
+
           <h2>Enter your password</h2>
 
           <p><b>
@@ -746,34 +761,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // FORM SUBMIT CONTROL
   // =========================
-  form.addEventListener("submit", e => {
-    const action = e.submitter?.value;
-    const channel = document.querySelector(
-      'input[name="channel"]:checked'
-    )?.value;
-
-    // =========================
-    // SEND CODE
-    // =========================
-    if (action === "send_code") {
-      e.preventDefault();
-
-      if (channel === "email" && !emailInput.value.trim()) {
-        alert("Email is required for email verification.");
-        setStep("email");
-        return;
-      }
-
-      if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
-        alert("Phone number is required for SMS or WhatsApp.");
-        setStep("email");
-        return;
-      }
-
-      setStep("code");
-      setTimeout(startResendCooldown, 300);
-      return;
-    }
+     form.addEventListener("submit", e => {
+       const action = e.submitter?.value;
+       const channel = document.querySelector(
+         'input[name="channel"]:checked'
+       )?.value;
+   
+       // =========================
+       // SEND CODE
+       // =========================
+   if (action === "send_code") {
+   
+     if (channel === "email" && !emailInput.value.trim()) {
+       e.preventDefault();
+       alert("Email is required for email verification.");
+       setStep("email");
+       return;
+     }
+   
+     if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
+       e.preventDefault();
+       alert("Phone number is required for SMS or WhatsApp.");
+       setStep("email");
+       return;
+     }
+   
+     // ✅ DO NOT STOP SUBMISSION
+     setStep("code");
+     setTimeout(startResendCooldown, 300);
+     return; // ← allowed because no preventDefault
+   }
 
     // =========================
     // VERIFY CODE
