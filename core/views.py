@@ -74,8 +74,12 @@ from .email_backend import send_password_reset
 def unified_auth_view(request):
     form = UnifiedAuthForm(request.POST or None)
 
+    # DEFAULT UI STEP
+    ui_step = "email"
+
     if request.method == "POST" and form.is_valid():
         action = request.POST.get("action")
+        ui_step = request.POST.get("ui_step", "email")
 
         # ===============================
         # CONTEXT (SESSION-SAFE)
@@ -110,25 +114,33 @@ def unified_auth_view(request):
         location = get_location_from_ip(ip_address)
 
         # ===============================
-        # STEP 1 — SEND CODE (LOGIN OR SIGNUP)
+        # STEP 1 — SEND CODE (LOGIN / SIGNUP)
         # ===============================
         if action == "send_code":
+            ui_step = "code"
 
             if channel in ["sms", "whatsapp"] and not phone:
                 messages.error(
                     request,
                     "Phone number is required for SMS or WhatsApp verification."
                 )
-                return render(request, "auth.html", {"form": form})
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "email"}
+                )
 
             if otp_recently_sent(email, device_fingerprint):
                 messages.warning(
                     request,
                     "Please wait before requesting another verification code."
                 )
-                return render(request, "auth.html", {"form": form})
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "email"}
+                )
 
-            # Invalidate previous unused OTPs
             DeviceVerification.objects.filter(
                 email=email,
                 device_fingerprint=device_fingerprint,
@@ -157,12 +169,18 @@ def unified_auth_view(request):
                 request,
                 f"Verification code sent via {channel.upper()}."
             )
-            return render(request, "auth.html", {"form": form})
+
+            return render(
+                request,
+                "auth.html",
+                {"form": form, "ui_step": ui_step}
+            )
 
         # ===============================
-        # STEP 2 — VERIFY CODE (LOGIN OR SIGNUP)
+        # STEP 2 — VERIFY CODE
         # ===============================
         if action == "verify_code":
+            ui_step = "code"
             code = form.cleaned_data.get("code")
 
             verification = DeviceVerification.objects.filter(
@@ -175,18 +193,18 @@ def unified_auth_view(request):
             ).first()
 
             if not verification:
-                messages.error(
+                messages.error(request, "Invalid or expired verification code.")
+                return render(
                     request,
-                    "Invalid or expired verification code."
+                    "auth.html",
+                    {"form": form, "ui_step": "code"}
                 )
-                return render(request, "auth.html", {"form": form})
 
             verification.is_used = True
             verification.save(update_fields=["is_used"])
 
             request.session["otp_verified"] = True
 
-            # ===== USER RESOLUTION (LOGIN VS SIGNUP) =====
             user = CustomUser.objects.filter(email=email).first()
 
             if user:
@@ -195,7 +213,11 @@ def unified_auth_view(request):
                         request,
                         "This email is already registered with a different role."
                     )
-                    return render(request, "auth.html", {"form": form})
+                    return render(
+                        request,
+                        "auth.html",
+                        {"form": form, "ui_step": "code"}
+                    )
             else:
                 user = CustomUser.objects.create(
                     email=email,
@@ -219,15 +241,21 @@ def unified_auth_view(request):
         # STEP 3 — PASSWORD LOGIN / SIGNUP
         # ===============================
         if action == "login_password":
+            ui_step = "password"
+
             password = form.cleaned_data.get("password")
             confirm_password = request.POST.get("confirm_password")
 
             if not request.session.get("otp_verified"):
                 messages.error(
                     request,
-                    "Please verify your device before logging in."
+                    "Please verify your device before continuing."
                 )
-                return render(request, "auth.html", {"form": form})
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "password"}
+                )
 
             user = authenticate(
                 request,
@@ -235,28 +263,26 @@ def unified_auth_view(request):
                 password=password
             )
 
-            # ===============================
-            # EXISTING USER → LOGIN
-            # ===============================
             if user:
                 login(request, user)
                 return redirect("dashboard")
 
-            # ===============================
-            # USER DOES NOT EXIST → SIGNUP FLOW
-            # ===============================
             existing_user = CustomUser.objects.filter(email=email).first()
 
             if not existing_user:
                 if not confirm_password:
                     messages.info(
                         request,
-                        "New account detected. Please confirm your password to continue."
+                        "New account detected. Please confirm your password."
                     )
                     return render(
                         request,
                         "auth.html",
-                        {"form": form, "new_user": True}
+                        {
+                            "form": form,
+                            "ui_step": "password",
+                            "new_user": True
+                        }
                     )
 
                 if password != confirm_password:
@@ -264,7 +290,11 @@ def unified_auth_view(request):
                     return render(
                         request,
                         "auth.html",
-                        {"form": form, "new_user": True}
+                        {
+                            "form": form,
+                            "ui_step": "password",
+                            "new_user": True
+                        }
                     )
 
                 user = CustomUser.objects.create_user(
@@ -286,19 +316,28 @@ def unified_auth_view(request):
                 return redirect("dashboard")
 
             messages.error(request, "Invalid email or password.")
-            return render(request, "auth.html", {"form": form})
+            return render(
+                request,
+                "auth.html",
+                {"form": form, "ui_step": "password"}
+            )
 
         # ===============================
-        # MAGIC LINK / OTP RESEND
+        # MAGIC LINK / RESEND
         # ===============================
         if action == "magic_link":
+            ui_step = "code"
 
             if otp_recently_sent(email, device_fingerprint):
                 messages.warning(
                     request,
                     "Please wait before requesting another code."
                 )
-                return render(request, "auth.html", {"form": form})
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "code"}
+                )
 
             DeviceVerification.objects.filter(
                 email=email,
@@ -326,9 +365,18 @@ def unified_auth_view(request):
                 request,
                 f"One-time login code sent via {channel.upper()}."
             )
-            return render(request, "auth.html", {"form": form})
 
-    return render(request, "auth.html", {"form": form})
+            return render(
+                request,
+                "auth.html",
+                {"form": form, "ui_step": "code"}
+            )
+
+    return render(
+        request,
+        "auth.html",
+        {"form": form, "ui_step": ui_step}
+    )
     
 class CustomPasswordResetView(FormView):
     template_name = "password_reset.html"
