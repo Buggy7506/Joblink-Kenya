@@ -192,12 +192,26 @@ def unified_auth_view(request):
             request.session["otp_verified_at"] = timezone.now().isoformat()
 
             user = CustomUser.objects.filter(username=identifier).first()
+            
+            # ===============================
+            # EXISTING USER → PASSWORD STEP
+            # ===============================
             if user:
-                login(request, user)
-                messages.success(request, "Logged in via OTP.")
-                return redirect("dashboard")
-
-            is_new_user = True
+                request.session["auth_user_exists"] = True
+                return render(
+                    request,
+                    "auth.html",
+                    {
+                        "form": form,
+                        "ui_step": "password",
+                        "is_new_user": False,
+                    }
+                )
+            
+            # ===============================
+            # NEW USER → PASSWORD + CONFIRM
+            # ===============================
+            request.session["auth_user_exists"] = False
             return render(
                 request,
                 "auth.html",
