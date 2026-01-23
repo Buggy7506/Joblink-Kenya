@@ -30,7 +30,7 @@ class UnifiedAuthForm(forms.Form):
     # COMMON IDENTIFIER
     # =========================
     identifier = forms.EmailField(
-        required=True,
+        required=False,
         label="Email address"
     )
 
