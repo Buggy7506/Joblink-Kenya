@@ -216,15 +216,16 @@ def unified_auth_view(request):
                 messages.error(request, "Please verify your device first.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
         
+            identifier = request.session.get("auth_identifier")
+            is_new_user = not CustomUser.objects.filter(username=identifier).exists()
+        
             return render(
                 request,
                 "auth.html",
                 {
                     "form": form,
                     "ui_step": "password",
-                    "is_new_user": not CustomUser.objects.filter(
-                        username=request.session.get("auth_identifier")
-                    ).exists(),
+                    "is_new_user": is_new_user,
                 }
             )
 
