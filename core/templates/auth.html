@@ -560,6 +560,16 @@
               autocomplete="current-password"
               required
             >
+             
+             <!-- CONFIRM PASSWORD (ONLY FOR NEW USERS) -->
+            <input
+              type="password"
+              name="confirm_password"
+              id="confirmPasswordInput"
+              placeholder="Confirm password"
+              class="auth-input hidden"
+              autocomplete="new-password"
+            >
           </div>
 
           <button type="submit"
@@ -590,11 +600,14 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  let resendCooldown = 30; // seconds
+  // =========================
+  // CONFIG
+  // =========================
+  const RESEND_COOLDOWN = 30; // seconds
   let resendTimer = null;
 
   // =========================
-  // STEP NAVIGATION
+  // HELPERS
   // =========================
   function show(id) {
     ["step-email", "step-code", "step-password"].forEach(step => {
@@ -607,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =========================
-  // RESEND COOLDOWN HANDLER
+  // RESEND COOLDOWN
   // =========================
   function startResendCooldown() {
     const resendBtn = document.getElementById("resendBtn");
@@ -615,7 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!resendBtn || !countdown) return;
 
-    let remaining = resendCooldown;
+    let remaining = RESEND_COOLDOWN;
     resendBtn.disabled = true;
     countdown.textContent = remaining;
 
@@ -628,7 +641,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (remaining <= 0) {
         clearInterval(resendTimer);
         resendBtn.disabled = false;
-        resendBtn.innerHTML = 'Resend code (<span id="countdown">30</span>s)';
+        resendBtn.innerHTML =
+          'Resend code (<span id="countdown">30</span>s)';
       }
     }, 1000);
   }
@@ -636,103 +650,125 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // OTP CHANNEL TOGGLE
   // =========================
-   const channelRadios = document.querySelectorAll(
-     'input[name="channel"]'
-   );
-   const phoneInput = document.getElementById("phoneInput");
-   
-   function syncPhoneVisibility() {
-     const checked = document.querySelector(
-       'input[name="channel"]:checked'
-     );
-   
-     if (!checked || !phoneInput) return;
-   
-     if (checked.value === "email") {
-       phoneInput.style.display = "none";
-       phoneInput.required = false;
-       phoneInput.value = "";
-     } else {
-       phoneInput.style.display = "block";
-       phoneInput.required = true;
-     }
-   }
-   
-   channelRadios.forEach(radio =>
-     radio.addEventListener("change", syncPhoneVisibility)
-   );
-   
-   // Run once on load (CRITICAL)
-   syncPhoneVisibility()
+  const channelRadios = document.querySelectorAll(
+    'input[name="channel"]'
+  );
+  const phoneInput = document.getElementById("phoneInput");
+
+  function syncPhoneVisibility() {
+    const checked = document.querySelector(
+      'input[name="channel"]:checked'
+    );
+
+    if (!checked || !phoneInput) return;
+
+    if (checked.value === "email") {
+      phoneInput.style.display = "none";
+      phoneInput.required = false;
+      phoneInput.value = "";
+    } else {
+      phoneInput.style.display = "block";
+      phoneInput.required = true;
+    }
+  }
+
+  channelRadios.forEach(radio =>
+    radio.addEventListener("change", syncPhoneVisibility)
+  );
+
+  // Run once on load
+  syncPhoneVisibility();
 
   // =========================
-  // FORM SUBMIT VALIDATION
+  // PASSWORD CONFIRM (NEW USER)
+  // =========================
+  const confirmInput = document.getElementById("confirmPasswordInput");
+  const isNewUser = document.body.dataset.newUser === "true";
+
+  if (confirmInput && isNewUser) {
+    confirmInput.classList.remove("hidden");
+    confirmInput.required = true;
+  }
+
+  // =========================
+  // FORM VALIDATION
   // =========================
   const form = document.querySelector("form");
+  if (!form) return;
 
-  if (form) {
-    form.addEventListener("submit", e => {
-      const action = e.submitter?.value;
-      const channel = document.querySelector(
-        'input[name="channel"]:checked'
-      )?.value;
+  form.addEventListener("submit", e => {
+    const action = e.submitter?.value;
+    const channel = document.querySelector(
+      'input[name="channel"]:checked'
+    )?.value;
+
+    // =========================
+    // STEP 1 → SEND CODE
+    // =========================
+    if (action === "send_code") {
+      const emailInput = document.querySelector(
+        'input[name="{{ form.identifier.name }}"]'
+      );
       const phone = phoneInput?.value.trim();
 
-      // =========================
-      // STEP 1 → SEND CODE
-      // =========================
-      if (action === "send_code") {
-        const emailInput = document.querySelector(
-          'input[name="{{ form.identifier.name }}"]'
-        );
-
-        if (!emailInput || !emailInput.value.trim()) {
-          e.preventDefault();
-          alert("Enter your email address before continuing.");
-          show("step-email");
-          return;
-        }
-
-        if ((channel === "sms" || channel === "whatsapp") && !phone) {
-          e.preventDefault();
-          alert("Phone number is required for SMS or WhatsApp OTP.");
-          return;
-        }
-
-        setTimeout(startResendCooldown, 300);
+      if (!emailInput || !emailInput.value.trim()) {
+        e.preventDefault();
+        alert("Enter your email address before continuing.");
+        show("step-email");
+        return;
       }
 
-      // =========================
-      // STEP 2 → VERIFY CODE
-      // =========================
-      if (action === "verify_code") {
-        const codeInput = document.querySelector(
-          'input[name="{{ form.code.name }}"]'
-        );
-
-        if (!codeInput || !codeInput.value.trim()) {
-          e.preventDefault();
-          alert("Enter the 6-digit code.");
-          return;
-        }
+      if ((channel === "sms" || channel === "whatsapp") && !phone) {
+        e.preventDefault();
+        alert("Phone number is required for SMS or WhatsApp OTP.");
+        return;
       }
 
-      // =========================
-      // STEP 3 → PASSWORD LOGIN
-      // =========================
-      if (action === "login_password") {
-        const passInput = document.querySelector(
-          'input[name="{{ form.password.name }}"]'
-        );
+      setTimeout(startResendCooldown, 300);
+    }
 
-        if (!passInput || !passInput.value.trim()) {
+    // =========================
+    // STEP 2 → VERIFY CODE
+    // =========================
+    if (action === "verify_code") {
+      const codeInput = document.querySelector(
+        'input[name="{{ form.code.name }}"]'
+      );
+
+      if (!codeInput || !codeInput.value.trim()) {
+        e.preventDefault();
+        alert("Enter the 6-digit code.");
+        return;
+      }
+    }
+
+    // =========================
+    // STEP 3 → PASSWORD LOGIN
+    // =========================
+    if (action === "login_password") {
+      const passInput = form.querySelector(
+        'input[name="{{ form.password.name }}"]'
+      );
+
+      if (!passInput || !passInput.value.trim()) {
+        e.preventDefault();
+        alert("Enter your password.");
+        return;
+      }
+
+      if (
+        confirmInput &&
+        !confirmInput.classList.contains("hidden")
+      ) {
+        if (passInput.value !== confirmInput.value) {
           e.preventDefault();
-          alert("Enter your password.");
+          alert("Passwords do not match.");
         }
       }
-    });
-  }
+    }
+  });
 });
 </script>
+
 
 {% endblock %}
