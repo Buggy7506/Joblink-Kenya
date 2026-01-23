@@ -88,23 +88,28 @@ def unified_auth_view(request):
             request.session.get("otp_channel", "email")
         )
 
-        email = request.POST.get("identifier") or request.session.get("auth_email")
-        phone = request.POST.get("phone") or request.session.get("auth_phone")
+        raw_identifier = request.POST.get("identifier", "").strip()
+        email = raw_identifier.lower() if raw_identifier else request.session.get("auth_email")
 
-        if email:
-            email = email.lower().strip()
-
-        if action == "send_code":
-            identifier = email if channel == "email" else phone
-        else:
-            identifier = request.session.get("auth_identifier")
-
+        phone_raw = request.POST.get("phone", "").strip()
+        phone = phone_raw if phone_raw else request.session.get("auth_phone")
 
         role = request.POST.get("role") or request.session.get("auth_role", "applicant")
 
         device_fingerprint = get_device_fingerprint(request)
         ip_address = get_client_ip(request)
         location = get_location_from_ip(ip_address)
+
+        # Resolve identifier deterministically
+        if action == "send_code":
+            identifier = email if channel == "email" else phone
+        else:
+            identifier = request.session.get("auth_identifier")
+
+        # 🚨 HARD GUARD — NEVER TOUCH DB WITHOUT IDENTIFIER
+        if action in ["send_code", "magic_link"] and not identifier:
+            messages.error(request, "Email or phone number is required.")
+            return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
         # ===============================
         # STEP 1 — SEND / RESEND CODE
@@ -120,7 +125,6 @@ def unified_auth_view(request):
                 messages.error(request, "Phone number is required for SMS or WhatsApp verification.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
-            # Prevent spam (initial OR resend)
             if otp_recently_sent(identifier, device_fingerprint):
                 messages.warning(request, "Please wait before requesting another verification code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
@@ -242,7 +246,6 @@ def unified_auth_view(request):
                 messages.error(request, "Invalid credentials.")
                 return render(request, "auth.html", {"form": form, "ui_step": "password"})
 
-            # ===== NEW USER FLOW =====
             is_new_user = True
 
             if not confirm_password:
@@ -291,6 +294,10 @@ def unified_auth_view(request):
         if action == "magic_link":
             ui_step = "code"
             identifier = request.session.get("auth_identifier")
+
+            if not identifier:
+                messages.error(request, "Session expired. Please start again.")
+                return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
             if otp_recently_sent(identifier, device_fingerprint):
                 messages.warning(request, "Please wait before requesting another code.")
