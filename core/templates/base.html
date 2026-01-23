@@ -577,7 +577,7 @@ body.light-mode .active-link {
 </script>
 <!-- /Brevo Conversations {/literal} -->
 </head>
-<body>
+<body data-new-user="{% block new_user_flag %}{{ request.headers.new_user|default:'false' }}{% endblock %}">
 <div class="bg-slideshow">
   <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg')"></div>
   <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-5.jpg')"></div>
