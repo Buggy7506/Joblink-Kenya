@@ -370,18 +370,24 @@ def unified_auth_view(request):
         }
     )
     
-class CustomPasswordResetView(FormView):
+class CustomPasswordResetView(auth_views.PasswordResetView):
     template_name = "password_reset_email.html"
     form_class = PasswordResetForm
     success_url = reverse_lazy("password_reset_done")
 
+    def send_mail(self, *args, **kwargs):
+        """
+        Disable Django's default email sending.
+        We handle email delivery via Brevo.
+        """
+        pass
+
     def form_valid(self, form):
         """
-        Sends password reset email using Brevo for every valid user
-        matching the submitted email.
+        Send password reset email via Brevo
+        for all active users matching the email.
         """
         email = form.cleaned_data["email"]
-        # get_users returns iterable of active users matching the email
         users = form.get_users(email)
 
         for user in users:
@@ -389,17 +395,16 @@ class CustomPasswordResetView(FormView):
 
         return super().form_valid(form)
 
-class CustomPasswordResetView(auth_views.PasswordResetView):
-    template_name = 'password_reset.html'
-
 class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
-    template_name = 'password_reset_done.html'
+    template_name = "password_reset_done.html"
+
 
 class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
-    template_name = 'password_reset_confirm.html'
+    template_name = "password_reset_confirm.html"
+
 
 class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
-    template_name = 'password_reset_complete.html'
+    template_name = "password_reset_complete.html"
 
 # Search + Filter + Pagination + Context
 def available_jobs(request):
