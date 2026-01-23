@@ -435,15 +435,16 @@
           <div class="divider">OR</div>
 
           <!-- EMAIL -->
-          <input
-            type="email"
-            name="{{ form.identifier.name }}"
-            value="{{ form.identifier.value|default:'' }}"
-            placeholder="Email address"
-            class="auth-input"
-            autocomplete="email"
-            required
-          >
+         <input
+           type="email"
+           id="emailInput"
+           name="{{ form.identifier.name }}"
+           value="{{ form.identifier.value|default:'' }}"
+           placeholder="Email address"
+           class="auth-input"
+           autocomplete="email"
+           required
+         >
 
          <!-- OTP CHANNEL -->
          <div class="channel-group">
@@ -500,8 +501,7 @@
         </section>
 
         <!-- ================= STEP 2: OTP ================= -->
-        <section id="step-code"
-                 class="{% if request.POST.action != 'send_code' %}hidden{% endif %}">
+        <section id="step-code" class="hidden">
 
           <h2>Check your messages</h2>
           <p>
@@ -664,25 +664,40 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   const channelRadios = document.querySelectorAll('input[name="channel"]');
   const phoneInput = document.getElementById("phoneInput");
+  const emailInput = document.getElementById("emailInput");
 
-  function syncPhoneVisibility() {
+  function syncChannelFields() {
     const checked = document.querySelector('input[name="channel"]:checked');
-    if (!checked || !phoneInput) return;
+    if (!checked) return;
 
     if (checked.value === "email") {
+      // EMAIL MODE
+      emailInput.style.display = "block";
+      emailInput.disabled = false;
+      emailInput.required = true;
+
       phoneInput.style.display = "none";
+      phoneInput.disabled = true;
       phoneInput.required = false;
       phoneInput.value = "";
     } else {
+      // SMS / WHATSAPP MODE
       phoneInput.style.display = "block";
+      phoneInput.disabled = false;
       phoneInput.required = true;
+
+      emailInput.style.display = "none";
+      emailInput.disabled = true;
+      emailInput.required = false;
     }
   }
 
   channelRadios.forEach(radio =>
-    radio.addEventListener("change", syncPhoneVisibility)
+    radio.addEventListener("change", syncChannelFields)
   );
-  syncPhoneVisibility();
+
+  // Run once on page load
+  syncChannelFields();
 
   // =========================
   // PASSWORD CONFIRM (NEW USER)
