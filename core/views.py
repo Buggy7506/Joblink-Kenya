@@ -94,11 +94,11 @@ def unified_auth_view(request):
         if email:
             email = email.lower().strip()
 
-        identifier = (
-            request.session.get("auth_identifier")
-            if ui_step in ["code", "password"]
-            else (email if channel == "email" else phone)
-        )
+        if action == "send_code":
+            identifier = email if channel == "email" else phone
+        else:
+            identifier = request.session.get("auth_identifier")
+
 
         role = request.POST.get("role") or request.session.get("auth_role", "applicant")
 
