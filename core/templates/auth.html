@@ -412,7 +412,7 @@
 
       <form method="POST" action="{% url 'unified_auth' %}" novalidate>
         {% csrf_token %}
-         <input type="hidden" name="ui_step" id="uiStep" value="email">
+         <input type="hidden" name="ui_step" id="uiStep" value="{{ ui_step|default:'email' }}">
 
         <!-- ================= STEP 1: IDENTIFIER ================= -->
         <section id="step-email">
@@ -434,18 +434,17 @@
 
           <div class="divider">OR</div>
 
-          <!-- EMAIL -->
+         <!-- EMAIL -->
          <input
-           type="email"
+           type="text"
            id="emailInput"
-           name="{{ form.identifier.name }}"
-           value="{{ form.identifier.value|default:'' }}"
+           name="identifier"
+           value="{{ request.session.auth_email|default:'' }}"
            placeholder="Email address"
            class="auth-input"
            autocomplete="email"
-           required
-         >
-
+         />
+         
          <!-- OTP CHANNEL -->
          <div class="channel-group">
            <label>
@@ -464,14 +463,16 @@
            </label>
          </div>
          
-         <!-- PHONE (SMS / WHATSAPP ONLY) -->
+         <!-- PHONE -->
          <input
            type="text"
            name="phone"
            id="phoneInput"
+           value="{{ request.session.auth_phone|default:'' }}"
            placeholder="+254 7XX XXX XXX"
            class="auth-input"
            autocomplete="tel"
+           disabled
            style="display:none;"
          >
 
@@ -516,7 +517,6 @@
             placeholder="6-digit code"
             class="auth-input"
             autocomplete="one-time-code"
-            required
           >
 
           <button type="submit"
@@ -569,7 +569,6 @@
               placeholder="Password"
               class="auth-input"
               autocomplete="current-password"
-              required
             >
              
              <!-- CONFIRM PASSWORD (ONLY FOR NEW USERS) -->
@@ -611,6 +610,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
   // =========================
   // CONFIG
   // =========================
@@ -618,14 +618,27 @@ document.addEventListener("DOMContentLoaded", () => {
   let resendTimer = null;
 
   // =========================
-  // STEP HANDLING
+  // ELEMENTS
   // =========================
+  const form = document.querySelector("form");
+  if (!form) return;
+
+  form.setAttribute("novalidate", "true");
+
   const steps = {
     email: document.getElementById("step-email"),
     code: document.getElementById("step-code"),
     password: document.getElementById("step-password"),
   };
 
+  const emailInput = document.getElementById("emailInput");
+  const phoneInput = document.getElementById("phoneInput");
+  const channelRadios = document.querySelectorAll('input[name="channel"]');
+  const confirmInput = document.getElementById("confirmPasswordInput");
+
+  // =========================
+  // STEP DISPLAY
+  // =========================
   function show(step) {
     Object.values(steps).forEach(el => el && el.classList.add("hidden"));
     steps[step]?.classList.remove("hidden");
@@ -653,42 +666,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (remaining <= 0) {
         clearInterval(resendTimer);
         resendBtn.disabled = false;
-        resendBtn.innerHTML =
-          'Resend code (<span id="countdown">30</span>s)';
+        countdown.textContent = RESEND_COOLDOWN;
       }
     }, 1000);
   }
 
   // =========================
-  // OTP CHANNEL TOGGLE
+  // CHANNEL TOGGLE
   // =========================
-  const channelRadios = document.querySelectorAll('input[name="channel"]');
-  const phoneInput = document.getElementById("phoneInput");
-  const emailInput = document.getElementById("emailInput");
-
   function syncChannelFields() {
     const checked = document.querySelector('input[name="channel"]:checked');
     if (!checked) return;
 
     if (checked.value === "email") {
-      // EMAIL MODE
-      emailInput.style.display = "block";
       emailInput.disabled = false;
-      emailInput.required = true;
+      emailInput.style.display = "block";
 
-      phoneInput.style.display = "none";
       phoneInput.disabled = true;
-      phoneInput.required = false;
+      phoneInput.style.display = "none";
       phoneInput.value = "";
     } else {
-      // SMS / WHATSAPP MODE
-      phoneInput.style.display = "block";
       phoneInput.disabled = false;
-      phoneInput.required = true;
+      phoneInput.style.display = "block";
 
-      emailInput.style.display = "none";
       emailInput.disabled = true;
-      emailInput.required = false;
+      emailInput.style.display = "none";
+      emailInput.value = "";
     }
   }
 
@@ -696,27 +699,20 @@ document.addEventListener("DOMContentLoaded", () => {
     radio.addEventListener("change", syncChannelFields)
   );
 
-  // Run once on page load
   syncChannelFields();
 
   // =========================
   // PASSWORD CONFIRM (NEW USER)
   // =========================
-  const confirmInput = document.getElementById("confirmPasswordInput");
   const isNewUser = document.body.dataset.newUser === "true";
-
   if (confirmInput && isNewUser) {
     confirmInput.classList.remove("hidden");
-    confirmInput.required = true;
     show("password");
   }
 
   // =========================
-  // FORM CONTROL
+  // FORM SUBMIT CONTROL
   // =========================
-  const form = document.querySelector("form");
-  if (!form) return;
-
   form.addEventListener("submit", e => {
     const action = e.submitter?.value;
     const channel = document.querySelector(
@@ -724,40 +720,34 @@ document.addEventListener("DOMContentLoaded", () => {
     )?.value;
 
     // =========================
-    // STEP 1 → SEND CODE
+    // SEND CODE
     // =========================
     if (action === "send_code") {
-      const emailInput = form.querySelector(
-        'input[name="{{ form.identifier.name }}"]'
-      );
-      const phone = phoneInput?.value.trim();
 
-      if (!emailInput || !emailInput.value.trim()) {
+      if (channel === "email" && !emailInput.value.trim()) {
         e.preventDefault();
-        alert("Enter your email address.");
+        alert("Email is required for email verification.");
         show("email");
         return;
       }
 
-      if ((channel === "sms" || channel === "whatsapp") && !phone) {
+      if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
         e.preventDefault();
         alert("Phone number is required for SMS or WhatsApp.");
+        show("email");
         return;
       }
 
-      // 🔥 IMMEDIATELY MOVE UI FORWARD
       show("code");
       setTimeout(startResendCooldown, 300);
       return;
     }
 
     // =========================
-    // STEP 2 → VERIFY CODE
+    // VERIFY CODE
     // =========================
     if (action === "verify_code") {
-      const codeInput = form.querySelector(
-        'input[name="{{ form.code.name }}"]'
-      );
+      const codeInput = form.querySelector('input[name="code"]');
 
       if (!codeInput || !codeInput.value.trim()) {
         e.preventDefault();
@@ -767,7 +757,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================
-    // STEP 2 → PASSWORD OPTION
+    // PASSWORD OPTION
     // =========================
     if (action === "password_option") {
       e.preventDefault();
@@ -776,12 +766,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================
-    // STEP 3 → PASSWORD LOGIN
+    // PASSWORD LOGIN
     // =========================
     if (action === "login_password") {
-      const passInput = form.querySelector(
-        'input[name="{{ form.password.name }}"]'
-      );
+      const passInput = form.querySelector('input[name="password"]');
 
       if (!passInput || !passInput.value.trim()) {
         e.preventDefault();
@@ -799,6 +787,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
 });
 </script>
 
