@@ -120,6 +120,7 @@ def unified_auth_view(request):
                 messages.warning(request, "Please wait before requesting another verification code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
+            # Mark any previous unused codes as used
             DeviceVerification.objects.filter(
                 identifier=identifier,
                 device_fingerprint=device_fingerprint,
@@ -148,7 +149,6 @@ def unified_auth_view(request):
             })
 
             messages.success(request, f"Verification code sent via {channel.upper()}.")
-
             return render(request, "auth.html", {"form": form, "ui_step": "code"})
 
         # ===============================
@@ -177,7 +177,13 @@ def unified_auth_view(request):
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
 
             verification.is_used = True
-            verification.save(update_fields=["is_used"])
+
+            # Bind verification to user if exists
+            user = CustomUser.objects.filter(username=identifier).first()
+            if user:
+                verification.user = user
+
+            verification.save(update_fields=["is_used", "user"] if user else ["is_used"])
 
             request.session["otp_verified"] = True
             request.session["otp_verified_at"] = timezone.now().isoformat()
@@ -194,7 +200,9 @@ def unified_auth_view(request):
 
             if not verified_at or timezone.now() - parse_datetime(verified_at) > timedelta(minutes=10):
                 messages.error(request, "Verification expired. Please verify again.")
-                request.session.flush()
+                request.session.pop("otp_verified", None)
+                request.session.pop("otp_verified_at", None)
+                request.session.pop("auth_identifier", None)
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
             if not request.session.get("otp_verified"):
@@ -207,14 +215,24 @@ def unified_auth_view(request):
             user = CustomUser.objects.filter(username=identifier).first()
 
             if user:
-                user = authenticate(request, username=identifier, password=password)
-                if user:
-                    login(request, user)
+                user_auth = authenticate(request, username=identifier, password=password)
+                if user_auth:
+                    login(request, user_auth)
+
+                    # Persist the device verification with user
+                    DeviceVerification.objects.filter(
+                        identifier=identifier,
+                        device_fingerprint=device_fingerprint,
+                        is_used=True,
+                        user__isnull=True
+                    ).update(user=user_auth)
+
                     return redirect("dashboard")
 
                 messages.error(request, "Invalid credentials.")
                 return render(request, "auth.html", {"form": form, "ui_step": "password"})
 
+            # New user flow
             if not confirm_password:
                 messages.info(request, "New account detected. Please confirm your password.")
                 return render(
@@ -245,6 +263,15 @@ def unified_auth_view(request):
             )
 
             login(request, user)
+
+            # Persist the device verification with new user
+            DeviceVerification.objects.filter(
+                identifier=identifier,
+                device_fingerprint=device_fingerprint,
+                is_used=True,
+                user__isnull=True
+            ).update(user=user)
+
             return redirect("dashboard")
 
         # ===============================
@@ -278,7 +305,6 @@ def unified_auth_view(request):
             send_otp(channel, identifier, code)
 
             messages.success(request, f"One-time login code sent via {channel.upper()}.")
-
             return render(request, "auth.html", {"form": form, "ui_step": "code"})
 
     return render(request, "auth.html", {"form": form, "ui_step": ui_step})
