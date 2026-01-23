@@ -209,6 +209,26 @@ def unified_auth_view(request):
             )
 
         # ===============================
+        # STEP 2.5 — SWITCH TO PASSWORD (NO AUTH)
+        # ===============================
+        if action == "switch_to_password":
+            if not request.session.get("otp_verified"):
+                messages.error(request, "Please verify your device first.")
+                return render(request, "auth.html", {"form": form, "ui_step": "code"})
+        
+            return render(
+                request,
+                "auth.html",
+                {
+                    "form": form,
+                    "ui_step": "password",
+                    "is_new_user": not CustomUser.objects.filter(
+                        username=request.session.get("auth_identifier")
+                    ).exists(),
+                }
+            )
+
+        # ===============================
         # STEP 3 — PASSWORD LOGIN / SIGNUP
         # ===============================
         if action == "login_password":
@@ -217,8 +237,7 @@ def unified_auth_view(request):
             verified_at = request.session.get("otp_verified_at")
 
             if not verified_at or timezone.now() - parse_datetime(verified_at) > timedelta(minutes=10):
-                messages.error(request, "Verification expired. Please verify again.")
-                request.session.flush()
+                messages.error(request, "Session expired. Please start again.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
             if not request.session.get("otp_verified"):
