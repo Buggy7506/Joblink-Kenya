@@ -30,13 +30,13 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 
   animation: formAlertFade 0.35s ease;
+  cursor: pointer;
 }
 
 /* =========================================================
    VARIANTS
 ========================================================= */
 
-/* ERROR */
 .alert-error {
   background: rgba(248, 113, 113, 0.16);
   border: 1px solid var(--text-danger);
@@ -45,7 +45,6 @@
   color: var(--text-danger);
 }
 
-/* WARNING */
 .alert-warning {
   background: rgba(251, 191, 36, 0.18);
   border: 1px solid #fbbf24;
@@ -54,7 +53,6 @@
   color: #fbbf24;
 }
 
-/* SUCCESS */
 .alert-success {
   background: rgba(34, 211, 238, 0.18);
   border: 1px solid var(--text-accent);
@@ -63,7 +61,6 @@
   color: var(--text-accent);
 }
 
-/* INFO (fallback) */
 .alert-info {
   background: rgba(148, 163, 184, 0.16);
   border: 1px solid var(--text-muted);
@@ -93,40 +90,6 @@
 }
 
 /* =========================================================
-   LIGHT MODE TUNING
-========================================================= */
-
-body.light-mode .form-alert {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-}
-
-body.light-mode .alert-error {
-  background: rgba(220, 38, 38, 0.08);
-}
-
-body.light-mode .alert-warning {
-  background: rgba(217, 119, 6, 0.08);
-}
-
-body.light-mode .alert-success {
-  background: rgba(2, 132, 199, 0.08);
-}
-
-/* =========================================================
-   OPTIONAL GLOW BORDER
-========================================================= */
-
-.glow-border {
-  border: 1px solid transparent;
-  border-image: linear-gradient(
-    45deg,
-    var(--glow-accent),
-    var(--text-accent)
-  );
-  border-image-slice: 1;
-}
-
-/* =========================================================
    ANIMATION
 ========================================================= */
 
@@ -140,6 +103,7 @@ body.light-mode .alert-success {
     transform: translateY(0);
   }
 }
+
 .form-alert.fade-out {
   opacity: 0;
   transform: translateY(-6px);
@@ -193,6 +157,18 @@ body.light-mode .alert-success {
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  const alertsWrapper = document.getElementById("formAlerts");
+
+  // =========================
+  // PREVENT REAPPEAR ON RELOAD
+  // =========================
+  if (sessionStorage.getItem("alertsShown")) {
+    alertsWrapper?.remove();
+    return;
+  }
+
+  sessionStorage.setItem("alertsShown", "true");
+
   const alerts = document.querySelectorAll(".form-alert");
 
   alerts.forEach(alert => {
