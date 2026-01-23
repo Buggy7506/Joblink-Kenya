@@ -84,29 +84,19 @@ def unified_auth_view(request):
         # ===============================
         # CONTEXT (SESSION-SAFE)
         # ===============================
-        email = (
-            form.cleaned_data.get("identifier")
-            or request.session.get("auth_email")
-        )
+        email = request.POST.get("identifier") or request.session.get("auth_email")
         if email:
             email = email.lower().strip()
-
-        role = (
-            form.cleaned_data.get("role")
-            or request.session.get("auth_role")
-            or "applicant"
-        )
-
+        
+        role = request.POST.get("role") or request.session.get("auth_role", "applicant")
+        
         channel = request.POST.get(
             "channel",
             request.session.get("otp_channel", "email")
         )
-
-        phone = (
-            form.cleaned_data.get("phone")
-            or request.session.get("auth_phone")
-        )
-
+        
+        phone = request.POST.get("phone") or request.session.get("auth_phone")
+        
         destination = email if channel == "email" else phone
 
         device_fingerprint = get_device_fingerprint(request)
@@ -118,7 +108,20 @@ def unified_auth_view(request):
         # ===============================
         if action == "send_code":
             ui_step = "code"
-
+        
+            # ✅ EMAIL REQUIRED FOR EMAIL CHANNEL
+            if channel == "email" and not email:
+                messages.error(
+                    request,
+                    "Email is required for email verification."
+                )
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "email"}
+                )
+        
+            # ✅ PHONE REQUIRED FOR SMS / WHATSAPP
             if channel in ["sms", "whatsapp"] and not phone:
                 messages.error(
                     request,
@@ -129,8 +132,10 @@ def unified_auth_view(request):
                     "auth.html",
                     {"form": form, "ui_step": "email"}
                 )
-
-            if otp_recently_sent(email, device_fingerprint):
+        
+            # ✅ RATE LIMIT
+            rate_key = email if channel == "email" else phone
+            if otp_recently_sent(rate_key, device_fingerprint):
                 messages.warning(
                     request,
                     "Please wait before requesting another verification code."
@@ -181,8 +186,17 @@ def unified_auth_view(request):
         # ===============================
         if action == "verify_code":
             ui_step = "code"
-            code = form.cleaned_data.get("code")
-
+        
+            code = request.POST.get("code")
+        
+            if not code:
+                messages.error(request, "Please enter the verification code.")
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "code"}
+                )
+        
             verification = DeviceVerification.objects.filter(
                 email=email,
                 code=code,
@@ -234,8 +248,12 @@ def unified_auth_view(request):
                 }
             )
 
-            login(request, user)
-            return redirect("dashboard")
+            request.session["otp_verified"] = True
+            return render(
+                request,
+                "auth.html",
+                {"form": form, "ui_step": "password"}
+            )
 
         # ===============================
         # STEP 3 — PASSWORD LOGIN / SIGNUP
@@ -243,7 +261,7 @@ def unified_auth_view(request):
         if action == "login_password":
             ui_step = "password"
 
-            password = form.cleaned_data.get("password")
+            password = request.POST.get("password")
             confirm_password = request.POST.get("confirm_password")
 
             if not request.session.get("otp_verified"):
