@@ -562,78 +562,78 @@
 
           <div class="divider">OR</div>
 
-          <button
-            type="submit"
-            name="action"
-            value="login_password"
-            class="auth-btn"
-          >
-            Continue with password
-          </button>
-        </section>
+        <button type="submit" name="action" value="switch_to_password" class="auth-btn">
+           Continue with password
+         </button>
 
-        <!-- ================= STEP 3: PASSWORD ================= -->
-        <section
+        </section>
+         
+         <!-- ================= STEP 3: PASSWORD ================= -->
+         <section
            id="step-password"
            data-step="password"
            class="{% if ui_step != 'password' %}hidden{% endif %}"
          >
-
-          <h2>Enter your password</h2>
-
-          <p><b>
-            {% if request.session.otp_channel == "email" %}
-              {{ request.session.auth_email|slice:":3" }}***@***
-            {% elif request.session.auth_phone and request.session.auth_phone|length >= 8 %}
-              {{ request.session.auth_phone|slice:":5" }}***{{ request.session.auth_phone|slice:"-3:" }}
-            {% else %}
-              your phone number
-            {% endif %}
-          </b></p>
-
-          <div class="password-field">
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              class="auth-input"
-              autocomplete="current-password"
-            >
-
-            <input
-              type="password"
-              name="confirm_password"
-              id="confirmPasswordInput"
-              placeholder="Confirm password"
-              class="auth-input hidden"
-              autocomplete="new-password"
-            >
-          </div>
-
-          <button
-            type="submit"
-            name="action"
-            value="login_password"
-            class="auth-btn primary"
-          >
-            Continue
-          </button>
-
-          <a href="{% url 'password_reset' %}" class="auth-link">
-            Forgot password?
-          </a>
-
-          <div class="divider">OR</div>
-
-          <button
-            type="submit"
-            name="action"
-            value="magic_link"
-            class="auth-btn"
-          >
-            Log in with one-time code
-          </button>
-        </section>
+         
+           <h2>Enter your password</h2>
+         
+           <p><b>
+             {% if request.session.otp_channel == "email" %}
+               {{ request.session.auth_email|slice:":3" }}***@***
+             {% elif request.session.auth_phone and request.session.auth_phone|length >= 8 %}
+               {{ request.session.auth_phone|slice:":5" }}***{{ request.session.auth_phone|slice:"-3:" }}
+             {% else %}
+               your phone number
+             {% endif %}
+           </b></p>
+         
+           <div class="password-field">
+             <input
+               type="password"
+               name="password"
+               placeholder="Password"
+               class="auth-input"
+               autocomplete="current-password"
+               required
+             >
+         
+             {% if is_new_user %}
+               <input
+                 type="password"
+                 name="confirm_password"
+                 id="confirmPasswordInput"
+                 placeholder="Confirm password"
+                 class="auth-input"
+                 autocomplete="new-password"
+                 required
+               >
+             {% endif %}
+           </div>
+         
+           <button
+             type="submit"
+             name="action"
+             value="login_password"
+             class="auth-btn primary"
+           >
+             Continue
+           </button>
+         
+           <a href="{% url 'password_reset' %}" class="auth-link">
+             Forgot password?
+           </a>
+         
+           <div class="divider">OR</div>
+         
+           <button
+             type="submit"
+             name="action"
+             value="magic_link"
+             class="auth-btn"
+           >
+             Log in with one-time code
+           </button>
+         </section>
 
       </form>
     </div>
@@ -669,10 +669,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("emailInput");
   const phoneInput = document.getElementById("phoneInput");
   const channelRadios = document.querySelectorAll('input[name="channel"]');
-  const confirmInput = document.getElementById("confirmPasswordInput");
 
   // =========================
-  // STEP CONTROL (SOURCE OF TRUTH)
+  // STEP CONTROL (UI ONLY)
   // =========================
   function setStep(step) {
     Object.values(steps).forEach(el => el && el.classList.add("hidden"));
@@ -750,14 +749,6 @@ document.addEventListener("DOMContentLoaded", () => {
   syncChannelFields();
 
   // =========================
-  // PASSWORD CONFIRM (NEW USER ONLY – NO STEP FORCE)
-  // =========================
-  const isNewUser = document.body.dataset.newUser === "true";
-  if (confirmInput && isNewUser) {
-    confirmInput.classList.remove("hidden");
-  }
-
-  // =========================
   // FORM SUBMIT CONTROL
   // =========================
   form.addEventListener("submit", e => {
@@ -785,7 +776,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // allow submit → backend sends OTP
+      // UI optimism only
       setStep("code");
       setTimeout(startResendCooldown, 300);
       return;
@@ -802,8 +793,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Enter the 6-digit code.");
         return;
       }
-
-      // allow submit → backend verifies OTP
+      // backend decides next step
     }
 
     // =========================
@@ -811,6 +801,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================
     if (action === "login_password") {
       const passInput = form.querySelector('input[name="password"]');
+      const confirmInput = form.querySelector('input[name="confirm_password"]');
 
       if (!passInput || !passInput.value.trim()) {
         e.preventDefault();
@@ -818,23 +809,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (
-        confirmInput &&
-        !confirmInput.classList.contains("hidden") &&
-        passInput.value !== confirmInput.value
-      ) {
+      // Only validate confirm_password IF IT EXISTS (new user)
+      if (confirmInput && passInput.value !== confirmInput.value) {
         e.preventDefault();
         alert("Passwords do not match.");
         return;
       }
 
-      // ✅ DO NOT preventDefault
       // backend handles login vs signup
     }
   });
 
 });
 </script>
-
-
 {% endblock %}
