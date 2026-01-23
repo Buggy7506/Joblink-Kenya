@@ -209,7 +209,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='applicant')
     first_name = models.CharField(max_length=255, default='')
     last_name = models.CharField(max_length=255, default='')
-    phone = models.CharField(max_length=20, blank=True)
+    phone = models.CharField(    max_length=20, blank=True, null=True, unique=True)
     location = models.CharField(max_length=255, blank=True)
     profile_pic = CloudinaryField('image', blank=True, null=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
