@@ -397,6 +397,7 @@
 }
 </style>
 
+<body data-new-user="{{ is_new_user|yesno:'true,false' }}">
 <div class="auth-page">
   <div class="auth-wrapper">
     <div class="auth-box">
@@ -412,17 +413,26 @@
 
       <form method="POST" action="{% url 'unified_auth' %}" novalidate>
         {% csrf_token %}
-         <input type="hidden" name="ui_step" id="uiStep" value="{{ ui_step|default:'email' }}">
+
+        <!-- PHASE 1: UI STEP SOURCE OF TRUTH -->
+        <input
+          type="hidden"
+          name="ui_step"
+          id="uiStep"
+          value="{{ ui_step|default:'email' }}"
+        >
 
         <!-- ================= STEP 1: IDENTIFIER ================= -->
-        <section id="step-email">
+        <section id="step-email" data-step="email">
           <h2>Log in or Sign up</h2>
           <p>Sign up and connect to job opportunities.</p>
 
           <!-- GOOGLE LOGIN -->
-          <button type="button"
-                  class="auth-btn google-btn"
-                  onclick="window.location.href='{% url 'google_login' %}';">
+          <button
+            type="button"
+            class="auth-btn google-btn"
+            onclick="window.location.href='{% url 'google_login' %}';"
+          >
             <svg width="18" height="18" viewBox="0 0 533.5 544.3" aria-hidden="true">
               <path d="M533.5 278.4c0-17.7-1.5-34.8-4.3-51.4H272v97.4h146.9c-6.4 34.9-25.7 64.5-54.8 84.2v69h88.6c51.9-47.9 81.8-118.5 81.8-199.2z" fill="#4285F4"/>
               <path d="M272 544.3c73.7 0 135.6-24.5 180.8-66.7l-88.6-69c-24.7 16.6-56.4 26.3-92.2 26.3-70.9 0-131-47.9-152.5-112.1H31v70.3C76.1 478.5 168 544.3 272 544.3z" fill="#34A853"/>
@@ -434,67 +444,69 @@
 
           <div class="divider">OR</div>
 
-         <!-- EMAIL -->
-         <input
-           type="text"
-           id="emailInput"
-           name="identifier"
-           value="{{ request.session.auth_email|default:'' }}"
-           placeholder="Email address"
-           class="auth-input"
-           autocomplete="email"
-         />
-         
-         <!-- OTP CHANNEL -->
-         <div class="channel-group">
-           <label>
-             <input type="radio" name="channel" value="email" checked>
-             <span>Email</span>
-           </label>
-         
-           <label class="sms">
-             <input type="radio" name="channel" value="sms">
-             <span>SMS</span>
-           </label>
-         
-           <label class="whatsapp">
-             <input type="radio" name="channel" value="whatsapp">
-             <span>WhatsApp</span>
-           </label>
-         </div>
-         
-         <!-- PHONE -->
-         <input
-           type="text"
-           name="phone"
-           id="phoneInput"
-           value="{{ request.session.auth_phone|default:'' }}"
-           placeholder="+254 7XX XXX XXX"
-           class="auth-input"
-           autocomplete="tel"
-           disabled
-           style="display:none;"
-         >
+          <!-- EMAIL -->
+          <input
+            type="text"
+            id="emailInput"
+            name="identifier"
+            value="{{ request.session.auth_email|default:'' }}"
+            placeholder="Email address"
+            class="auth-input"
+            autocomplete="email"
+          />
 
-           <!-- ROLE -->
-         <div class="role-group">
-           {% for val, label in form.role.field.choices %}
-             <label class="role-option {{ val }}">
-               <input
-                 type="radio"
-                 name="role"
-                 value="{{ val }}"
-                 {% if form.role.value == val %}checked{% endif %}
-               >
-               <span>{{ label }}</span>
-             </label>
-           {% endfor %}
-         </div>
+          <!-- OTP CHANNEL -->
+          <div class="channel-group">
+            <label>
+              <input type="radio" name="channel" value="email" checked>
+              <span>Email</span>
+            </label>
 
-          <button type="submit"
-                  name="action"
-                  value="send_code"
-                  class="auth-btn primary">
+            <label class="sms">
+              <input type="radio" name="channel" value="sms">
+              <span>SMS</span>
+            </label>
+
+            <label class="whatsapp">
+              <input type="radio" name="channel" value="whatsapp">
+              <span>WhatsApp</span>
+            </label>
+          </div>
+
+          <!-- PHONE -->
+          <input
+            type="text"
+            name="phone"
+            id="phoneInput"
+            value="{{ request.session.auth_phone|default:'' }}"
+            placeholder="+254 7XX XXX XXX"
+            class="auth-input"
+            autocomplete="tel"
+            disabled
+            style="display:none;"
+          >
+
+          <!-- ROLE -->
+          <div class="role-group">
+            {% for val, label in form.role.field.choices %}
+              <label class="role-option {{ val }}">
+                <input
+                  type="radio"
+                  name="role"
+                  value="{{ val }}"
+                  {% if form.role.value == val %}checked{% endif %}
+                >
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+
+          <button
+            type="submit"
+            name="action"
+            value="send_code"
+            class="auth-btn primary"
+          >
             Continue
           </button>
 
@@ -502,8 +514,7 @@
         </section>
 
         <!-- ================= STEP 2: OTP ================= -->
-        <section id="step-code" class="hidden">
-
+        <section id="step-code" data-step="code" class="hidden">
           <h2>Check your messages</h2>
           <p>
             Enter the code sent to
@@ -519,10 +530,12 @@
             autocomplete="one-time-code"
           >
 
-          <button type="submit"
-                  name="action"
-                  value="verify_code"
-                  class="auth-btn primary">
+          <button
+            type="submit"
+            name="action"
+            value="verify_code"
+            class="auth-btn primary"
+          >
             Verify
           </button>
 
@@ -532,35 +545,36 @@
             value="send_code"
             id="resendBtn"
             class="resend-btn"
-            disabled>
+            disabled
+          >
             Resend code (<span id="countdown">30</span>s)
           </button>
 
           <div class="divider">OR</div>
 
-         <button type="submit"
-                 name="action"
-                 value="password_option"
-                 class="auth-btn">
-           Continue with password
-         </button>
-           
+          <button
+            type="submit"
+            name="action"
+            value="password_option"
+            class="auth-btn"
+          >
+            Continue with password
+          </button>
         </section>
 
         <!-- ================= STEP 3: PASSWORD ================= -->
-        <section id="step-password" class="hidden">
+        <section id="step-password" data-step="password" class="hidden">
           <h2>Enter your password</h2>
 
           <p><b>
-              {% if request.session.otp_channel == "email" %}
-                {{ request.session.auth_email|slice:":3" }}***@***
-              {% elif request.session.auth_phone and request.session.auth_phone|length >= 8 %}
-                {{ request.session.auth_phone|slice:":5" }}***{{ request.session.auth_phone|slice:"-3:" }}
-              {% else %}
-                your phone number
-              {% endif %}
-            </b>
-            </p>
+            {% if request.session.otp_channel == "email" %}
+              {{ request.session.auth_email|slice:":3" }}***@***
+            {% elif request.session.auth_phone and request.session.auth_phone|length >= 8 %}
+              {{ request.session.auth_phone|slice:":5" }}***{{ request.session.auth_phone|slice:"-3:" }}
+            {% else %}
+              your phone number
+            {% endif %}
+          </b></p>
 
           <div class="password-field">
             <input
@@ -570,8 +584,7 @@
               class="auth-input"
               autocomplete="current-password"
             >
-             
-             <!-- CONFIRM PASSWORD (ONLY FOR NEW USERS) -->
+
             <input
               type="password"
               name="confirm_password"
@@ -582,10 +595,12 @@
             >
           </div>
 
-          <button type="submit"
-                  name="action"
-                  value="login_password"
-                  class="auth-btn primary">
+          <button
+            type="submit"
+            name="action"
+            value="login_password"
+            class="auth-btn primary"
+          >
             Continue
           </button>
 
@@ -595,10 +610,12 @@
 
           <div class="divider">OR</div>
 
-          <button type="submit"
-                  name="action"
-                  value="magic_link"
-                  class="auth-btn">
+          <button
+            type="submit"
+            name="action"
+            value="magic_link"
+            class="auth-btn"
+          >
             Log in with one-time code
           </button>
         </section>
@@ -607,6 +624,7 @@
     </div>
   </div>
 </div>
+</body>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -625,6 +643,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.setAttribute("novalidate", "true");
 
+  const uiStepInput = document.getElementById("uiStep");
+
   const steps = {
     email: document.getElementById("step-email"),
     code: document.getElementById("step-code"),
@@ -637,11 +657,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmInput = document.getElementById("confirmPasswordInput");
 
   // =========================
-  // STEP DISPLAY
+  // STEP CONTROL (SOURCE OF TRUTH)
   // =========================
-  function show(step) {
+  function setStep(step) {
     Object.values(steps).forEach(el => el && el.classList.add("hidden"));
     steps[step]?.classList.remove("hidden");
+
+    if (uiStepInput) {
+      uiStepInput.value = step;
+    }
+  }
+
+  // =========================
+  // INITIAL STEP (SERVER → UI)
+  // =========================
+  if (uiStepInput?.value && steps[uiStepInput.value]) {
+    setStep(uiStepInput.value);
+  } else {
+    setStep("email");
   }
 
   // =========================
@@ -707,7 +740,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isNewUser = document.body.dataset.newUser === "true";
   if (confirmInput && isNewUser) {
     confirmInput.classList.remove("hidden");
-    show("password");
+    setStep("password");
   }
 
   // =========================
@@ -723,22 +756,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // SEND CODE
     // =========================
     if (action === "send_code") {
+      e.preventDefault();
 
       if (channel === "email" && !emailInput.value.trim()) {
-        e.preventDefault();
         alert("Email is required for email verification.");
-        show("email");
+        setStep("email");
         return;
       }
 
       if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
-        e.preventDefault();
         alert("Phone number is required for SMS or WhatsApp.");
-        show("email");
+        setStep("email");
         return;
       }
 
-      show("code");
+      setStep("code");
       setTimeout(startResendCooldown, 300);
       return;
     }
@@ -754,6 +786,8 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Enter the 6-digit code.");
         return;
       }
+
+      // allow submit → backend verifies
     }
 
     // =========================
@@ -761,12 +795,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================
     if (action === "password_option") {
       e.preventDefault();
-      show("password");
+      setStep("password");
       return;
     }
 
     // =========================
-    // PASSWORD LOGIN
+    // PASSWORD LOGIN / SIGNUP
     // =========================
     if (action === "login_password") {
       const passInput = form.querySelector('input[name="password"]');
@@ -784,7 +818,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ) {
         e.preventDefault();
         alert("Passwords do not match.");
+        return;
       }
+
+      // allow submit → backend handles auth
     }
   });
 
