@@ -198,19 +198,24 @@ def get_location_from_ip(ip):
 # ======================================================
 
 def send_sms_infini(phone, message):
-    url = "https://api.infinireach.io/v1/sms/send"
+    """
+    TextBelt SMS sender (free forever).
+    Function name kept for backward compatibility.
+    """
 
-    payload = {
-        "apiKey": settings.INFINIREACH_API_KEY,
-        "to": phone,
-        "sender": settings.INFINIREACH_SENDER_ID,
-        "message": message,
-    }
+    response = requests.post(
+        "https://textbelt.com/text",
+        {
+            "phone": phone,
+            "message": message,
+            "key": settings.TEXTBELT_API_KEY,
+        },
+        timeout=15
+    )
 
-    response = requests.post(url, json=payload, timeout=15)
     response.raise_for_status()
     return response.json()
-
+    
 
 # ======================================================
 # WHAPI.CLOUD (WHATSAPP)
