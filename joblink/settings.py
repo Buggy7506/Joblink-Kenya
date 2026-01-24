@@ -289,7 +289,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://fazul.dpdns.org",
     "https://www.stepper.dpdns.org",
     "https://stepper.dpdns.org",
-    "https://joblink-kenya-u2vl.onrender.com",
+    "https://joblink-kenya-6flx.onrender.com",
 ]
 
 
