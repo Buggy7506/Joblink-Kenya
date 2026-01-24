@@ -256,10 +256,22 @@ def unified_auth_view(request):
         # ===============================
         if action == "switch_to_password":
         
-            user_exists = request.session.get("auth_user_exists", False)
+            user_exists = request.session.get("auth_user_exists")
         
-            # 🆕 NEW USER → OTP REQUIRED
-            if not user_exists and not request.session.get("otp_verified"):
+            # ✅ Existing user → go straight to password
+            if user_exists:
+                return render(
+                    request,
+                    "auth.html",
+                    {
+                        "form": form,
+                        "ui_step": "password",
+                        "is_new_user": False,
+                    }
+                )
+        
+            # 🆕 New user → OTP REQUIRED
+            if not request.session.get("otp_verified"):
                 messages.error(request, "Please verify the code to continue.")
                 return render(
                     request,
@@ -270,16 +282,17 @@ def unified_auth_view(request):
                     }
                 )
         
-            # ✅ EXISTING USER OR VERIFIED NEW USER
+            # 🆕 OTP verified → allow password
             return render(
                 request,
                 "auth.html",
                 {
                     "form": form,
                     "ui_step": "password",
-                    "is_new_user": not user_exists,
+                    "is_new_user": True,
                 }
             )
+
         # ===============================
         # STEP 2.75 — SET PASSWORD 
         # ===============================    
