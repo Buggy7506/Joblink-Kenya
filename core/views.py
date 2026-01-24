@@ -110,7 +110,7 @@ def unified_auth_view(request):
         # CONTEXT (SESSION SAFE)
         # ===============================
         if action in ["verify_code", "login_password", "magic_link"]:
-            channel = request.session.get("otp_channel")
+            channel = request.session.get("otp_channel") or request.POST.get("channel", "email")
         else:
             channel = request.POST.get("channel", "email")
 
@@ -231,6 +231,11 @@ def unified_auth_view(request):
                 login(request, user)
                 verification.user = user
                 verification.save(update_fields=["user"])
+            
+                for k in list(request.session.keys()):
+                    if k.startswith("auth_") or k.startswith("otp_"):
+                        del request.session[k]
+            
                 return redirect("dashboard")
 
             # 🆕 NEW USER → PASSWORD SETUP
@@ -327,11 +332,12 @@ def unified_auth_view(request):
             return redirect("dashboard")
 
         # ===============================
-        # STEP 3 — PASSWORD SIGNUP / LOGIN
+        # STEP 3 — PASSWORD LOGIN (EXISTING USERS ONLY)
         # ===============================
         if action == "login_password":
-            user_exists = request.session.get("auth_user_exists")
-    
+            user_exists = request.session.get("auth_user_exists", False)
+        
+            # ❌ Block signup here — signup happens ONLY in set_password
             if not user_exists:
                 messages.error(request, "Please create an account first.")
                 return render(
@@ -339,54 +345,37 @@ def unified_auth_view(request):
                     "auth.html",
                     {"form": form, "ui_step": "password", "is_new_user": True}
                 )
+        
             identifier = request.session.get("auth_identifier")
-            verified_at = request.session.get("otp_verified_at")
-
-            if not verified_at:
-                messages.error(request, "Session expired. Please start again.")
-                return render(request, "auth.html", {"form": form, "ui_step": "email"})
-
             password = request.POST.get("password")
-            confirm_password = request.POST.get("confirm_password")
-
-            user = resolve_user(identifier, channel)
-
-            # ===== LOGIN =====
-            if user:
-                if not user.check_password(password):
-                    messages.error(request, "Invalid credentials.")
-                    return render(request, "auth.html", {"form": form, "ui_step": "password"})
-
-                login(request, user)
-                return redirect("dashboard")
-
-            # ===== SIGNUP =====
-            if not confirm_password or password != confirm_password:
-                messages.error(request, "Passwords do not match.")
+        
+            if not password:
+                messages.error(request, "Password is required.")
                 return render(
                     request,
                     "auth.html",
-                    {"form": form, "ui_step": "password", "is_new_user": True}
+                    {"form": form, "ui_step": "password"}
                 )
-
-            username = derive_username(channel, identifier)
-
-            user = CustomUser.objects.create_user(
-                username=username,
-                email=email if channel == "email" else None,
-                phone=phone if channel != "email" else None,
-                password=password,
-                role=role,
-            )
-
-            Profile.objects.get_or_create(
-                user=user,
-                defaults={"full_name": username or identifier, "role": role}
-            )
-
+        
+            user = resolve_user(identifier, channel)
+        
+            if not user or not user.check_password(password):
+                messages.error(request, "Invalid credentials.")
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "password"}
+                )
+        
             login(request, user)
+        
+            # 🔑 Clean auth session state
+            for k in list(request.session.keys()):
+                if k.startswith("auth_") or k.startswith("otp_"):
+                    del request.session[k]
+        
             return redirect("dashboard")
-
+                
         # ===============================
         # MAGIC LINK (EXISTING USERS ONLY)
         # ===============================
