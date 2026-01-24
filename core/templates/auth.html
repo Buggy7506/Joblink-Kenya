@@ -395,43 +395,45 @@
   border-color: #f97316;
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.6);
 }
-/* ===== AUTH PROVIDER BUTTONS ===== */
-.auth-provider-wrapper .auth-btn {
-  display: flex;
-  flex-direction: column;        /* 🔑 stack vertically */
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: 500;
-  border: 1px solid #ddd;
-  background: #fff;
-}
+/* ===== AUTH PROVIDER BUTTONS (NORMAL) ===== */
 
-/* Main row: icon + text */
-.auth-provider-wrapper .auth-main {
+.auth-provider-wrapper .auth-btn {
   display: flex;
   align-items: center;
   gap: 10px;
+
+  width: 100%;
+  padding: 10px 14px;
+
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-/* SVG safety */
+/* SVG sizing */
 .auth-provider-wrapper .auth-btn svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
 
-/* Apple (white) */
+/* Apple button */
 .auth-provider-wrapper .apple-btn {
-  background: #ffffff;
+  background: #fff;
   color: #000;
 }
 
 .auth-provider-wrapper .apple-btn svg path {
   fill: #000;
+}
+
+/* Remove extra layout helpers */
+.auth-provider-wrapper .auth-main {
+  display: contents;
 }
 
 /* Disabled buttons */
