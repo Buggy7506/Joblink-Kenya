@@ -825,7 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // INITIAL STEP (SERVER → UI)
   // =========================
   if (uiStepInput?.value && steps[uiStepInput.value]) {
-    // Server controls step after POST — no client forcing
+    setStep(uiStepInput.value);
   } else {
     setStep("email");
   }
@@ -942,6 +942,12 @@ form.addEventListener("submit", e => {
     // backend decides ui_step
     return;
   }
+   // =========================
+  // MAGIC LINK
+  // =========================
+   if (action === "magic_link") {
+     return; // backend handles resend or magic login
+   }
 
   // =========================
   // PASSWORD LOGIN / SIGNUP
@@ -965,4 +971,5 @@ form.addEventListener("submit", e => {
 });
 });
 </script>
+
 {% endblock %}
