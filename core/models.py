@@ -206,30 +206,44 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin'),
     )
 
+    # 🔥 OVERRIDE USERNAME
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='applicant')
     first_name = models.CharField(max_length=255, default='')
     last_name = models.CharField(max_length=255, default='')
-    phone = models.CharField(    max_length=20, blank=True, null=True, unique=True)
+
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        unique=True
+    )
+
+    email = models.EmailField(unique=True)
+
     location = models.CharField(max_length=255, blank=True)
     profile_pic = CloudinaryField('image', blank=True, null=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
-    email = models.EmailField(unique=True)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.username
+        return self.email or self.phone or "User"
 
     @property
     def profile_picture_url(self):
-        """
-        Returns the profile picture URL. Falls back to default if none exists.
-        """
         if self.profile_pic:
             return self.profile_pic.url
-        # If a related profile exists with a picture
         if hasattr(self, 'profile') and self.profile.profile_pic:
             return self.profile.profile_pic.url
         return "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png"
-
 
 # ======================================================
 # PROFILE
