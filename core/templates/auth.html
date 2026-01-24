@@ -443,27 +443,47 @@
 /* ===== DISABLED PROVIDERS (Apple & Microsoft) ===== */
 
 .auth-provider-wrapper .disabled-btn {
-  flex-direction: column;          /* stack text vertically */
-  align-items: center;
   opacity: 0.6;
   cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
+/* Main content stays inline */
+.auth-provider-wrapper .disabled-btn .auth-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Dot separator before "Coming soon" */
+.auth-provider-wrapper .coming-soon::before {
+  content: "·";
+  margin: 0 6px;
+  color: #bbb;
+  font-weight: 700;
+}
+
+/* Coming soon INLINE */
+.auth-provider-wrapper .coming-soon {
+  display: inline;
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Microsoft text color */
 .auth-provider-wrapper .microsoft-btn,
 .auth-provider-wrapper .microsoft-btn span {
   color: #000;
 }
+
 /* Disable ALL interaction */
 .auth-provider-wrapper .disabled-btn,
 .auth-provider-wrapper .disabled-btn * {
   pointer-events: none;
-}
-
-/* Coming soon text */
-.auth-provider-wrapper .coming-soon {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #999;
-  font-weight: 500;
 }
 </style>
 
