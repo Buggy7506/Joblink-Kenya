@@ -449,7 +449,17 @@
   align-items: center;
   gap: 6px;
 }
+/* Force ONE ROW for disabled buttons */
+.auth-provider-wrapper .disabled-btn {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
 
+/* Prevent text from breaking */
+.auth-provider-wrapper .auth-main span,
+.auth-provider-wrapper .coming-soon {
+  white-space: nowrap;
+}
 /* Main content stays inline */
 .auth-provider-wrapper .disabled-btn .auth-main {
   display: flex;
