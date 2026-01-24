@@ -225,13 +225,16 @@ class CustomUser(AbstractUser):
         unique=True
     )
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(
+    unique=True,
+    null=True,
+    blank=True
+    )
 
     location = models.CharField(max_length=255, blank=True)
     profile_pic = CloudinaryField('image', blank=True, null=True)
     skills = models.CharField(max_length=255, blank=True, null=True)
 
-    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     def __str__(self):
