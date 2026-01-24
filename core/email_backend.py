@@ -58,21 +58,6 @@ https://stepper.dpdns.org
                  style="background:#ffffff; border-radius:12px; padding:25px; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
 
             <tr>
-              <td align="center" style="padding-bottom:15px;">
-                <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png"
-                     alt="JobLink"
-                     width="140"
-                     style="display:block; margin:auto;">
-              </td>
-            </tr>
-
-            <tr>
-              <td style="text-align:center; font-size:22px; font-weight:bold; color:#00a8ff; padding-bottom:10px;">
-                Password Reset Request
-              </td>
-            </tr>
-
-            <tr>
               <td style="font-size:15px; line-height:1.6; color:#333;">
                 Hi {username},<br><br>
                 You’re receiving this email because someone requested a password reset
