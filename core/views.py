@@ -146,27 +146,33 @@ def unified_auth_view(request):
         # ===============================
         if action == "send_code":
             ui_step = "code"
-
+        
             if channel == "email" and not email:
                 messages.error(request, "Email is required.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
-
+        
             if channel in ["sms", "whatsapp"] and not phone:
                 messages.error(request, "Phone number is required.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
-
+        
             if otp_recently_sent(identifier, device_fingerprint):
                 messages.warning(request, "Please wait before requesting another code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
-
+        
+            # 🔑 CRITICAL FIX — detect if user already exists
+            user = resolve_user(identifier, channel)
+            request.session["auth_user_exists"] = bool(user)
+        
+            # Invalidate old unused codes for this device
             DeviceVerification.objects.filter(
                 identifier=identifier,
                 device_fingerprint=device_fingerprint,
                 is_used=False
             ).update(is_used=True)
-
+        
+            # Generate & store new OTP
             code = generate_code()
-
+        
             DeviceVerification.objects.create(
                 identifier=identifier,
                 code=code,
@@ -175,9 +181,11 @@ def unified_auth_view(request):
                 ip_address=ip_address,
                 location=location,
             )
-
+        
+            # Send OTP
             send_otp(channel, identifier, code)
-
+        
+            # Persist auth context
             request.session.update({
                 "auth_identifier": identifier,
                 "auth_email": email,
@@ -185,7 +193,7 @@ def unified_auth_view(request):
                 "auth_role": role,
                 "otp_channel": channel,
             })
-
+        
             messages.success(request, f"Verification code sent via {channel.upper()}.")
             return render(request, "auth.html", {"form": form, "ui_step": "code"})
 
