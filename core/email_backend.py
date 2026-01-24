@@ -1,7 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.template.loader import render_to_string
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
@@ -31,8 +30,25 @@ def send_password_reset(user, request):
     current_year = now().year
     username = user.get_username()
 
-    html_content = f"""
-<!DOCTYPE html>
+    # ✅ PLAIN TEXT (for inbox preview & fallback)
+    text_content = f"""
+Hi {username},
+
+You’re receiving this email because a password reset was requested
+for your JobLink account.
+
+Use the link below to set a new password:
+
+{reset_url}
+
+If you didn’t request this, you can safely ignore this email.
+
+© {current_year} JobLink
+https://stepper.dpdns.org
+""".strip()
+
+    # ✅ HTML VERSION (shown as-is in inbox body)
+    html_content = f"""<!DOCTYPE html>
 <html>
   <body style="margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; background:#f7f7f7;">
     <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;">
@@ -41,7 +57,6 @@ def send_password_reset(user, request):
           <table width="480" cellpadding="0" cellspacing="0"
                  style="background:#ffffff; border-radius:12px; padding:25px; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
 
-            <!-- LOGO -->
             <tr>
               <td align="center" style="padding-bottom:15px;">
                 <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png"
@@ -51,14 +66,12 @@ def send_password_reset(user, request):
               </td>
             </tr>
 
-            <!-- TITLE -->
             <tr>
               <td style="text-align:center; font-size:22px; font-weight:bold; color:#00a8ff; padding-bottom:10px;">
                 Password Reset Request
               </td>
             </tr>
 
-            <!-- MESSAGE -->
             <tr>
               <td style="font-size:15px; line-height:1.6; color:#333;">
                 Hi {username},<br><br>
@@ -68,7 +81,6 @@ def send_password_reset(user, request):
               </td>
             </tr>
 
-            <!-- BUTTON -->
             <tr>
               <td align="center" style="padding:25px 0;">
                 <a href="{reset_url}"
@@ -79,14 +91,12 @@ def send_password_reset(user, request):
               </td>
             </tr>
 
-            <!-- EXPIRY -->
             <tr>
               <td style="font-size:13px; color:#999; padding-bottom:20px;">
                 This link will expire soon. If you did not request this change, ignore this email.
               </td>
             </tr>
 
-            <!-- FOOTER -->
             <tr>
               <td style="font-size:12px; color:#aaa; text-align:center; border-top:1px solid #eee; padding-top:15px;">
                 © {current_year} JobLink • stepper.dpdns.org
@@ -101,9 +111,9 @@ def send_password_reset(user, request):
 </html>
 """
 
-    # ✅ NO from_email (Brevo shared sender safe)
     send_brevo_email(
         subject=subject,
         html_content=html_content,
+        text_content=text_content,   # ✅ KEY FIX
         to_email=user.email,
     )
