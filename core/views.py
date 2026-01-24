@@ -275,11 +275,70 @@ def unified_auth_view(request):
                     "is_new_user": not user_exists,
                 }
             )
+        # ===============================
+        # STEP 2.75 — SET PASSWORD 
+        # ===============================    
+        if action == "set_password":
+            if not request.session.get("otp_verified"):
+                messages.error(request, "Please verify your code first.")
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "code"}
+                )
+        
+            password = request.POST.get("password")
+            confirm_password = request.POST.get("confirm_password")
+        
+            if not password or password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "password", "is_new_user": True}
+                )
+        
+            identifier = request.session.get("auth_identifier")
+            channel = request.session.get("otp_channel")
+            role = request.session.get("auth_role")
+        
+            username = derive_username(channel, identifier)
+        
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=identifier if channel == "email" else None,
+                phone=identifier if channel != "email" else None,
+                password=password,
+                role=role,
+            )
+        
+            Profile.objects.get_or_create(
+                user=user,
+                defaults={"full_name": username or identifier, "role": role}
+            )
+        
+            login(request, user)
+        
+            # 🔑 CLEAN SESSION (VERY IMPORTANT)
+            for k in list(request.session.keys()):
+                if k.startswith("auth_") or k.startswith("otp_"):
+                    del request.session[k]
+        
+            return redirect("dashboard")
 
         # ===============================
         # STEP 3 — PASSWORD SIGNUP / LOGIN
         # ===============================
         if action == "login_password":
+            user_exists = request.session.get("auth_user_exists")
+    
+            if not user_exists:
+                messages.error(request, "Please create an account first.")
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "password", "is_new_user": True}
+                )
             identifier = request.session.get("auth_identifier")
             verified_at = request.session.get("otp_verified_at")
 
