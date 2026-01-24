@@ -238,6 +238,23 @@ def unified_auth_view(request):
                     "is_new_user": True,
                 }
             )
+        # ===============================
+        # STEP 2.5 — SWITCH TO PASSWORD (POST-OTP)
+        # ===============================
+        if action == "switch_to_password":
+            if not request.session.get("otp_verified"):
+                messages.error(request, "Please verify your code first.")
+                return render(request, "auth.html", {"form": form, "ui_step": "code"})
+        
+            return render(
+                request,
+                "auth.html",
+                {
+                    "form": form,
+                    "ui_step": "password",
+                    "is_new_user": not request.session.get("auth_user_exists", False),
+                }
+            )
 
         # ===============================
         # STEP 3 — PASSWORD SIGNUP / LOGIN
