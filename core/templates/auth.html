@@ -403,14 +403,19 @@
   gap: 10px;
   width: 100%;
   padding: 12px;
+  padding-right: 90px; /* space for "Coming soon" */
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid #ddd;
   background: #fff;
+  overflow: visible;
 }
-
-/* Apple */
+.auth-provider-wrapper .auth-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
 /* Apple — white, disabled-ready */
 .auth-provider-wrapper .auth-btn.apple-btn {
   background: #ffffff;
