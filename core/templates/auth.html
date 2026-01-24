@@ -395,67 +395,62 @@
   border-color: #f97316;
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.6);
 }
-/* ===== AUTH PROVIDER BUTTONS (SCOPED) ===== */
+/* ===== AUTH PROVIDER BUTTONS ===== */
 .auth-provider-wrapper .auth-btn {
   display: flex;
+  flex-direction: column;        /* 🔑 stack vertically */
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
   padding: 12px;
-  padding-right: 90px; /* space for "Coming soon" */
   border-radius: 6px;
   font-weight: 500;
-  cursor: pointer;
   border: 1px solid #ddd;
   background: #fff;
-  overflow: visible;
 }
+
+/* Main row: icon + text */
+.auth-provider-wrapper .auth-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* SVG safety */
 .auth-provider-wrapper .auth-btn svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
-/* Apple — white, disabled-ready */
-.auth-provider-wrapper .auth-btn.apple-btn {
+
+/* Apple (white) */
+.auth-provider-wrapper .apple-btn {
   background: #ffffff;
-  color: #000000;
-  border: 1px solid #ddd;
-}
-
-.auth-provider-wrapper .auth-btn.apple-btn svg path {
-  fill: #000000;
-}
-
-/* Microsoft */
-.auth-provider-wrapper .microsoft-btn {
-  background: #fff;
   color: #000;
 }
-/* ===== DISABLED AUTH BUTTONS (SCOPED) ===== */
-.auth-provider-wrapper .disabled-btn {
-  cursor: not-allowed;
-  opacity: 0.65;
-  position: relative;
+
+.auth-provider-wrapper .apple-btn svg path {
+  fill: #000;
 }
 
-/* Prevent clicks completely */
+/* Disabled buttons */
+.auth-provider-wrapper .disabled-btn {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Disable all interaction */
 .auth-provider-wrapper .disabled-btn,
 .auth-provider-wrapper .disabled-btn * {
   pointer-events: none;
 }
 
-/* "Coming soon" label */
+/* Coming soon text */
 .auth-provider-wrapper .coming-soon {
-  position: absolute;
-  right: 16px;
   font-size: 12px;
   color: #999;
   font-weight: 500;
-}
-.auth-provider-wrapper .disabled-btn span:not(.coming-soon),
-.auth-provider-wrapper .disabled-btn svg {
-  opacity: 0.7;
 }
 </style>
 
@@ -515,16 +510,19 @@
               class="auth-btn apple-btn disabled-btn"
               disabled
             >
-              <svg width="18" height="18" viewBox="0 0 305 305" aria-hidden="true">
-                <path fill="#000000" d="M40.74,112.12c-0.36,39.1,32.2,52.14,32.54,52.3
-                  c-0.27,0.92-5.09,17.47-16.78,34.6c-10.11,14.82-20.64,29.61-37.17,29.91
-                  c-16.18,0.3-21.38-9.59-39.85-9.59c-18.47,0-24.24,9.29-39.53,9.89
-                  c-15.92,0.6-28.04-15.92-38.27-30.7c-20.88-30.22-36.9-85.41-15.45-122.75
-                  c10.66-18.52,29.7-30.28,50.41-30.58c15.77-0.3,30.68,10.64,39.85,10.64
-                  c9.17,0,26.4-13.14,44.48-11.2c7.57,0.32,28.84,3.06,42.53,23.04
-                  c-1.1,0.68-25.41,14.82-25.05,44.44z"/>
-              </svg>
-              Continue with Apple
+              <span class="auth-main">
+                <svg width="18" height="18" viewBox="0 0 305 305" aria-hidden="true">
+                  <path d="M40.74,112.12c-0.36,39.1,32.2,52.14,32.54,52.3
+                    c-0.27,0.92-5.09,17.47-16.78,34.6c-10.11,14.82-20.64,29.61-37.17,29.91
+                    c-16.18,0.3-21.38-9.59-39.85-9.59c-18.47,0-24.24,9.29-39.53,9.89
+                    c-15.92,0.6-28.04-15.92-38.27-30.7c-20.88-30.22-36.9-85.41-15.45-122.75
+                    c10.66-18.52,29.7-30.28,50.41-30.58c15.77-0.3,30.68,10.64,39.85,10.64
+                    c9.17,0,26.4-13.14,44.48-11.2c7.57,0.32,28.84,3.06,42.53,23.04
+                    c-1.1,0.68-25.41,14.82-25.05,44.44z"/>
+                </svg>
+                <span>Continue with Apple</span>
+              </span>
+            
               <span class="coming-soon">Coming soon</span>
             </button>
 
@@ -534,16 +532,19 @@
               class="auth-btn microsoft-btn disabled-btn"
               disabled
             >
-              <svg width="18" height="18" viewBox="0 0 23 23" aria-hidden="true">
-                <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-                <rect x="13" y="1" width="9" height="9" fill="#7FBA00"/>
-                <rect x="1" y="13" width="9" height="9" fill="#00A4EF"/>
-                <rect x="13" y="13" width="9" height="9" fill="#FFB900"/>
-              </svg>
-              Continue with Microsoft
+              <span class="auth-main">
+                <svg width="18" height="18" viewBox="0 0 23 23" aria-hidden="true">
+                  <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+                  <rect x="13" y="1" width="9" height="9" fill="#7FBA00"/>
+                  <rect x="1" y="13" width="9" height="9" fill="#00A4EF"/>
+                  <rect x="13" y="13" width="9" height="9" fill="#FFB900"/>
+                </svg>
+                <span>Continue with Microsoft</span>
+              </span>
+            
               <span class="coming-soon">Coming soon</span>
             </button>
-         </div>
+            
           <div class="divider">OR</div>
 
           <!-- EMAIL -->
