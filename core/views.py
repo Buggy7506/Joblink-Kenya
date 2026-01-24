@@ -88,9 +88,19 @@ def unified_auth_view(request):
         return CustomUser.objects.filter(phone=identifier).first()
 
     def derive_username(channel, identifier):
-        if channel == "email" and identifier:
-            return identifier.split("@")[0]
-        return None
+        if channel != "email" or not identifier:
+            return None
+    
+        base = identifier.split("@")[0]
+        username = base
+        i = 1
+    
+        while CustomUser.objects.filter(username=username).exists():
+            username = f"{base}{i}"
+            i += 1
+    
+        return username
+
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -105,7 +115,12 @@ def unified_auth_view(request):
             channel = request.POST.get("channel", "email")
 
         raw_identifier = request.POST.get("identifier", "").strip()
-        email = raw_identifier.lower() if raw_identifier and channel == "email" else request.session.get("auth_email")
+        email = (
+            raw_identifier.lower()
+            if raw_identifier and channel == "email"
+            else request.session.get("auth_email")
+        )
+
         phone_raw = request.POST.get("phone", "").strip()
         phone = phone_raw if phone_raw else request.session.get("auth_phone")
 
@@ -115,11 +130,11 @@ def unified_auth_view(request):
         ip_address = get_client_ip(request)
         location = get_location_from_ip(ip_address)
 
-        # Resolve identifier
-        if action == "send_code":
-            identifier = email if channel == "email" else phone
-        else:
-            identifier = request.session.get("auth_identifier")
+        identifier = (
+            email if action == "send_code" and channel == "email"
+            else phone if action == "send_code"
+            else request.session.get("auth_identifier")
+        )
 
         # HARD GUARD
         if action in ["send_code", "magic_link"] and not identifier:
@@ -178,7 +193,6 @@ def unified_auth_view(request):
         # STEP 2 — VERIFY CODE
         # ===============================
         if action == "verify_code":
-            ui_step = "password"
             code = request.POST.get("code")
             identifier = request.session.get("auth_identifier")
 
@@ -202,11 +216,18 @@ def unified_auth_view(request):
             verification.is_used = True
             verification.save(update_fields=["is_used"])
 
+            user = resolve_user(identifier, channel)
+
+            # ✅ EXISTING USER → LOGIN IMMEDIATELY
+            if user:
+                login(request, user)
+                verification.user = user
+                verification.save(update_fields=["user"])
+                return redirect("dashboard")
+
+            # 🆕 NEW USER → PASSWORD SETUP
             request.session["otp_verified"] = True
             request.session["otp_verified_at"] = timezone.now().isoformat()
-
-            user = resolve_user(identifier, channel)
-            request.session["auth_user_exists"] = bool(user)
 
             return render(
                 request,
@@ -214,25 +235,20 @@ def unified_auth_view(request):
                 {
                     "form": form,
                     "ui_step": "password",
-                    "is_new_user": not bool(user),
+                    "is_new_user": True,
                 }
             )
 
         # ===============================
-        # STEP 3 — PASSWORD LOGIN / SIGNUP
+        # STEP 3 — PASSWORD SIGNUP / LOGIN
         # ===============================
         if action == "login_password":
-            ui_step = "password"
             identifier = request.session.get("auth_identifier")
             verified_at = request.session.get("otp_verified_at")
 
-            if not verified_at or timezone.now() - parse_datetime(verified_at) > timedelta(minutes=10):
+            if not verified_at:
                 messages.error(request, "Session expired. Please start again.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
-
-            if not request.session.get("otp_verified"):
-                messages.error(request, "Please verify your device.")
-                return render(request, "auth.html", {"form": form, "ui_step": "password"})
 
             password = request.POST.get("password")
             confirm_password = request.POST.get("confirm_password")
@@ -241,50 +257,21 @@ def unified_auth_view(request):
 
             # ===== LOGIN =====
             if user:
-                if user.role != role:
-                    messages.error(
-                        request,
-                        f"This account is registered as {user.get_role_display()}."
-                    )
-                    return render(request, "auth.html", {"form": form, "ui_step": "email"})
+                if not user.check_password(password):
+                    messages.error(request, "Invalid credentials.")
+                    return render(request, "auth.html", {"form": form, "ui_step": "password"})
 
-                auth_user = authenticate(
-                    request,
-                    username=user.username,
-                    password=password
-                )
-
-                if auth_user:
-                    login(request, auth_user)
-                    DeviceVerification.objects.filter(
-                        identifier=identifier,
-                        device_fingerprint=device_fingerprint,
-                        is_used=True,
-                        user__isnull=True
-                    ).update(user=auth_user)
-                    return redirect("dashboard")
-
-                messages.error(request, "Invalid credentials.")
-                return render(request, "auth.html", {"form": form, "ui_step": "password"})
+                login(request, user)
+                return redirect("dashboard")
 
             # ===== SIGNUP =====
-            is_new_user = True
-
-            if not confirm_password:
-                messages.info(request, "Please confirm your password.")
-                return render(request, "auth.html", {"form": form, "ui_step": "password", "is_new_user": True})
-
-            if password != confirm_password:
+            if not confirm_password or password != confirm_password:
                 messages.error(request, "Passwords do not match.")
-                return render(request, "auth.html", {"form": form, "ui_step": "password", "is_new_user": True})
-
-            existing_user = resolve_user(identifier, channel)
-            if existing_user:
-                messages.error(
+                return render(
                     request,
-                    f"This {channel} is already registered as {existing_user.get_role_display()}."
+                    "auth.html",
+                    {"form": form, "ui_step": "password", "is_new_user": True}
                 )
-                return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
             username = derive_username(channel, identifier)
 
@@ -298,32 +285,28 @@ def unified_auth_view(request):
 
             Profile.objects.get_or_create(
                 user=user,
-                defaults={
-                    "full_name": username or identifier,
-                    "role": role,
-                }
+                defaults={"full_name": username or identifier, "role": role}
             )
 
             login(request, user)
-
-            DeviceVerification.objects.filter(
-                identifier=identifier,
-                device_fingerprint=device_fingerprint,
-                is_used=True,
-                user__isnull=True
-            ).update(user=user)
-
             return redirect("dashboard")
 
         # ===============================
-        # MAGIC LINK
+        # MAGIC LINK (EXISTING USERS ONLY)
         # ===============================
         if action == "magic_link":
-            ui_step = "code"
             identifier = request.session.get("auth_identifier")
 
             if not identifier:
                 messages.error(request, "Session expired. Please start again.")
+                return render(request, "auth.html", {"form": form, "ui_step": "email"})
+
+            user = resolve_user(identifier, channel)
+            if not user:
+                messages.error(
+                    request,
+                    "No account found. Please sign up with a password."
+                )
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
 
             if otp_recently_sent(identifier, device_fingerprint):
@@ -345,10 +328,14 @@ def unified_auth_view(request):
                 device_fingerprint=device_fingerprint,
                 ip_address=ip_address,
                 location=location,
+                user=user,
             )
 
             send_otp(channel, identifier, code)
-            messages.success(request, f"One-time login code sent via {channel.upper()}.")
+            messages.success(
+                request,
+                f"One-time login code sent via {channel.upper()}."
+            )
             return render(request, "auth.html", {"form": form, "ui_step": "code"})
 
     return render(
