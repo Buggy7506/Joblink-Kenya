@@ -922,7 +922,7 @@ def set_google_password(request):
     oauth_user = request.session.get('oauth_user')
     if not oauth_user:
         messages.error(request, "Session expired. Please login with Google again.")
-        return redirect('signup')
+        return redirect('unified_auth_view')
 
     # Pre-fill first name for template
     first_name = oauth_user.get('first_name', '')
@@ -1054,7 +1054,7 @@ def google_callback(request):
     """
     code = request.GET.get('code')
     if not code:
-        return redirect('signup')  # cannot proceed without code
+        return redirect('unified_auth_view')  # cannot proceed without code
 
     # Exchange code for access token
     data = {
@@ -1069,7 +1069,7 @@ def google_callback(request):
     access_token = token_data.get('access_token')
 
     if not access_token:
-        return redirect('signup')  # cannot proceed without access token
+        return redirect('unified_auth_view')  # cannot proceed without access token
 
     # Get user info from Google
     headers = {'Authorization': f'Bearer {access_token}'}
@@ -1088,7 +1088,7 @@ def google_callback(request):
         last_name = last_name or (parts[1].capitalize() if len(parts) > 1 else '')
 
     if not email:
-        return redirect('signup')  # cannot proceed without email
+        return redirect('unified_auth_view')  # cannot proceed without email
 
     # Check if user already exists
     try:
@@ -1119,7 +1119,7 @@ def google_choose_role(request):
     user_data = request.session.get('oauth_user')
     if not user_data:
         messages.error(request, "Google login required first.")
-        return redirect('signup')
+        return redirect('unified_auth_view')
 
     email = user_data['email']
 
@@ -1168,7 +1168,7 @@ def apple_login(request):
 def apple_callback(request):
     code = request.POST.get("code")
     if not code:
-        return redirect("signup")
+        return redirect("unified_auth_view")
 
     # Exchange code for token (JWT client_secret required)
     token_response = requests.post(APPLE_TOKEN_ENDPOINT, data={
@@ -1183,7 +1183,7 @@ def apple_callback(request):
     id_token = token_data.get("id_token")
 
     if not id_token:
-        return redirect("signup")
+        return redirect("unified_auth_view")
 
     decoded = jwt.decode(id_token, options={"verify_signature": False})
     email = decoded.get("email")
@@ -1220,7 +1220,7 @@ def microsoft_login(request):
 def microsoft_callback(request):
     code = request.GET.get("code")
     if not code:
-        return redirect("signup")
+        return redirect("unified_auth_view")
 
     token_response = requests.post(MICROSOFT_TOKEN_ENDPOINT, data={
         "client_id": MICROSOFT_CLIENT_ID,
@@ -1232,7 +1232,7 @@ def microsoft_callback(request):
 
     access_token = token_response.json().get("access_token")
     if not access_token:
-        return redirect("signup")
+        return redirect("unified_auth_view")
 
     headers = {"Authorization": f"Bearer {access_token}"}
     user_info = requests.get(MICROSOFT_USERINFO_ENDPOINT, headers=headers).json()
