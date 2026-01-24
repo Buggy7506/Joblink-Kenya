@@ -349,7 +349,7 @@ def unified_auth_view(request):
     )
     
 class CustomPasswordResetView(auth_views.PasswordResetView):
-    template_name = "password_reset_email.html"
+    template_name = "password_reset.html"
     form_class = PasswordResetForm
     success_url = reverse_lazy("password_reset_done")
 
