@@ -411,14 +411,15 @@
 }
 
 /* Apple */
-.auth-provider-wrapper .apple-btn {
-  background: #000;
-  color: #fff;
-  border: none;
+/* Apple — white, disabled-ready */
+.auth-provider-wrapper .auth-btn.apple-btn {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ddd;
 }
 
-.auth-provider-wrapper .apple-btn svg {
-  fill: #fff;
+.auth-provider-wrapper .auth-btn.apple-btn svg path {
+  fill: #000000;
 }
 
 /* Microsoft */
@@ -426,32 +427,30 @@
   background: #fff;
   color: #000;
 }
-/* Apple button white like Google */
-.apple-btn {
-  background-color: #ffffff;
-  color: #000;
-  border: 1px solid #ddd;
-}
-
-/* Disabled look */
-.disabled-btn {
+/* ===== DISABLED AUTH BUTTONS (SCOPED) ===== */
+.auth-provider-wrapper .disabled-btn {
   cursor: not-allowed;
   opacity: 0.65;
   position: relative;
 }
 
 /* Prevent clicks completely */
-.disabled-btn * {
+.auth-provider-wrapper .disabled-btn,
+.auth-provider-wrapper .disabled-btn * {
   pointer-events: none;
 }
 
 /* "Coming soon" label */
-.coming-soon {
+.auth-provider-wrapper .coming-soon {
   position: absolute;
   right: 16px;
   font-size: 12px;
   color: #999;
   font-weight: 500;
+}
+.auth-provider-wrapper .disabled-btn span:not(.coming-soon),
+.auth-provider-wrapper .disabled-btn svg {
+  opacity: 0.7;
 }
 </style>
 
