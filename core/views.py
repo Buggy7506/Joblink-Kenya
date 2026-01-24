@@ -530,7 +530,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     # 🚫 Block access unless verification is pending
 #     if not request.session.get("pending_verification"):
 #         messages.error(request, "Unauthorized access.")
-#         return redirect("unified_auth_view")
+#         return redirect("unified_auth")
 
 #     # 🔐 Ensure user is NOT authenticated (only if they are not in verification process)
 #     if request.user.is_authenticated:
@@ -540,7 +540,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     user_id = request.session.get("verify_device_user_id")
 #     if not user_id:
 #         messages.error(request, "Session expired. Please login again.")
-#         return redirect("unified_auth_view")
+#         return redirect("unified_auth")
 
 #     # Retrieve the user from the database
 #     user = get_object_or_404(CustomUser, id=user_id)
@@ -558,7 +558,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     # If no methods are available, show an error
 #     if not options:
 #         messages.error(request, "No verification method available. Please contact support.")
-#         return redirect("unified_auth_view")
+#         return redirect("unified_auth")
 
 #     # Handle POST request for method selection
 #     if request.method == "POST":
@@ -598,7 +598,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     user_id = request.session.get('verify_device_user_id')
 #     if not user_id:
 #         messages.error(request, "Session expired. Please login again.")
-#         return redirect("unified_auth_view")
+#         return redirect("unified_auth")
 
 #     user = get_object_or_404(CustomUser, id=user_id)
 #     profile, _ = Profile.objects.get_or_create(user=user)
@@ -673,7 +673,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #     user_id = request.session.get("verify_device_user_id")
 #     if not user_id:
 #         messages.error(request, "Session expired. Please login again.")
-#         return redirect("unified_auth_view")
+#         return redirect("unified_auth")
 
 #     # Use a SAFE variable name (NOT 'user')
 #     pending_user = get_object_or_404(CustomUser, id=user_id)
@@ -747,7 +747,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #                 request,
 #                 "Device verified successfully. Please log in."
 #             )
-#             return redirect("unified_auth_view")
+#             return redirect("unified_auth")
 
 #         messages.error(request, "Invalid OTP. Please try again.")
 
@@ -911,7 +911,7 @@ def delete_account(request):
     user.delete()
     logout(request)
     messages.success(request, "Your account has been permanently deleted.")
-    return redirect(reverse("unified_auth_view"))
+    return redirect(reverse("unified_auth"))
 
 
 
@@ -922,7 +922,7 @@ def set_google_password(request):
     oauth_user = request.session.get('oauth_user')
     if not oauth_user:
         messages.error(request, "Session expired. Please login with Google again.")
-        return redirect('unified_auth_view')
+        return redirect('unified_auth')
 
     # Pre-fill first name for template
     first_name = oauth_user.get('first_name', '')
@@ -965,7 +965,7 @@ def set_google_password(request):
         email = oauth_user['email']
         if CustomUser.objects.filter(email=email).exists():
             messages.error(request, "An account with this email already exists. Please log in.")
-            return redirect('unified_auth_view')
+            return redirect('unified_auth')
 
         # -------------------------
         # 3️⃣ Create user
@@ -1054,7 +1054,7 @@ def google_callback(request):
     """
     code = request.GET.get('code')
     if not code:
-        return redirect('unified_auth_view')  # cannot proceed without code
+        return redirect('unified_auth')  # cannot proceed without code
 
     # Exchange code for access token
     data = {
@@ -1069,7 +1069,7 @@ def google_callback(request):
     access_token = token_data.get('access_token')
 
     if not access_token:
-        return redirect('unified_auth_view')  # cannot proceed without access token
+        return redirect('unified_auth')  # cannot proceed without access token
 
     # Get user info from Google
     headers = {'Authorization': f'Bearer {access_token}'}
@@ -1088,7 +1088,7 @@ def google_callback(request):
         last_name = last_name or (parts[1].capitalize() if len(parts) > 1 else '')
 
     if not email:
-        return redirect('unified_auth_view')  # cannot proceed without email
+        return redirect('unified_auth')  # cannot proceed without email
 
     # Check if user already exists
     try:
@@ -1119,7 +1119,7 @@ def google_choose_role(request):
     user_data = request.session.get('oauth_user')
     if not user_data:
         messages.error(request, "Google login required first.")
-        return redirect('unified_auth_view')
+        return redirect('unified_auth')
 
     email = user_data['email']
 
@@ -1168,7 +1168,7 @@ def apple_login(request):
 def apple_callback(request):
     code = request.POST.get("code")
     if not code:
-        return redirect("unified_auth_view")
+        return redirect("unified_auth")
 
     # Exchange code for token (JWT client_secret required)
     token_response = requests.post(APPLE_TOKEN_ENDPOINT, data={
@@ -1183,7 +1183,7 @@ def apple_callback(request):
     id_token = token_data.get("id_token")
 
     if not id_token:
-        return redirect("unified_auth_view")
+        return redirect("unified_auth")
 
     decoded = jwt.decode(id_token, options={"verify_signature": False})
     email = decoded.get("email")
@@ -1220,7 +1220,7 @@ def microsoft_login(request):
 def microsoft_callback(request):
     code = request.GET.get("code")
     if not code:
-        return redirect("unified_auth_view")
+        return redirect("unified_auth")
 
     token_response = requests.post(MICROSOFT_TOKEN_ENDPOINT, data={
         "client_id": MICROSOFT_CLIENT_ID,
@@ -1232,7 +1232,7 @@ def microsoft_callback(request):
 
     access_token = token_response.json().get("access_token")
     if not access_token:
-        return redirect("unified_auth_view")
+        return redirect("unified_auth")
 
     headers = {"Authorization": f"Bearer {access_token}"}
     user_info = requests.get(MICROSOFT_USERINFO_ENDPOINT, headers=headers).json()
@@ -1948,7 +1948,7 @@ def dashboard(request):
         })
 
     # Fallback → unknown role
-    return redirect("unified_auth_view")
+    return redirect("unified_auth")
     
 @login_required
 def upload_company_docs(request):
@@ -2090,7 +2090,7 @@ def profile_view(request):
 @login_required
 def view_posted_jobs(request):
     if not request.user.is_superuser and request.user.role != 'employer':
-        return redirect('unified_auth_view')
+        return redirect('unified_auth')
     jobs = Job.objects.all().order_by('-posted_on')
     posted_jobs = Job.objects.filter(employer=request.user).order_by('-posted_on')
     posted_jobs_count = posted_jobs.count()
@@ -2144,7 +2144,7 @@ def view_applicants(request):
 @login_required
 def employer_control_panel_view(request):
     if not request.user.is_superuser and request.user.role != 'employer':
-        return redirect('unified_auth_view')
+        return redirect('unified_auth')
 
     posted_jobs_count = Job.objects.filter(employer=request.user).count()
     active_jobs = Job.objects.filter(employer=request.user, is_active=True).count()
