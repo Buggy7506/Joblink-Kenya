@@ -752,15 +752,15 @@
                >
              {% endif %}
            </div>
-         
-           <button
-             type="submit"
-             name="action"
-             value="login_password"
-             class="auth-btn primary"
-           >
-             Continue
-           </button>
+            
+         <button
+           type="submit"
+           name="action"
+           value="{% if is_new_user %}set_password{% else %}login_password{% endif %}"
+           class="auth-btn primary"
+         >
+           {% if is_new_user %}Create account{% else %}Continue{% endif %}
+         </button>
          
            <a href="{% url 'password_reset' %}" class="auth-link">
              Forgot password?
