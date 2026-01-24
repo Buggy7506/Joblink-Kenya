@@ -126,7 +126,14 @@
         {% elif 'error' in message.tags %}✖
         {% else %}ℹ{% endif %}
       </span>
-      <span class="alert-text">{{ message }}</span>
+      <span class="alert-text">
+        {% if "registered as a" in message|stringformat:"s" %}
+          <strong>Account role mismatch</strong>
+          <p>{{ message }}</p>
+        {% else %}
+          {{ message }}
+        {% endif %}
+      </span>
     </div>
   {% endfor %}
 
