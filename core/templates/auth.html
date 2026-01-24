@@ -426,23 +426,30 @@
   background: #fff;
   color: #000;
 }
-
+.auth-provider-wrapper .apple-btn svg {
+  padding-left: 2px;
+}
 .auth-provider-wrapper .apple-btn svg path {
   fill: #000;
 }
 
-/* Remove extra layout helpers */
+/* Main row (icon + text) */
 .auth-provider-wrapper .auth-main {
-  display: contents;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Disabled buttons */
+/* ===== DISABLED PROVIDERS (Apple & Microsoft) ===== */
+
 .auth-provider-wrapper .disabled-btn {
+  flex-direction: column;          /* stack text vertically */
+  align-items: center;
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Disable all interaction */
+/* Disable ALL interaction */
 .auth-provider-wrapper .disabled-btn,
 .auth-provider-wrapper .disabled-btn * {
   pointer-events: none;
@@ -450,6 +457,7 @@
 
 /* Coming soon text */
 .auth-provider-wrapper .coming-soon {
+  margin-top: 4px;
   font-size: 12px;
   color: #999;
   font-weight: 500;
