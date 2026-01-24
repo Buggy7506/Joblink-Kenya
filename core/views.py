@@ -77,19 +77,27 @@ def unified_auth_view(request):
     ui_step = "email"
     is_new_user = False
 
+    # ===============================
+    # HELPERS
+    # ===============================
     def resolve_user(identifier, channel):
         if not identifier:
             return None
         if channel == "email":
             return CustomUser.objects.filter(email__iexact=identifier).first()
-        return CustomUser.objects.filter(username=identifier).first()
+        return CustomUser.objects.filter(phone=identifier).first()
+
+    def derive_username(channel, identifier):
+        if channel == "email" and identifier:
+            return identifier.split("@")[0]
+        return None
 
     if request.method == "POST":
         action = request.POST.get("action")
         ui_step = request.POST.get("ui_step", "email")
 
         # ===============================
-        # CONTEXT (SESSION-SAFE)
+        # CONTEXT (SESSION SAFE)
         # ===============================
         if action in ["verify_code", "login_password", "magic_link"]:
             channel = request.session.get("otp_channel")
@@ -107,7 +115,7 @@ def unified_auth_view(request):
         ip_address = get_client_ip(request)
         location = get_location_from_ip(ip_address)
 
-        # Resolve identifier deterministically
+        # Resolve identifier
         if action == "send_code":
             identifier = email if channel == "email" else phone
         else:
@@ -233,11 +241,19 @@ def unified_auth_view(request):
 
             # ===== LOGIN =====
             if user:
+                if user.role != role:
+                    messages.error(
+                        request,
+                        f"This account is registered as {user.get_role_display()}."
+                    )
+                    return render(request, "auth.html", {"form": form, "ui_step": "email"})
+
                 auth_user = authenticate(
                     request,
                     username=user.username,
                     password=password
                 )
+
                 if auth_user:
                     login(request, auth_user)
                     DeviceVerification.objects.filter(
@@ -262,13 +278,18 @@ def unified_auth_view(request):
                 messages.error(request, "Passwords do not match.")
                 return render(request, "auth.html", {"form": form, "ui_step": "password", "is_new_user": True})
 
-            # FINAL SAFETY CHECK (EMAIL UNIQUENESS)
-            if channel == "email" and CustomUser.objects.filter(email__iexact=email).exists():
-                messages.error(request, "An account with this email already exists. Please sign in.")
-                return render(request, "auth.html", {"form": form, "ui_step": "password"})
+            existing_user = resolve_user(identifier, channel)
+            if existing_user:
+                messages.error(
+                    request,
+                    f"This {channel} is already registered as {existing_user.get_role_display()}."
+                )
+                return render(request, "auth.html", {"form": form, "ui_step": "email"})
+
+            username = derive_username(channel, identifier)
 
             user = CustomUser.objects.create_user(
-                username=identifier,
+                username=username,
                 email=email if channel == "email" else None,
                 phone=phone if channel != "email" else None,
                 password=password,
@@ -277,7 +298,10 @@ def unified_auth_view(request):
 
             Profile.objects.get_or_create(
                 user=user,
-                defaults={"full_name": identifier, "role": role}
+                defaults={
+                    "full_name": username or identifier,
+                    "role": role,
+                }
             )
 
             login(request, user)
