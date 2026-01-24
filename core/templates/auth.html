@@ -816,20 +816,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // STEP CONTROL (UI ONLY)
   // =========================
-  function setStep(step) {
-    Object.values(steps).forEach(el => el && el.classList.add("hidden"));
-    steps[step]?.classList.remove("hidden");
-
-    if (uiStepInput) {
-      uiStepInput.value = step;
-    }
-  }
+   function setStep(step) {
+     Object.values(steps).forEach(el => el && el.classList.add("hidden"));
+     steps[step]?.classList.remove("hidden");
+   }
 
   // =========================
   // INITIAL STEP (SERVER → UI)
   // =========================
   if (uiStepInput?.value && steps[uiStepInput.value]) {
-    setStep(uiStepInput.value);
+    // Server controls step after POST — no client forcing
   } else {
     setStep("email");
   }
@@ -894,75 +890,79 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // FORM SUBMIT CONTROL
   // =========================
-  form.addEventListener("submit", e => {
-    const action = e.submitter?.value;
-    const channel = document.querySelector(
-      'input[name="channel"]:checked'
-    )?.value;
+form.addEventListener("submit", e => {
+  const action = e.submitter?.value;
+  const channel = document.querySelector(
+    'input[name="channel"]:checked'
+  )?.value;
 
-    // =========================
-    // SEND CODE
-    // =========================
-    if (action === "send_code") {
+  // =========================
+  // SEND CODE
+  // =========================
+  if (action === "send_code") {
 
-      if (channel === "email" && !emailInput.value.trim()) {
-        e.preventDefault();
-        alert("Email is required for email verification.");
-        setStep("email");
-        return;
-      }
-
-      if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
-        e.preventDefault();
-        alert("Phone number is required for SMS or WhatsApp.");
-        setStep("email");
-        return;
-      }
-
-      // UI optimism only
-      setStep("code");
-      setTimeout(startResendCooldown, 300);
+    if (channel === "email" && !emailInput.value.trim()) {
+      e.preventDefault();
+      alert("Email is required for email verification.");
+      setStep("email");
       return;
     }
 
-    // =========================
-    // VERIFY CODE
-    // =========================
-    if (action === "verify_code") {
-      const codeInput = form.querySelector('input[name="code"]');
-
-      if (!codeInput || !codeInput.value.trim()) {
-        e.preventDefault();
-        alert("Enter the 6-digit code.");
-        return;
-      }
-      // backend decides next step
+    if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
+      e.preventDefault();
+      alert("Phone number is required for SMS or WhatsApp.");
+      setStep("email");
+      return;
     }
 
-    // =========================
-    // PASSWORD LOGIN / SIGNUP
-    // =========================
-    if (action === "login_password") {
-      const passInput = form.querySelector('input[name="password"]');
-      const confirmInput = form.querySelector('input[name="confirm_password"]');
+    // visual only — server will confirm step
+    steps.email.classList.add("hidden");
+    steps.code.classList.remove("hidden");
 
-      if (!passInput || !passInput.value.trim()) {
-        e.preventDefault();
-        alert("Enter your password.");
-        return;
-      }
+    return; // ✅ IMPORTANT: stop here
+  }
 
-      // Only validate confirm_password IF IT EXISTS (new user)
-      if (confirmInput && passInput.value !== confirmInput.value) {
-        e.preventDefault();
-        alert("Passwords do not match.");
-        return;
-      }
+  // =========================
+  // VERIFY CODE
+  // =========================
+  if (action === "verify_code") {
+    const codeInput = form.querySelector('input[name="code"]');
 
-      // backend handles login vs signup
+    if (!codeInput || !codeInput.value.trim()) {
+      e.preventDefault();
+      alert("Enter the 6-digit code.");
+      return;
     }
-  });
+  }
 
+  // =========================
+  // SWITCH TO PASSWORD
+  // =========================
+  if (action === "switch_to_password") {
+    // backend decides ui_step
+    return;
+  }
+
+  // =========================
+  // PASSWORD LOGIN / SIGNUP
+  // =========================
+  if (action === "login_password") {
+    const passInput = form.querySelector('input[name="password"]');
+    const confirmInput = form.querySelector('input[name="confirm_password"]');
+
+    if (!passInput || !passInput.value.trim()) {
+      e.preventDefault();
+      alert("Enter your password.");
+      return;
+    }
+
+    if (confirmInput && passInput.value !== confirmInput.value) {
+      e.preventDefault();
+      alert("Passwords do not match.");
+      return;
+    }
+  }
+});
 });
 </script>
 {% endblock %}
