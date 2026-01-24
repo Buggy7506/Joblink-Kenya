@@ -919,13 +919,13 @@ def set_google_password(request):
     """
     Google OAuth users must set a password.
     """
-    google_user = request.session.get('google_user')
-    if not google_user:
+    oauth_user = request.session.get('oauth_user')
+    if not oauth_user:
         messages.error(request, "Session expired. Please login with Google again.")
         return redirect('signup')
 
     # Pre-fill first name for template
-    first_name = google_user.get('first_name', '')
+    first_name = oauth_user.get('first_name', '')
 
     if request.method == 'POST':
         password = request.POST.get('password', '').strip()
@@ -936,33 +936,33 @@ def set_google_password(request):
         # -------------------------
         if not password or not confirm_password:
             messages.error(request, "Both password fields are required.")
-            return render(request, 'set_google_password.html', {'user': google_user})
+            return render(request, 'set_google_password.html', {'user': oauth_user})
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'set_google_password.html', {'user': google_user})
+            return render(request, 'set_google_password.html', {'user': oauth_user})
 
         # Strong password rules
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters long.")
-            return render(request, 'set_google_password.html', {'user': google_user})
+            return render(request, 'set_google_password.html', {'user': oauth_user})
 
         if not re.search(r'[A-Z]', password):
             messages.error(request, "Password must contain an uppercase letter.")
-            return render(request, 'set_google_password.html', {'user': google_user})
+            return render(request, 'set_google_password.html', {'user': oauth_user})
 
         if not re.search(r'\d', password):
             messages.error(request, "Password must contain a number.")
-            return render(request, 'set_google_password.html', {'user': google_user})
+            return render(request, 'set_google_password.html', {'user': oauth_user})
 
         if not re.search(r'[@$!%*#?&]', password):
             messages.error(request, "Password must contain a special character.")
-            return render(request, 'set_google_password.html', {'user': google_user})
+            return render(request, 'set_google_password.html', {'user': oauth_user})
 
         # -------------------------
         # 2️⃣ Prevent duplicate email
         # -------------------------
-        email = google_user['email']
+        email = oauth_user['email']
         if CustomUser.objects.filter(email=email).exists():
             messages.error(request, "An account with this email already exists. Please log in.")
             return redirect('unified_auth_view')
@@ -970,8 +970,8 @@ def set_google_password(request):
         # -------------------------
         # 3️⃣ Create user
         # -------------------------
-        last_name = google_user.get('last_name', '')
-        role = request.session.get('google_role')
+        last_name = oauth_user.get('last_name', '')
+        role = request.session.get('oauth_role')
 
         # Username generation
         base_username = ''.join(e for e in first_name.lower() if e.isalnum()) or 'user'
@@ -996,7 +996,7 @@ def set_google_password(request):
         profile.save()
 
         # Optional: Save Google profile picture
-        picture_url = google_user.get('picture')
+        picture_url = oauth_user.get('picture')
         if picture_url:
             try:
                 response = requests.get(picture_url, timeout=5)
@@ -1013,14 +1013,14 @@ def set_google_password(request):
         # 4️⃣ Login + cleanup
         # -------------------------
         login(request, user)
-        request.session.pop('google_user', None)
-        request.session.pop('google_role', None)
+        request.session.pop('oauth_user', None)
+        request.session.pop('oauth_role', None)
 
         messages.success(request, "Account created successfully!")
         return redirect('dashboard')
 
     # GET request
-    return render(request, 'set_google_password.html', {'user': google_user})
+    return render(request, 'set_google_password.html', {'user': oauth_user})
 
 
 # Google OAuth settings
@@ -1098,10 +1098,12 @@ def google_callback(request):
         return redirect('dashboard')
     except User.DoesNotExist:
         # New user: save info in session and redirect to role selection
-        request.session['google_user'] = {
+        request.session['oauth_user'] = {
             'email': email,
             'first_name': first_name,
             'last_name': last_name,
+            'picture': user_info.get('picture'),
+            'provider': 'google',
         }
         return redirect('google_choose_role')
 
@@ -1114,7 +1116,7 @@ def google_choose_role(request):
     Role selection is stored in session for later account creation.
     Profile picture will be handled later in set_google_password.
     """
-    user_data = request.session.get('google_user')
+    user_data = request.session.get('oauth_user')
     if not user_data:
         messages.error(request, "Google login required first.")
         return redirect('signup')
@@ -1126,7 +1128,7 @@ def google_choose_role(request):
         existing_user = CustomUser.objects.get(email=email)
         if existing_user.has_usable_password():
             login(request, existing_user)
-            request.session.pop('google_user', None)
+            request.session.pop('oauth_user', None)
             return redirect('dashboard')
     except CustomUser.DoesNotExist:
         pass
@@ -1138,16 +1140,119 @@ def google_choose_role(request):
             return redirect('google_choose_role')
 
         # Store role in session for later account creation
-        request.session['google_role'] = role
+        request.session['oauth_role'] = role
 
         return redirect('set_google_password')
 
     # GET request → render role selection template
     return render(request, 'google_role.html', {
-        "google_user": user_data,
+        "oauth_user": user_data,
     })
 
+APPLE_AUTH_ENDPOINT = "https://appleid.apple.com/auth/authorize"
+APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token"
+APPLE_CLIENT_ID = "com.your.app"
+APPLE_REDIRECT_URI = "https://yourdomain.com/apple/callback/"
 
+def apple_login(request):
+    params = {
+        "client_id": APPLE_CLIENT_ID,
+        "redirect_uri": APPLE_REDIRECT_URI,
+        "response_type": "code id_token",
+        "scope": "name email",
+        "response_mode": "form_post",
+    }
+    url = f"{APPLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
+    return redirect(url)
+
+def apple_callback(request):
+    code = request.POST.get("code")
+    if not code:
+        return redirect("signup")
+
+    # Exchange code for token (JWT client_secret required)
+    token_response = requests.post(APPLE_TOKEN_ENDPOINT, data={
+        "client_id": APPLE_CLIENT_ID,
+        "client_secret": generate_apple_client_secret(),  # JWT
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": APPLE_REDIRECT_URI,
+    })
+
+    token_data = token_response.json()
+    id_token = token_data.get("id_token")
+
+    if not id_token:
+        return redirect("signup")
+
+    decoded = jwt.decode(id_token, options={"verify_signature": False})
+    email = decoded.get("email")
+    first_name = decoded.get("given_name", "")
+    last_name = decoded.get("family_name", "")
+
+    try:
+        user = CustomUser.objects.get(email=email)
+        login(request, user)
+        return redirect("dashboard")
+    except CustomUser.DoesNotExist:
+        request.session["oauth_user"] = {
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "provider": "apple",
+        }
+        return redirect("google_choose_role")
+MICROSOFT_AUTH_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+MICROSOFT_TOKEN_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+MICROSOFT_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+
+def microsoft_login(request):
+    params = {
+        "client_id": MICROSOFT_CLIENT_ID,
+        "response_type": "code",
+        "redirect_uri": MICROSOFT_REDIRECT_URI,
+        "response_mode": "query",
+        "scope": "openid email profile User.Read",
+    }
+    url = f"{MICROSOFT_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
+    return redirect(url)
+
+def microsoft_callback(request):
+    code = request.GET.get("code")
+    if not code:
+        return redirect("signup")
+
+    token_response = requests.post(MICROSOFT_TOKEN_ENDPOINT, data={
+        "client_id": MICROSOFT_CLIENT_ID,
+        "client_secret": MICROSOFT_CLIENT_SECRET,
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": MICROSOFT_REDIRECT_URI,
+    })
+
+    access_token = token_response.json().get("access_token")
+    if not access_token:
+        return redirect("signup")
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    user_info = requests.get(MICROSOFT_USERINFO_ENDPOINT, headers=headers).json()
+
+    email = user_info.get("mail") or user_info.get("userPrincipalName")
+    first_name = user_info.get("givenName", "")
+    last_name = user_info.get("surname", "")
+
+    try:
+        user = CustomUser.objects.get(email=email)
+        login(request, user)
+        return redirect("dashboard")
+    except CustomUser.DoesNotExist:
+        request.session["oauth_user"] = {
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "provider": "microsoft",
+        }
+        return redirect("google_choose_role")
     
 # -----------------------------
 # HELPER FUNCTIONS
