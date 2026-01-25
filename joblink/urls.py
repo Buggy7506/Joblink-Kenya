@@ -37,6 +37,7 @@ urlpatterns = [
     path("sitemap.xml", sitemap, {'sitemaps': sitemaps}, name="sitemap"),
     path('admin/', admin.site.urls),
     path('health/', healthcheck),
+    path("robots.txt", robots_txt),
     path('', include('core.urls')),
 ]
 
