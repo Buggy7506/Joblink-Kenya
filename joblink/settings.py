@@ -246,6 +246,9 @@ TRUSTED_DEVICE_DAYS = 30
 # Security / Domain
 SITE_URL = "https://www.stepper.dpdns.org"
 
+SITE_NAME = "Joblink Kenya"
+SITE_DOMAIN = "https://www.stepper.dpdns.org"
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
