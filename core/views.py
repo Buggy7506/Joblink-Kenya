@@ -203,11 +203,11 @@ def unified_auth_view(request):
         if action == "verify_code":
             code = request.POST.get("code")
             identifier = request.session.get("auth_identifier")
-
+        
             if not code:
                 messages.error(request, "Please enter the verification code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
-
+        
             verification = DeviceVerification.objects.filter(
                 identifier=identifier,
                 code=code,
@@ -216,32 +216,36 @@ def unified_auth_view(request):
                 is_used=False,
                 created_at__gte=timezone.now() - timedelta(minutes=5),
             ).first()
-
+        
             if not verification:
                 messages.error(request, "Invalid or expired verification code.")
                 return render(request, "auth.html", {"form": form, "ui_step": "code"})
-
+        
             verification.is_used = True
             verification.save(update_fields=["is_used"])
-
+        
             user = resolve_user(identifier, channel)
-
+        
             # ✅ EXISTING USER → LOGIN IMMEDIATELY
             if user:
                 login(request, user)
                 verification.user = user
                 verification.save(update_fields=["user"])
-            
+        
                 for k in list(request.session.keys()):
                     if k.startswith("auth_") or k.startswith("otp_"):
                         del request.session[k]
-            
+        
                 return redirect("dashboard")
-
+        
             # 🆕 NEW USER → PASSWORD SETUP
             request.session["otp_verified"] = True
             request.session["otp_verified_at"] = timezone.now().isoformat()
-
+        
+            # 🔥 CRITICAL: persist verified identity for password step
+            request.session["auth_identifier"] = identifier
+            request.session["otp_channel"] = channel
+        
             return render(
                 request,
                 "auth.html",
@@ -251,6 +255,7 @@ def unified_auth_view(request):
                     "is_new_user": True,
                 }
             )
+
         # ===============================
         # STEP 2.5 — SWITCH TO PASSWORD 
         # ===============================
