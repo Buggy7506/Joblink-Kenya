@@ -2349,7 +2349,7 @@ def post_job(request):
     # 1️⃣ Only employers can post jobs
     if getattr(request.user, "role", None) != "employer":
         messages.error(request, "❌ Only employers can post jobs.")
-        return redirect('job_list')
+        return redirect('available_jobs')
 
     # 2️⃣ Get company tied to USER
     try:
@@ -2474,12 +2474,12 @@ def apply_job(request, job_id):
     # 1️⃣ Only applicants can apply
     if request.user.profile.role != "applicant":
         messages.error(request, "❌ Only applicants can apply to jobs.")
-        return redirect('job_list')
+        return redirect('available_jobs')
 
     # 2️⃣ Prevent applicant from applying to their own job (in case they are employer)
     if job.employer == request.user:
         messages.error(request, "❌ You cannot apply to your own job posting.")
-        return redirect('job_list')
+        return redirect('available_jobs')
 
     # 3️⃣ Handle POST requests
     if request.method == "POST":
