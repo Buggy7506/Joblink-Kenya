@@ -902,42 +902,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const channelRadios = document.querySelectorAll('input[name="channel"]');
 
   // =========================
-  // STEP CONTROL (UI ONLY)
+  // STEP CONTROL
   // =========================
-   function setStep(step) {
-     Object.values(steps).forEach(el => el && el.classList.add("hidden"));
-     steps[step]?.classList.remove("hidden");
-   }
+  function setStep(step) {
+    Object.values(steps).forEach(el => el && el.classList.add("hidden"));
+    steps[step]?.classList.remove("hidden");
+  }
 
-  // =========================
-  // INITIAL STEP (SERVER → UI)
-  // =========================
   if (uiStepInput?.value && steps[uiStepInput.value]) {
     setStep(uiStepInput.value);
   } else {
     setStep("email");
   }
-   /* ========================================
-      AUTH PAGE — Show / Hide Password
-   ======================================== */
-   (function () {
-     const authRoot = document.querySelector('.auth-page');
-     if (!authRoot) return;
-   
-     authRoot.addEventListener('click', function (e) {
-       const eye = e.target.closest('.auth-eye');
-       if (!eye) return;
-   
-       const wrapper = eye.closest('.password-wrapper');
-       const input = wrapper.querySelector('input[type="password"], input[type="text"]');
-   
-       if (!input) return;
-   
-       const isHidden = input.type === 'password';
-       input.type = isHidden ? 'text' : 'password';
-       eye.textContent = isHidden ? '🙈' : '👁️';
-     });
-   })();
+
+  // =========================
+  // SHOW / HIDE PASSWORD
+  // =========================
+  document.querySelector('.auth-page')?.addEventListener('click', e => {
+    const eye = e.target.closest('.auth-eye');
+    if (!eye) return;
+
+    const wrapper = eye.closest('.password-wrapper');
+    const input = wrapper.querySelector('input');
+
+    if (!input) return;
+
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    eye.textContent = hidden ? '🙈' : '👁️';
+  });
 
   // =========================
   // RESEND COOLDOWN
@@ -945,15 +938,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function startResendCooldown() {
     const resendBtn = document.getElementById("resendBtn");
     const countdown = document.getElementById("countdown");
-
     if (!resendBtn || !countdown) return;
 
     let remaining = RESEND_COOLDOWN;
     resendBtn.disabled = true;
     countdown.textContent = remaining;
 
-    if (resendTimer) clearInterval(resendTimer);
-
+    clearInterval(resendTimer);
     resendTimer = setInterval(() => {
       remaining--;
       countdown.textContent = remaining;
@@ -973,170 +964,129 @@ document.addEventListener("DOMContentLoaded", () => {
     const checked = document.querySelector('input[name="channel"]:checked');
     if (!checked) return;
 
-    if (checked.value === "email") {
-      emailInput.disabled = false;
-      emailInput.style.display = "block";
+    const email = checked.value === "email";
 
-      phoneInput.disabled = true;
-      phoneInput.style.display = "none";
-      phoneInput.value = "";
-    } else {
-      phoneInput.disabled = false;
-      phoneInput.style.display = "block";
+    emailInput.disabled = !email;
+    emailInput.style.display = email ? "block" : "none";
+    if (!email) emailInput.value = "";
 
-      emailInput.disabled = true;
-      emailInput.style.display = "none";
-      emailInput.value = "";
-    }
+    phoneInput.disabled = email;
+    phoneInput.style.display = email ? "none" : "block";
+    if (email) phoneInput.value = "";
   }
 
-  channelRadios.forEach(radio =>
-    radio.addEventListener("change", syncChannelFields)
-  );
-
+  channelRadios.forEach(r => r.addEventListener("change", syncChannelFields));
   syncChannelFields();
 
   // =========================
-  // FORM SUBMIT CONTROL
+  // LOADING HELPERS
   // =========================
-form.addEventListener("submit", e => {
-  const action = e.submitter?.value;
-  const channel = document.querySelector(
-    'input[name="channel"]:checked'
-  )?.value;
+  function disableAllButtons(except) {
+    document.querySelectorAll("button").forEach(btn => {
+      if (btn !== except) btn.disabled = true;
+    });
+  }
 
-  // =========================
-  // SEND CODE
-  // =========================
-  if (action === "send_code") {
-
-    if (channel === "email" && !emailInput.value.trim()) {
-      e.preventDefault();
-      alert("Email is required for email verification.");
-      setStep("email");
-      return;
-    }
-
-    if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
-      e.preventDefault();
-      alert("Phone number is required for SMS or WhatsApp.");
-      setStep("email");
-      return;
-    }
-
-    // visual only — server will confirm step
-    steps.email.classList.add("hidden");
-    steps.code.classList.remove("hidden");
-
-    return; // ✅ IMPORTANT: stop here
+  function startLoading(btn) {
+    if (!btn) return;
+    btn.dataset.originalText = btn.innerHTML;
+    btn.innerHTML = `
+      <span class="spinner">
+        <span></span><span></span><span></span>
+      </span>
+    `;
+    btn.classList.add("btn-loading");
+    disableAllButtons(btn);
   }
 
   // =========================
-  // VERIFY CODE
+  // FORM SUBMIT LOGIC
   // =========================
-  if (action === "verify_code") {
-    const codeInput = form.querySelector('input[name="code"]');
+  form.addEventListener("submit", e => {
+    const action = e.submitter?.value;
+    const channel = document.querySelector('input[name="channel"]:checked')?.value;
 
-    if (!codeInput || !codeInput.value.trim()) {
-      e.preventDefault();
-      alert("Enter the 6-digit code.");
-      return;
-    }
-  }
-   /* ========================================
-      BUTTON CONTROL LOGIC
-   ======================================== */
-   
-   function disableAllButtons(exceptBtn) {
-     document.querySelectorAll("button").forEach(btn => {
-       if (btn !== exceptBtn) btn.disabled = true;
-     });
-   }
-   
-   function spinnerOnly(btn) {
-     btn.dataset.originalText = btn.innerHTML;
-     btn.innerHTML = `
-       <span class="spinner">
-         <span></span><span></span><span></span>
-       </span>
-     `;
-     btn.classList.add("btn-loading");
-   }
-   
-   /* CONTINUE BUTTONS — spinner only */
-   document.querySelectorAll(`
-     button[value="send_code"],
-     button[value="switch_to_password"],
-     button[value="set_password"],
-     button[value="login_password"],
-     button[value="magic_link"]
-   `).forEach(btn => {
-     btn.addEventListener("click", () => {
-       spinnerOnly(btn);
-       disableAllButtons(btn);
-     });
-   });
-   
-   /* ========================================
-      OTP AUTO VERIFY (Verify + dots)
-   ======================================== */
-   const otpInput = document.querySelector('input[name="code"]');
-   const verifyBtn = document.querySelector(
-     'button[name="action"][value="verify_code"]'
-   );
-   
-   if (otpInput && verifyBtn) {
-     otpInput.addEventListener("input", () => {
-       otpInput.value = otpInput.value.replace(/\D/g, "");
-   
-       if (otpInput.value.length === 6) {
-         verifyBtn.dataset.originalText = verifyBtn.innerHTML;
-         verifyBtn.innerHTML = `
-           Verifying
-           <span class="spinner">
-             <span></span><span></span><span></span>
-           </span>
-         `;
-         verifyBtn.classList.add("btn-loading");
-         disableAllButtons(verifyBtn);
-         verifyBtn.form.submit();
-       }
-     });
-   }
-  // =========================
-  // SWITCH TO PASSWORD
-  // =========================
-  if (action === "switch_to_password") {
-    // backend decides ui_step
-    return;
-  }
-   // =========================
-  // MAGIC LINK
-  // =========================
-   if (action === "magic_link") {
-     return; // backend handles resend or magic login
-   }
+    // ---------- SEND CODE ----------
+    if (action === "send_code") {
 
-  // =========================
-  // PASSWORD LOGIN / SIGNUP
-  // =========================
-  if (action === "login_password") {
-    const passInput = form.querySelector('input[name="password"]');
-    const confirmInput = form.querySelector('input[name="confirm_password"]');
+      if (channel === "email" && !emailInput.value.trim()) {
+        e.preventDefault();
+        alert("Email is required.");
+        return;
+      }
 
-    if (!passInput || !passInput.value.trim()) {
-      e.preventDefault();
-      alert("Enter your password.");
+      if ((channel === "sms" || channel === "whatsapp") && !phoneInput.value.trim()) {
+        e.preventDefault();
+        alert("Phone number is required.");
+        return;
+      }
+
+      startLoading(e.submitter);
       return;
     }
 
-    if (confirmInput && passInput.value !== confirmInput.value) {
-      e.preventDefault();
-      alert("Passwords do not match.");
+    // ---------- VERIFY CODE ----------
+    if (action === "verify_code") {
+      const code = form.querySelector('input[name="code"]');
+      if (!code?.value.trim()) {
+        e.preventDefault();
+        alert("Enter the 6-digit code.");
+        return;
+      }
+      startLoading(e.submitter);
       return;
     }
+
+    // ---------- SWITCH TO PASSWORD ----------
+    if (action === "switch_to_password") {
+      startLoading(e.submitter);
+      return;
+    }
+
+    // ---------- MAGIC LINK ----------
+    if (action === "magic_link") {
+      startLoading(e.submitter);
+      return;
+    }
+
+    // ---------- PASSWORD LOGIN / SIGNUP ----------
+    if (action === "login_password" || action === "set_password") {
+      const pass = form.querySelector('input[name="password"]');
+      const confirm = form.querySelector('input[name="confirm_password"]');
+
+      if (!pass?.value.trim()) {
+        e.preventDefault();
+        alert("Enter your password.");
+        return;
+      }
+
+      if (confirm && pass.value !== confirm.value) {
+        e.preventDefault();
+        alert("Passwords do not match.");
+        return;
+      }
+
+      startLoading(e.submitter);
+    }
+  });
+
+  // =========================
+  // OTP AUTO VERIFY
+  // =========================
+  const otpInput = document.querySelector('input[name="code"]');
+  const verifyBtn = document.querySelector('button[value="verify_code"]');
+
+  if (otpInput && verifyBtn) {
+    otpInput.addEventListener("input", () => {
+      otpInput.value = otpInput.value.replace(/\D/g, "");
+
+      if (otpInput.value.length === 6) {
+        startLoading(verifyBtn);
+        verifyBtn.form.submit();
+      }
+    });
   }
-});
+
 });
 </script>
 
