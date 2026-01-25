@@ -533,6 +533,29 @@
   pointer-events: none;
   opacity: .85;
 }
+/* ========================================
+   AUTH PAGE — Show / Hide password
+======================================== */
+.auth-page .password-wrapper {
+  position: relative;
+}
+
+.auth-page .auth-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: .7;
+}
+
+.auth-page .auth-eye:disabled {
+  cursor: default;
+  opacity: .4;
+}
 </style>
 
 <body data-new-user="{{ is_new_user|yesno:'true,false' }}">
@@ -753,8 +776,6 @@
            Continue with password
          </button>
 
-        </section>
-         
          <!-- ================= STEP 3: PASSWORD ================= -->
          <section
            id="step-password"
@@ -775,36 +796,57 @@
            </b></p>
          
            <div class="password-field">
-             <input
-               type="password"
-               name="password"
-               placeholder="Password"
-               class="auth-input"
-               autocomplete="current-password"
-               required
-             >
+         
+             <!-- PASSWORD -->
+             <div class="password-wrapper">
+               <input
+                 type="password"
+                 name="password"
+                 placeholder="Password"
+                 class="auth-input js-auth-password"
+                 autocomplete="current-password"
+                 required
+               >
+               <button
+                 type="button"
+                 class="auth-eye"
+                 aria-label="Show password"
+               >
+                 👁️
+               </button>
+             </div>
          
              {% if is_new_user %}
+             <!-- CONFIRM PASSWORD -->
+             <div class="password-wrapper">
                <input
                  type="password"
                  name="confirm_password"
-                 id="confirmPasswordInput"
                  placeholder="Confirm password"
-                 class="auth-input"
+                 class="auth-input js-auth-password"
                  autocomplete="new-password"
                  required
                >
+               <button
+                 type="button"
+                 class="auth-eye"
+                 aria-label="Show password"
+               >
+                 👁️
+               </button>
+             </div>
              {% endif %}
+         
            </div>
-            
-         <button
-           type="submit"
-           name="action"
-           value="{% if is_new_user %}set_password{% else %}login_password{% endif %}"
-           class="auth-btn primary"
-         >
-           {% if is_new_user %}Create account{% else %}Continue{% endif %}
-         </button>
+         
+           <button
+             type="submit"
+             name="action"
+             value="{% if is_new_user %}set_password{% else %}login_password{% endif %}"
+             class="auth-btn primary"
+           >
+             {% if is_new_user %}Create account{% else %}Continue{% endif %}
+           </button>
          
            <a href="{% url 'password_reset' %}" class="auth-link">
              Forgot password?
@@ -820,6 +862,7 @@
            >
              Log in with one-time code
            </button>
+         
          </section>
 
       </form>
@@ -873,6 +916,27 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     setStep("email");
   }
+   /* ========================================
+      AUTH PAGE — Show / Hide Password
+   ======================================== */
+   (function () {
+     const authRoot = document.querySelector('.auth-page');
+     if (!authRoot) return;
+   
+     authRoot.addEventListener('click', function (e) {
+       const eye = e.target.closest('.auth-eye');
+       if (!eye) return;
+   
+       const wrapper = eye.closest('.password-wrapper');
+       const input = wrapper.querySelector('input[type="password"], input[type="text"]');
+   
+       if (!input) return;
+   
+       const isHidden = input.type === 'password';
+       input.type = isHidden ? 'text' : 'password';
+       eye.textContent = isHidden ? '🙈' : '👁️';
+     });
+   })();
 
   // =========================
   // RESEND COOLDOWN
