@@ -137,6 +137,8 @@ urlpatterns = [
     path("terms/", views.terms_of_service, name="terms_of_service"),
     path("learn-more/", views.learn_more, name="learn_more"),
     path("cookies/", views.cookies_policy, name="cookies_policy"),
+    path("about/", views.about, name="about"),
+    path("contact/", views.contact, name="contact"),
     path("resources/", views.resources, name="resources"),
 
     # Alerts
