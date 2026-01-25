@@ -3,6 +3,13 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    path(
+        "favicon.ico",
+        RedirectView.as_view(
+            url=settings.STATIC_URL + "favicon.ico",
+            permanent=True
+        ),
+    ),
     path("Sign-In-OR-Sign-Up/", views.unified_auth_view, name="unified_auth"),
     
     path("api/categories/", views.api_job_categories, name="api_categories"),
