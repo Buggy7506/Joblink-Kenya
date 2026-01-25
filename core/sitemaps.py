@@ -10,9 +10,6 @@ class StaticViewSitemap(Sitemap):
             'home',
             'job_list',
             'available_jobs',
-            'unified_auth',
-            'employer_chat',
-            'job_chat',
         ]
 
     def location(self, item):
