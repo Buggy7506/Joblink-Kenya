@@ -68,6 +68,14 @@ from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
 from .email_backend import send_password_reset
 
+def robots_txt(request):
+    content = """User-agent: *
+Allow: /
+
+Sitemap: https://www.stepper.dpdns.org/sitemap.xml
+"""
+    return HttpResponse(content, content_type="text/plain")
+
 # -----------------------------------
 # MAIN AUTH VIEW
 # -----------------------------------
