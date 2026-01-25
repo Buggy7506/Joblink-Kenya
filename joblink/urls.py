@@ -24,7 +24,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.sitemaps.views import sitemap
 from core.sitemaps import StaticViewSitemap
-
+from core.views import robots_txt
 
 sitemaps = {
     'static': StaticViewSitemap,
