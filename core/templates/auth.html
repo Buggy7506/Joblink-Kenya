@@ -498,6 +498,41 @@
 .auth-provider-wrapper .disabled-btn * {
   pointer-events: none;
 }
+/* ========================================
+   AUTH PAGE — ChatGPT-like inline spinner
+======================================== */
+.auth-page .spinner {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.auth-page .spinner span {
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: auth-blink 1.4s infinite both;
+}
+
+.auth-page .spinner span:nth-child(2) {
+  animation-delay: .2s;
+}
+
+.auth-page .spinner span:nth-child(3) {
+  animation-delay: .4s;
+}
+
+@keyframes auth-blink {
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
+}
+
+.auth-page .btn-loading {
+  pointer-events: none;
+  opacity: .85;
+}
 </style>
 
 <body data-new-user="{{ is_new_user|yesno:'true,false' }}">
@@ -943,7 +978,66 @@ form.addEventListener("submit", e => {
       return;
     }
   }
-
+   /* ========================================
+      BUTTON CONTROL LOGIC
+   ======================================== */
+   
+   function disableAllButtons(exceptBtn) {
+     document.querySelectorAll("button").forEach(btn => {
+       if (btn !== exceptBtn) btn.disabled = true;
+     });
+   }
+   
+   function spinnerOnly(btn) {
+     btn.dataset.originalText = btn.innerHTML;
+     btn.innerHTML = `
+       <span class="spinner">
+         <span></span><span></span><span></span>
+       </span>
+     `;
+     btn.classList.add("btn-loading");
+   }
+   
+   /* CONTINUE BUTTONS — spinner only */
+   document.querySelectorAll(`
+     button[value="send_code"],
+     button[value="switch_to_password"],
+     button[value="set_password"],
+     button[value="login_password"],
+     button[value="magic_link"]
+   `).forEach(btn => {
+     btn.addEventListener("click", () => {
+       spinnerOnly(btn);
+       disableAllButtons(btn);
+     });
+   });
+   
+   /* ========================================
+      OTP AUTO VERIFY (Verify + dots)
+   ======================================== */
+   const otpInput = document.querySelector('input[name="code"]');
+   const verifyBtn = document.querySelector(
+     'button[name="action"][value="verify_code"]'
+   );
+   
+   if (otpInput && verifyBtn) {
+     otpInput.addEventListener("input", () => {
+       otpInput.value = otpInput.value.replace(/\D/g, "");
+   
+       if (otpInput.value.length === 6) {
+         verifyBtn.dataset.originalText = verifyBtn.innerHTML;
+         verifyBtn.innerHTML = `
+           Verifying
+           <span class="spinner">
+             <span></span><span></span><span></span>
+           </span>
+         `;
+         verifyBtn.classList.add("btn-loading");
+         disableAllButtons(verifyBtn);
+         verifyBtn.form.submit();
+       }
+     });
+   }
   // =========================
   // SWITCH TO PASSWORD
   // =========================
