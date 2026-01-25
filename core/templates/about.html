@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}About Us{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page Wrapper */
+.about-wrapper {
+  max-width: 900px;
+  margin: 80px auto;
+  padding: 40px 30px;
+  background: var(--bg-card, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  line-height: 1.8;
+  animation: fadeIn 0.6s ease-in-out;
+  color: var(--text-main);
+}
+
+/* Headings */
+.about-wrapper h1 {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+  color: var(--text-accent);
+  text-align: center;
+}
+
+.about-wrapper h2 {
+  margin-top: 40px;
+  font-size: 1.6rem;
+  color: var(--text-main);
+  border-left: 4px solid var(--text-accent);
+  padding-left: 12px;
+}
+
+/* Text */
+.about-wrapper p,
+.about-wrapper li {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+/* Highlight Box */
+.notice-box {
+  margin: 25px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--bg-card, #f0f7ff);
+  border-left: 5px solid var(--text-accent);
+  color: var(--text-main);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-wrapper">
+
+  <h1>About JobLink Kenya</h1>
+  <p style="text-align:center;">
+    Connecting talent with opportunity across Kenya.
+  </p>
+
+  <h2>Who We Are</h2>
+  <p>
+    JobLink Kenya is an online job marketplace designed to bridge the gap between
+    job seekers and employers across Kenya. Our goal is to make hiring and job
+    searching simple, transparent, and accessible to everyone.
+  </p>
+
+  <h2>Our Mission</h2>
+  <p>
+    To empower job seekers with access to meaningful employment opportunities
+    while helping employers find the right talent efficiently.
+  </p>
+
+  <div class="notice-box">
+    <strong>Our Vision:</strong>
+    A Kenya where everyone has access to fair employment opportunities and
+    employers can hire with confidence.
+  </div>
+
+  <h2>What We Offer</h2>
+  <ul>
+    <li>Easy job discovery for job seekers</li>
+    <li>Simple job posting for employers</li>
+    <li>Secure user accounts and authentication</li>
+    <li>A growing platform built for the Kenyan market</li>
+  </ul>
+
+  <h2>Why Choose JobLink Kenya</h2>
+  <p>
+    We focus on usability, security, and trust. JobLink Kenya is built with modern
+    technology to ensure reliability while remaining easy to use for everyone.
+  </p>
+
+</div>
+{% endblock %}
