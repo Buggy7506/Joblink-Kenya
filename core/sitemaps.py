@@ -8,7 +8,7 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         return [
             'home',
-            'job_list',
+            'unified_auth',
             'available_jobs',
         ]
 
