@@ -1070,22 +1070,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // =========================
-  // OTP AUTO VERIFY
-  // =========================
-  const otpInput = document.querySelector('input[name="code"]');
-  const verifyBtn = document.querySelector('button[value="verify_code"]');
+// =========================
+// OTP AUTO VERIFY (FIXED)
+// =========================
+const otpInput = document.querySelector('input[name="code"]');
+const verifyBtn = document.querySelector('button[value="verify_code"]');
 
-  if (otpInput && verifyBtn) {
-    otpInput.addEventListener("input", () => {
-      otpInput.value = otpInput.value.replace(/\D/g, "");
+if (otpInput && verifyBtn) {
+  otpInput.addEventListener("input", () => {
+    otpInput.value = otpInput.value.replace(/\D/g, "");
 
-      if (otpInput.value.length === 6) {
-        startLoading(verifyBtn);
-        verifyBtn.form.submit();
-      }
-    });
-  }
+    if (otpInput.value.length === 6) {
+      startLoading(verifyBtn);
+
+      // ✅ MUST click the button, not form.submit()
+      verifyBtn.click();
+    }
+  });
+}
 
 });
 </script>
