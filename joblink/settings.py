@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     'cloudinary',
     'cloudinary_storage',
     'channels',
@@ -244,6 +246,7 @@ OTP_MAX_ATTEMPTS = 5
 TRUSTED_DEVICE_DAYS = 30
 
 # Security / Domain
+SITE_ID = 1
 SITE_URL = "https://www.stepper.dpdns.org"
 
 SITE_NAME = "Joblink Kenya"
