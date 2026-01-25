@@ -451,17 +451,10 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
     form_class = PasswordResetForm
     success_url = reverse_lazy("password_reset_done")
 
-    def send_mail(self, *args, **kwargs):
-        """
-        Disable Django's default email sending.
-        We handle email delivery via Brevo.
-        """
-        pass
-
     def form_valid(self, form):
         """
-        Send password reset email via Brevo
-        for all active users matching the email.
+        Send password reset email via Brevo ONLY.
+        Django email system is fully bypassed.
         """
         email = form.cleaned_data["email"]
         users = form.get_users(email)
@@ -469,7 +462,8 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
         for user in users:
             send_password_reset(user, self.request)
 
-        return super().form_valid(form)
+        # 🔥 DO NOT call super()
+        return HttpResponseRedirect(self.success_url)
 
 class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
     template_name = "password_reset_done.html"
