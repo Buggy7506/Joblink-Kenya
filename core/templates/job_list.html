@@ -235,10 +235,29 @@
 
 <div class="container">
 
+  <!-- 🔹 SEO INTRO (CRITICAL FOR GOOGLE – DO NOT REMOVE) -->
+  <section class="jobs-intro">
+    <h1>Available Jobs in Kenya</h1>
+
+    <p>
+      Browse the latest job opportunities across Kenya on Joblink Kenya.
+      We connect job seekers with employers offering opportunities in
+      various industries including technology, healthcare, education,
+      business, and skilled trades.
+    </p>
+
+    <p>
+      Use the search and filter options below to find jobs by title,
+      category, location, or expiry date. New jobs are added regularly.
+    </p>
+  </section>
+
   {% if messages %}
     <div class="messages">
       {% for message in messages %}
-        <p class="message-text {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+        <p class="message-text {% if message.tags %}{{ message.tags }}{% endif %}">
+          {{ message }}
+        </p>
       {% endfor %}
     </div>
   {% endif %}
@@ -312,7 +331,13 @@
       <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
   {% empty %}
-    <p class="no-jobs">No premium jobs at the moment.</p>
+    <div class="no-jobs-message">
+      <h3>No Featured Jobs Available Right Now</h3>
+      <p>
+        There are currently no premium job listings. Please check back later
+        or browse the free job listings below.
+      </p>
+    </div>
   {% endfor %}
 
   <!-- 💼 Regular Jobs -->
@@ -346,7 +371,13 @@
       <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
     </div>
   {% empty %}
-    <p class="no-jobs">No jobs found at the moment.</p>
+    <div class="no-jobs-message">
+      <h3>No Jobs Available at the Moment</h3>
+      <p>
+        We are currently updating our listings. New jobs are added frequently,
+        so please check back soon or try adjusting your search filters.
+      </p>
+    </div>
   {% endfor %}
 
 </div>
