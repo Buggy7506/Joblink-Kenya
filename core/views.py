@@ -602,6 +602,14 @@ def learn_more(request):
 def cookies_policy(request):
     return render(request, "cookies_policy.html", {"now": timezone.now()})
 
+#About
+def about(request):
+    return render(request, "about.html", {"now": timezone.now()})
+
+#Contact
+def contact(request):
+    return render(request, "contact.html", {"now": timezone.now()})
+
 RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 
 # def choose_verification_method(request):
