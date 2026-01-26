@@ -30,42 +30,35 @@ Joblink Kenya connects job seekers with employers across Kenya. Find jobs, post 
 
 {% block extra_css %}{% endblock %}
 {% block extra_js %}{% endblock %}
-
 <style>
 /* =========================================================
-   GLOBAL THEME VARIABLES
+   GLOBAL THEME VARIABLES (BLACK & WHITE ONLY)
 ========================================================= */
 
 :root {
-  --bg-main: linear-gradient(to right, #0f172a, #1e293b);
-  --bg-nav: rgba(30, 41, 59, 0.8);
-  --bg-card: rgba(30, 41, 59, 0.85);
-  --bg-footer: linear-gradient(to right, #0f172a, #1e293b);
+  --bg-main: #000000;
+  --bg-nav: rgba(0, 0, 0, 0.85);
+  --bg-card: rgba(0, 0, 0, 0.9);
+  --bg-footer: #000000;
 
-  --text-main: #e0f7fa;
-  --text-muted: #94a3b8;
+  --text-main: #ffffff;
+  --text-muted: #bfbfbf;
   --text-link: #ffffff;
-  --text-accent: #22d3ee;
-  --text-danger: #f87171;
 
-  --glow-main: #00ffff;
-  --glow-accent: #00f0ff;
+  --border-main: #ffffff;
 }
 
 body.light-mode {
-  --bg-main: #f5f5f5;
+  --bg-main: #ffffff;
   --bg-nav: rgba(255, 255, 255, 0.95);
   --bg-card: #ffffff;
-  --bg-footer: #f5f5f5;
+  --bg-footer: #ffffff;
 
-  --text-main: #111111;
-  --text-muted: #555555;
-  --text-link: #0077b6;
-  --text-accent: #0077b6;
-  --text-danger: #dc2626;
+  --text-main: #000000;
+  --text-muted: #4a4a4a;
+  --text-link: #000000;
 
-  --glow-main: #0077b6;
-  --glow-accent: #0077b6;
+  --border-main: #000000;
 }
 
 /* =========================================================
@@ -83,35 +76,23 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: background 0.4s ease, color 0.4s ease;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-a { text-decoration: none; color: var(--text-link); transition: color 0.3s ease; }
-
-.container { width: 90%; max-width: 1200px; margin: 0 auto; }
-
-.main { flex-grow: 1; padding: 1.5rem 0 2.5rem; }
-
-/* =========================================================
-   GLOW / EFFECTS
-========================================================= */
-
-.glow {
-  text-shadow:
-    0 0 5px var(--glow-main),
-    0 0 10px var(--glow-main),
-    0 0 20px var(--glow-accent);
+a {
+  text-decoration: none;
+  color: var(--text-link);
 }
 
-.glow-border {
-  border: 2px solid transparent;
-  border-image: linear-gradient(45deg, var(--glow-accent), var(--text-accent));
-  border-image-slice: 1;
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.hover-glow:hover {
-  color: var(--text-accent);
-  text-shadow: 0 0 6px var(--glow-accent);
+.main {
+  flex-grow: 1;
+  padding: 1.5rem 0 2.5rem;
 }
 
 /* =========================================================
@@ -125,12 +106,21 @@ header {
   padding: 0.6rem 1rem;
   background: var(--bg-nav);
   backdrop-filter: blur(6px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--border-main);
 }
 
-nav a { margin: 0 0.8rem; font-weight: 600; }
-.active-link { color: var(--text-accent); text-shadow: 0 0 10px var(--glow-accent); }
-.guest-link { color: var(--text-link); }
+nav a {
+  margin: 0 0.8rem;
+  font-weight: 600;
+}
+
+/* ACTIVE LINK */
+.active-link {
+  font-weight: 700;
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--border-main);
+}
 
 /* =========================================================
    MOBILE MENU
@@ -144,50 +134,35 @@ nav a { margin: 0 0.8rem; font-weight: 600; }
   border-radius: 0.6rem;
   background: var(--bg-card);
   backdrop-filter: blur(10px);
+  border: 1px solid var(--border-main);
 
   max-height: 0;
   overflow-y: auto;
   transition: max-height 0.35s ease, padding 0.35s ease;
-
-  scrollbar-width: none;
 }
+
 .mobile-menu::-webkit-scrollbar { display: none; }
 
 .mobile-toggle { display: none; }
 
-#darkModeToggleMobile {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  background: none;
-  border: none;
-  color: var(--text-link);
-  cursor: pointer;
-  margin-top: 0.5rem;
-}
-
 @media (max-width: 768px) {
   .desktop-nav { display: none; }
   .mobile-toggle { display: block; }
-  #darkModeToggleDesktop { display: none; } /* Hide desktop theme toggle on mobile */
+  #darkModeToggleDesktop { display: none; }
 }
 
-
 /* =========================================================
-   FOOTER (TEXT ONLY, THEME-AWARE)
+   FOOTER
 ========================================================= */
 
 .footer {
   text-align: center;
   font-size: 0.9rem;
-  color: var(--text-main);   /* adapts to dark/light mode */
-  margin-top: 1rem;
-  background: transparent;    /* remove background */
-  padding: 0;                 /* remove padding */
-  box-shadow: none;           /* remove shadow */
+  color: var(--text-main);
+  background: transparent;
+  padding: 0.5rem 0;
 }
-      
+
 /* =========================================================
    FORMS / INPUTS
 ========================================================= */
@@ -195,180 +170,108 @@ nav a { margin: 0 0.8rem; font-weight: 600; }
 input, select, textarea {
   background: transparent;
   color: var(--text-main);
-  border: 1px solid var(--text-muted);
+  border: 1px solid var(--border-main);
   font-size: 16px;
 }
-input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
 
 /* =========================================================
    CARD UTILITIES
 ========================================================= */
 
-.card, .form-card, .glass-card {
+.card,
+.form-card,
+.glass-card {
   background: var(--bg-card);
   color: var(--text-main);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  border: 1px solid var(--border-main);
 }
 
 /* =========================================================
    THEME TOGGLE
 ========================================================= */
 
-#darkModeToggleDesktop {
-  font-size: 1.4rem;
+#darkModeToggleDesktop,
+#darkModeToggleMobile {
   background: none;
-  border: none;
+  border: 1px solid var(--border-main);
+  color: var(--text-main);
   cursor: pointer;
-  color: var(--text-link);
-  margin-left: 1rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
 }
 
 /* =========================================================
-   MOBILE REFINEMENTS
-========================================================= */
-
-@media (max-width: 768px) {
-  header { padding: 0.5rem 0.8rem; }
-  nav a { margin: 0 0.5rem; }
-  .footer { font-size: 0.8rem; padding: 0.5rem 0; }
-}
-
-/* =========================================================
-   BACKGROUND SLIDESHOW (FADE + READABILITY + THEME AWARE)
+   BACKGROUND SLIDESHOW
 ========================================================= */
 
 .bg-slideshow {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;               /* Always behind content */
-    overflow: hidden;
+  position: fixed;
+  inset: 0;
+  z-index: -2;
 }
 
-/* THEME-AWARE READABILITY OVERLAY */
 .bg-slideshow::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-
-    /* Dark mode default */
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.65),
-        rgba(0, 0, 0, 0.45)
-    );
-
-    pointer-events: none;
-    z-index: 1;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
 }
 
-/* Light mode overlay */
 .light-mode .bg-slideshow::after {
-    background: linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.65),
-        rgba(255, 255, 255, 0.45)
-    );
+  background: rgba(255, 255, 255, 0.65);
 }
 
-/* SLIDES */
 .bg-slide {
-    position: absolute;
-    inset: 0;
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    opacity: 0;
-    transform: scale(1.05); /* subtle cinematic zoom */
-    transition:
-        opacity 1.8s ease-in-out,
-        transform 6s ease-in-out;
-
-    z-index: 0;
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.8s ease-in-out;
 }
 
-/* ACTIVE SLIDE */
 .bg-slide.active {
-    opacity: 1;
-    transform: scale(1);
+  opacity: 1;
 }
 
 /* =========================================================
-   ACTIVE NAV LINK (ORANGE HIGHLIGHT • NO UNDERLINE)
+   AUTOCOMPLETE
 ========================================================= */
 
-.active-link {
-  position: relative;
-  color: #f97316 !important;   /* ORANGE */
-  font-weight: 700;
-
-  /* subtle background for readability */
-  background: rgba(249, 115, 22, 0.18);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-
-  padding: 0.35rem 0.7rem;
-  border-radius: 0.45rem;
-
-  text-shadow:
-    0 0 6px rgba(249, 115, 22, 0.8),
-    0 0 12px rgba(249, 115, 22, 0.4);
-
-  transition:
-    background 0.25s ease,
-    color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-/* LIGHT MODE TUNING */
-body.light-mode .active-link {
-  color: #ea580c !important; /* deeper orange */
-  background: rgba(234, 88, 12, 0.15);
-  text-shadow: none;
-}
-
-/* MOBILE NAV */
-.mobile-menu .active-link {
-  display: block;
-  text-align: center;
-  margin: 0.25rem 0;
-}
-
-/* ==================== Location Autocomplete Dropdown ==================== */
 .autocomplete-results {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    background: var(--bg-card);
-    color: var(--text-main);
-    position: absolute;
-    z-index: 1000;
-    width: 100%;
-    display: none;
-    border-radius: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-main);
+  background: var(--bg-card);
+  color: var(--text-main);
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+  border-radius: 0.5rem;
 }
 
 .autocomplete-results li {
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: background 0.2s;
+  padding: 0.5rem;
+  cursor: pointer;
 }
 
 .autocomplete-results li:hover {
-    background: rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.1);
 }
 
-/* ===============================
-   DASHBOARD DROPDOWN (NAVBAR)
-================================ */
+/* =========================================================
+   DROPDOWNS
+========================================================= */
 
 .nav-dropdown {
   position: relative;
@@ -386,185 +289,37 @@ body.light-mode .active-link {
 .nav-dropdown-menu {
   position: absolute;
   top: 120%;
-  left: 0;
+  right: 0;
   min-width: 260px;
   padding: 1rem;
   border-radius: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
   display: none;
-  z-index: 100;
-}
-
-.nav-dropdown:hover .nav-dropdown-menu {
-  display: block;
-}
-
-.dropdown-group {
-  margin-bottom: 0.8rem;
-}
-
-.dropdown-title {
-  display: block;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  margin-bottom: 0.3rem;
-}
-
-.nav-dropdown-menu a {
-  display: block;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.4rem;
-  font-size: 0.9rem;
-}
-
-.nav-dropdown-menu a:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--text-accent);
-}
-
-/* ===============================
-   MOBILE DASHBOARD DROPDOWN
-================================ */
-
-.mobile-dropdown-toggle {
-  background: none;
-  border: none;
-  color: var(--text-link);
-  font-size: 1rem;
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-  padding: 0.4rem 0;
-}
-
-.mobile-dropdown-menu {
-  display: none;
-  padding-left: 1rem;
-}
-
-.mobile-dropdown.open .mobile-dropdown-menu {
-  display: block;
-}
-.theme-toggle-btn {
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--text-link);
-  padding: 0.45rem 0.6rem;
-  border-radius: 0.4rem;
-  font-size: 0.9rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.theme-toggle-btn:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--text-accent);
-}
-.nav-dropdown-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.dropdown-main-link {
-  color: var(--text-link);
-  font-weight: 600;
-}
-
-.dropdown-main-link:hover {
-  color: var(--text-accent);
-}
-
-.dropdown-arrow {
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
-/* ------- THEME DROPDOWN UI ------- */
-
-.theme-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: background 0.25s ease, border-color 0.25s ease;
-  font-size: 0.9rem;
-}
-
-/* Hover states */
-.theme-toggle-btn:hover {
-  background: var(--hover-bg-color, rgba(255,255,255,0.1));
-  border-color: rgba(255,255,255,0.2);
-}
-
-/* Light mode tweaks */
-.light-mode .theme-toggle-btn {
-  background: transparent;
-  border-color: rgba(0,0,0,0.15);
-}
-.light-mode .theme-toggle-btn:hover {
-  background: rgba(0,0,0,0.05);
-}
-
-.theme-toggle-btn span {
-  line-height: 1;
-}
-
-/* Section label in dropdown menus */
-.dropdown-section-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  opacity: 0.6;
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-}
-
-/* DESKTOP THEME TOGGLE (smaller size) */
-#darkModeToggleDesktop {
-  font-size: 0.9rem !important;   /* shrink text */
-  padding: 4px 6px;
-  line-height: 1;
-}
-
-#darkModeToggleDesktop span {
-  font-size: 0.95rem !important;  /* make icon & text same scale */
-}
-
-/* shrink icon slightly more */
-#desktopThemeIcon {
-  font-size: 1rem !important;
-}
-/* Fix dropdown clipping */
-.nav-dropdown {
-  position: relative;
-}
-
-.nav-dropdown-menu {
-  left: auto;          /* stop forced left anchor */
-  right: 0;            /* anchor menu to the right edge of its parent */
-  transform: none;     /* avoid accidental shifts */
-  max-width: 280px;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
-
-/* Prevent dropdown from going off top when too close */
-.nav-dropdown:hover .nav-dropdown-menu {
-  display: block;
   z-index: 9999;
 }
-.menu-toggle {
-  font-size: 1.7rem;
-  color: white;
-  font-weight: bold;
-  background: transparent;
-  border: none;
-  cursor: pointer;
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+/* =========================================================
+   MESSAGE COLORS (ONLY COLOR USAGE)
+========================================================= */
+
+.message-error {
+  color: #ff0000;
+  border: 1px solid #ff0000;
+}
+
+.message-success {
+  color: #00aa00;
+  border: 1px solid #00aa00;
+}
+
+.message-info {
+  color: #0066ff;
+  border: 1px solid #0066ff;
 }
 </style>
 
