@@ -89,11 +89,7 @@ urlpatterns = [
     path('post-job/', views.post_job, name='post_job'),
     path('jobs/suggestions/', views.job_suggestions, name='job_suggestions'),
 
-    path('job/<int:job_id>/upgrade/', views.upgrade_job, name='upgrade_job'),
     path('job/<int:job_id>/delete/', views.confirm_delete, name='confirm_delete'),
-
-    path('payment-success/<int:job_id>/<int:plan_id>/', views.payment_success, name='payment_success'),
-    path('payment-cancelled/', views.payment_cancelled, name='payment_cancelled'),
 
     # Applications
     path('applied-jobs/', views.view_applications, name='applied_jobs'),
@@ -110,7 +106,6 @@ urlpatterns = [
     # -------------------------
     # Chat & Notifications
     # -------------------------
-    path('chat/', views.chat_view, name='employer_chat'),
     path("chat/job/<int:job_id>/", views.chat_view, name="employer_chat"),
     path("chat/application/<int:application_id>/", views.chat_view, name="job_chat"),
     path("chat/message/<int:msg_id>/edit/", views.edit_message, name="edit_message"),
