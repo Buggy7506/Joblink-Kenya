@@ -130,7 +130,9 @@ from .utils import (
 from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document
 from .email_backend import send_password_reset
-
+PDFKIT_CONFIG = pdfkit.configuration(
+    wkhtmltopdf="/usr/bin/wkhtmltopdf"
+)
 def robots_txt(request):
     content = """User-agent: *
 Allow: /
