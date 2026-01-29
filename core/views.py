@@ -67,6 +67,7 @@ from .utils import (
 from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document  # Celery task
 from .email_backend import send_password_reset
+from ratelimit.decorators import ratelimit
 
 def robots_txt(request):
     content = """User-agent: *
@@ -79,6 +80,7 @@ Sitemap: https://www.stepper.dpdns.org/sitemap.xml
 # -----------------------------------
 # MAIN AUTH VIEW
 # -----------------------------------
+@ratelimit(key="ip", rate="5/m", block=True)
 @csrf_protect
 def unified_auth_view(request):
     form = UnifiedAuthForm()
