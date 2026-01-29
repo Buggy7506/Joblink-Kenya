@@ -560,6 +560,7 @@ class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
     template_name = "password_reset_complete.html"
 
 # Search + Filter + Pagination + Context
+@ratelimit(key='ip', rate='30/m', block=True)
 @csrf_protect
 def available_jobs(request):
     search = request.GET.get("search", "")
@@ -623,7 +624,8 @@ def available_jobs(request):
         "categories": categories,
         "locations": locations,
     })
-    
+
+@ratelimit(key='ip', rate='30/m', block=True)
 @csrf_protect
 def api_job_categories(request):
     url = "https://raw.githubusercontent.com/dwyl/job-categories/master/job-categories.json"
@@ -635,6 +637,7 @@ def api_job_categories(request):
     except Exception:
         return JsonResponse({"categories": []})
 
+@ratelimit(key='ip', rate='30/m', block=True)
 @csrf_protect
 def api_locations(request):
     q = request.GET.get("q", "")
