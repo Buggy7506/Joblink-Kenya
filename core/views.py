@@ -50,6 +50,7 @@ from django.db.models import Count, Q, F
 # Django templates & utils
 # =========================
 from django.template.loader import get_template, render_to_string
+from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.dateparse import parse_datetime
@@ -521,7 +522,7 @@ def unified_auth_view(request):
         }
     )
 
-@csrf_protect
+@method_decorator(csrf_protect, name="dispatch")
 class CustomPasswordResetView(auth_views.PasswordResetView):
     template_name = "password_reset.html"
     form_class = PasswordResetForm
@@ -538,18 +539,21 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
         for user in users:
             send_password_reset(user, self.request)
 
-        # 🔥 DO NOT call super()
+        # DO NOT call super()
         return HttpResponseRedirect(self.success_url)
 
-@csrf_protect
+
+@method_decorator(csrf_protect, name="dispatch")
 class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
     template_name = "password_reset_done.html"
 
-@csrf_protect
+
+@method_decorator(csrf_protect, name="dispatch")
 class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     template_name = "password_reset_confirm.html"
 
-@csrf_protect
+
+@method_decorator(csrf_protect, name="dispatch")
 class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
     template_name = "password_reset_complete.html"
 
