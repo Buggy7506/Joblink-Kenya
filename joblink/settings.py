@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
-    'django_ratelimit',
     'cloudinary',
     'cloudinary_storage',
     'channels',
