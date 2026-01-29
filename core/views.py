@@ -27,7 +27,7 @@ from django.template.loader import get_template, render_to_string
 
 # Django utils
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Count, Q, F
 from django.conf import settings
 from django.utils.timezone import now
 from django.utils.dateparse import parse_datetime
@@ -458,7 +458,8 @@ def unified_auth_view(request):
             "is_new_user": is_new_user,
         }
     )
-    
+
+@csrf_protect
 class CustomPasswordResetView(auth_views.PasswordResetView):
     template_name = "password_reset.html"
     form_class = PasswordResetForm
@@ -478,18 +479,20 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
         # 🔥 DO NOT call super()
         return HttpResponseRedirect(self.success_url)
 
+@csrf_protect
 class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
     template_name = "password_reset_done.html"
 
-
+@csrf_protect
 class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     template_name = "password_reset_confirm.html"
 
-
+@csrf_protect
 class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
     template_name = "password_reset_complete.html"
 
 # Search + Filter + Pagination + Context
+@csrf_protect
 def available_jobs(request):
     search = request.GET.get("search", "")
     sort = request.GET.get("sort", "")
@@ -552,10 +555,8 @@ def available_jobs(request):
         "categories": categories,
         "locations": locations,
     })
-
-from django.http import JsonResponse
-import requests
-
+    
+@csrf_protect
 def api_job_categories(request):
     url = "https://raw.githubusercontent.com/dwyl/job-categories/master/job-categories.json"
     try:
@@ -566,7 +567,7 @@ def api_job_categories(request):
     except Exception:
         return JsonResponse({"categories": []})
 
-
+@csrf_protect
 def api_locations(request):
     q = request.GET.get("q", "")
     if not q:
@@ -612,6 +613,7 @@ def contact(request):
 
 RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 
+#@csrf_protect
 # def choose_verification_method(request):
 #     """
 #     Let user choose a verification method (Email / WhatsApp / SMS) for OTP.
@@ -680,6 +682,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #         },
 #     )
 
+#@csrf_protect
 # def resend_device_code(request):
 #     """
 #     Handle the logic for resending the device verification OTP.
@@ -750,6 +753,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 
 #     return redirect("verify-device")
 
+#@csrf_protect
 # def verify_device(request):
 #     """
 #     Handle OTP verification for new devices.
@@ -849,6 +853,7 @@ RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
 #         "pending_user": pending_user,  # ✅ SAFE
 #     })
 
+@csrf_protect
 @login_required
 @require_POST
 def delete_cv(request):
@@ -871,6 +876,7 @@ def delete_cv(request):
 
     return JsonResponse({'status': 'deleted'})
 
+@csrf_protect
 @login_required
 def quick_profile_update(request):
     user = request.user
@@ -958,6 +964,7 @@ def quick_profile_update(request):
     # Fallback for GET requests
     return redirect("profile")
 
+@csrf_protect
 @login_required
 def account_settings(request):
     """
@@ -982,7 +989,7 @@ def account_settings(request):
         "form": form
     })
 
-
+@csrf_protect
 @login_required
 def delete_account(request):
     """
@@ -1004,8 +1011,7 @@ def delete_account(request):
     messages.success(request, "Your account has been permanently deleted.")
     return redirect(reverse("unified_auth"))
 
-
-
+@csrf_protect
 def set_google_password(request):
     """
     Google OAuth users must set a password.
@@ -1113,7 +1119,6 @@ def set_google_password(request):
     # GET request
     return render(request, 'set_google_password.html', {'user': oauth_user})
 
-
 # Google OAuth settings
 GOOGLE_CLIENT_ID = '268485346186-pocroj4v0e6dhdufub2m4vaji0ts3ohj.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = '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'
@@ -1122,7 +1127,7 @@ GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
 
-
+@csrf_protect
 def google_login(request):
     """Step 1: Redirect user to Google's OAuth 2.0 server"""
     params = {
@@ -1136,7 +1141,7 @@ def google_login(request):
     url = f"{GOOGLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
-
+@csrf_protect
 def google_callback(request):
     """
     Handle Google OAuth callback.
@@ -1197,9 +1202,8 @@ def google_callback(request):
             'provider': 'google',
         }
         return redirect('google_choose_role')
-
-from .models import CustomUser  # Make sure to use your CustomUser
-
+        
+@csrf_protect
 def google_choose_role(request):
     """
     Let user select role after Google OAuth.
@@ -1245,6 +1249,7 @@ APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token"
 APPLE_CLIENT_ID = "com.your.app"
 APPLE_REDIRECT_URI = "https://yourdomain.com/apple/callback/"
 
+@csrf_protect
 def apple_login(request):
     params = {
         "client_id": APPLE_CLIENT_ID,
@@ -1256,6 +1261,7 @@ def apple_login(request):
     url = f"{APPLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
+@csrf_protect
 def apple_callback(request):
     code = request.POST.get("code")
     if not code:
@@ -1297,6 +1303,7 @@ MICROSOFT_AUTH_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/
 MICROSOFT_TOKEN_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MICROSOFT_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
+@csrf_protect
 def microsoft_login(request):
     params = {
         "client_id": MICROSOFT_CLIENT_ID,
@@ -1308,6 +1315,7 @@ def microsoft_login(request):
     url = f"{MICROSOFT_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
+@csrf_protect
 def microsoft_callback(request):
     code = request.GET.get("code")
     if not code:
@@ -1348,6 +1356,7 @@ def microsoft_callback(request):
 # -----------------------------
 # HELPER FUNCTIONS
 # -----------------------------
+@csrf_protect
 def get_unread_messages(user):
     """
     Returns the count of unread chat messages for the given user.
@@ -1359,13 +1368,14 @@ def get_unread_messages(user):
         Q(application__job__employer=user) & ~Q(sender=user)
     ).count()
 
-
+@csrf_protect
 @login_required
 def delete_message(request, msg_id):
     msg = get_object_or_404(ChatMessage, id=msg_id, sender=request.user)
     msg.delete()
     return JsonResponse({"status": "ok"})
 
+@csrf_protect
 @login_required
 def edit_message(request, msg_id):
     msg = get_object_or_404(ChatMessage, id=msg_id, sender=request.user)
@@ -1378,7 +1388,7 @@ def edit_message(request, msg_id):
 
 NotificationItem = namedtuple("NotificationItem", ["title", "message", "timestamp", "is_read", "url"])
 
-
+@csrf_protect
 @login_required
 def notifications(request):
     user = request.user
@@ -1455,7 +1465,7 @@ def notifications(request):
     }
     return render(request, "notifications.html", context)
 
-
+@csrf_protect
 @login_required
 def mark_all_read(request):
     """
@@ -1475,7 +1485,8 @@ def mark_all_read(request):
     ).update(is_read=True)
 
     return redirect("notifications")  # back to notifications page
-    
+
+@csrf_protect
 @login_required
 def process_application(request, app_id):
     """
@@ -1503,7 +1514,7 @@ def process_application(request, app_id):
         send_mail(
             subject,
             message,
-            'linux7506@gmail.com',      # from email
+            'suppor@stepper.dpdns.org',      # from email
             [application.applicant.email],     # user's email
         )
 
@@ -1512,10 +1523,11 @@ def process_application(request, app_id):
 User = get_user_model()
 
 #Home Page
+@csrf_protect
 def home(request):
     return render(request, 'home.html')
 
-
+@csrf_protect
 def signup_view(request):
     """
     User signup view with Google reCAPTCHA verification.
@@ -1690,6 +1702,7 @@ def signup_view(request):
 MAX_WRONG_ROLE_ATTEMPTS = 3
 ROLE_LOCK_MINUTES = 30
 
+@csrf_protect
 def login_view(request):
     """
     Login view with device verification:
@@ -1878,7 +1891,7 @@ def login_view(request):
 
     return render(request, 'login.html')
     
-
+@csrf_protect
 @login_required
 def complete_employer_profile(request):
     user = request.user
@@ -1981,15 +1994,18 @@ def complete_employer_profile(request):
     )
     
 #User Logout
+@csrf_protect
 def logout_view(request):
     logout(request)
     return redirect('logout_success')
 
 # Logout success message
+@csrf_protect
 def logout_success(request):
     return render(request, 'logout_success.html')
 
 # Dashboard
+@csrf_protect
 @login_required
 def dashboard(request):
     user = request.user
@@ -2040,7 +2056,8 @@ def dashboard(request):
 
     # Fallback → unknown role
     return redirect("unified_auth")
-    
+
+@csrf_protect
 @login_required
 def upload_company_docs(request):
     user = request.user
@@ -2139,7 +2156,8 @@ def upload_company_docs(request):
             "documents": company.documents.all() if company else [],
         }
     )
-    
+
+@csrf_protect
 @login_required
 def profile_view(request):
     user = request.user  # CustomUser instance
@@ -2177,7 +2195,8 @@ def profile_view(request):
     # Choose template based on user role
     template_name = 'employer_profile.html' if user.role == 'employer' else 'profile.html'
     return render(request, template_name, context)
-
+    
+@csrf_protect
 @login_required
 def view_posted_jobs(request):
     if not request.user.is_superuser and request.user.role != 'employer':
@@ -2202,6 +2221,7 @@ def view_posted_jobs(request):
         'active_jobs': active_jobs
     })
 
+@csrf_protect
 @login_required
 def view_applicants(request):
     job_id = request.GET.get("job_id")  # Check if employer is filtering for a specific job
@@ -2232,6 +2252,7 @@ def view_applicants(request):
         "job_id": job_id,  # useful in template
     })
 
+@csrf_protect
 @login_required
 def employer_control_panel_view(request):
     if not request.user.is_superuser and request.user.role != 'employer':
@@ -2246,13 +2267,15 @@ def employer_control_panel_view(request):
         'active_jobs': active_jobs,
         'applicants_count': applicants_count,
     })
-  
+
+@csrf_protect
 @login_required
 def employer_profile(request):
     return render(request, 'employer_profile.html', {
         'user': request.user
     })
 
+@csrf_protect
 @login_required
 def company_profile(request):
     company = None
@@ -2274,6 +2297,7 @@ def company_profile(request):
 
     return render(request, "company_profile.html", context)
 
+@csrf_protect
 @login_required
 def admin_profile(request):
     """
@@ -2286,6 +2310,7 @@ def admin_profile(request):
         'admin': request.user,
     })
 
+@csrf_protect
 @login_required
 def edit_profile(request):
     user = request.user
@@ -2339,6 +2364,7 @@ def edit_profile(request):
     return render(request, 'change_credentials.html', context)
     
 # Job Posting
+@csrf_protect
 @login_required
 def post_job(request):
     """
@@ -2429,6 +2455,7 @@ def post_job(request):
     # 6️⃣ Render template normally
     return render(request, 'post_job.html', {'form': form, 'company': company})
 
+@csrf_protect
 @login_required
 def edit_job(request, job_id):
     # Only allow the employer who posted the job to edit it
@@ -2467,6 +2494,7 @@ def edit_job(request, job_id):
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
 # Apply Job View with reCAPTCHA (NO VERIFICATION CHECK)
+@csrf_protect
 @login_required
 def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -2556,6 +2584,7 @@ def apply_job(request, job_id):
     # GET request → Show application page
     return render(request, 'apply_job.html', {'job': job})
 
+@csrf_protect
 @login_required
 def apply_job_success(request, job_id, applied):
     """
@@ -2574,7 +2603,7 @@ def apply_job_success(request, job_id, applied):
     })
     
 #CV Upload
-
+@csrf_protect
 @login_required
 def upload_cv(request):
     form = CVUploadForm(request.POST or None, request.FILES or None)
@@ -2585,6 +2614,7 @@ def upload_cv(request):
         return redirect('profile')
     return render(request, 'upload_CV.html', {'form': form})
 
+@csrf_protect
 @login_required
 def download_cv(request, cv_id):
     cv = get_object_or_404(CVUpload, id=cv_id)
@@ -2616,34 +2646,8 @@ def download_cv(request, cv_id):
         as_attachment=True,
         filename=filename
     )
-#Job Listings
-
-def job_list(request):
-    # --- Automatically delete expired jobs from database (optional) ---
-    Job.delete_expired_jobs()
-
-    # --- Get current time ---
-    now = timezone.now()
-
-    # --- Fetch active premium jobs ---
-    premium_jobs = Job.objects.filter(
-        is_premium=True,
-        is_active=True,
-        expiry_date__gt=now
-    ).order_by('-posted_on')
-
-    # --- Fetch active regular jobs ---
-    regular_jobs = Job.objects.filter(
-        is_premium=False,
-        is_active=True,
-        expiry_date__gt=now
-    ).order_by('-posted_on')
-
-    return render(request, 'job_list.html', {
-        'premium_jobs': premium_jobs,
-        'jobs': regular_jobs
-    })
-
+    
+@csrf_protect
 @login_required
 def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -2666,11 +2670,12 @@ def job_detail(request, job_id):
     return render(request, "job_detail.html", context)
 
 #Learning Resources
-
+@csrf_protect
 def resources(request):
     items = SkillResource.objects.all()
     return render(request, 'resources.html', {'items': items})
-
+    
+@csrf_protect
 @login_required
 def job_alerts_view(request):
     # Ensure only applicants can create job alerts
@@ -2720,6 +2725,7 @@ def job_alerts_view(request):
     return render(request, 'job_alerts.html', {'alerts': alerts})
 
 # Delete Job Alert with reCAPTCHA
+@csrf_protect
 @login_required
 def delete_alert(request, alert_id):
     try:
@@ -2755,11 +2761,12 @@ def delete_alert(request, alert_id):
         return redirect('delete_alert_success')
 
     return render(request, 'delete_alert.html', {'alert': alert})
-
+    
+@csrf_protect
 def delete_alert_success(request):
     return render(request, 'delete_alert_success.html')
 
-
+@csrf_protect
 @login_required
 def confirm_delete(request, job_id):
     job = get_object_or_404(Job, id=job_id, employer=request.user)  # Ensure user owns the job
@@ -2772,7 +2779,7 @@ def confirm_delete(request, job_id):
     return render(request, 'confirm_delete.html', {'job': job})
     
 #Admin Dashboard
-
+@csrf_protect
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.role == 'admin')
 def admin_dashboard(request):
@@ -2784,23 +2791,26 @@ def admin_dashboard(request):
         'recent_users': User.objects.order_by('-date_joined')[:5],
     }
     return render(request, 'admin_dashboard.html', context)
-
+    
+@csrf_protect
 @login_required 
 def admin_required(user):
     return user.role == 'admin'
-
+    
+@csrf_protect
 @login_required 
 def admin_only_view(request):
     if request.user.role != 'admin':
         return redirect('home')
     return render(request, 'admin_only.html')
     
+@csrf_protect    
 @login_required
 def resume_success(request):
     """Simple success page after resume is saved."""
     return render(request, 'resume_success.html')
 
-
+@csrf_protect
 @login_required
 def alien_resume_builder(request):
     """
@@ -2821,14 +2831,15 @@ def alien_resume_builder(request):
         return redirect('view_resume')
 
     return render(request, 'alien_resume_builder.html', {'resume': resume})
-
+    
+@csrf_protect
 @login_required
 def view_resume(request):
     """View the resume content or uploaded file."""
     resume = Resume.objects.filter(user=request.user).first()
     return render(request, 'view_resume.html', {'resume': resume})
 
-
+@csrf_protect
 @login_required
 def download_resume_pdf(request):
     """Generate and download resume as PDF from saved content."""
@@ -2842,7 +2853,8 @@ def download_resume_pdf(request):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="resume.pdf"'
     return response
-
+    
+@csrf_protect
 @login_required
 def job_suggestions(request):
     user = request.user
@@ -2876,83 +2888,8 @@ def job_suggestions(request):
     return render(request, "suggestions.html", {
         "suggested_jobs": suggested_jobs
     })
-    
-#Premium Job Upgrade
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
-@login_required
-def upgrade_job(request, job_id):
-    job = get_object_or_404(Job, pk=job_id, employer=request.user)
-
-    if request.method == 'POST':
-        form = JobPlanSelectForm(request.POST)
-        if form.is_valid():
-            plan = form.cleaned_data['plan']
-
-            # Create Stripe Checkout Session
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'kes',  # Or 'usd' depending on your Stripe setup
-                        'unit_amount': int(plan.price * 100),  # Stripe uses cents
-                        'product_data': {
-                            'name': f"Premium Upgrade - {plan.name}",
-                        },
-                    },
-                    'quantity': 1,
-                }],
-                mode='payment',
-                success_url=request.build_absolute_uri(f'/payment-success/{job.id}/{plan.id}/'),
-                cancel_url=request.build_absolute_uri('/payment-cancelled/'),
-            )
-
-            return redirect(checkout_session.url, code=303)
-
-    else:
-        form = JobPlanSelectForm()
-
-    return render(request, 'upgrade_job.html', {'form': form, 'job': job})
-
-@login_required
-def payment_success(request, job_id, plan_id):
-    """
-    Handle successful job payment and upgrade job to premium.
-    Only employers can access this view.
-    """
-    user = request.user
-
-    # Ensure only employers can access
-    if user.profile.role != "employer":
-        messages.error(request, "❌ Only employers can perform this action.")
-        return redirect("dashboard")
-
-    # Get the job and plan
-    job = get_object_or_404(Job, pk=job_id, employer=user)
-    plan = get_object_or_404(JobPlan, pk=plan_id)
-
-    # Save payment record
-    JobPayment.objects.create(
-        employer=user,
-        job=job,
-        plan=plan,
-        amount=plan.price,
-        is_successful=True
-    )
-
-    # Upgrade job to premium
-    job.premium = True
-    job.premium_expiry = timezone.now() + timezone.timedelta(days=plan.duration_days)
-    job.save()
-
-    messages.success(request, f"✅ Job '{job.title}' upgraded to premium for {plan.duration_days} days!")
-    return redirect("dashboard")
-
-def payment_cancelled(request):
-    messages.error(request, "Payment was cancelled.")
-    return redirect('dashboard')
-    
+@csrf_protect
 @login_required
 def change_username_password(request):
     """
@@ -2992,10 +2929,8 @@ def change_username_password(request):
         form = ChangeUsernamePasswordForm(user=request.user, instance=request.user)
 
     return render(request, 'change_username_password.html', {'form': form})
-    
 
-from django.db.models import Count, Q, F
-
+@csrf_protect
 @login_required
 def chat_view(request, application_id=None, job_id=None):
     """
@@ -3226,6 +3161,7 @@ def chat_view(request, application_id=None, job_id=None):
 # ======================================================
 # VIEW APPLICANT'S JOB APPLICATIONS
 # ======================================================
+@csrf_protect
 @login_required
 def view_applications(request):
     """
@@ -3279,6 +3215,7 @@ def view_applications(request):
 # ======================================================
 # DELETE APPLICATION (Soft delete)
 # ======================================================
+@csrf_protect
 @login_required
 def delete_application(request, app_id):
     """
@@ -3332,6 +3269,7 @@ def delete_application(request, app_id):
 # ======================================================
 # UNDO DELETE APPLICATION
 # ======================================================
+@csrf_protect
 @login_required
 def undo_delete_application(request, app_id):
     """
@@ -3361,6 +3299,7 @@ def undo_delete_application(request, app_id):
 # ======================================================
 # PERMANENT DELETE APPLICATION (Destroy)
 # ======================================================
+@csrf_protect
 @login_required
 def destroy_application(request, app_id):
     """
@@ -3389,6 +3328,7 @@ def destroy_application(request, app_id):
 # ======================================================
 # RECYCLE BIN VIEW
 # ======================================================
+@csrf_protect
 @login_required
 def recycle_bin(request):
     """
