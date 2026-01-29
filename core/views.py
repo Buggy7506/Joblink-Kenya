@@ -1,14 +1,28 @@
-# Django shortcuts & HTTP
+# =========================
+# Django HTTP & shortcuts
+# =========================
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, FileResponse, JsonResponse
-from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.csrf import csrf_protect
+from django.http import (
+    HttpResponse,
+    HttpResponseRedirect,
+    FileResponse,
+    JsonResponse,
+)
+from django.urls import reverse, reverse_lazy
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView
 
-# Django auth
-from django.contrib.auth import login, logout, authenticate, update_session_auth_hash, get_user_model
+# =========================
+# Django authentication
+# =========================
+from django.contrib.auth import (
+    login,
+    logout,
+    authenticate,
+    update_session_auth_hash,
+    get_user_model,
+)
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
@@ -16,58 +30,106 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib import messages
 
+# =========================
 # Django core utilities
-from django.core.mail import send_mail, get_connection, EmailMultiAlternatives
+# =========================
+from django.conf import settings
+from django.core.mail import (
+    send_mail,
+    get_connection,
+    EmailMultiAlternatives,
+)
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 from django.core.exceptions import ObjectDoesNotExist
-
-# Django templates
-from django.template.loader import get_template, render_to_string
-
-# Django utils
-from django.utils import timezone
+from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q, F
-from django.conf import settings
+
+# =========================
+# Django templates & utils
+# =========================
+from django.template.loader import get_template, render_to_string
+from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
-from django.core.paginator import Paginator
-from django.core.mail import EmailMultiAlternatives
-from django.db import transaction
-from django.urls import reverse_lazy
 
+# =========================
 # Third-party libraries
-import pdfkit
-import stripe
+# =========================
+from ratelimit.decorators import ratelimit
 from weasyprint import HTML
+import stripe
+import pdfkit
 import requests
-import urllib.parse
+import cloudinary.uploader
+
+# =========================
+# Python standard library
+# =========================
 import os
 import re
+import random
+import urllib.parse
+from pathlib import Path
 from collections import namedtuple
 from datetime import datetime, timedelta
-import cloudinary.uploader
-from pathlib import Path
-import random
 
-# Local apps
+# =========================
+# Local app imports
+# =========================
 from .models import (
-    JobAlert, ChatMessage, Application, Job, SkillResource, Resume, CVUpload, 
-    JobPlan, JobPayment, Profile, Notification, TrustedDevice, DeviceVerification, CustomUser, EmployerCompany, CompanyDocument
+    JobAlert,
+    ChatMessage,
+    Application,
+    Job,
+    SkillResource,
+    Resume,
+    CVUpload,
+    JobPlan,
+    JobPayment,
+    Profile,
+    Notification,
+    TrustedDevice,
+    DeviceVerification,
+    CustomUser,
+    EmployerCompany,
+    CompanyDocument,
 )
+
 from .forms import (
-    EditProfileForm, UserForm, ProfileForm, JobForm, ResumeForm, EmployerCompanyForm, UnifiedAuthForm,
-    CVUploadForm, JobPlanSelectForm, CustomUserCreationForm, ChangeUsernamePasswordForm, AccountSettingsForm, CompanyDocumentForm
+    EditProfileForm,
+    UserForm,
+    ProfileForm,
+    JobForm,
+    ResumeForm,
+    EmployerCompanyForm,
+    UnifiedAuthForm,
+    CVUploadForm,
+    JobPlanSelectForm,
+    CustomUserCreationForm,
+    ChangeUsernamePasswordForm,
+    AccountSettingsForm,
+    CompanyDocumentForm,
 )
+
 from .utils import (
-    generate_code, send_sms_infini, send_whatsapp_whapi, send_otp,
-    get_client_ip, get_device_fingerprint, is_business_email, brevo_send_email, otp_recently_sent, get_location_from_ip,
+    generate_code,
+    send_sms_infini,
+    send_whatsapp_whapi,
+    send_otp,
+    get_client_ip,
+    get_device_fingerprint,
+    is_business_email,
+    brevo_send_email,
+    otp_recently_sent,
+    get_location_from_ip,
 )
+
 from core.middleware.employer_required import employer_verified_required
-from .tasks import save_employer_document  # Celery task
+from .tasks import save_employer_document
 from .email_backend import send_password_reset
-from ratelimit.decorators import ratelimit
 
 def robots_txt(request):
     content = """User-agent: *
