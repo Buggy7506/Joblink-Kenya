@@ -26,7 +26,7 @@ djangorestframework_simplejwt==5.5.0
 django-widget-tweaks==1.5.0
 django-celery-results>=2.5
 django-anymail>=9.5
-django-ratelimit==4.1.0
+django-wkhtmltopdf==3.4.0
 celery>=5.3.0
 filelock==3.18.0
 fonttools==4.57.0
