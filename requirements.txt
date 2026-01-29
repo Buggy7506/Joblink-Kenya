@@ -81,6 +81,5 @@ virtualenv==20.31.2
 weasyprint==65.0
 webencodings==0.5.1
 whitenoise==6.9.0
-wkhtmltopdf==0.2
 zope.interface==7.2
 zopfli==0.2.3.post1
