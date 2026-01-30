@@ -81,6 +81,7 @@ from datetime import datetime, timedelta
 # Local app imports
 # =========================
 from .models import (
+    JobCategory,
     JobAlert,
     ChatMessage,
     Application,
@@ -608,7 +609,7 @@ def available_jobs(request):
     premium_jobs = jobs.filter(is_premium=True)[:3]
 
     # UNIQUE FILTER OPTIONS FOR FRONTEND
-    categories = Category.objects.values_list("name", flat=True).distinct()
+    categories = JobCategory.objects.values_list("name", flat=True).distinct()
     locations = Job.objects.values_list("location", flat=True).distinct()
 
     # AJAX REQUEST: return just job cards
