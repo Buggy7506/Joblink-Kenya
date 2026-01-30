@@ -625,12 +625,15 @@ def available_jobs(request):
         "locations": locations,
     })
 
+
 # =====================================================
 # JOB CATEGORIES (EXTERNAL SOURCE – GitHub JSON)
 # =====================================================
 @ratelimit(key='ip', rate='30/m', block=True)
-@csrf_exempt   # GET-only API, no CSRF token needed
+@csrf_exempt   # GET-only API
 def api_job_categories(request):
+    q = request.GET.get("q", "").strip().lower()
+
     url = "https://raw.githubusercontent.com/dwyl/job-categories/master/job-categories.json"
 
     try:
@@ -638,11 +641,13 @@ def api_job_categories(request):
         r.raise_for_status()
 
         data = r.json()
+
         categories = sorted({
             item.get("Category")
             for item in data
             if item.get("Category")
-        })
+            and (not q or q in item.get("Category").lower())
+        })[:15]
 
         return JsonResponse({
             "categories": list(categories)
@@ -674,7 +679,7 @@ def api_locations(request):
     }
 
     headers = {
-        # REQUIRED by Nominatim policy
+        # REQUIRED by Nominatim usage policy
         "User-Agent": "YourJobApp/1.0 (contact@yourdomain.com)"
     }
 
@@ -704,8 +709,9 @@ def api_locations(request):
             "locations": []
         }, status=200)
 
+
 # =====================================================
-# JOB TITLES (EXTERNAL SOURCE – O*NET DERIVED DATA)
+# JOB TITLES (EXTERNAL SOURCE – O*NET / COMMUNITY DATA)
 # =====================================================
 @ratelimit(key='ip', rate='30/m', block=True)
 @csrf_exempt   # GET-only API
@@ -723,10 +729,11 @@ def api_job_titles(request):
 
         data = r.json()
 
-        # Normalize + filter
         titles = sorted({
-            title for title in data
-            if isinstance(title, str) and q in title.lower()
+            title
+            for title in data
+            if isinstance(title, str)
+            and q in title.lower()
         })[:15]
 
         return JsonResponse({
