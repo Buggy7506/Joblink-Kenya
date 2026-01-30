@@ -678,12 +678,13 @@ def api_locations(request):
         "q": q,
         "format": "json",
         "addressdetails": 0,
-        "limit": 8
+        "limit": 8,
+        "countrycodes": "ke"  # 🔹 Restrict results to Kenya
     }
 
     headers = {
         # REQUIRED by Nominatim usage policy
-        "User-Agent": "YourJobApp/1.0 (contact@yourdomain.com)"
+        "User-Agent": "Joblink Kenya/1.0 (support@stepper.dpdns.org)"
     }
 
     try:
@@ -711,7 +712,6 @@ def api_locations(request):
         return JsonResponse({
             "locations": []
         }, status=200)
-
 
 # =====================================================
 # JOB TITLES (EXTERNAL SOURCE – O*NET / COMMUNITY DATA)
