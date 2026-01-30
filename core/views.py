@@ -570,7 +570,7 @@ def available_jobs(request):
     category_list = request.GET.getlist("category")
     location_list = request.GET.getlist("location")
 
-    # BASE QUERYSET: only active jobs
+    # BASE QUERYSET
     jobs = Job.objects.filter(is_active=True)
 
     # UNIFIED SEARCH: title OR category name OR location
@@ -589,7 +589,7 @@ def available_jobs(request):
     if location_list:
         jobs = jobs.filter(location__in=location_list)
 
-    # SORT HANDLER
+    # SORTING
     if sort == "newest":
         jobs = jobs.order_by("-posted_on")
     elif sort == "expiry_asc":
@@ -597,21 +597,21 @@ def available_jobs(request):
     elif sort == "expiry_desc":
         jobs = jobs.order_by("-expiry_date")
     else:
-        jobs = jobs.order_by("-id")  # default
+        jobs = jobs.order_by("-id")  # default fallback
 
     # PAGINATION
-    paginator = Paginator(jobs, 6)  # 6 per page
+    paginator = Paginator(jobs, 6)  # 6 jobs per page
     page_number = request.GET.get("page")
     jobs_page = paginator.get_page(page_number)
 
-    # PREMIUM JOBS (show top 3)
+    # PREMIUM JOBS (top 3)
     premium_jobs = jobs.filter(is_premium=True)[:3]
 
-    # GRAB UNIQUE FILTER OPTIONS FROM DB
+    # UNIQUE FILTER OPTIONS FOR FRONTEND
     categories = Category.objects.values_list("name", flat=True).distinct()
     locations = Job.objects.values_list("location", flat=True).distinct()
 
-    # AJAX INFINITE SCROLL RESPONSE
+    # AJAX REQUEST: return just job cards
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(request, "job_cards.html", {
             "jobs": jobs_page,
@@ -628,7 +628,7 @@ def available_jobs(request):
         "categories": categories,
         "locations": locations,
     })
-
+    
 # =====================================================
 # JOB CATEGORIES (EXTERNAL SOURCE – GitHub JSON)
 # =====================================================
