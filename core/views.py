@@ -143,7 +143,7 @@ Sitemap: https://www.stepper.dpdns.org/sitemap.xml
 # -----------------------------------
 # MAIN AUTH VIEW
 # -----------------------------------
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def unified_auth_view(request):
     form = UnifiedAuthForm()
@@ -1082,7 +1082,7 @@ def delete_account(request):
     messages.success(request, "Your account has been permanently deleted.")
     return redirect(reverse("unified_auth"))
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def set_google_password(request):
     """
@@ -1199,7 +1199,7 @@ GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def google_login(request):
     """Step 1: Redirect user to Google's OAuth 2.0 server"""
@@ -1214,7 +1214,7 @@ def google_login(request):
     url = f"{GOOGLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def google_callback(request):
     """
@@ -1277,7 +1277,7 @@ def google_callback(request):
         }
         return redirect('google_choose_role')
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def google_choose_role(request):
     """
@@ -1324,7 +1324,7 @@ APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token"
 APPLE_CLIENT_ID = "com.your.app"
 APPLE_REDIRECT_URI = "https://yourdomain.com/apple/callback/"
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def apple_login(request):
     params = {
@@ -1337,7 +1337,7 @@ def apple_login(request):
     url = f"{APPLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def apple_callback(request):
     code = request.POST.get("code")
@@ -1381,7 +1381,7 @@ MICROSOFT_AUTH_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/
 MICROSOFT_TOKEN_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MICROSOFT_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def microsoft_login(request):
     params = {
@@ -1394,7 +1394,7 @@ def microsoft_login(request):
     url = f"{MICROSOFT_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
     return redirect(url)
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def microsoft_callback(request):
     code = request.GET.get("code")
@@ -1607,7 +1607,7 @@ User = get_user_model()
 def home(request):
     return render(request, 'home.html')
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def signup_view(request):
     """
@@ -1783,7 +1783,7 @@ def signup_view(request):
 MAX_WRONG_ROLE_ATTEMPTS = 3
 ROLE_LOCK_MINUTES = 30
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def login_view(request):
     """
@@ -3012,7 +3012,7 @@ def change_username_password(request):
 
     return render(request, 'change_username_password.html', {'form': form})
 
-@method_decorator(ratelimit(key='ip', rate='5/m', block=True), name='dispatch')
+@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 @login_required
 def chat_view(request, application_id=None, job_id=None):
