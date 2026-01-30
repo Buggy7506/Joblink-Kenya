@@ -226,17 +226,190 @@
   color: var(--text-muted);
 }
 
-/* =========================================================
-   MOBILE
-========================================================= */
+/* =======================
+   MOBILE FIRST IMPROVEMENTS
+======================= */
 @media (max-width: 640px) {
+
+  /* --------------------------
+     FILTER BAR
+  -------------------------- */
   .available-jobs-page .filter-bar {
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;       /* stay on one line */
+    gap: 6px;
+    padding: 8px;
+    overflow: hidden;        /* prevent scrollbars */
+    background: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  .available-jobs-page .filter-bar input,
+  .available-jobs-page .filter-bar select,
+  .available-jobs-page .filter-bar button {
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--accent-glow);
+    background: var(--bg-main);
+    color: var(--text-main);
+    flex-shrink: 1;
+    min-width: 0;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .available-jobs-page .filter-bar input:focus,
+  .available-jobs-page .filter-bar select:focus {
+    border-color: var(--text-accent);
+    outline: none;
+    transform: scale(1.02);
+  }
+
+  .available-jobs-page .filter-bar input::placeholder {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Input wider than select */
+  .available-jobs-page .filter-bar input {
+    flex: 2 1 auto;
+  }
+
+  .available-jobs-page .filter-bar select {
+    flex: 1 1 auto;
+  }
+
+  /* Button fixed width, prevent wrapping text */
+  .available-jobs-page .filter-bar button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .available-jobs-page .filter-bar button:hover {
+    background: var(--text-accent);
+    transform: translateY(-1px);
+  }
+
+  /* --------------------------
+     JOB CARDS
+  -------------------------- */
+  .available-jobs-page .job-card {
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .available-jobs-page .job-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
   }
 
   .available-jobs-page .job-title {
-    font-size: 17px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
   }
+
+  .available-jobs-page .premium-job .job-title {
+    color: #b8860b;
+  }
+
+  .available-jobs-page .job-meta,
+  .available-jobs-page .job-category,
+  .available-jobs-page .job-salary,
+  .available-jobs-page .job-expiry,
+  .available-jobs-page .job-posted {
+    font-size: 13px;
+    margin: 2px 0;
+    color: var(--text-muted);
+  }
+
+  .available-jobs-page .apply-link {
+    display: inline-block;
+    padding: 8px 18px;
+    font-size: 13px;
+    border-radius: 20px;
+  }
+
+  .available-jobs-page .premium-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  /* --------------------------
+     EMPTY STATES / MESSAGES
+  -------------------------- */
+  .available-jobs-page .message-text {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+
+  .available-jobs-page .no-jobs {
+    font-size: 13px;
+  }
+}
+
+/* =======================
+   DESKTOP UPGRADES
+======================= */
+@media (min-width: 641px) {
+
+  .available-jobs-page .job-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+
+  .available-jobs-page .job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(0,0,0,0.12);
+  }
+
+  .available-jobs-page .apply-link {
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .available-jobs-page .apply-link:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* =======================
+   UNIVERSAL IMPROVEMENTS
+======================= */
+
+/* Rounded & subtle shadows for all cards */
+.available-jobs-page .job-card,
+.available-jobs-page .filter-bar {
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* Smooth transitions everywhere */
+.available-jobs-page * {
+  transition: all 0.2s ease;
+}
+
+/* Subtle hover glow for links */
+.available-jobs-page a:hover {
+  color: var(--text-accent);
+  text-shadow: 0 0 6px var(--glow-accent);
+}
+
+/* Slightly compress spacing for sexy compact look */
+.available-jobs-page h1,
+.available-jobs-page h2 {
+  margin-top: 18px;
+  margin-bottom: 14px;
+  font-weight: 700;
 }
 </style>
 
