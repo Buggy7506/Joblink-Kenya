@@ -13,7 +13,8 @@ urlpatterns = [
         ),
     ),
     path("Sign-In-OR-Sign-Up/", views.unified_auth_view, name="unified_auth"),
-    
+
+    path("api/job-titles/", views.api_job_titles, name="api_job_titles"),
     path("api/categories/", views.api_job_categories, name="api_categories"),
     path("api/locations/", views.api_locations, name="api_locations"),
     # -------------------------
