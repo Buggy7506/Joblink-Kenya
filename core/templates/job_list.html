@@ -410,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* =====================================================
      2. UNIFIED SEARCH AUTOCOMPLETE
-     (Job Titles + Categories + Locations)
+        (Job Titles + Categories + Locations)
   ===================================================== */
   const searchInput = document.getElementById("searchInput");
   const searchData  = document.getElementById("searchSuggestions");
@@ -419,7 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (searchInput && searchData) {
     searchInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
-      if (q.length < 2) return;
+      if (q.length < 2) return; // minimum 2 chars to trigger
       clearTimeout(searchTimer);
 
       searchTimer = setTimeout(async () => {
@@ -467,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const url = new URL(window.location.href);
     const fd = new FormData(form);
 
-    url.search = "";
+    url.search = ""; // reset old query params
     fd.forEach((v, k) => {
       if (v) url.searchParams.append(k, v);
     });
@@ -481,10 +481,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Remove old job cards
       container.querySelectorAll(".job-card").forEach(c => c.remove());
-      // Add new cards
+      // Append new job cards
       newCards.forEach(c => container.appendChild(c));
 
-      // Update next-page-link
+      // Update next-page-link for infinite scroll
       const next = document.getElementById("next-page-link");
       const newNext = doc.getElementById("next-page-link");
       if (next) {
@@ -506,12 +506,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (el) el.addEventListener("change", submitFilters);
     });
 
-  // Optional: live submit as you type
+  // Live submit while typing (debounced)
   let typing;
-  searchInput.addEventListener("keyup", () => {
-    clearTimeout(typing);
-    typing = setTimeout(submitFilters, 500);
-  });
+  if (searchInput) {
+    searchInput.addEventListener("keyup", () => {
+      clearTimeout(typing);
+      typing = setTimeout(submitFilters, 500);
+    });
+  }
 
 });
 </script>
