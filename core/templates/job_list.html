@@ -8,135 +8,206 @@
 <div class="available-jobs-page">
 
 <style>
-.available-jobs-page body {
+/* =========================================================
+   BASE
+========================================================= */
+.available-jobs-page {
   background: var(--bg-main);
-  font-family: Arial, sans-serif;
   color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
 }
 
-/* Layout */
 .available-jobs-page .container {
-  margin-top: 40px;
-  padding: 20px;
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 16px;
 }
 
-/* Section titles */
+/* =========================================================
+   SECTION TITLES
+========================================================= */
 .available-jobs-page h2 {
-  font-size: 24px;
-  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 28px 0 14px;
   color: var(--accent);
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 1px solid var(--accent-glow);
   padding-bottom: 6px;
 }
 
-/* Job cards */
-.available-jobs-page .premium-job,
-.available-jobs-page .normal-job {
-  padding: 20px;
-  border-radius: 14px;
-  margin-bottom: 20px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-  border-left: 5px solid;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Premium */
-.available-jobs-page .premium-job {
-  background: linear-gradient(135deg, #6a00ff, #4b0082);
-  border-color: gold;
-  box-shadow: 0 0 25px rgba(255,215,0,0.35);
-}
-
-/* Normal */
-.available-jobs-page .normal-job {
+/* =========================================================
+   JOB CARDS (COMMON)
+========================================================= */
+.available-jobs-page .job-card {
   background: var(--bg-card);
-  border-color: var(--accent);
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Hover */
-.available-jobs-page .premium-job:hover,
-.available-jobs-page .normal-job:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 35px var(--accent-glow);
+.available-jobs-page .job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 }
 
-/* Titles */
+/* =========================================================
+   PREMIUM JOBS
+========================================================= */
+.available-jobs-page .premium-job {
+  border-left-color: gold;
+  background: linear-gradient(180deg, rgba(255,215,0,0.08), var(--bg-card));
+}
+
+/* =========================================================
+   JOB CONTENT
+========================================================= */
 .available-jobs-page .job-title {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 700;
   margin-bottom: 6px;
-  color: gold;
-}
-.available-jobs-page .normal-job .job-title {
   color: var(--accent);
 }
 
-/* Meta */
-.available-jobs-page .job-meta {
+.available-jobs-page .premium-job .job-title {
+  color: #b8860b;
+}
+
+.available-jobs-page .job-meta,
+.available-jobs-page .job-category,
+.available-jobs-page .job-salary,
+.available-jobs-page .job-expiry,
+.available-jobs-page .job-posted {
   font-size: 14px;
-  margin: 3px 0;
   color: var(--text-muted);
+  margin: 4px 0;
 }
 
-/* Apply link */
-.available-jobs-page .apply-link {
-  display: inline-block;
-  margin-top: 10px;
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px dashed var(--accent);
-  transition: all 0.3s ease;
+.available-jobs-page .icon {
+  margin-right: 4px;
 }
 
-.available-jobs-page .apply-link:hover {
-  color: var(--text-main);
-  border-color: var(--text-main);
-}
-
-/* Premium badge */
+/* =========================================================
+   PREMIUM BADGE
+========================================================= */
 .available-jobs-page .premium-badge {
   background: gold;
   color: #000;
   font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  margin-left: 10px;
-  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 14px;
+  margin-left: 8px;
+  font-weight: 600;
+  vertical-align: middle;
 }
 
-/* Empty state */
-.available-jobs-page .no-jobs {
-  color: var(--text-muted);
-  font-style: italic;
+/* =========================================================
+   APPLY BUTTON
+========================================================= */
+.available-jobs-page .apply-link {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 22px;
+  border-radius: 22px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* Messages */
+.available-jobs-page .apply-link:hover {
+  background: var(--accent-dark, var(--accent));
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   FILTER BAR
+========================================================= */
+.available-jobs-page .filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+}
+
+.available-jobs-page .filter-bar input,
+.available-jobs-page .filter-bar select,
+.available-jobs-page .filter-bar button {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--accent-glow);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.available-jobs-page .filter-bar input {
+  flex: 2 1 260px;
+}
+
+.available-jobs-page .filter-bar select {
+  flex: 1 1 160px;
+}
+
+.available-jobs-page .filter-bar button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.available-jobs-page .filter-bar button:hover {
+  opacity: 0.9;
+}
+
+/* =========================================================
+   MESSAGES
+========================================================= */
 .available-jobs-page .messages {
-  margin-bottom: 20px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 .available-jobs-page .message-text {
   display: inline-block;
-  padding: 12px 22px;
-  border-radius: 25px;
-  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
   color: #fff;
-  font-size: 1rem;
-  transition: opacity 1s ease, transform 0.3s ease;
-  box-shadow: 0 0 15px var(--accent-glow);
+  font-size: 14px;
   margin-bottom: 10px;
 }
 
 .available-jobs-page .message-text.success {
-  background: linear-gradient(90deg, var(--success), #00cc66);
+  background: #16a34a;
 }
 
 .available-jobs-page .message-text.error {
-  background: linear-gradient(90deg, var(--error), #ff2a39);
+  background: #dc2626;
 }
 
-/* Company real image */
+/* =========================================================
+   EMPTY STATES
+========================================================= */
+.available-jobs-page .no-jobs,
+.available-jobs-page .no-jobs-message {
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 12px;
+}
+
+/* =========================================================
+   COMPANY LOGO
+========================================================= */
 .available-jobs-page .company-logo-img {
   width: 28px;
   height: 28px;
@@ -145,112 +216,34 @@
   object-fit: cover;
 }
 
-/* Icons alignment */
-.available-jobs-page .icon {
-  margin-right: 4px;
-}
-
-/* Infinite scroll loader */
+/* =========================================================
+   LOADER
+========================================================= */
 .available-jobs-page .loader {
   text-align: center;
-  padding: 15px;
+  padding: 16px;
   font-size: 14px;
-  color: #888;
+  color: var(--text-muted);
 }
 
-/* ------------------------------------
-   CLEAN RESPONSIVE FILTER BAR
------------------------------------- */
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  background: var(--bg-card);
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-  margin-bottom: 18px;
-}
-
-.filter-bar input,
-.filter-bar select,
-.filter-bar button {
-  flex: 1 1 180px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--accent-glow);
-  background: var(--bg-main);
-  color: var(--text-main);
-  font-size: 15px;
-}
-
-.filter-bar button {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  flex: 1 1 120px;
-}
-
-.filter-bar button:hover {
-  opacity: .85;
-}
-
-/* Mobile control */
-@media(max-width: 600px){
-  .filter-bar {
+/* =========================================================
+   MOBILE
+========================================================= */
+@media (max-width: 640px) {
+  .available-jobs-page .filter-bar {
     flex-direction: column;
   }
-}
-/* Apply Now Button Styling */
-.apply-link {
-    display: inline-block;
-    padding: 10px 25px;
-    border-radius: 25px;
-    background: var(--text-accent); /* Use your accent color */
-    color: var(--text-main);
-    font-weight: bold;
-    font-size: 1rem;
-    text-decoration: none;
-    text-align: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 15px var(--glow-accent, rgba(0,255,200,0.5)), 
-                0 0 30px var(--glow-accent, rgba(0,255,200,0.3));
-}
 
-.apply-link:hover {
-    background: var(--glow-accent, #00ffc6);
-    color: #000; /* Dark text on glow background */
-    box-shadow: 0 0 25px var(--glow-accent), 
-                0 0 50px var(--glow-accent);
-    transform: translateY(-2px);
-}
-
-.job-card .apply-link {
-    margin-top: 15px;
-    display: inline-block;
+  .available-jobs-page .job-title {
+    font-size: 17px;
+  }
 }
 </style>
 
 <div class="container">
 
-  <!-- 🔹 SEO INTRO (CRITICAL FOR GOOGLE – DO NOT REMOVE) -->
-  <section class="jobs-intro">
-    <h1>Available Jobs in Kenya</h1>
-
-    <p>
-      Browse the latest job opportunities across Kenya on Joblink Kenya.
-      We connect job seekers with employers offering opportunities in
-      various industries including technology, healthcare, education,
-      business, and skilled trades.
-    </p>
-
-    <p>
-      Use the search and filter options below to find jobs by title,
-      category, location, or expiry date. New jobs are added regularly.
-    </p>
-  </section>
+  <!-- PAGE TITLE -->
+  <h1>Available Jobs in Kenya</h1>
 
   {% if messages %}
     <div class="messages">
@@ -262,131 +255,139 @@
     </div>
   {% endif %}
 
-  <!-- 🔍 Search & Filter Bar -->
+  <!-- 🔍 UNIFIED SEARCH BAR -->
   <form method="get" class="filter-bar" id="filterForm">
 
-    <!-- Search by title -->
-    <input type="text" id="searchInput" name="search"
-           placeholder="🔍 Search job title…" value="{{ search }}">
-
-    <!-- Category -->
-    <input type="text"
-           name="category"
-           id="categoryInput"
-           list="categoryData"
-           placeholder="Select or type category…"
-           value="{{ category }}">
-    <datalist id="categoryData"></datalist>
-
-    <!-- Location -->
-    <input type="text"
-           name="location"
-           id="locationInput"
-           list="locationData"
-           placeholder="Search location…"
-           value="{{ location }}">
-    <datalist id="locationData"></datalist>
+    <!-- Unified search -->
+    <input
+      type="text"
+      name="q"
+      id="searchInput"
+      list="searchSuggestions"
+      placeholder="Search job title, category, or location…"
+      value="{{ q|default:'' }}"
+      autocomplete="off"
+    >
+    <datalist id="searchSuggestions"></datalist>
 
     <!-- Sort -->
     <select name="sort" id="sortSelect">
-      <option value="">Sort by</option>
-      <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest First</option>
-      <option value="expiry_asc" {% if sort == "expiry_asc" %}selected{% endif %}>Expiry Soonest</option>
-      <option value="expiry_desc" {% if sort == "expiry_desc" %}selected{% endif %}>Expiry Latest</option>
+      <option value="">Sort results</option>
+      <option value="newest" {% if sort == "newest" %}selected{% endif %}>
+        Newest first
+      </option>
+      <option value="expiry_asc" {% if sort == "expiry_asc" %}selected{% endif %}>
+        Expiring soon
+      </option>
+      <option value="expiry_desc" {% if sort == "expiry_desc" %}selected{% endif %}>
+        Expiring later
+      </option>
     </select>
 
-    <button type="submit">Apply</button>
+    <button type="submit">Search</button>
   </form>
 
-  <!-- 🌟 Premium Jobs -->
-  <h2>🌟 Featured Jobs</h2>
+  <!-- ⭐ FEATURED JOBS -->
+  <h2>Featured Jobs</h2>
+
   {% for job in premium_jobs %}
     <div class="job-card premium-job">
-      <div class="company-row">
-        <p>{{ job.company }}</p>
-      </div>
 
       <div class="job-title">
-        {{ job.title }} <span class="premium-badge">Premium</span>
+        {{ job.title }}
+        <span class="premium-badge">Featured</span>
       </div>
 
-      {% if job.category %}
-        <p class="job-category">Category: {{ job.category.name }}</p>
-      {% endif %}
-
       <p class="job-meta">
-        <span class="icon">📍</span> {{ job.location }}
+        🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
       </p>
 
+      {% if job.category %}
+        <p class="job-category">
+          Category: {{ job.category.name }}
+        </p>
+      {% endif %}
+
       {% if job.salary %}
-        <p class="job-salary">Salary: KES {{ job.salary|intcomma }}</p>
+        <p class="job-salary">
+          Salary: KES {{ job.salary|intcomma }}
+        </p>
       {% endif %}
 
       {% if job.expiry_date %}
-        <p class="job-expiry">Expires on: {{ job.expiry_date|date:"M d, Y" }}</p>
+        <p class="job-expiry">
+          Expires: {{ job.expiry_date|date:"M d, Y" }}
+        </p>
       {% endif %}
 
-      <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
+      <p class="job-posted">
+        Posted: {{ job.posted_on|date:"M d, Y" }}
+      </p>
 
-      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+      <a href="{% url 'apply_job' job.id %}" class="apply-link">
+        Apply Now
+      </a>
     </div>
   {% empty %}
-    <div class="no-jobs-message">
-      <h3>No Featured Jobs Available Right Now</h3>
-      <p>
-        There are currently no premium job listings. Please check back later
-        or browse the free job listings below.
-      </p>
-    </div>
+    <p class="no-jobs">
+      No featured jobs available at the moment.
+    </p>
   {% endfor %}
 
-  <!-- 💼 Regular Jobs -->
-  <h2>💼 Free Jobs</h2>
+  <!-- 💼 REGULAR JOBS -->
+  <h2>Available Jobs</h2>
+
   {% for job in jobs %}
     <div class="job-card normal-job">
-      <div class="company-row">
-        <p>{{ job.company }}</p>
+
+      <div class="job-title">
+        {{ job.title }}
       </div>
 
-      <div class="job-title">{{ job.title }}</div>
-
-      {% if job.category %}
-        <p class="job-category">Category: {{ job.category.name }}</p>
-      {% endif %}
-
       <p class="job-meta">
-        <span class="icon">📍</span> {{ job.location }}
+        🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
       </p>
 
+      {% if job.category %}
+        <p class="job-category">
+          Category: {{ job.category.name }}
+        </p>
+      {% endif %}
+
       {% if job.salary %}
-        <p class="job-salary">Salary: KES {{ job.salary|intcomma }}</p>
+        <p class="job-salary">
+          Salary: KES {{ job.salary|intcomma }}
+        </p>
       {% endif %}
 
       {% if job.expiry_date %}
-        <p class="job-expiry">Expires on: {{ job.expiry_date|date:"M d, Y" }}</p>
+        <p class="job-expiry">
+          Expires: {{ job.expiry_date|date:"M d, Y" }}
+        </p>
       {% endif %}
 
-      <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
+      <p class="job-posted">
+        Posted: {{ job.posted_on|date:"M d, Y" }}
+      </p>
 
-      <a href="{% url 'apply_job' job.id %}" class="apply-link">Apply Now</a>
+      <a href="{% url 'apply_job' job.id %}" class="apply-link">
+        Apply Now
+      </a>
     </div>
   {% empty %}
-    <div class="no-jobs-message">
-      <h3>No Jobs Available at the Moment</h3>
-      <p>
-        We are currently updating our listings. New jobs are added frequently,
-        so please check back soon or try adjusting your search filters.
-      </p>
-    </div>
+    <p class="no-jobs">
+      No jobs found. Try adjusting your search.
+    </p>
   {% endfor %}
 
 </div>
   
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  /* -----------------------------
-     1) AUTO-DISMISS FLASH MESSAGES
-  ------------------------------ */
+
+  /* =====================================================
+     1. AUTO-DISMISS FLASH MESSAGES
+  ===================================================== */
   const msgs = document.querySelectorAll('.available-jobs-page .message-text');
   if (msgs.length) {
     setTimeout(() => {
@@ -401,143 +402,138 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3500);
   }
 
-  /* -----------------------------
-     2) DEADLINE COUNTDOWN
-  ------------------------------ */
-  function updateDeadlines() {
-    const elements = document.querySelectorAll('.available-jobs-page .deadline');
-    elements.forEach(el => {
-      const dateStr = el.dataset.deadline;
-      if (!dateStr) return;
+  /* =====================================================
+     2. JOB TITLE AUTOCOMPLETE (EXTERNAL SOURCE)
+  ===================================================== */
+  const titleInput = document.getElementById("jobTitleInput");
+  const titleData  = document.getElementById("jobTitleData");
 
-      const deadline = new Date(dateStr);
-      const today = new Date();
-      const diff = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+  let titleTimer;
 
-      if (diff > 1) el.textContent = `${diff} days left to apply`;
-      else if (diff === 1) el.textContent = `1 day left to apply`;
-      else if (diff === 0) el.textContent = `Last day to apply`;
-      else el.textContent = `Closed`;
+  if (titleInput && titleData) {
+    titleInput.addEventListener("keyup", e => {
+      const q = e.target.value.trim();
+      if (q.length < 2) return;
+
+      clearTimeout(titleTimer);
+      titleTimer = setTimeout(() => {
+        fetch("{% url 'api_job_titles' %}?q=" + encodeURIComponent(q))
+          .then(r => r.json())
+          .then(data => {
+            titleData.innerHTML = "";
+            data.titles.forEach(t => {
+              const o = document.createElement("option");
+              o.value = t;
+              titleData.appendChild(o);
+            });
+          })
+          .catch(() => console.warn("Job title source failed"));
+      }, 300);
     });
   }
-  updateDeadlines();
 
-  /* -----------------------------
-     3) INFINITE SCROLL LOADER
-  ------------------------------ */
-  let loading = false;
-  window.addEventListener('scroll', () => {
-    if (loading) return;
-    if ((window.innerHeight + window.scrollY) < document.body.offsetHeight - 300) return;
+  /* =====================================================
+     3. CATEGORY AUTOCOMPLETE (EXTERNAL SOURCE)
+  ===================================================== */
+  const categoryInput = document.getElementById("categoryInput");
+  const categoryData  = document.getElementById("categoryData");
 
-    const next = document.querySelector('#next-page-link');
-    if (!next) return;
-    loading = true;
+  let categoryTimer;
 
-    fetch(next.href)
+  if (categoryInput && categoryData) {
+    categoryInput.addEventListener("keyup", e => {
+      const q = e.target.value.trim();
+      if (q.length < 2) return;
+
+      clearTimeout(categoryTimer);
+      categoryTimer = setTimeout(() => {
+        fetch("{% url 'api_categories' %}?q=" + encodeURIComponent(q))
+          .then(r => r.json())
+          .then(data => {
+            categoryData.innerHTML = "";
+            data.categories.forEach(c => {
+              const o = document.createElement("option");
+              o.value = c;
+              categoryData.appendChild(o);
+            });
+          })
+          .catch(() => console.warn("Category source failed"));
+      }, 300);
+    });
+  }
+
+  /* =====================================================
+     4. LOCATION AUTOCOMPLETE (OSM / NOMINATIM)
+  ===================================================== */
+  const locationInput = document.getElementById("locationInput");
+  const locationData  = document.getElementById("locationData");
+
+  let locationTimer;
+
+  if (locationInput && locationData) {
+    locationInput.addEventListener("keyup", e => {
+      const q = e.target.value.trim();
+      if (q.length < 3) return;
+
+      clearTimeout(locationTimer);
+      locationTimer = setTimeout(() => {
+        fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q=" + encodeURIComponent(q), {
+          headers: { "Accept-Language": "en" }
+        })
+          .then(r => r.json())
+          .then(data => {
+            locationData.innerHTML = "";
+            data.forEach(place => {
+              const o = document.createElement("option");
+              o.value = place.display_name;
+              locationData.appendChild(o);
+            });
+          })
+          .catch(() => console.warn("OSM lookup failed"));
+      }, 350);
+    });
+  }
+
+  /* =====================================================
+     5. FILTER SUBMISSION (AJAX SAFE)
+  ===================================================== */
+  function submitFilters() {
+    const form = document.getElementById("filterForm");
+    const url = new URL(window.location.href);
+    const fd = new FormData(form);
+
+    url.search = "";
+    fd.forEach((v, k) => {
+      if (v) url.searchParams.append(k, v);
+    });
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(r => r.text())
       .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const newCards = doc.querySelectorAll(".job-card");
+        const container = document.querySelector(".available-jobs-page .container");
 
-        const cards = doc.querySelectorAll('.job-card');
-        const container = document.querySelector('.available-jobs-page .container');
-        cards.forEach(card => container.appendChild(card));
+        container.querySelectorAll(".job-card").forEach(c => c.remove());
+        newCards.forEach(c => container.appendChild(c));
 
-        const newNext = doc.querySelector('#next-page-link');
-        if (newNext) next.href = newNext.href;
-        else next.remove();
+        const next = document.getElementById("next-page-link");
+        const newNext = doc.getElementById("next-page-link");
+        if (newNext && next) next.href = newNext.href;
+        else if (next) next.remove();
+      });
+  }
 
-        loading = false;
-        updateDeadlines(); // refresh countdown for newly loaded cards
-      })
-      .catch(() => loading = false);
-  });
-});
-
-/* Live filtering + AJAX */
-function submitFilters() {
-  const form = document.querySelector("#filterForm");
-  const url = new URL(window.location.href);
-  const fd = new FormData(form);
-
-  // convert multi selects to multiple params
-  url.search = "";
-  fd.forEach((val, key) => url.searchParams.append(key, val));
-
-  fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-    .then(r => r.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-
-      const cards = doc.querySelectorAll(".job-card");
-      const container = document.querySelector('.available-jobs-page .container');
-
-      // Remove old jobs, keep form + headings
-      container.querySelectorAll(".job-card").forEach(el => el.remove());
-
-      cards.forEach(card => container.appendChild(card));
-
-      // Update next-page-link
-      const next = document.querySelector("#next-page-link");
-      const newNext = doc.querySelector("#next-page-link");
-      if (newNext) next.href = newNext.href;
-      else next.remove();
-
-      updateDeadlines();
+  /* =====================================================
+     6. TRIGGERS
+  ===================================================== */
+  ["jobTitleInput", "categoryInput", "locationInput", "sortSelect"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("change", submitFilters);
     });
-}
 
-/* LIVE search debounce */
-let typing;
-document.querySelector("#searchInput").addEventListener("keyup", () => {
-  clearTimeout(typing);
-  typing = setTimeout(submitFilters, 400);
-});
-
-/* CHANGE on select/ sort trigger */
-["sortSelect"]
-  .forEach(id => document.getElementById(id).addEventListener("change", submitFilters));
-
-/* Load job categories once on page load */
-fetch("{% url 'api_categories' %}")
-  .then(r => r.json())
-  .then(data => {
-    const box = document.querySelector("#categoryData");
-    box.innerHTML = "";
-    data.categories.forEach(c => {
-      const o = document.createElement("option");
-      o.value = c;
-      box.appendChild(o);
-    });
-  })
-  .catch(() => console.log("Category API failed"));
-
-/* Location autocomplete from OSM */
-let lookup;
-document.querySelector("#locationInput").addEventListener("keyup", e => {
-  const term = e.target.value.trim();
-
-  if (term.length < 3) return;   // wait until user types 3+ chars
-
-  clearTimeout(lookup);
-  lookup = setTimeout(() => {
-    fetch("{% url 'api_locations' %}?q=" + encodeURIComponent(term))
-      .then(r => r.json())
-      .then(data => {
-        const box = document.querySelector("#locationData");
-        box.innerHTML = "";
-        data.locations.forEach(loc => {
-          const o = document.createElement("option");
-          o.value = loc;
-          box.appendChild(o);
-        });
-      })
-      .catch(() => console.log("OSM request failed"));
-  }, 300);
 });
 </script>
 
-</div><!-- /.available-jobs-page -->
 {% endblock %}
