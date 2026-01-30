@@ -566,6 +566,31 @@ body.light-mode .active-link {
   border: none;
   cursor: pointer;
 }
+/* FIX MOBILE MENU TOGGLE BUTTON POSITION */
+.mobile-toggle {
+  position: fixed;       /* stays fixed on the screen */
+  top: 1rem;             /* distance from top */
+  right: 1rem;           /* distance from right */
+  z-index: 9999;         /* above everything else */
+  display: flex;         /* keep flex if needed */
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);  /* optional: matches theme */
+  border-radius: 0.5rem;       /* optional styling */
+  padding: 0.4rem 0.5rem;      /* touch-friendly size */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);  /* subtle depth */
+}
+
+/* Make the button inside fully clickable */
+.mobile-toggle .menu-toggle {
+  font-size: 1.8rem;   /* bigger touch target */
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--text-link);
+  padding: 0;
+  line-height: 1;
+}
 </style>
       
 <!-- Brevo Conversations {literal} -->
