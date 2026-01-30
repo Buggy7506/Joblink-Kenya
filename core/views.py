@@ -625,35 +625,119 @@ def available_jobs(request):
         "locations": locations,
     })
 
+# =====================================================
+# JOB CATEGORIES (EXTERNAL SOURCE – GitHub JSON)
+# =====================================================
 @ratelimit(key='ip', rate='30/m', block=True)
-@csrf_protect
+@csrf_exempt   # GET-only API, no CSRF token needed
 def api_job_categories(request):
     url = "https://raw.githubusercontent.com/dwyl/job-categories/master/job-categories.json"
-    try:
-        r = requests.get(url, timeout=3)
-        data = r.json()
-        categories = sorted(set([x["Category"] for x in data]))
-        return JsonResponse({"categories": categories})
-    except Exception:
-        return JsonResponse({"categories": []})
 
+    try:
+        r = requests.get(url, timeout=4)
+        r.raise_for_status()
+
+        data = r.json()
+        categories = sorted({
+            item.get("Category")
+            for item in data
+            if item.get("Category")
+        })
+
+        return JsonResponse({
+            "categories": list(categories)
+        })
+
+    except Exception:
+        return JsonResponse({
+            "categories": []
+        }, status=200)
+
+
+# =====================================================
+# LOCATIONS (OPENSTREETMAP / NOMINATIM)
+# =====================================================
 @ratelimit(key='ip', rate='30/m', block=True)
-@csrf_protect
+@csrf_exempt   # GET-only API
 def api_locations(request):
-    q = request.GET.get("q", "")
-    if not q:
+    q = request.GET.get("q", "").strip()
+
+    if len(q) < 3:
         return JsonResponse({"locations": []})
 
-    url = f"https://nominatim.openstreetmap.org/search?q={q}&format=json&addressdetails=0&limit=8"
-    headers = {"User-Agent": "YourJobApp/1.0"}
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": q,
+        "format": "json",
+        "addressdetails": 0,
+        "limit": 8
+    }
+
+    headers = {
+        # REQUIRED by Nominatim policy
+        "User-Agent": "YourJobApp/1.0 (contact@yourdomain.com)"
+    }
+
     try:
-        r = requests.get(url, headers=headers, timeout=3)
-        data = r.json()
-        names = sorted(set([x["display_name"] for x in data]))
-        return JsonResponse({"locations": names})
-    except Exception:
-        return JsonResponse({"locations": []})
+        r = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=4
+        )
+        r.raise_for_status()
 
+        data = r.json()
+
+        locations = sorted({
+            item.get("display_name")
+            for item in data
+            if item.get("display_name")
+        })
+
+        return JsonResponse({
+            "locations": list(locations)
+        })
+
+    except Exception:
+        return JsonResponse({
+            "locations": []
+        }, status=200)
+
+# =====================================================
+# JOB TITLES (EXTERNAL SOURCE – O*NET DERIVED DATA)
+# =====================================================
+@ratelimit(key='ip', rate='30/m', block=True)
+@csrf_exempt   # GET-only API
+def api_job_titles(request):
+    q = request.GET.get("q", "").strip().lower()
+
+    if len(q) < 2:
+        return JsonResponse({"titles": []})
+
+    url = "https://raw.githubusercontent.com/jneidel/job-titles/master/job-titles.json"
+
+    try:
+        r = requests.get(url, timeout=4)
+        r.raise_for_status()
+
+        data = r.json()
+
+        # Normalize + filter
+        titles = sorted({
+            title for title in data
+            if isinstance(title, str) and q in title.lower()
+        })[:15]
+
+        return JsonResponse({
+            "titles": titles
+        })
+
+    except Exception:
+        return JsonResponse({
+            "titles": []
+        }, status=200)
+        
 # Ping Page
 def ping(request):
     return HttpResponse("pong")
