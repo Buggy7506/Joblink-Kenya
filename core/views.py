@@ -563,57 +563,61 @@ class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
 @ratelimit(key='ip', rate='30/m', block=True)
 @csrf_protect
 def available_jobs(request):
-    search = request.GET.get("search", "")
-    sort = request.GET.get("sort", "")
+    search = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort", "").strip()
 
-    # MULTI-SELECT
+    # MULTI-SELECT FILTERS
     category_list = request.GET.getlist("category")
     location_list = request.GET.getlist("location")
 
-    # Base queryset
+    # BASE QUERYSET: only active jobs
     jobs = Job.objects.filter(is_active=True)
 
-    # Search
+    # UNIFIED SEARCH: title OR category name OR location
     if search:
-        jobs = jobs.filter(title__icontains=search)
+        jobs = jobs.filter(
+            Q(title__icontains=search) |
+            Q(category__name__icontains=search) |
+            Q(location__icontains=search)
+        )
 
-    # Multi-Category
+    # FILTER BY MULTI-CATEGORY (by category name)
     if category_list:
-        jobs = jobs.filter(category__in=category_list)
+        jobs = jobs.filter(category__name__in=category_list)
 
-    # Multi-Location
+    # FILTER BY MULTI-LOCATION
     if location_list:
         jobs = jobs.filter(location__in=location_list)
 
-    # Sort handler
+    # SORT HANDLER
     if sort == "newest":
-        jobs = jobs.order_by("-posted_date")
-    elif sort == "deadline_asc":
-        jobs = jobs.order_by("deadline")
-    elif sort == "deadline_desc":
-        jobs = jobs.order_by("-deadline")
+        jobs = jobs.order_by("-posted_on")
+    elif sort == "expiry_asc":
+        jobs = jobs.order_by("expiry_date")
+    elif sort == "expiry_desc":
+        jobs = jobs.order_by("-expiry_date")
     else:
-        jobs = jobs.order_by("-id")
+        jobs = jobs.order_by("-id")  # default
 
-    # Pagination
-    paginator = Paginator(jobs, 6)
-    page = request.GET.get("page")
-    jobs_page = paginator.get_page(page)
+    # PAGINATION
+    paginator = Paginator(jobs, 6)  # 6 per page
+    page_number = request.GET.get("page")
+    jobs_page = paginator.get_page(page_number)
 
-    # 🔥 Grab unique filter items from actual DB
-    categories = Job.objects.values_list("category", flat=True).distinct()
-    locations = Job.objects.values_list("location", flat=True).distinct()
-
-    # Show only first 3 Premium
+    # PREMIUM JOBS (show top 3)
     premium_jobs = jobs.filter(is_premium=True)[:3]
 
-    # AJAX infinite scroll load
+    # GRAB UNIQUE FILTER OPTIONS FROM DB
+    categories = Category.objects.values_list("name", flat=True).distinct()
+    locations = Job.objects.values_list("location", flat=True).distinct()
+
+    # AJAX INFINITE SCROLL RESPONSE
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(request, "job_cards.html", {
             "jobs": jobs_page,
         })
 
-    # Normal full page load
+    # FULL PAGE LOAD
     return render(request, "job_list.html", {
         "jobs": jobs_page,
         "premium_jobs": premium_jobs,
@@ -624,7 +628,6 @@ def available_jobs(request):
         "categories": categories,
         "locations": locations,
     })
-
 
 # =====================================================
 # JOB CATEGORIES (EXTERNAL SOURCE – GitHub JSON)
