@@ -407,15 +407,14 @@ document.addEventListener("DOMContentLoaded", () => {
   ===================================================== */
   const titleInput = document.getElementById("jobTitleInput");
   const titleData  = document.getElementById("jobTitleData");
-
   let titleTimer;
 
   if (titleInput && titleData) {
     titleInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
       if (q.length < 2) return;
-
       clearTimeout(titleTimer);
+
       titleTimer = setTimeout(() => {
         fetch("{% url 'api_job_titles' %}?q=" + encodeURIComponent(q))
           .then(r => r.json())
@@ -437,15 +436,14 @@ document.addEventListener("DOMContentLoaded", () => {
   ===================================================== */
   const categoryInput = document.getElementById("categoryInput");
   const categoryData  = document.getElementById("categoryData");
-
   let categoryTimer;
 
   if (categoryInput && categoryData) {
     categoryInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
       if (q.length < 2) return;
-
       clearTimeout(categoryTimer);
+
       categoryTimer = setTimeout(() => {
         fetch("{% url 'api_categories' %}?q=" + encodeURIComponent(q))
           .then(r => r.json())
@@ -467,25 +465,22 @@ document.addEventListener("DOMContentLoaded", () => {
   ===================================================== */
   const locationInput = document.getElementById("locationInput");
   const locationData  = document.getElementById("locationData");
-
   let locationTimer;
 
   if (locationInput && locationData) {
     locationInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
       if (q.length < 3) return;
-
       clearTimeout(locationTimer);
+
       locationTimer = setTimeout(() => {
-        fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q=" + encodeURIComponent(q), {
-          headers: { "Accept-Language": "en" }
-        })
+        fetch("{% url 'api_locations' %}?q=" + encodeURIComponent(q))
           .then(r => r.json())
           .then(data => {
             locationData.innerHTML = "";
-            data.forEach(place => {
+            data.locations.forEach(loc => {
               const o = document.createElement("option");
-              o.value = place.display_name;
+              o.value = loc;
               locationData.appendChild(o);
             });
           })
@@ -514,18 +509,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const newCards = doc.querySelectorAll(".job-card");
         const container = document.querySelector(".available-jobs-page .container");
 
+        // Remove old job cards
         container.querySelectorAll(".job-card").forEach(c => c.remove());
+        // Add new ones
         newCards.forEach(c => container.appendChild(c));
 
+        // Update next-page-link
         const next = document.getElementById("next-page-link");
         const newNext = doc.getElementById("next-page-link");
         if (newNext && next) next.href = newNext.href;
         else if (next) next.remove();
-      });
+      })
+      .catch(err => console.error("Filter submission failed:", err));
   }
 
   /* =====================================================
-     6. TRIGGERS
+     6. TRIGGERS FOR CHANGE EVENTS
   ===================================================== */
   ["jobTitleInput", "categoryInput", "locationInput", "sortSelect"]
     .forEach(id => {
