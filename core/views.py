@@ -1531,7 +1531,6 @@ def microsoft_callback(request):
 # -----------------------------
 # HELPER FUNCTIONS
 # -----------------------------
-@csrf_protect
 def get_unread_messages(user):
     """
     Returns the count of unread chat messages for the given user.
