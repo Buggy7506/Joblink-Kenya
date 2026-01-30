@@ -591,6 +591,50 @@ body.light-mode .active-link {
   padding: 0;
   line-height: 1;
 }
+/* =========================================================
+   MOBILE HEADER FIX (LOGO + TITLE vs HAMBURGER)
+========================================================= */
+@media (max-width: 768px) {
+  /* Container flex adjustments */
+  header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  /* Logo + title */
+  header a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 1;       /* allow text to shrink */
+    min-width: 0;         /* required for ellipsis */
+  }
+
+  /* Heading text scales, ellipsizes if too long */
+  header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.8rem); /* responsive font */
+    margin: 0;
+    white-space: nowrap;       /* no wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;   /* gracefully cut off */
+  }
+
+  /* Optional: shrink logo slightly on very small screens */
+  header a img {
+    height: clamp(28px, 6vw, 40px);
+    width: auto;
+  }
+
+  /* Ensure mobile toggle never shrinks or collides */
+  .mobile-toggle {
+    flex-shrink: 0;
+    top: 1rem;
+    right: 1rem;
+  }
+}
 </style>
       
 <!-- Brevo Conversations {literal} -->
