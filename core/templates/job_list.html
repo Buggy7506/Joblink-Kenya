@@ -256,9 +256,9 @@
   {% endif %}
 
   <!-- 🔍 UNIFIED SEARCH BAR -->
-  <form method="get" class="filter-bar" id="filterForm">
+  <form method="get" class="filter-bar" id="filterForm" novalidate>
 
-    <!-- Unified search -->
+    <!-- Unified search input -->
     <input
       type="text"
       name="q"
@@ -267,11 +267,13 @@
       placeholder="Search job title, category, or location…"
       value="{{ q|default:'' }}"
       autocomplete="off"
+      aria-label="Search jobs"
     >
+
     <datalist id="searchSuggestions"></datalist>
 
     <!-- Sort -->
-    <select name="sort" id="sortSelect">
+    <select name="sort" id="sortSelect" aria-label="Sort jobs">
       <option value="">Sort results</option>
       <option value="newest" {% if sort == "newest" %}selected{% endif %}>
         Newest first
@@ -284,7 +286,11 @@
       </option>
     </select>
 
-    <button type="submit">Search</button>
+    <!-- Fallback submit (hidden but accessible) -->
+    <button type="submit" class="sr-only">
+      Search
+    </button>
+
   </form>
 
   <!-- ⭐ FEATURED JOBS -->
@@ -403,96 +409,60 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =====================================================
-     2. JOB TITLE AUTOCOMPLETE (EXTERNAL SOURCE)
+     2. UNIFIED SEARCH AUTOCOMPLETE
+     (Job Titles + Categories + Locations)
   ===================================================== */
-  const titleInput = document.getElementById("jobTitleInput");
-  const titleData  = document.getElementById("jobTitleData");
-  let titleTimer;
+  const searchInput = document.getElementById("searchInput");
+  const searchData  = document.getElementById("searchSuggestions");
+  let searchTimer;
 
-  if (titleInput && titleData) {
-    titleInput.addEventListener("keyup", e => {
+  if (searchInput && searchData) {
+    searchInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
       if (q.length < 2) return;
-      clearTimeout(titleTimer);
+      clearTimeout(searchTimer);
 
-      titleTimer = setTimeout(() => {
-        fetch("{% url 'api_job_titles' %}?q=" + encodeURIComponent(q))
-          .then(r => r.json())
-          .then(data => {
-            titleData.innerHTML = "";
-            data.titles.forEach(t => {
-              const o = document.createElement("option");
-              o.value = t;
-              titleData.appendChild(o);
-            });
-          })
-          .catch(() => console.warn("Job title source failed"));
+      searchTimer = setTimeout(async () => {
+        searchData.innerHTML = "";
+        try {
+          const [titlesRes, categoriesRes, locationsRes] = await Promise.all([
+            fetch("{% url 'api_job_titles' %}?q=" + encodeURIComponent(q)),
+            fetch("{% url 'api_categories' %}?q=" + encodeURIComponent(q)),
+            fetch("{% url 'api_locations' %}?q=" + encodeURIComponent(q))
+          ]);
+
+          const [titlesData, categoriesData, locationsData] = await Promise.all([
+            titlesRes.json(),
+            categoriesRes.json(),
+            locationsRes.json()
+          ]);
+
+          const suggestions = [
+            ...(titlesData.titles || []),
+            ...(categoriesData.categories || []),
+            ...(locationsData.locations || [])
+          ];
+
+          // Remove duplicates
+          const uniqueSuggestions = [...new Set(suggestions)];
+
+          uniqueSuggestions.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item;
+            searchData.appendChild(option);
+          });
+
+        } catch (err) {
+          console.warn("Unified search autocomplete failed:", err);
+        }
       }, 300);
     });
   }
 
   /* =====================================================
-     3. CATEGORY AUTOCOMPLETE (EXTERNAL SOURCE)
+     3. FILTER SUBMISSION (AJAX SAFE)
   ===================================================== */
-  const categoryInput = document.getElementById("categoryInput");
-  const categoryData  = document.getElementById("categoryData");
-  let categoryTimer;
-
-  if (categoryInput && categoryData) {
-    categoryInput.addEventListener("keyup", e => {
-      const q = e.target.value.trim();
-      if (q.length < 2) return;
-      clearTimeout(categoryTimer);
-
-      categoryTimer = setTimeout(() => {
-        fetch("{% url 'api_categories' %}?q=" + encodeURIComponent(q))
-          .then(r => r.json())
-          .then(data => {
-            categoryData.innerHTML = "";
-            data.categories.forEach(c => {
-              const o = document.createElement("option");
-              o.value = c;
-              categoryData.appendChild(o);
-            });
-          })
-          .catch(() => console.warn("Category source failed"));
-      }, 300);
-    });
-  }
-
-  /* =====================================================
-     4. LOCATION AUTOCOMPLETE (OSM / NOMINATIM)
-  ===================================================== */
-  const locationInput = document.getElementById("locationInput");
-  const locationData  = document.getElementById("locationData");
-  let locationTimer;
-
-  if (locationInput && locationData) {
-    locationInput.addEventListener("keyup", e => {
-      const q = e.target.value.trim();
-      if (q.length < 3) return;
-      clearTimeout(locationTimer);
-
-      locationTimer = setTimeout(() => {
-        fetch("{% url 'api_locations' %}?q=" + encodeURIComponent(q))
-          .then(r => r.json())
-          .then(data => {
-            locationData.innerHTML = "";
-            data.locations.forEach(loc => {
-              const o = document.createElement("option");
-              o.value = loc;
-              locationData.appendChild(o);
-            });
-          })
-          .catch(() => console.warn("OSM lookup failed"));
-      }, 350);
-    });
-  }
-
-  /* =====================================================
-     5. FILTER SUBMISSION (AJAX SAFE)
-  ===================================================== */
-  function submitFilters() {
+  async function submitFilters() {
     const form = document.getElementById("filterForm");
     const url = new URL(window.location.href);
     const fd = new FormData(form);
@@ -502,35 +472,46 @@ document.addEventListener("DOMContentLoaded", () => {
       if (v) url.searchParams.append(k, v);
     });
 
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then(r => r.text())
-      .then(html => {
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const newCards = doc.querySelectorAll(".job-card");
-        const container = document.querySelector(".available-jobs-page .container");
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const newCards = doc.querySelectorAll(".job-card");
+      const container = document.querySelector(".available-jobs-page .container");
 
-        // Remove old job cards
-        container.querySelectorAll(".job-card").forEach(c => c.remove());
-        // Add new ones
-        newCards.forEach(c => container.appendChild(c));
+      // Remove old job cards
+      container.querySelectorAll(".job-card").forEach(c => c.remove());
+      // Add new cards
+      newCards.forEach(c => container.appendChild(c));
 
-        // Update next-page-link
-        const next = document.getElementById("next-page-link");
-        const newNext = doc.getElementById("next-page-link");
-        if (newNext && next) next.href = newNext.href;
-        else if (next) next.remove();
-      })
-      .catch(err => console.error("Filter submission failed:", err));
+      // Update next-page-link
+      const next = document.getElementById("next-page-link");
+      const newNext = doc.getElementById("next-page-link");
+      if (next) {
+        if (newNext) next.href = newNext.href;
+        else next.remove();
+      }
+
+    } catch (err) {
+      console.error("Filter submission failed:", err);
+    }
   }
 
   /* =====================================================
-     6. TRIGGERS FOR CHANGE EVENTS
+     4. TRIGGERS
   ===================================================== */
-  ["jobTitleInput", "categoryInput", "locationInput", "sortSelect"]
+  ["searchInput", "sortSelect"]
     .forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener("change", submitFilters);
     });
+
+  // Optional: live submit as you type
+  let typing;
+  searchInput.addEventListener("keyup", () => {
+    clearTimeout(typing);
+    typing = setTimeout(submitFilters, 500);
+  });
 
 });
 </script>
