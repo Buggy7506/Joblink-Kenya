@@ -419,7 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (searchInput && searchData) {
     searchInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
-      if (q.length < 2) return;
+      if (q.length < 2) return; // minimum 2 chars to trigger
       clearTimeout(searchTimer);
 
       searchTimer = setTimeout(async () => {
@@ -443,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ...(locationsData.locations || [])
           ];
 
+          // Remove duplicates
           const uniqueSuggestions = [...new Set(suggestions)];
 
           uniqueSuggestions.forEach(item => {
@@ -542,9 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (searchInput) {
     searchInput.addEventListener("keyup", () => {
       clearTimeout(typing);
-      typing = setTimeout(() => {
-        submitFilters();
-      }, 500);
+      typing = setTimeout(submitFilters, 500);
     });
   }
 
