@@ -419,7 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (searchInput && searchData) {
     searchInput.addEventListener("keyup", e => {
       const q = e.target.value.trim();
-      if (q.length < 2) return; // minimum 2 chars to trigger
+      if (q.length < 2) return;
       clearTimeout(searchTimer);
 
       searchTimer = setTimeout(async () => {
@@ -443,7 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
             ...(locationsData.locations || [])
           ];
 
-          // Remove duplicates
           const uniqueSuggestions = [...new Set(suggestions)];
 
           uniqueSuggestions.forEach(item => {
@@ -498,20 +497,54 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =====================================================
-     4. TRIGGERS
+     4. INFINITE SCROLL
   ===================================================== */
-  ["searchInput", "sortSelect"]
-    .forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener("change", submitFilters);
-    });
+  let loading = false;
+  window.addEventListener("scroll", async () => {
+    if (loading) return;
+    const next = document.getElementById("next-page-link");
+    if (!next) return;
+
+    if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+      loading = true;
+      try {
+        const res = await fetch(next.href, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const newCards = doc.querySelectorAll(".job-card");
+        const container = document.querySelector(".available-jobs-page .container");
+
+        newCards.forEach(c => container.appendChild(c));
+
+        // Update next-page-link
+        const newNext = doc.getElementById("next-page-link");
+        if (newNext) next.href = newNext.href;
+        else next.remove();
+
+      } catch (err) {
+        console.error("Infinite scroll load failed:", err);
+      } finally {
+        loading = false;
+      }
+    }
+  });
+
+  /* =====================================================
+     5. EVENT TRIGGERS
+  ===================================================== */
+  ["searchInput", "sortSelect"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("change", submitFilters);
+  });
 
   // Live submit while typing (debounced)
   let typing;
   if (searchInput) {
     searchInput.addEventListener("keyup", () => {
       clearTimeout(typing);
-      typing = setTimeout(submitFilters, 500);
+      typing = setTimeout(() => {
+        submitFilters();
+      }, 500);
     });
   }
 
