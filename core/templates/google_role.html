@@ -179,19 +179,7 @@
     <form method="post">
       {% csrf_token %}
 
-      <label>
-        <input type="radio" name="role" value="applicant" required>
-        <span>
-          <i class="fas fa-user-graduate"></i> Applicant
-        </span>
-      </label>
-
-      <label>
-        <input type="radio" name="role" value="employer" required>
-        <span>
-          <i class="fas fa-briefcase"></i> Employer
-        </span>
-      </label>
+      {% include "partials/role_toggle.html" with role_required=True %}
 
       <button type="submit" class="continue-btn">Continue</button>
     </form>
