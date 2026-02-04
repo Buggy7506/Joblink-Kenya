@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
+DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
 
 ALLOWED_HOSTS = [
     "www.stepper.dpdns.org",
@@ -84,6 +84,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'core.middleware.request_shield.RequestShieldMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     # Messages MUST come immediately after sessions
@@ -235,6 +236,9 @@ MICROSOFT_REDIRECT_URI = os.getenv(
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_HTTPONLY = True
 
 # HTTP Strict Transport Security (HSTS)
 SECURE_HSTS_SECONDS = 3600  # Adjust as needed
@@ -253,6 +257,9 @@ SECURE_SSL_REDIRECT = True
 # Cross-site scripting protection
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_RESOURCE_POLICY = "same-site"
 
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
@@ -275,6 +282,13 @@ CSRF_TRUSTED_ORIGINS = [
     "https://joblink-kenya-6flx.onrender.com",
 ]
 
+REQUEST_SHIELD = {
+    "ENABLED": True,
+    "RATE_LIMIT_WINDOW_SECONDS": int(os.getenv("REQUEST_SHIELD_WINDOW", "60")),
+    "RATE_LIMIT_MAX_REQUESTS": int(os.getenv("REQUEST_SHIELD_MAX", "240")),
+    "BLOCK_USER_AGENTS": True,
+    "BLOCK_PATHS": True,
+}
 
 # Channels layers
 if os.getenv("REDIS_URL"):
