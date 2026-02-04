@@ -286,7 +286,7 @@ nav a:hover::after {
 }
 .mobile-menu::-webkit-scrollbar { display: none; }
 
-.mobile-toggle { display: none; }
+.mobile-toggle { display: none !important; }
 .mobile-menu.is-open {
   max-height: 70vh;
   padding: 1rem;
@@ -305,7 +305,7 @@ nav a:hover::after {
 
 @media (max-width: 768px) {
   .desktop-nav { display: none; }
-  .mobile-toggle { display: flex; }
+  .mobile-toggle { display: flex !important; }
   #darkModeToggleDesktop { display: none; } /* Hide desktop theme toggle on mobile */
 }
 
