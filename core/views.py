@@ -53,6 +53,7 @@ from django.template.loader import get_template, render_to_string
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 from django.utils import timezone
+from datetime import timedelta
 from django.utils.text import slugify
 
 # =========================
@@ -63,7 +64,6 @@ import stripe
 import pdfkit
 import requests
 import cloudinary.uploader
-from datetime import datetime, timezone
 
 # =========================
 # Python standard library
