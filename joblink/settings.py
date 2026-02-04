@@ -223,6 +223,7 @@ SITE_URL = "https://www.stepper.dpdns.org"
 SITE_NAME = "Joblink Kenya"
 SITE_DOMAIN = "https://www.stepper.dpdns.org"
 
+RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET")
 APPLE_CLIENT_ID = os.getenv("APPLE_CLIENT_ID", "")
 APPLE_REDIRECT_URI = os.getenv("APPLE_REDIRECT_URI", f"{SITE_URL}/auth/apple/callback/")
 MICROSOFT_CLIENT_ID = os.getenv("MICROSOFT_CLIENT_ID", "")
