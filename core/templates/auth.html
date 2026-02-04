@@ -394,6 +394,54 @@
   border-color: #f97316;
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.6);
 }
+.auth-page .field-error {
+  color: #f87171;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  display: none;
+}
+
+.auth-page .field-error.show {
+  display: block;
+}
+
+.auth-page .role-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 18px 0 8px;
+}
+
+.auth-page .role-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.auth-page .role-card:hover {
+  background: rgba(0,255,200,0.12);
+  border-color: var(--text-accent);
+  transform: translateY(-2px);
+}
+
+.auth-page .role-card input {
+  display: none;
+}
+
+.auth-page .role-card input:checked + span {
+  background: rgba(0,255,200,0.18);
+  border-radius: 14px;
+  padding: 6px 10px;
+  box-shadow: 0 0 16px rgba(0,255,200,0.4);
+}
 /* ===== AUTH PROVIDER BUTTONS (NORMAL) ===== */
 
 .auth-provider-wrapper .auth-btn {
@@ -761,14 +809,16 @@
 
           <!-- EMAIL -->
           <input
-            type="text"
+            type="email"
             id="emailInput"
             name="identifier"
             value="{{ request.session.auth_email|default:'' }}"
             placeholder="Email address"
             class="auth-input"
             autocomplete="email"
+            required
           />
+         <div class="field-error" id="emailError">Please enter a valid email address.</div>
 
           <!-- OTP CHANNEL -->
           <div class="channel-group">
@@ -800,22 +850,7 @@
             disabled
             style="display:none;"
           >
-
-          <!-- ROLE -->
-          <div class="role-group">
-            {% for val, label in form.role.field.choices %}
-              <label class="role-option {{ val }}">
-                <input
-                  type="radio"
-                  name="role"
-                  value="{{ val }}"
-                  {% if form.role.value == val %}checked{% endif %}
-                >
-                <span>{{ label }}</span>
-              </label>
-            {% endfor %}
-          </div>
-
+            
           <button
             type="submit"
             name="action"
@@ -895,6 +930,12 @@
                your phone number
              {% endif %}
            </b></p>
+            
+            {% if is_new_user %}
+           <div class="role-selection">
+             {% include "partials/role_toggle.html" with role_required=True %}
+           </div>
+           {% endif %}
          
            <div class="password-field">
          
@@ -998,6 +1039,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const emailInput = document.getElementById("emailInput");
+  const emailError = document.getElementById("emailError");
   const phoneInput = document.getElementById("phoneInput");
   const channelRadios = document.querySelectorAll('input[name="channel"]');
 
@@ -1069,6 +1111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     emailInput.disabled = !email;
     emailInput.style.display = email ? "block" : "none";
     if (!email) emailInput.value = "";
+    if (emailError) emailError.classList.remove("show");
 
     phoneInput.disabled = email;
     phoneInput.style.display = email ? "none" : "block";
@@ -1077,6 +1120,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   channelRadios.forEach(r => r.addEventListener("change", syncChannelFields));
   syncChannelFields();
+
+  function isValidEmail(value) {
+    return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value);
+  }
+
+  if (emailInput) {
+    emailInput.addEventListener("input", () => {
+      if (emailError) emailError.classList.remove("show");
+    });
+  }
 
   // =========================
   // LOADING HELPERS
@@ -1111,7 +1164,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (channel === "email" && !emailInput.value.trim()) {
         e.preventDefault();
-        alert("Email is required.");
+         if (emailError) {
+          emailError.textContent = "Email is required.";
+          emailError.classList.add("show");
+        }
+        return;
+      }
+      if (channel === "email" && !isValidEmail(emailInput.value.trim())) {
+        e.preventDefault();
+        if (emailError) {
+          emailError.textContent = "Please enter a valid email address.";
+          emailError.classList.add("show");
+        }
         return;
       }
 
