@@ -1122,7 +1122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   syncChannelFields();
 
   function isValidEmail(value) {
-    return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
 
   if (emailInput) {
