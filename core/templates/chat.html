@@ -20,7 +20,7 @@
 /* --- Layout & Sidebar --- */
 .chat-wrap { 
   display:flex; 
-  flex-wrap: wrap; /* new */
+  flex-wrap: nowrap;
   max-width:1200px; 
   margin:30px auto; 
   gap:20px; 
@@ -28,8 +28,8 @@
   position:relative;
   background: var(--bg-dark);
   color: var(--text-dark);
+  align-items: stretch;
 }
-
 
 .sidebar { 
   flex: 0 0 280px; 
@@ -38,12 +38,23 @@
   overflow:hidden; 
   box-shadow:0 0 15px var(--glow-soft); 
   transition: transform 0.3s ease;
+  display:flex;
+  flex-direction:column;
+  max-height: calc(100vh - 80px);
 }
 .sidebar h3 { 
   padding:14px; 
   border-bottom:1px solid rgba(0,255,200,0.2); 
   color: var(--accent); 
   text-shadow:0 0 5px var(--accent); 
+}
+.sidebar-content {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+.sidebar-section {
+  display:flex;
+  flex-direction:column;
 }
 .applicant { 
   padding:12px 14px; 
@@ -107,7 +118,8 @@
   font-weight:bold; 
   display:flex; 
   align-items:center; 
-  justify-content:space-between;
+  justify-content:flex-start;
+  gap:12px;
 }
 #sidebar-toggle {
   display:none;
@@ -116,6 +128,13 @@
   font-size:22px;
   cursor:pointer;
   color: var(--accent);
+  padding:0;
+}
+.chat-title {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:1 1 auto;
 }
 .chat-box { 
   flex:1; 
@@ -291,53 +310,50 @@
     <div class="sidebar" id="sidebar">
       <!-- Active Applicants -->
       <h3>Applicants</h3>
-      <div id="active-applicants">
-        {% for app in applications %}
-          <a href="?app_id={{ app.id }}" 
-             class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}" 
-             data-app-id="{{ app.id }}">
-            {{ app.applicant.username }}
-            {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
-          </a>
-        {% empty %}
-          <p style="padding:12px; opacity:.7;">No applicants yet</p>
-        {% endfor %}
-      </div>
-
-      <!-- Deleted Applicants -->
-      {% if deleted_applications %}
-        <h3 style="margin-top:20px; color:#ff4c4c;">Deleted Applicants</h3>
-        <div id="deleted-applicants">
-          {% for app in deleted_applications %}
-            <a href="javascript:void(0);" 
-               class="applicant deleted" 
-               data-app-id="{{ app.id }}">
+        <div class="sidebar-content">
+        <div class="sidebar-section" id="active-applicants">
+          {% for app in applications %}
+            <a href="?app_id={{ app.id }}" 
+               class="applicant {% if selected_app and app.id == selected_app.id %}selected{% endif %}" 
+                data-app-id="{{ app.id }}">
               {{ app.applicant.username }}
               {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
             </a>
           {% empty %}
-            <p style="padding:12px; opacity:.7;">No deleted applicants</p>
+            <p style="padding:12px; opacity:.7;">No applicants yet</p>
           {% endfor %}
         </div>
-      {% endif %}
+      
+        <!-- Deleted Applicants -->
+        {% if deleted_applications %}
+          <h3 style="margin-top:20px; color:#ff4c4c;">Deleted Applicants</h3>
+          <div class="sidebar-section" id="deleted-applicants">
+            {% for app in deleted_applications %}
+              <a href="javascript:void(0);" 
+                 class="applicant deleted" 
+                 data-app-id="{{ app.id }}">
+                {{ app.applicant.username }}
+                {% if app.unread_count %}<span class="badge">{{ app.unread_count }}</span>{% endif %}
+              </a>
+            {% empty %}
+              <p style="padding:12px; opacity:.7;">No deleted applicants</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
     </div>
 
     <div id="sidebar-overlay"></div>
   {% endif %}
-</div>
-
-
 
   <!-- Main chat -->
   <div class="chat-container">
     <div class="chat-header">
       {% if job %}
-        <div><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
-      {% else %}
-        <div><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
-      {% endif %}
-      {% if job %}
         <button id="sidebar-toggle">☰</button>
+        <div class="chat-title"><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
+      {% else %}
+        <div class="chat-title"><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
       {% endif %}
     </div>
 
@@ -719,4 +735,4 @@ document.addEventListener("DOMContentLoaded", function(){
 })();
 </script>
 
-{% endblock %}
+{% endblock %}  
