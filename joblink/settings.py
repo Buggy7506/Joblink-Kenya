@@ -252,6 +252,15 @@ SITE_URL = "https://www.stepper.dpdns.org"
 SITE_NAME = "Joblink Kenya"
 SITE_DOMAIN = "https://www.stepper.dpdns.org"
 
+APPLE_CLIENT_ID = os.getenv("APPLE_CLIENT_ID", "")
+APPLE_REDIRECT_URI = os.getenv("APPLE_REDIRECT_URI", f"{SITE_URL}/auth/apple/callback/")
+MICROSOFT_CLIENT_ID = os.getenv("MICROSOFT_CLIENT_ID", "")
+MICROSOFT_CLIENT_SECRET = os.getenv("MICROSOFT_CLIENT_SECRET", "")
+MICROSOFT_REDIRECT_URI = os.getenv(
+    "MICROSOFT_REDIRECT_URI",
+    f"{SITE_URL}/auth/microsoft/callback/",
+)
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -286,6 +295,7 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
+WHAPI_TOKEN = os.getenv("WHAPI_TOKEN")
 
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
