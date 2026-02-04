@@ -12,6 +12,7 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
+from django.utils import timezone
 
 ROLE_CHOICES = (
     ('applicant', 'Applicant'),
