@@ -150,6 +150,12 @@ def unified_auth_view(request):
     ui_step = "email"
     is_new_user = False
 
+    # Preserve ?next= across the entire auth flow
+    next_url = request.GET.get("next") or request.POST.get("next")
+    
+    if next_url:
+        request.session["auth_next"] = next_url
+
     # ===============================
     # HELPERS
     # ===============================
@@ -312,7 +318,8 @@ def unified_auth_view(request):
                     if k.startswith("auth_") or k.startswith("otp_"):
                         del request.session[k]
         
-                return redirect("dashboard")
+                next_url = request.session.pop("auth_next", None) 
+                return redirect(next_url or "dashboard")
         
             # 🆕 NEW USER → PASSWORD SETUP
             request.session["otp_verified"] = True
@@ -430,7 +437,8 @@ def unified_auth_view(request):
                 if k.startswith("auth_") or k.startswith("otp_"):
                     del request.session[k]
         
-            return redirect("dashboard")
+            next_url = request.session.pop("auth_next", None) 
+            return redirect(next_url or "dashboard")
 
         # ===============================
         # STEP 3 — PASSWORD LOGIN (EXISTING USERS ONLY)
@@ -475,7 +483,8 @@ def unified_auth_view(request):
                 if k.startswith("auth_") or k.startswith("otp_"):
                     del request.session[k]
         
-            return redirect("dashboard")
+            next_url = request.session.pop("auth_next", None) 
+            return redirect(next_url or "dashboard")
                 
         # ===============================
         # MAGIC LINK (EXISTING USERS ONLY)
@@ -531,6 +540,7 @@ def unified_auth_view(request):
             "form": form,
             "ui_step": ui_step,
             "is_new_user": is_new_user,
+            "next": request.session.get("auth_next", ""),
         }
     )
 
