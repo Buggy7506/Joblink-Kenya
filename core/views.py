@@ -38,6 +38,8 @@ from django.core.mail import (
     get_connection,
     EmailMultiAlternatives,
 )
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 from django.core.paginator import Paginator
@@ -194,8 +196,6 @@ def unified_auth_view(request):
         phone_raw = request.POST.get("phone", "").strip()
         phone = phone_raw if phone_raw else request.session.get("auth_phone")
 
-        role = request.POST.get("role") or request.session.get("auth_role", "applicant")
-
         device_fingerprint = get_device_fingerprint(request)
         ip_address = get_client_ip(request)
         location = get_location_from_ip(ip_address)
@@ -220,6 +220,12 @@ def unified_auth_view(request):
             if channel == "email" and not email:
                 messages.error(request, "Email is required.")
                 return render(request, "auth.html", {"form": form, "ui_step": "email"})
+            if channel == "email":
+                try:
+                    validate_email(email)
+                except ValidationError:
+                    messages.error(request, "Enter a valid email address.")
+                    return render(request, "auth.html", {"form": form, "ui_step": "email"})
         
             if channel in ["sms", "whatsapp"] and not phone:
                 messages.error(request, "Phone number is required.")
@@ -260,7 +266,6 @@ def unified_auth_view(request):
                 "auth_identifier": identifier,
                 "auth_email": email,
                 "auth_phone": phone,
-                "auth_role": role,
                 "otp_channel": channel,
             })
         
@@ -393,7 +398,14 @@ def unified_auth_view(request):
         
             identifier = request.session.get("auth_identifier")
             channel = request.session.get("otp_channel")
-            role = request.session.get("auth_role")
+            role = request.POST.get("role")
+            if role not in ["applicant", "employer"]:
+                messages.error(request, "Please select your role.")
+                return render(
+                    request,
+                    "auth.html",
+                    {"form": form, "ui_step": "password", "is_new_user": True}
+                )
         
             username = derive_username(channel, identifier)
         
