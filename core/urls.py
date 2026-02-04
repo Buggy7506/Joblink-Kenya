@@ -44,9 +44,9 @@ urlpatterns = [
     path('auth/set-password/', views.set_google_password, name='set_google_password'),
     path('auth/choose-role/', views.google_choose_role, name='google_choose_role'),
     path("auth/apple/", views.apple_login, name="apple_login"),
-    path('auth/callback/', views.apple_callback, name='apple_callback'),
+    path("auth/apple/callback/", views.apple_callback, name="apple_callback"),
     path("auth/microsoft/", views.microsoft_login, name="microsoft_login"),
-    path('auth/callback/', views.microsoft_callback, name='microsoft_callback'),
+    path("auth/microsoft/callback/", views.microsoft_callback, name="microsoft_callback"),
     path("employer/complete-profile/", views.complete_employer_profile, name="complete_employer_profile"),
     path('logout/', views.logout_view, name='logout'),
     path('logout-success/', views.logout_success, name='logout_success'),
@@ -122,7 +122,7 @@ urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin-profile/', views.admin_profile, name='admin_profile'),
     path('admin-only/', views.admin_only_view, name='admin_only'),
-    path('dashboard/', views.employer_control_panel_view, name='employer_control_panel'),
+    path("employer/dashboard/", views.employer_control_panel_view, name="employer_control_panel"),
 
     # -------------------------
     # Miscellaneous / Static
