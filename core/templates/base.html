@@ -109,6 +109,7 @@ body::before {
     radial-gradient(circle at 20% 20%, rgba(60, 247, 255, 0.18), transparent 35%),
     radial-gradient(circle at 80% 10%, rgba(210, 122, 255, 0.16), transparent 30%),
     radial-gradient(circle at 50% 80%, rgba(0, 255, 204, 0.12), transparent 40%);
+  background-size: 120% 120%;
   opacity: 0.8;
   z-index: -1;
   pointer-events: none;
@@ -781,10 +782,13 @@ body.light-mode .active-link {
     transform: rotate(360deg);
     background-position: 100% 100%;
   }
-
+}
+      
 @keyframes nebula-drift {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50% { transform: translate3d(10px, -20px, 0) scale(1.05); }
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
 }
 </style>
       
