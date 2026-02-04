@@ -182,8 +182,10 @@ header {
 .nav-bg::after {
   content: "";
   position: absolute;
-  inset: -200% -50%;
+  inset: 0;
   background: conic-gradient(from 90deg, transparent, rgba(60, 247, 255, 0.16), transparent);
+  background-size: 200% 200%;
+  background-position: 0% 0%;
   animation: nav-sweep 12s linear infinite;
   opacity: 0.25;
   pointer-events: none;
@@ -771,9 +773,14 @@ body.light-mode .active-link {
 }
 
 @keyframes nav-sweep {
-  0% { transform: translateX(-20%) translateY(-20%) rotate(0deg); }
-  100% { transform: translateX(20%) translateY(20%) rotate(360deg); }
-}
+  0% {
+    transform: rotate(0deg);
+    background-position: 0% 0%;
+  }
+  100% {
+    transform: rotate(360deg);
+    background-position: 100% 100%;
+  }
 
 @keyframes nebula-drift {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
