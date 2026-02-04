@@ -264,11 +264,6 @@ TEXTBELT_API_KEY = os.getenv("TEXTBELT_API_KEY", "textbelt")
 # Default sender
 DEFAULT_FROM_EMAIL = "Joblink Kenya <support@stepper.dpdns.org>"
 
-# Twilio
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 WHAPI_TOKEN = os.getenv("WHAPI_TOKEN")
 
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
