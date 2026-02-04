@@ -1416,15 +1416,13 @@ def google_choose_role(request):
 
 APPLE_AUTH_ENDPOINT = "https://appleid.apple.com/auth/authorize"
 APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token"
-APPLE_CLIENT_ID = "com.your.app"
-APPLE_REDIRECT_URI = "https://yourdomain.com/apple/callback/"
 
 @ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def apple_login(request):
     params = {
-        "client_id": APPLE_CLIENT_ID,
-        "redirect_uri": APPLE_REDIRECT_URI,
+        "client_id": settings.APPLE_CLIENT_ID,
+        "redirect_uri": settings.APPLE_REDIRECT_URI,
         "response_type": "code id_token",
         "scope": "name email",
         "response_mode": "form_post",
@@ -1441,11 +1439,11 @@ def apple_callback(request):
 
     # Exchange code for token (JWT client_secret required)
     token_response = requests.post(APPLE_TOKEN_ENDPOINT, data={
-        "client_id": APPLE_CLIENT_ID,
+        "client_id": settings.APPLE_CLIENT_ID,
         "client_secret": generate_apple_client_secret(),  # JWT
         "code": code,
         "grant_type": "authorization_code",
-        "redirect_uri": APPLE_REDIRECT_URI,
+        "redirect_uri": settings.APPLE_REDIRECT_URI,
     })
 
     token_data = token_response.json()
@@ -1480,9 +1478,9 @@ MICROSOFT_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 @csrf_protect
 def microsoft_login(request):
     params = {
-        "client_id": MICROSOFT_CLIENT_ID,
+        "client_id": settings.MICROSOFT_CLIENT_ID,
         "response_type": "code",
-        "redirect_uri": MICROSOFT_REDIRECT_URI,
+        "redirect_uri": settings.MICROSOFT_REDIRECT_URI,
         "response_mode": "query",
         "scope": "openid email profile User.Read",
     }
@@ -1497,11 +1495,11 @@ def microsoft_callback(request):
         return redirect("unified_auth")
 
     token_response = requests.post(MICROSOFT_TOKEN_ENDPOINT, data={
-        "client_id": MICROSOFT_CLIENT_ID,
-        "client_secret": MICROSOFT_CLIENT_SECRET,
+        "client_id": settings.MICROSOFT_CLIENT_ID,
+        "client_secret": settings.MICROSOFT_CLIENT_SECRET,
         "code": code,
         "grant_type": "authorization_code",
-        "redirect_uri": MICROSOFT_REDIRECT_URI,
+        "redirect_uri": settings.MICROSOFT_REDIRECT_URI,
     })
 
     access_token = token_response.json().get("access_token")
