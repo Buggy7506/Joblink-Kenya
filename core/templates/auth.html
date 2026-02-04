@@ -721,6 +721,7 @@
       </div>
 
       <form method="POST" action="{% url 'unified_auth' %}" novalidate>
+         <input type="hidden" name="next" value="{{ next }}">
         {% csrf_token %}
 
         <!-- PHASE 1: UI STEP SOURCE OF TRUTH -->
