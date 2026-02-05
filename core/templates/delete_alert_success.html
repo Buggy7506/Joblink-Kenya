@@ -3,19 +3,26 @@
 <head>
   <title>Alert Deleted</title>
   <style>
+    :root {
+      --bg-main: #0b1120;
+      --bg-card: #111827;
+      --text-success: #22c55e;
+      --bg-success: #22c55e;
+    }
+
     body {
-      background: #000;
-      color: #0f0;
+      background: var(--bg-main);
+      color: var(--text-success);
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding-top: 100px;
     }
     .msg {
-      background: #111;
+      background: var(--bg-card);
       padding: 30px;
-      border: 2px solid #0f0;
+      border: 2px solid var(--bg-success);
       border-radius: 15px;
-      box-shadow: 0 0 20px #0f0;
+      box-shadow: 0 0 20px var(--bg-success);
       display: inline-block;
     }
   </style>
@@ -23,7 +30,7 @@
 <body>
   <div class="msg">
     <h1>🗑️ Alert Deleted Successfully!</h1>
-    <a href="{% url 'job_alerts' %}" style="color:#0f0;">← Back to Alerts</a>
+    <a href="{% url 'job_alerts' %}" style="color:var(--text-success);">← Back to Alerts</a>
   </div>
 </body>
 </html>
