@@ -43,8 +43,8 @@
    BADGES
 ========================= */
 .verified-badge {
-    background: #16a34a;
-    color: white;
+    background: var(--bg-success);
+    color: var(--text-inverse);
     padding: 6px 12px;
     border-radius: 8px;
     font-size: 14px;
@@ -52,8 +52,8 @@
 }
 
 .pending-badge {
-    background: #f59e0b;
-    color: black;
+    background: var(--bg-warning);
+    color: var(--text-inverse);
     padding: 6px 12px;
     border-radius: 8px;
     font-size: 14px;
@@ -62,8 +62,8 @@
 
 /* Warning box (theme aware) */
 .warning-box {
-    background: rgba(255, 200, 0, 0.18);
-    border-left: 4px solid #f59e0b;
+    background: var(--bg-warning-soft);
+    border-left: 4px solid var(--bg-warning);
     padding: 10px 15px;
     margin-top: 10px;
     border-radius: 8px;
@@ -79,7 +79,7 @@
     margin-top: 20px;
     padding: 10px 18px;
     background: var(--text-accent);
-    color: var(--bg-card) !important;
+    color: var(--text-inverse) !important;
     border-radius: 10px;
     text-decoration: none;
     font-weight: 600;
@@ -88,11 +88,6 @@
 }
 .primary-btn:hover {
     filter: brightness(1.15);
-}
-
-/* Light mode fix: Yellow text on badge readability */
-body.light-mode .pending-badge {
-    color: #222;
 }
 </style>
 
