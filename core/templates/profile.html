@@ -130,13 +130,13 @@
 
 /* Modal */
 .add-link {
-  color: #22d3ee;
+  color: var(--text-accent);
   cursor: pointer;
   font-weight: bold;
 }
 
 .add-link:hover {
-  text-shadow: 0 0 12px #22d3ee;
+  text-shadow: 0 0 12px var(--glow-accent);
 }
 
 .add-modal {
@@ -209,7 +209,7 @@
   border-radius: 20px;
   overflow: hidden;
   background: black;
-  box-shadow: 0 0 60px #22d3ee, 0 0 120px rgba(34,211,238,.4);
+  box-shadow: 0 0 60px var(--glow-accent), 0 0 120px var(--alien-shadow);
   margin: 0 auto 40px auto; /* spacing below frame */
 }
 
@@ -244,20 +244,20 @@
   padding: 10px 8px;
   font-size: 14px;
   background: rgba(0,0,0,0.7);
-  border: 1px solid #22d3ee;
+  border: 1px solid var(--text-accent);
   border-radius: 12px;
-  color: #22d3ee;
+  color: var(--text-accent);
   font-weight: bold;
-  box-shadow: 0 0 15px #22d3ee;
+  box-shadow: 0 0 15px var(--glow-accent);
   cursor: pointer;
   transition: 0.25s;
   text-align: center;
 }
 
 .alien-controls button:hover {
-  background: #22d3ee;
+  background: var(--text-accent);
   color: black;
-  box-shadow: 0 0 30px #22d3ee;
+  box-shadow: 0 0 30px var(--glow-accent);
 }
 
 /* Instagram-style upload ring */
@@ -269,7 +269,7 @@
   height: 120px;
   border-radius: 50%;
   border: 6px solid rgba(255,255,255,0.2);
-  border-top: 6px solid #22d3ee;
+  border-top: 6px solid var(--text-accent);
   transform: translate(-50%, -50%);
   display: none;
   justify-content: center;
@@ -399,7 +399,7 @@
             <input type="hidden" name="modal_type" id="modalTypeInput">
 
             {% if form_errors %}
-                <div style="color:#f87171; margin-bottom:10px;">
+                <div class="text-danger" style="margin-bottom:10px;">
                     {% for field, errors in form_errors.items %}
                         {% for error in errors %}
                             <p>{{ error }}</p>
@@ -645,7 +645,8 @@ function initLocationAutocomplete(input) {
   resultsList.style.listStyle = 'none';
   resultsList.style.padding = '0';
   resultsList.style.margin = '0';
-  resultsList.style.border = '1px solid #ccc';
+  const themeStyles = getComputedStyle(document.documentElement);
+  resultsList.style.border = `1px solid ${themeStyles.getPropertyValue('--text-muted').trim() || '#ccc'}`;
   resultsList.style.maxHeight = '200px';
   resultsList.style.overflowY = 'auto';
   resultsList.style.display = 'none';
@@ -670,7 +671,9 @@ function initLocationAutocomplete(input) {
           li.textContent = place.display_name;
           li.style.padding = '6px 10px';
           li.style.cursor = 'pointer';
-          li.addEventListener('mouseenter', () => li.style.backgroundColor = '#444');
+          li.addEventListener('mouseenter', () => {
+            li.style.backgroundColor = themeStyles.getPropertyValue('--bg-surface-soft').trim() || '#444';
+          });
           li.addEventListener('mouseleave', () => li.style.backgroundColor = '');
           li.addEventListener('click', () => {
             input.value = place.display_name;
