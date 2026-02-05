@@ -4,16 +4,27 @@
     <meta charset="UTF-8">
     <title>Resume Submitted</title>
     <style>
+        :root {
+            --bg-main: linear-gradient(135deg, #0f172a, #1e293b, #0b1120);
+            --bg-card: rgba(20, 20, 40, 0.85);
+            --text-main: #e0e0ff;
+            --text-accent: #22d3ee;
+            --text-inverse: #0b1120;
+            --glow-accent: rgba(34, 211, 238, 0.45);
+            --bg-info: #6f00ff;
+            --bg-info-hover: #9a00ff;
+        }
+        
         /* Full-screen gradient background */
         body {
-            background: linear-gradient(135deg, #0b0c1f, #1a1a2e, #2c1a4d);
+            background: var(--bg-main);
             font-family: 'Roboto Mono', monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: #e0e0ff;
+            color: var(--text-main);
             margin: 0;
             overflow: hidden;
         }
@@ -21,18 +32,18 @@
         /* Glowing container */
         .container {
             text-align: center;
-            background: rgba(20, 20, 40, 0.85);
+            background: var(--bg-card);
             padding: 50px 60px;
             border-radius: 20px;
-            box-shadow: 0 0 40px #6f00ffaa, 0 0 60px #00ffff44 inset;
-            border: 1px solid #6f00ff;
+            box-shadow: 0 0 40px var(--bg-info), 0 0 60px var(--glow-accent) inset;
+            border: 1px solid var(--bg-info);
             animation: fadeIn 1s ease-out;
         }
 
         h1 {
-            color: #00ffff;
+            color: var(--text-accent);
             font-size: 3rem;
-            text-shadow: 0 0 15px #00ffff, 0 0 30px #6f00ff;
+            text-shadow: 0 0 15px var(--text-accent), 0 0 30px var(--bg-info);
             margin-bottom: 20px;
             animation: glowText 2s ease-in-out infinite alternate;
         }
@@ -46,21 +57,21 @@
         /* Futuristic button */
         a {
             display: inline-block;
-            background-color: #6f00ff;
-            color: #fff;
+            background-color: var(--bg-info);
+            color: var(--text-inverse);
             text-decoration: none;
             padding: 15px 35px;
             border-radius: 50px;
             font-weight: bold;
             font-size: 1.1rem;
-            box-shadow: 0 0 20px #6f00ff, 0 0 40px #00ffff44 inset;
+            box-shadow: 0 0 20px var(--bg-info), 0 0 40px var(--glow-accent) inset;
             transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
         }
 
         a:hover {
-            background-color: #9a00ff;
+            background-color: var(--bg-info-hover);
             transform: scale(1.05);
-            box-shadow: 0 0 35px #6f00ff, 0 0 60px #00ffff66 inset;
+            box-shadow: 0 0 35px var(--bg-info), 0 0 60px var(--glow-accent) inset;
         }
 
         /* Animations */
@@ -70,8 +81,8 @@
         }
 
         @keyframes glowText {
-            from { text-shadow: 0 0 15px #00ffff, 0 0 30px #6f00ff; }
-            to { text-shadow: 0 0 30px #00ffff, 0 0 60px #6f00ff; }
+            from { text-shadow: 0 0 15px var(--text-accent), 0 0 30px var(--bg-info); }
+            to { text-shadow: 0 0 30px var(--text-accent), 0 0 60px var(--bg-info); }
         }
     </style>
 </head>
