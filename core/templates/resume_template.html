@@ -8,11 +8,21 @@
   <link href="https://cdn.quilljs.com/1.3.7/quill.core.css" rel="stylesheet">
 
   <style>
+    :root {
+      --bg-main: linear-gradient(135deg, #0f172a, #1e293b);
+      --bg-card: rgba(30, 41, 59, 0.75);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-accent: #a5f3fc;
+      --text-info: #38bdf8;
+      --glow-accent: rgba(56, 189, 248, 0.5);
+    }
+
     body {
       margin: 40px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: #f1f5f9;
+      background: var(--bg-main);
+      color: var(--text-main);
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
@@ -23,10 +33,10 @@
     .resume-page {
       max-width: 900px;
       margin: auto;
-      background: rgba(30, 41, 59, 0.75);
+      background: var(--bg-card);
       border-radius: 12px;
       padding: 40px;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 15px var(--glow-accent);
       animation: glowPulse 3s infinite alternate;
     }
 
@@ -35,28 +45,28 @@
       padding: 0;
       font-size: 16px;
       line-height: 1.7;
-      color: #e2e8f0;
+      color: var(--text-main);
     }
 
     .ql-editor h1 {
       font-size: 36px;
-      color: #38bdf8;
-      text-shadow: 0 0 5px #38bdf8, 0 0 10px #0ea5e9;
+      color: var(--text-info);
+      text-shadow: 0 0 5px var(--text-info), 0 0 10px var(--glow-accent);
     }
 
     .ql-editor h2 {
       font-size: 24px;
       margin-top: 30px;
-      border-bottom: 2px solid #38bdf8;
+      border-bottom: 2px solid var(--text-info);
       padding-bottom: 6px;
-      color: #a5f3fc;
-      text-shadow: 0 0 3px #67e8f9;
+      color: var(--text-accent);
+      text-shadow: 0 0 3px var(--glow-accent);
     }
 
     .ql-editor p,
     .ql-editor li {
       font-size: 16px;
-      color: #e2e8f0;
+      color: var(--text-main);
     }
 
     .ql-editor ul {
@@ -68,11 +78,11 @@
       margin-top: 60px;
       text-align: center;
       font-size: 14px;
-      color: #94a3b8;
+      color: var(--text-muted);
     }
 
     footer a {
-      color: #38bdf8;
+      color: var(--text-info);
       text-decoration: none;
       font-weight: 500;
     }
@@ -83,13 +93,13 @@
 
     @keyframes glowPulse {
       0% {
-        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+        box-shadow: 0 0 10px var(--text-info), 0 0 20px var(--glow-accent);
       }
       50% {
-        box-shadow: 0 0 20px #0ea5e9, 0 0 40px rgba(14, 165, 233, 0.5);
+        box-shadow: 0 0 20px var(--glow-accent), 0 0 40px var(--glow-accent);
       }
       100% {
-        box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(14, 165, 233, 0.3);
+        box-shadow: 0 0 10px var(--text-info), 0 0 20px var(--glow-accent);
       }
     }
 
