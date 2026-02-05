@@ -5,9 +5,23 @@
   <title>Confirm Alert Deletion</title>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
+    :root {
+      --bg-main: linear-gradient(135deg, #0f172a, #1e293b);
+      --bg-card: rgba(30, 41, 59, 0.9);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5f5;
+      --text-accent: #22d3ee;
+      --text-warning: #fbbf24;
+      --text-danger: #f87171;
+      --text-inverse: #0b1120;
+      --bg-danger: #ef4444;
+      --bg-danger-hover: #dc2626;
+      --glow-accent: rgba(34, 211, 238, 0.45);
+    }
+    
     body {
-      background: #000;
-      color: #fff;
+      background: var(--bg-main);
+      color: var(--text-main);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
@@ -17,11 +31,11 @@
     }
 
     .container {
-      background: linear-gradient(135deg, #1a1a1a, #000);
-      border: 2px solid #ff3c3c;
+      background: var(--bg-card);
+      border: 2px solid var(--bg-danger);
       padding: 40px 30px;
       border-radius: 20px;
-      box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+      box-shadow: 0 0 25px var(--glow-accent);
       text-align: center;
       width: 90%;
       max-width: 400px;
@@ -29,21 +43,21 @@
 
     h2 {
       font-size: 28px;
-      color: #ff4c4c;
-      text-shadow: 0 0 10px #ff4c4c;
+      color: var(--text-danger);
+      text-shadow: 0 0 10px var(--bg-danger);
       margin-bottom: 20px;
     }
 
     p {
       font-size: 15px;
-      color: #ddd;
+      color: var(--text-muted);
       margin-bottom: 30px;
     }
 
     .alert-title {
-      color: #ffd700;
+      color: var(--text-warning);
       font-weight: bold;
-      text-shadow: 0 0 5px #ffd700;
+      text-shadow: 0 0 5px var(--text-warning);
     }
 
     .btn {
@@ -61,19 +75,19 @@
     }
 
     .btn-delete {
-      background: #ff1a1a;
-      color: white;
-      box-shadow: 0 0 15px #ff1a1a;
+      background: var(--bg-danger);
+      color: var(--text-inverse);
+      box-shadow: 0 0 15px var(--bg-danger);
     }
 
     .btn-delete:hover {
-      background: #cc0000;
-      box-shadow: 0 0 25px #ff1a1a;
+      background: var(--bg-danger-hover);
+      box-shadow: 0 0 25px var(--bg-danger);
     }
 
     .btn-cancel {
       background: transparent;
-      color: #00ffcc;
+       color: var(--text-accent);
       text-decoration: underline;
       border: none;
       font-size: 14px;
@@ -81,7 +95,7 @@
     }
 
     .btn-cancel:hover {
-      color: #00ffee;
+      color: var(--text-accent);
     }
 
     .g-recaptcha {
