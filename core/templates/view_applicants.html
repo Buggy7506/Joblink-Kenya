@@ -58,26 +58,26 @@
   transition: 0.3s ease, box-shadow 0.3s;
 }
 
-.accept-btn { background-color: #22c55e; }
-.accept-btn:hover { background-color: #16a34a; }
+.accept-btn { background-color: var(--bg-success); }
+.accept-btn:hover { background-color: var(--bg-success-hover); }
 
-.reject-btn { background-color: #ef4444; }
-.reject-btn:hover { background-color: #dc2626; }
+.reject-btn { background-color: var(--bg-danger); }
+.reject-btn:hover { background-color: var(--bg-danger-hover); }
 
 .chat-btn {
-  background-color: #3b82f6;
+  background-color: var(--bg-info);
   margin-top: 15px;
   display: inline-block;
   padding: 8px 18px;
   border-radius: 8px;
   text-decoration: none;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-inverse);
   transition: background 0.3s, box-shadow 0.3s;
 }
 
 .chat-btn:hover { 
-  background-color: #2563eb; 
+  background-color: var(--bg-info-hover); 
   box-shadow: 0 0 10px var(--glow-main);
 }
 
@@ -92,9 +92,9 @@
   transition: background 0.3s, color 0.3s;
 }
 
-.status-pending { background-color: #facc15; color: #111; }
-.status-accepted { background-color: #22c55e; color: #fff; }
-.status-rejected { background-color: #ef4444; color: #fff; }
+.status-pending { background-color: var(--bg-warning); color: var(--text-inverse); }
+.status-accepted { background-color: var(--bg-success); color: var(--text-inverse); }
+.status-rejected { background-color: var(--bg-danger); color: var(--text-inverse); }
 </style>
 
 <div class="view-applicants-page">
@@ -130,7 +130,7 @@
           <a href="{% url 'download_cv' applicant.applicant.cvupload_set.last.id %}">⬇️ Download CV</a>
         </div>
       {% else %}
-        <span style="color:#f87171;">No CV uploaded yet</span>
+        <span class="text-danger">No CV uploaded yet</span>
       {% endif %}
 
       <form method="POST" action="{% url 'process_application' applicant.id %}">
