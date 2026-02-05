@@ -155,6 +155,10 @@
 
 .available-jobs-page .filter-bar select {
   flex: 1 1 160px;
+  background: var(--bg-card);
+  border-color: color-mix(in srgb, var(--text-muted) 65%, var(--glow-accent));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  appearance: none;
 }
 
 .available-jobs-page .filter-bar button {
@@ -169,6 +173,17 @@
   opacity: 0.9;
 }
 
+.available-jobs-page .filter-bar select:focus {
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--glow-accent) 55%, transparent);
+  outline: none;
+}
+
+.available-jobs-page .filter-bar select option {
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+   
 /* =========================================================
    MESSAGES
 ========================================================= */
@@ -279,6 +294,7 @@
 
   .available-jobs-page .filter-bar select {
     flex: 1 1 auto;
+     background: var(--bg-card);
   }
 
   /* Button fixed width, prevent wrapping text */
@@ -516,48 +532,53 @@
   <!-- 💼 REGULAR JOBS -->
   <h2>Available Jobs</h2>
 
-  {% for job in jobs %}
-    <div class="job-card normal-job">
+  <div id="jobResults">
+    {% for job in jobs %}
+      <div class="job-card normal-job {% if job.is_premium %}premium-job{% endif %}">
 
-      <div class="job-title">
-        {{ job.title }}
+        <div class="job-title">
+          {{ job.title }}
+          {% if job.is_premium %}
+            <span class="premium-badge">Featured</span>
+          {% endif %}
+        </div>
+
+        <p class="job-meta">
+          🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
+        </p>
+         
+        {% if job.category %}
+          <p class="job-category">
+            Category: {{ job.category.name }}
+          </p>
+        {% endif %}
+
+        {% if job.salary %}
+          <p class="job-salary">
+            Salary: KES {{ job.salary|intcomma }}
+          </p>
+        {% endif %}
+
+        {% if job.expiry_date %}
+          <p class="job-expiry">
+            Expires: {{ job.expiry_date|date:"M d, Y" }}
+          </p>
+        {% endif %}
+
+        <p class="job-posted">
+          Posted: {{ job.posted_on|date:"M d, Y" }}
+        </p>
+         
+        <a href="{% url 'apply_job' job.id %}" class="apply-link">
+          Apply Now
+        </a>
       </div>
-
-      <p class="job-meta">
-        🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
+    {% empty %}
+      <p class="no-jobs">
+        No jobs found. Try adjusting your search.
       </p>
-
-      {% if job.category %}
-        <p class="job-category">
-          Category: {{ job.category.name }}
-        </p>
-      {% endif %}
-
-      {% if job.salary %}
-        <p class="job-salary">
-          Salary: KES {{ job.salary|intcomma }}
-        </p>
-      {% endif %}
-
-      {% if job.expiry_date %}
-        <p class="job-expiry">
-          Expires: {{ job.expiry_date|date:"M d, Y" }}
-        </p>
-      {% endif %}
-
-      <p class="job-posted">
-        Posted: {{ job.posted_on|date:"M d, Y" }}
-      </p>
-
-      <a href="{% url 'apply_job' job.id %}" class="apply-link">
-        Apply Now
-      </a>
-    </div>
-  {% empty %}
-    <p class="no-jobs">
-      No jobs found. Try adjusting your search.
-    </p>
-  {% endfor %}
+    {% endfor %}
+  </div>
 
 </div>
   
@@ -645,13 +666,25 @@ document.addEventListener("DOMContentLoaded", () => {
       if (v) url.searchParams.append(k, v);
     });
 
-    try {
-      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+   if (submitFilters.controller) {
+      submitFilters.controller.abort();
+    }
+    submitFilters.controller = new AbortController();
+     
+     try {
+      const res = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        signal: submitFilters.controller.signal
+      });
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
-      const newCards = doc.querySelectorAll(".job-card");
-      const container = document.querySelector(".available-jobs-page .container");
+      const newResults = doc.getElementById("jobResults");
+      const container = document.getElementById("jobResults");
 
+      if (newResults && container) {
+        container.innerHTML = newResults.innerHTML;
+      }
+        
       // Remove old job cards
       container.querySelectorAll(".job-card").forEach(c => c.remove());
       // Append new job cards
@@ -666,6 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
     } catch (err) {
+      if (err.name === "AbortError") return;
       console.error("Filter submission failed:", err);
     }
   }
@@ -686,9 +720,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, "text/html");
         const newCards = doc.querySelectorAll(".job-card");
-        const container = document.querySelector(".available-jobs-page .container");
+        const container = document.getElementById("jobResults");
 
-        newCards.forEach(c => container.appendChild(c));
+        if (container) {
+          newCards.forEach(c => container.appendChild(c));
+        }
 
         // Update next-page-link
         const newNext = doc.getElementById("next-page-link");
@@ -714,9 +750,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Live submit while typing (debounced)
   let typing;
   if (searchInput) {
-    searchInput.addEventListener("keyup", () => {
+    searchInput.addEventListener("input", () => {
       clearTimeout(typing);
-      typing = setTimeout(submitFilters, 500);
+      typing = setTimeout(submitFilters, 250);
     });
   }
 
