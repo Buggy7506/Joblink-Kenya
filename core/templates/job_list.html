@@ -30,8 +30,8 @@
   font-size: 20px;
   font-weight: 700;
   margin: 28px 0 14px;
-  color: var(--accent);
-  border-bottom: 1px solid var(--accent-glow);
+  color: var(--text-accent);
+  border-bottom: 1px solid var(--glow-accent);
   padding-bottom: 6px;
 }
 
@@ -43,7 +43,7 @@
   padding: 18px;
   border-radius: 14px;
   margin-bottom: 18px;
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--text-accent);
   box-shadow: 0 6px 22px rgba(0,0,0,0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -57,8 +57,8 @@
    PREMIUM JOBS
 ========================================================= */
 .available-jobs-page .premium-job {
-  border-left-color: gold;
-  background: linear-gradient(180deg, rgba(255,215,0,0.08), var(--bg-card));
+  border-left-color: var(--text-warning);
+  background: linear-gradient(180deg, var(--bg-warning-soft), var(--bg-card));
 }
 
 /* =========================================================
@@ -68,11 +68,11 @@
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 6px;
-  color: var(--accent);
+  color: var(--text-accent);
 }
 
 .available-jobs-page .premium-job .job-title {
-  color: #b8860b;
+  color: var(--text-warning);
 }
 
 .available-jobs-page .job-meta,
@@ -93,8 +93,8 @@
    PREMIUM BADGE
 ========================================================= */
 .available-jobs-page .premium-badge {
-  background: gold;
-  color: #000;
+  background: var(--bg-warning);
+  color: var(--text-inverse);
   font-size: 11px;
   padding: 3px 10px;
   border-radius: 14px;
@@ -111,8 +111,8 @@
   margin-top: 14px;
   padding: 10px 22px;
   border-radius: 22px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--text-accent);
+  color: var(--text-inverse);
   font-weight: 600;
   font-size: 14px;
   text-decoration: none;
@@ -120,7 +120,7 @@
 }
 
 .available-jobs-page .apply-link:hover {
-  background: var(--accent-dark, var(--accent));
+  background: var(--glow-accent);
   transform: translateY(-1px);
 }
 
@@ -143,7 +143,7 @@
 .available-jobs-page .filter-bar button {
   padding: 11px 12px;
   border-radius: 10px;
-  border: 1px solid var(--accent-glow);
+  border: 1px solid var(--glow-accent);
   background: var(--bg-main);
   color: var(--text-main);
   font-size: 15px;
@@ -158,8 +158,8 @@
 }
 
 .available-jobs-page .filter-bar button {
-  background: var(--accent);
-  color: #fff;
+  background: var(--text-accent);
+  color: var(--text-inverse);
   border: none;
   font-weight: 600;
   cursor: pointer;
@@ -182,17 +182,17 @@
   padding: 10px 20px;
   border-radius: 20px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 14px;
   margin-bottom: 10px;
 }
 
 .available-jobs-page .message-text.success {
-  background: #16a34a;
+  background: var(--bg-success);
 }
 
 .available-jobs-page .message-text.error {
-  background: #dc2626;
+  background: var(--bg-danger);
 }
 
 /* =========================================================
@@ -212,7 +212,7 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--text-muted);
   object-fit: cover;
 }
 
@@ -252,7 +252,7 @@
     font-size: 14px;
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid var(--accent-glow);
+    border: 1px solid var(--glow-accent);
     background: var(--bg-main);
     color: var(--text-main);
     flex-shrink: 1;
@@ -285,8 +285,8 @@
   .available-jobs-page .filter-bar button {
     flex: 0 0 auto;
     white-space: nowrap;
-    background: var(--accent);
-    color: #fff;
+    background: var(--text-accent);
+    color: var(--text-inverse);
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
@@ -320,7 +320,7 @@
   }
 
   .available-jobs-page .premium-job .job-title {
-    color: #b8860b;
+    color: var(--text-warning);
   }
 
   .available-jobs-page .job-meta,
