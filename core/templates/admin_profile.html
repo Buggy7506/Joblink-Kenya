@@ -5,27 +5,27 @@
   .profile-wrap {
     max-width: 700px;
     margin: 50px auto;
-    background: rgba(0,0,0,0.4);
+    background: var(--bg-card);
     border-radius: 20px;
     padding: 40px;
-    color: #fff;
-    box-shadow: 0 0 20px #00f7ffbb,
-                0 0 40px #00f7ff88;
+    color: var(--text-main);
+    box-shadow: 0 0 20px var(--glow-accent),
+                0 0 40px var(--alien-shadow);
     text-align: center;
   }
   .profile-wrap h2 {
     font-size: 2.5rem;
     margin-bottom: 20px;
-    color: #00f7ff;
-    text-shadow: 0 0 10px #00f7ff;
+    color: var(--text-accent);
+    text-shadow: 0 0 10px var(--glow-accent);
   }
   .profile-info {
     text-align: left;
     margin-top: 30px;
   }
   .profile-info div {
-    background: rgba(255,255,255,0.08);
-    border-left: 5px solid #00f7ff;
+    background: var(--bg-surface-soft);
+    border-left: 5px solid var(--text-accent);
     border-radius: 15px;
     margin-bottom: 15px;
     padding: 15px 20px;
@@ -34,7 +34,7 @@
     display: block;
     font-weight: 600;
     margin-bottom: 6px;
-    color: #00f7ff;
+    color: var(--text-accent);
   }
   .btn-row {
     margin-top: 30px;
@@ -44,12 +44,12 @@
   }
   a.btn-glow {
     padding: 12px 28px;
-    background-color: #00f7ff;
+    background-color: var(--text-accent);
     border-radius: 25px;
-    color: #000;
+    color: var(--text-inverse);
     font-weight: bold;
     text-decoration: none;
-    box-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff;
+    box-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--glow-accent);
     transition: transform .3s;
   }
   a.btn-glow:hover {
