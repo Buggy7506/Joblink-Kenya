@@ -267,16 +267,16 @@
 
 /* WhatsApp highlight */
 .auth-page .channel-group .whatsapp input:checked + span {
-  background: rgba(37, 211, 102, 0.15);
-  border-color: #25D366;
-  box-shadow: 0 0 8px rgba(37, 211, 102, 0.6);
+  background: var(--bg-success-soft);
+  border-color: var(--text-success);
+  box-shadow: 0 0 8px var(--text-success);
 }
 
 /* SMS highlight */
 .auth-page .channel-group .sms input:checked + span {
-  background: rgba(37, 99, 235, 0.15);
-  border-color: #2563eb;
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+  background: var(--bg-info-soft);
+  border-color: var(--text-info);
+  box-shadow: 0 0 8px var(--text-info);
 }
 
 /* =========================================
@@ -316,14 +316,14 @@
   text-decoration: none;
 }
 .auth-page .google-btn {
-  background: #fff;
-  color: #444;
-  border: 1px solid #ddd;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--text-muted);
 }
 
 .auth-page .google-btn:hover {
-  background: #f8f8f8;
-  border-color: #ccc;
+  background: var(--bg-surface-soft);
+  border-color: var(--text-muted);
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
@@ -390,12 +390,12 @@
 
 /* Employer accent */
 .auth-page .role-option.employer input:checked + span {
-  background: rgba(249, 115, 22, 0.15);
-  border-color: #f97316;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.6);
+  background: var(--bg-warning-soft);
+  border-color: var(--text-warning);
+  box-shadow: 0 0 8px var(--bg-warning);
 }
 .auth-page .field-error {
-  color: #f87171;
+  color: var(--text-danger);
   font-size: 0.9rem;
   margin-top: 6px;
   display: none;
@@ -417,8 +417,8 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: rgba(255,255,255,0.05);
-  border: 2px solid rgba(255,255,255,0.2);
+  background: var(--bg-surface-soft);
+  border: 2px solid var(--text-muted);
   border-radius: 16px;
   padding: 16px 20px;
   cursor: pointer;
@@ -427,7 +427,7 @@
 }
 
 .auth-page .role-card:hover {
-  background: rgba(0,255,200,0.12);
+  background: var(--bg-info-soft);
   border-color: var(--text-accent);
   transform: translateY(-2px);
 }
@@ -437,10 +437,10 @@
 }
 
 .auth-page .role-card input:checked + span {
-  background: rgba(0,255,200,0.18);
+  background: var(--bg-info-soft);
   border-radius: 14px;
   padding: 6px 10px;
-  box-shadow: 0 0 16px rgba(0,255,200,0.4);
+  box-shadow: 0 0 16px var(--glow-accent);
 }
 /* ===== AUTH PROVIDER BUTTONS (NORMAL) ===== */
 
@@ -452,9 +452,9 @@
   width: 100%;
   padding: 10px 14px;
 
-  border: 1px solid #ccc;
+  border: 1px solid var(--text-muted);
   border-radius: 4px;
-  background: #fff;
+  background: var(--bg-surface);
 
   font-size: 14px;
   font-weight: 500;
@@ -470,14 +470,14 @@
 
 /* Apple button */
 .auth-provider-wrapper .apple-btn {
-  background: #fff;
-  color: #000;
+  background: var(--bg-surface);
+  color: var(--text-inverse);
 }
 .auth-provider-wrapper .apple-btn svg {
   padding-left: 2px;
 }
 .auth-provider-wrapper .apple-btn svg path {
-  fill: #000;
+  fill: var(--text-inverse);
 }
 
 /* Main row (icon + text) */
@@ -518,7 +518,7 @@
 .auth-provider-wrapper .coming-soon::before {
   content: "·";
   margin: 0 6px;
-  color: #bbb;
+  color: var(--text-muted);
   font-weight: 700;
 }
 
@@ -526,7 +526,7 @@
 .auth-provider-wrapper .coming-soon {
   display: inline;
   font-size: 12px;
-  color: #999;
+  color: var(--text-muted);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -534,11 +534,11 @@
 /* Microsoft text color */
 .auth-provider-wrapper .microsoft-btn,
 .auth-provider-wrapper .microsoft-btn span {
-  color: #000;
+  color: var(--text-inverse);
 }
 .auth-provider-wrapper .apple-btn,
 .auth-provider-wrapper .apple-btn span {
-  color: #000;
+  color: var(--text-inverse);
 }
 /* Disable ALL interaction */
 .auth-provider-wrapper .disabled-btn,
