@@ -130,8 +130,8 @@ body {
 
 .message.error {
   background-color: var(--text-danger);
-  color: #fff;
-  box-shadow: 0 0 15px var(--text-danger), 0 0 25px rgba(255, 75, 92, 0.5);
+  color: var(--text-inverse);
+  box-shadow: 0 0 15px var(--text-danger), 0 0 25px var(--bg-danger-soft);
 }
 
 @keyframes slideDown {
@@ -144,8 +144,8 @@ body {
 }
 
 .verified-badge {
-  background: #28d764;
-  color: #fff;
+  background: var(--bg-success);
+  color: var(--text-inverse);
   padding: 4px 8px;
   font-size: 12px;
   border-radius: 4px;
@@ -157,8 +157,8 @@ body {
   margin: 10px 0;
   padding: 10px 12px;
   border-radius: 6px;
-  background: #f8f9fa;
-  border: 1px solid #e6e6e6;
+  background: var(--bg-surface);
+  border: 1px solid var(--text-muted);
 }
 
 /* General badge style */
@@ -173,14 +173,14 @@ body {
 
 /* Verified */
 .badge-success {
-  background-color: #28a745;  /* green */
-  color: white;
+  background-color: var(--bg-success);
+  color: var(--text-inverse);
 }
 
 /* Pending */
 .badge-warning {
-  background-color: #ffc107;  /* yellow */
-  color: #333;
+  background-color: var(--bg-warning);
+  color: var(--text-inverse);
 }
 
 /* Small navbar badge */
@@ -194,17 +194,17 @@ body {
 
 /* Pending version for small badge */
 .nav-badge.pending {
-  background-color: #ff9800;
-  color: white;
+  background-color: var(--bg-warning);
+  color: var(--text-inverse);
 }
 
 /* Alert box */
 .alert-warning {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--bg-warning-soft);
+  color: var(--text-warning);
   padding: 8px 10px;
   border-radius: 5px;
-  border: 1px solid #ffeeba;
+  border: 1px solid var(--bg-warning);
   margin-top: 8px;
   display: flex;
   align-items: center;
