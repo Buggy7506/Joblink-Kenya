@@ -35,7 +35,7 @@
         </div>
       </div>
     {% empty %}
-      <p class="text-center text-white">No jobs posted yet.</p>
+      <p class="text-center text-muted">No jobs posted yet.</p>
     {% endfor %}
   </div>
 </div>
@@ -101,14 +101,14 @@
 
 /* Job Description */
 .job-desc {
-  color: var(--text-secondary, #ddd);
+  color: var(--text-muted);
   margin-bottom: 12px;
   line-height: 1.6;
 }
 
 /* Posted Date */
 .posted-date {
-  color: var(--text-muted, #aaa);
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin-bottom: 20px;
 }
@@ -127,7 +127,7 @@
 /* Save/Edit Button */
 .btn-save {
   background: var(--glow-main);
-  color: var(--text-invert, #111);
+  color: var(--text-inverse);
   box-shadow: 0 0 15px var(--glow-main), 0 0 30px var(--glow-accent);
 }
 .btn-save:hover {
@@ -138,13 +138,13 @@
 
 /* Cancel/Delete Button */
 .btn-cancel {
-  background: #ff0044;
-  color: #fff;
-  box-shadow: 0 0 15px #ff0044, 0 0 30px #ff0044;
+  background: var(--bg-danger);
+  color: var(--text-inverse);
+  box-shadow: 0 0 15px var(--bg-danger), 0 0 30px var(--bg-danger);
 }
 .btn-cancel:hover {
-  background: #e6003b;
-  box-shadow: 0 0 25px #ff0044, 0 0 50px #ff0044;
+  background: var(--bg-danger-hover);
+  box-shadow: 0 0 25px var(--bg-danger), 0 0 50px var(--bg-danger);
   transform: translateY(-2px);
 }
 
@@ -166,15 +166,15 @@
   text-align: center;
   padding: 14px 0;
   border-radius: 15px;
-  background: var(--accent, #007bff);
-  color: var(--text-invert, #fff);
+  background: var(--bg-danger-hover);
+  box-shadow: 0 0 25px var(--bg-danger), 0 0 50px var(--bg-danger);
   font-weight: bold;
-  box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
+  box-shadow: 0 0 15px var(--bg-info), 0 0 30px var(--bg-info);
   transition: all 0.3s ease;
 }
 .btn-chat:hover {
-  background: var(--accent-dark, #0066cc);
-  box-shadow: 0 0 25px var(--accent), 0 0 50px var(--accent);
+  background: var(--bg-info-hover);
+  box-shadow: 0 0 25px var(--bg-info), 0 0 50px var(--bg-info);
   transform: translateY(-2px);
 }
 
@@ -196,14 +196,14 @@
   font-size: 1rem;
   opacity: 0.95;
   animation: slideDown 0.5s forwards;
-  color: var(--text-invert, #fff);
+  color: var(--text-inverse);
   box-shadow: 0 0 15px var(--glow-main), 0 0 25px var(--glow-accent);
 }
 .message.success {
   background: linear-gradient(90deg, var(--glow-main), var(--glow-accent));
 }
 .message.error {
-  background: linear-gradient(90deg, #ff3380, #ff0066);
+  background: linear-gradient(90deg, var(--bg-danger), var(--bg-danger-hover));
 }
 
 @keyframes slideDown {
