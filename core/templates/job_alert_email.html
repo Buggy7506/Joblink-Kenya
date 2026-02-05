@@ -3,41 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <title>Job Alert</title>
+    <style>
+    :root {
+      --bg-main: #0d0d0d;
+      --bg-card: #1a1a1a;
+      --bg-surface: #262626;
+      --text-main: #ffffff;
+      --text-muted: #ffcc80;
+      --text-warning: #ff9800;
+      --text-inverse: #000000;
+      --glow-accent: rgba(255, 152, 0, 0.6);
+    }
+  </style>
 </head>
-<body style="background:#0d0d0d; font-family: 'Segoe UI', sans-serif; padding:20px; color:#fff;">
+<body style="background:var(--bg-main, #0d0d0d); font-family: 'Segoe UI', sans-serif; padding:20px; color:var(--text-main, #fff);">
   <div style="
       max-width:600px;
       margin:auto;
-      background:#1a1a1a;
+      background:var(--bg-card, #1a1a1a);
       border-radius:15px;
       padding:30px;
-      box-shadow:0 0 15px #ff9800, 0 0 25px #ff9800;
-      border:1px solid #ff9800;">
+      box-shadow:0 0 15px var(--text-warning, #ff9800), 0 0 25px var(--text-warning, #ff9800);
+      border:1px solid var(--text-warning, #ff9800);">
     
-    <h2 style="color:#ff9800; text-align:center; text-shadow:0 0 8px #ff9800;">🔥 New Job Alert!</h2>
+    <h2 style="color:var(--text-warning, #ff9800); text-align:center; text-shadow:0 0 8px var(--text-warning, #ff9800);">🔥 New Job Alert!</h2>
     
     <p>Hi {{ user.first_name|default:user.username }},</p>
     
     <p>A new job matching your alert has just been posted:</p>
     
     <div style="
-        background:#262626;
+        background:var(--bg-surface, #262626);
         padding:20px;
         border-radius:10px;
-        box-shadow:0 0 10px rgba(255,152,0,0.4);">
-      <strong style="color:#ff9800;">{{ job.title }}</strong><br/>
-      <span style="font-size:14px; color:#ffcc80;">Location: {{ job.location }}</span>
+        box-shadow:0 0 10px var(--glow-accent, rgba(255,152,0,0.4));">
+      <strong style="color:var(--text-warning, #ff9800);">{{ job.title }}</strong><br/>
+      <span style="font-size:14px; color:var(--text-muted, #ffcc80);">Location: {{ job.location }}</span>
     </div>
     
     <p style="margin:25px 0; text-align:center;">
       <a href="{{ job_url }}" style="
-          background:#ff9800;
-          color:#000;
+          background:var(--text-warning, #ff9800);
+          color:var(--text-inverse, #000);
           padding:14px 28px;
           font-weight:bold;
           text-decoration:none;
           border-radius:30px;
-          box-shadow:0 0 15px #ff9800;
+          box-shadow:0 0 15px var(--text-warning, #ff9800);
           display:inline-block;
       ">Apply Now</a>
     </p>
