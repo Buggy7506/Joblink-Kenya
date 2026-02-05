@@ -106,7 +106,7 @@ body {
   flex-direction: column;
   min-height: 100vh;
   transition: background 0.4s ease, color 0.4s ease;
-  background-attachment: fixed;
+  background-attachment: scroll;
   overflow-x: hidden;
 }
 body::before {
@@ -121,7 +121,7 @@ body::before {
   opacity: 0.8;
   z-index: -1;
   pointer-events: none;
-  animation: nebula-drift 22s ease-in-out infinite;
+  animation: none;
 }
 
 a { text-decoration: none; color: var(--text-link); transition: color 0.3s ease; }
@@ -195,7 +195,7 @@ header {
   background: conic-gradient(from 90deg, transparent, rgba(60, 247, 255, 0.16), transparent);
   background-size: 200% 200%;
   background-position: 0% 0%;
-  animation: nav-sweep 12s linear infinite;
+  animation: none;
   opacity: 0.25;
   pointer-events: none;
 }
