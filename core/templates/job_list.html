@@ -684,11 +684,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (newResults && container) {
         container.innerHTML = newResults.innerHTML;
       }
-        
-      // Remove old job cards
-      container.querySelectorAll(".job-card").forEach(c => c.remove());
-      // Append new job cards
-      newCards.forEach(c => container.appendChild(c));
 
       // Update next-page-link for infinite scroll
       const next = document.getElementById("next-page-link");
