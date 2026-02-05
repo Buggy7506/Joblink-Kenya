@@ -74,9 +74,9 @@
 }
 
 /* Status Labels */
-.text-success { color: #22c55e; font-weight: bold; text-shadow: 0 0 6px #22c55e; }
-.text-danger { color: #ef4444; font-weight: bold; text-shadow: 0 0 6px #ef4444; }
-.text-warning { color: #facc15; font-weight: bold; text-shadow: 0 0 6px #facc15; }
+.text-success { color: var(--text-success); font-weight: bold; text-shadow: 0 0 6px var(--text-success); }
+.text-danger { color: var(--text-danger); font-weight: bold; text-shadow: 0 0 6px var(--text-danger); }
+.text-warning { color: var(--text-warning); font-weight: bold; text-shadow: 0 0 6px var(--text-warning); }
 
 /* Chat Button */
 .chat-btn {
@@ -101,16 +101,16 @@
   display: inline-block;
   padding: 10px 18px;
   border-radius: 12px;
-  background: #ff3b5c;
-  color: white;
+  background: var(--bg-danger);
+  color: var(--text-inverse);
   font-weight: bold;
-  box-shadow: 0 0 15px #ff3b5c, 0 0 30px #ff3b5c;
+  box-shadow: 0 0 15px var(--bg-danger), 0 0 30px var(--bg-danger);
   cursor: pointer;
   transition: 0.3s ease;
 }
 .delete-btn:hover {
-  background: #e60039;
-  box-shadow: 0 0 25px #ff3b5c, 0 0 50px #ff3b5c;
+  background: var(--bg-danger-hover);
+  box-shadow: 0 0 25px var(--bg-danger), 0 0 50px var(--bg-danger);
   transform: translateY(-2px);
 }
 
@@ -177,14 +177,17 @@
 <script>
 function deleteApplication(appId) {
   const csrfToken = '{{ csrf_token }}';
-
+  const styles = getComputedStyle(document.documentElement);
+  const dangerColor = styles.getPropertyValue('--bg-danger').trim() || '#ff3b5c';
+  const surfaceColor = styles.getPropertyValue('--bg-surface').trim() || '#555';
+  
   Swal.fire({
     title: "Delete Application?",
     text: "This will move the application to the Recycle Bin. You can restore it within 7 days.",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#ff3b5c",
-    cancelButtonColor: "#555",
+    confirmButtonColor: dangerColor,
+    cancelButtonColor: surfaceColor,
     confirmButtonText: "Yes, delete it!"
   }).then((result) => {
     if (result.isConfirmed) {
