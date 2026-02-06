@@ -43,13 +43,14 @@
 }
 
 .table tbody tr {
-  background: rgba(20, 20, 40, 0.9);
+  background: var(--bg-surface);
   border-radius: 12px;
   box-shadow: 0 0 10px var(--glow-main, rgba(0,255,200,0.12));
   transition: transform 0.2s ease, box-shadow 0.3s ease, opacity 0.4s;
 }
 
 .table tbody tr:hover {
+  background: var(--bg-surface-soft);
   transform: translateY(-3px);
   box-shadow: 0 0 18px var(--glow-main, rgba(0,255,200,0.3));
 }
