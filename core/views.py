@@ -591,7 +591,10 @@ def available_jobs(request):
     location_list = request.GET.getlist("location")
 
     # BASE QUERYSET
-    jobs = Job.objects.filter(is_active=True)
+    now = timezone.now()
+    jobs = Job.objects.filter(is_active=True).filter(
+        Q(expiry_date__isnull=True) | Q(expiry_date__gt=now)
+    )
 
     # UNIFIED SEARCH: title OR category name OR location
     if search:
