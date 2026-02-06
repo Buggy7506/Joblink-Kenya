@@ -15,9 +15,9 @@
   --chat-accent: #25d366;
   --chat-accent-dark: #128c7e;
   --chat-shadow: var(--alien-shadow);
-  --bubble-me: #d9fdd3;
-  --bubble-them: #ffffff;
-  --bubble-border: rgba(0, 0, 0, 0.05);
+  --bubble-me: #1f7d4f;
+  --bubble-them: var(--chat-surface);
+  --bubble-border: var(--chat-border);
 }
 
 body.light-mode .chat-wrap {
@@ -206,7 +206,7 @@ body.light-mode .chat-wrap {
   font-size: 11px;
   color: var(--chat-muted);
 }
-  
+
 .bubble {
   max-width: 72%;
   margin: 2px 0;
@@ -618,14 +618,14 @@ body.light-mode .chat-wrap {
   function scrollBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
   scrollBottom(chatBox);
 
-    function normalizeType(type){
+  function normalizeType(type){
     if(!type) return type;
     return type.startsWith("chat.") ? type.slice(5) : type;
   }
 
   function escapeHtml(text){
     const div = document.createElement("div");
-    div.textContent = text ?? "";
+    div.textContent = text || "";
     return div.innerHTML;
   }
 
@@ -695,7 +695,7 @@ body.light-mode .chat-wrap {
   }
   function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
-    const pinnedCache = new Map();
+  const pinnedCache = new Map();
   function renderPinnedList(pins){
     if(!pinnedBar || !pinnedList) return;
     pinnedList.innerHTML = "";
@@ -710,7 +710,7 @@ body.light-mode .chat-wrap {
         <span class="pinned-meta">${escapeHtml(pin.sender || "")}</span>
       `;
       item.addEventListener("click", ()=>{
-        const target = chatBox?.querySelector(`.bubble[data-id="${pin.id}"]`);
+        const target = chatBox ? chatBox.querySelector(`.bubble[data-id="${pin.id}"]`) : null;
         if(target){
           target.scrollIntoView({behavior:"smooth", block:"center"});
           target.classList.add("pinned");
@@ -722,7 +722,7 @@ body.light-mode .chat-wrap {
   }
 
   function updatePinnedState(id, pinned){
-    const msg = chatBox?.querySelector(`.bubble[data-id="${id}"]`);
+    const msg = chatBox ? chatBox.querySelector(`.bubble[data-id="${id}"]`) : null;
     if(msg){
       msg.classList.toggle("pinned", pinned);
     }
@@ -754,8 +754,8 @@ body.light-mode .chat-wrap {
   function sendMessage(msgInput=input){
     if(!msgInput) return;
     const text = msgInput.value.trim();
+    if(!text) return;
     function actuallySend(){
-    function reallySend(){
       if(socket.readyState !== 1) return;
       if(msgInput.dataset.editId){
         socket.send(JSON.stringify({action:"edit", id: msgInput.dataset.editId, message: text}));
@@ -819,11 +819,11 @@ body.light-mode .chat-wrap {
         const replyElem = chatBox.querySelector(`.bubble[data-id="${data.reply_to}"]`);
         replyTo = {
           id: data.reply_to,
-          sender: replyElem?.dataset.sender || "Unknown",
-          text: replyElem?.dataset.text || "",
+          sender: (replyElem && replyElem.dataset.sender) ? replyElem.dataset.sender : "Unknown",
+          text: (replyElem && replyElem.dataset.text) ? replyElem.dataset.text : "",
         };
       }
-            const bubble = buildBubble({
+      const bubble = buildBubble({
         id: data.id,
         sender: data.sender,
         message: data.message,
@@ -866,7 +866,7 @@ body.light-mode .chat-wrap {
   }
 
   initPinnedFromDom();
-    
+
   // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
@@ -945,13 +945,13 @@ body.light-mode .chat-wrap {
     const msgId = msgElem.dataset.id;
     const text  = msgElem.dataset.text;
     const sender = msgElem.dataset.sender || "Unknown";
-    
+
     if(action === "copy"){
         navigator.clipboard.writeText(text);
     }
     else if(action === "reply"){
         showReplyPreview({id: msgId, text: text, sender: sender});
-        input?.focus();
+        if(input) input.focus();
     }
     else if(action === "edit"){
         input.value = text;
