@@ -122,24 +122,36 @@ templateTriggers.forEach(trigger => {
 
     const templates = [
       {
-        name: 'Modern',
-        description: 'Bold header, two-column layout, Canva-style spacing.',
-        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/modern.html',
+        name: 'Resume Classic',
+        description: 'Elegant, resume-first layout with strong hierarchy.',
+        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-resume/gh-pages/index.html',
+        cssUrls: [
+          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-resume/gh-pages/css/styles.css',
+        ],
       },
       {
-        name: 'Creative',
-        description: 'Colored accents with section highlights.',
-        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/creative.html',
+        name: 'Personal Profile',
+        description: 'Modern profile template with bold sections and cards.',
+        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-personal/gh-pages/index.html',
+        cssUrls: [
+          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-personal/gh-pages/css/styles.css',
+        ],
       },
       {
-        name: 'Professional',
-        description: 'Structured sections with classic typography.',
-        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/professional.html',
+        name: 'Creative Portfolio',
+        description: 'Visual-heavy layout with showcase sections.',
+        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-freelancer/gh-pages/index.html',
+        cssUrls: [
+          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-freelancer/gh-pages/css/styles.css',
+        ],
       },
       {
-        name: 'Minimal Gray',
-        description: 'Clean, minimalist layout with gray accents.',
-        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/minimal-gray.html',
+        name: 'Agency',
+        description: 'Canva-like hero sections with timeline styling.',
+        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-agency/gh-pages/index.html',
+        cssUrls: [
+          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-agency/gh-pages/css/styles.css',
+        ],
       },
     ];
 
@@ -177,33 +189,22 @@ templateTriggers.forEach(trigger => {
           const styles = Array.from(doc.querySelectorAll('style'))
             .map(style => style.outerHTML)
             .join('');
+          const cssResponses = await Promise.all(
+            (template.cssUrls || []).map(cssUrl => fetch(cssUrl))
+          );
+          const cssText = await Promise.all(
+            cssResponses
+              .filter(res => res.ok)
+              .map(res => res.text())
+          );
+          const externalStyles = cssText
+            .map(text => `<style>${text}</style>`)
+            .join('');
+          doc.querySelectorAll('link[rel="stylesheet"], script').forEach(el => el.remove());
           const content = doc.body?.innerHTML || html;
           quill.setContents([]);
-          quill.clipboard.dangerouslyPasteHTML(styles + content);
+          quill.clipboard.dangerouslyPasteHTML(styles + externalStyles + content);
           modal.style.display = 'none';
-        } catch (err) {
-          console.error(err);
-          button.textContent = 'Failed. Try again';
-          button.disabled = false;
-        }
-      };
-
-      card.appendChild(button);
-      listContainer.appendChild(card);
-    });
-  };
-}
-});
-
-// Close modal
-document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
-
-// Auto-remove flash messages
-document.addEventListener("DOMContentLoaded", function() {
-  setTimeout(() => {
-    document.querySelectorAll('.resume-messages').forEach(msg => msg.remove());
-  }, 3000);
-});
 </script>
 
 <style>
