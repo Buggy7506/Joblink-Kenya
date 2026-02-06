@@ -118,6 +118,58 @@ function setTemplateStyles(cssText) {
   document.head.appendChild(styleTag);
 }
 
+function resolveAssetUrl(value, baseUrl) {
+  if (!value) {
+    return value;
+  }
+  const trimmed = value.trim();
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('#')
+  ) {
+    return value;
+  }
+  try {
+    return new URL(trimmed, baseUrl).toString();
+  } catch (err) {
+    return value;
+  }
+}
+
+function rewriteCssUrls(cssText, baseUrl) {
+  if (!cssText) {
+    return cssText;
+  }
+  return cssText.replace(/url\(([^)]+)\)/gi, (match, rawValue) => {
+    const cleaned = rawValue.trim().replace(/^['"]|['"]$/g, '');
+    const resolved = resolveAssetUrl(cleaned, baseUrl);
+    return `url("${resolved}")`;
+  });
+}
+
+function rewriteDocumentAssets(doc, baseUrl) {
+  doc.querySelectorAll('[src]').forEach(element => {
+    const src = element.getAttribute('src');
+    element.setAttribute('src', resolveAssetUrl(src, baseUrl));
+  });
+  doc.querySelectorAll('[href]').forEach(element => {
+    if (element.tagName.toLowerCase() === 'a') {
+      return;
+    }
+    const href = element.getAttribute('href');
+    element.setAttribute('href', resolveAssetUrl(href, baseUrl));
+  });
+  doc.querySelectorAll('[style]').forEach(element => {
+    const styleText = element.getAttribute('style');
+    if (styleText) {
+      element.setAttribute('style', rewriteCssUrls(styleText, baseUrl));
+    }
+  });
+}
+  
 function applyTemplateToCanvas(content) {
   const wrapped = `<div class="template-canvas">${content}</div>`;
   quill.setContents([]);
@@ -188,9 +240,11 @@ templateTriggers.forEach(trigger => {
       const html = await response.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
+      const htmlBaseUrl = new URL('.', template.url).toString();
+      rewriteDocumentAssets(doc, htmlBaseUrl);
       doc.querySelectorAll('script').forEach(script => script.remove());
       const styles = Array.from(doc.querySelectorAll('style'))
-        .map(style => style.textContent || '')
+        .map(style => rewriteCssUrls(style.textContent || '', htmlBaseUrl))
         .join('\n');
       const cssResponses = await Promise.all(
         (template.cssUrls || []).map(cssUrl => fetch(cssUrl))
@@ -198,7 +252,12 @@ templateTriggers.forEach(trigger => {
       const cssText = await Promise.all(
         cssResponses
           .filter(res => res.ok)
-          .map(res => res.text())
+          .map(async (res, index) => {
+            const rawCss = await res.text();
+            const cssUrl = (template.cssUrls || [])[index];
+            const cssBaseUrl = cssUrl ? new URL('.', cssUrl).toString() : htmlBaseUrl;
+            return rewriteCssUrls(rawCss, cssBaseUrl);
+          })
       );
       const externalStyles = cssText.join('\n');
       template.__loaded = true;
