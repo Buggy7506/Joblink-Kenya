@@ -1,5 +1,6 @@
 # core/utils.py
 import hashlib
+import time
 import logging
 import secrets
 import requests
@@ -234,12 +235,22 @@ def send_textmebot_message(phone, message="", image_url=None, document_url=None)
     return {"status": "queued", "response": response.text}
 
 
+# Configure logger for OTPs
+logger = logging.getLogger("otp_logger")
+if not logger.handlers:
+    handler = logging.FileHandler("otp_logs.log")
+    formatter = logging.Formatter("%(asctime)s - %(channel)s - %(destination)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+
 # ======================================================
-# UNIFIED OTP DISPATCHER
+# UNIFIED OTP DISPATCHER (SAFE)
 # ======================================================
 def send_otp(channel, destination, code):
     """
-    Send OTP via SMS, WhatsApp, or Email.
+    Send OTP via SMS, WhatsApp, or Email with safety measures.
 
     Parameters:
         channel (str): "sms", "whatsapp", or "email"
@@ -252,13 +263,29 @@ def send_otp(channel, destination, code):
 
     message = f"Your Joblink verification code is {code}. Valid for {settings.OTP_EXPIRY_MINUTES} minutes."
 
-    if channel == "sms":
-        return send_textmebot_message(destination, message)
+    # Send via SMS or WhatsApp using TextMeBot
+    if channel in ("sms", "whatsapp"):
+        response = send_textmebot_message(destination, message)
 
-    if channel == "whatsapp":
-        return send_textmebot_message(destination, message)
+        # Log the OTP send
+        logger.info(
+            message,
+            extra={"channel": channel, "destination": destination}
+        )
 
+        # Minimum 5-second delay to avoid WhatsApp blocks
+        time.sleep(5)
+        return response
+
+    # Send via email
     if channel == "email":
-        return send_otp_email(destination, code)
+        response = send_otp_email(destination, code)
+
+        # Log the email send
+        logger.info(
+            f"OTP sent via email: {code}",
+            extra={"channel": channel, "destination": destination}
+        )
+        return response
 
     raise ValueError("Invalid OTP channel")
