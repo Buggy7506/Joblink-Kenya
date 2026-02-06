@@ -90,7 +90,25 @@
   color: var(--text-main);
   transition: border 0.25s ease, box-shadow 0.25s ease;
 }
-
+.auth-page .auth-box select.auth-input {
+  appearance: none;
+  background: var(--bg-surface);
+  cursor: pointer;
+}
+.auth-page .phone-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.auth-page .country-select {
+  flex: 0 0 150px;
+}
+.auth-page .phone-number-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+   
 .auth-page .auth-box input::placeholder {
   color: var(--text-muted);
 }
@@ -283,7 +301,7 @@
    PHONE INPUT (SMS / WHATSAPP)
 ========================================= */
 
-.auth-page #phoneInput {
+.auth-page #phoneGroup {
   display: none;
   animation: fadeSlideIn 0.25s ease forwards;
 }
@@ -846,16 +864,36 @@
           </div>
 
           <!-- PHONE -->
+            <div class="phone-group" id="phoneGroup" style="display:none;">
+            <select id="countrySelect" class="auth-input country-select" disabled>
+              <option value="KE" data-dial="254" data-max="9">🇰🇪 Kenya (+254)</option>
+              <option value="UG" data-dial="256" data-max="9">🇺🇬 Uganda (+256)</option>
+              <option value="TZ" data-dial="255" data-max="9">🇹🇿 Tanzania (+255)</option>
+              <option value="RW" data-dial="250" data-max="9">🇷🇼 Rwanda (+250)</option>
+              <option value="ET" data-dial="251" data-max="9">🇪🇹 Ethiopia (+251)</option>
+              <option value="ZA" data-dial="27" data-max="9">🇿🇦 South Africa (+27)</option>
+              <option value="NG" data-dial="234" data-max="10">🇳🇬 Nigeria (+234)</option>
+              <option value="GH" data-dial="233" data-max="9">🇬🇭 Ghana (+233)</option>
+              <option value="EG" data-dial="20" data-max="10">🇪🇬 Egypt (+20)</option>
+              <option value="GB" data-dial="44" data-max="10">🇬🇧 United Kingdom (+44)</option>
+              <option value="US" data-dial="1" data-max="10">🇺🇸 United States (+1)</option>
+              <option value="IN" data-dial="91" data-max="10">🇮🇳 India (+91)</option>
+            </select>
+            <input
+              type="text"
+              id="phoneDisplayInput"
+              placeholder="Phone number"
+              class="auth-input phone-number-input"
+              autocomplete="tel"
+              inputmode="numeric"
+              disabled
+            >
+          </div>
           <input
-            type="text"
+            type="hidden"
             name="phone"
             id="phoneInput"
             value="{{ request.session.auth_phone|default:'' }}"
-            placeholder="+254 7XX XXX XXX"
-            class="auth-input"
-            autocomplete="tel"
-            disabled
-            style="display:none;"
           >
             
           <button
@@ -863,6 +901,8 @@
             name="action"
             value="send_code"
             class="auth-btn primary"
+            id="continueBtn"
+            disabled
           >
             Continue
           </button>
@@ -914,9 +954,11 @@
 
           <div class="divider">OR</div>
 
-        <button type="submit" name="action" value="switch_to_password" class="auth-btn">
-           Continue with password
-         </button>
+        {% if request.session.auth_user_exists %}
+          <button type="submit" name="action" value="switch_to_password" class="auth-btn">
+             Continue with password
+           </button>
+        {% endif %}
       </section>
 
          <!-- ================= STEP 3: PASSWORD ================= -->
@@ -1050,6 +1092,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("emailInput");
   const emailError = document.getElementById("emailError");
   const phoneInput = document.getElementById("phoneInput");
+  const phoneDisplayInput = document.getElementById("phoneDisplayInput");
+  const phoneGroup = document.getElementById("phoneGroup");
+  const countrySelect = document.getElementById("countrySelect");
+  const continueBtn = document.getElementById("continueBtn");
   const channelRadios = document.querySelectorAll('input[name="channel"]');
 
   // =========================
@@ -1122,9 +1168,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!email) emailInput.value = "";
     if (emailError) emailError.classList.remove("show");
 
-    phoneInput.disabled = email;
-    phoneInput.style.display = email ? "none" : "block";
-    if (email) phoneInput.value = "";
+    if (phoneGroup) {
+      phoneGroup.style.display = email ? "none" : "flex";
+    }
+    if (countrySelect) {
+      countrySelect.disabled = email;
+    }
+    if (phoneDisplayInput) {
+      phoneDisplayInput.disabled = email;
+      if (email) phoneDisplayInput.value = "";
+    }
+    if (phoneInput && email) phoneInput.value = "";
+    updatePhoneState();
+    updateContinueState();
   }
 
   channelRadios.forEach(r => r.addEventListener("change", syncChannelFields));
@@ -1137,10 +1193,101 @@ document.addEventListener("DOMContentLoaded", () => {
   if (emailInput) {
     emailInput.addEventListener("input", () => {
       if (emailError) emailError.classList.remove("show");
+             updateContinueState();
     });
   }
 
-  // =========================
+  function getCountryMeta() {
+    const option = countrySelect?.selectedOptions?.[0];
+    if (!option) return { dial: "", max: 0 };
+    return {
+      dial: option.dataset.dial || "",
+      max: parseInt(option.dataset.max || "0", 10),
+    };
+  }
+
+  function sanitizeDigits(value) {
+    return value.replace(/\D/g, "");
+  }
+
+  function updatePhoneState() {
+    if (!phoneDisplayInput || !phoneInput || !countrySelect) return;
+    const { dial, max } = getCountryMeta();
+    const digits = sanitizeDigits(phoneDisplayInput.value);
+    const trimmed = max ? digits.slice(0, max) : digits;
+    if (digits !== trimmed) phoneDisplayInput.value = trimmed;
+    if (max) phoneDisplayInput.maxLength = max;
+    phoneInput.value = trimmed ? `+${dial}${trimmed}` : "";
+  }
+
+  function updatePhonePlaceholder() {
+    if (!phoneDisplayInput) return;
+    const { max } = getCountryMeta();
+    phoneDisplayInput.placeholder = max
+      ? `Phone number (${max} digits)`
+      : "Phone number";
+  }
+
+  function isValidPhone() {
+    if (!phoneDisplayInput || !countrySelect) return false;
+    const { max } = getCountryMeta();
+    const digits = sanitizeDigits(phoneDisplayInput.value);
+    return Boolean(max) && digits.length === max;
+  }
+
+  function updateContinueState() {
+    if (!continueBtn) return;
+    const channel = document.querySelector('input[name="channel"]:checked')?.value;
+    const emailValid = channel === "email" && isValidEmail(emailInput?.value.trim() || "");
+    const phoneValid = (channel === "sms" || channel === "whatsapp") && isValidPhone();
+    continueBtn.disabled = !(emailValid || phoneValid);
+  }
+
+  function prefillPhoneFromStored() {
+    if (!phoneInput || !countrySelect || !phoneDisplayInput) return;
+    const stored = phoneInput.value;
+    if (!stored) return;
+    const digits = sanitizeDigits(stored);
+    if (!digits) return;
+    let matchedOption = null;
+    let matchedDial = "";
+    Array.from(countrySelect.options).forEach(option => {
+      const dial = option.dataset.dial || "";
+      if (dial && digits.startsWith(dial) && dial.length > matchedDial.length) {
+        matchedDial = dial;
+        matchedOption = option;
+      }
+    });
+    if (matchedOption) {
+      countrySelect.value = matchedOption.value;
+      phoneDisplayInput.value = digits.slice(matchedDial.length);
+    } else {
+      phoneDisplayInput.value = digits;
+    }
+    updatePhonePlaceholder();
+    updatePhoneState();
+  }
+
+  if (phoneDisplayInput) {
+    phoneDisplayInput.addEventListener("input", () => {
+      updatePhoneState();
+      updateContinueState();
+    });
+  }
+
+  if (countrySelect) {
+    countrySelect.addEventListener("change", () => {
+      updatePhonePlaceholder();
+      updatePhoneState();
+      updateContinueState();
+    });
+  }
+
+  prefillPhoneFromStored();
+  updatePhonePlaceholder();
+  updateContinueState();
+   
+   // =========================
   // LOADING HELPERS
   // =========================
   function disableAllButtons(except) {
@@ -1170,7 +1317,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ---------- SEND CODE ----------
     if (action === "send_code") {
-
+      updatePhoneState();
+       
       if (channel === "email" && !emailInput.value.trim()) {
         e.preventDefault();
          if (emailError) {
@@ -1193,7 +1341,12 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Phone number is required.");
         return;
       }
-
+      if ((channel === "sms" || channel === "whatsapp") && !isValidPhone()) {
+        e.preventDefault();
+        alert("Enter a valid phone number for the selected country.");
+        return;
+      }
+       
       startLoading(e.submitter);
       return;
     }
