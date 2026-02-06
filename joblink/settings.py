@@ -264,7 +264,7 @@ SECURE_CROSS_ORIGIN_RESOURCE_POLICY = "same-site"
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-TEXTBELT_API_KEY = os.getenv("TEXTBELT_API_KEY", "textbelt")
+BREVO_SMS_API_KEY = os.getenv("BREVO_SMS_API_KEY")
 
 # Default sender
 DEFAULT_FROM_EMAIL = "Joblink Kenya <support@stepper.dpdns.org>"
