@@ -122,23 +122,23 @@ templateTriggers.forEach(trigger => {
 
     const templates = [
       {
-        name: 'Simple (Gist)',
-        description: 'Clean, minimal layout from a public Gist.',
-        url: 'https://gist.githubusercontent.com/theskumar/1877379/raw/resume.html',
+        name: 'Modern',
+        description: 'Bold header, two-column layout, Canva-style spacing.',
+        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/modern.html',
       },
       {
-        name: 'Modern (Gist)',
-        description: 'Modern resume HTML from a public Gist.',
-        url: 'https://gist.githubusercontent.com/1882510/raw/resume.html',
+        name: 'Creative',
+        description: 'Colored accents with section highlights.',
+        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/creative.html',
       },
       {
-        name: 'HTML/CSS Resume',
-        description: 'Classic resume layout from a GitHub template.',
-        url: 'https://raw.githubusercontent.com/jiffyclub/html-css-resume-template/master/resume.html',
+        name: 'Professional',
+        description: 'Structured sections with classic typography.',
+        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/professional.html',
       },
       {
         name: 'Minimal Gray',
-        description: 'Minimal gray theme template from GitHub.',
+        description: 'Clean, minimalist layout with gray accents.',
         url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/minimal-gray.html',
       },
     ];
@@ -154,7 +154,8 @@ templateTriggers.forEach(trigger => {
           <span>${template.description}</span>
         </div>
         <div class="template-preview">
-          <p>Source: ${template.url.replace('https://', '')}</p>
+          <p>${template.description}</p>
+          <span>Source: ${template.url.replace('https://', '')}</span>
         </div>
       `;
 
@@ -171,8 +172,14 @@ templateTriggers.forEach(trigger => {
             throw new Error('Failed to load template.');
           }
           const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const styles = Array.from(doc.querySelectorAll('style'))
+            .map(style => style.outerHTML)
+            .join('');
+          const content = doc.body?.innerHTML || html;
           quill.setContents([]);
-          quill.clipboard.dangerouslyPasteHTML(html);
+          quill.clipboard.dangerouslyPasteHTML(styles + content);
           modal.style.display = 'none';
         } catch (err) {
           console.error(err);
@@ -180,7 +187,7 @@ templateTriggers.forEach(trigger => {
           button.disabled = false;
         }
       };
-      
+
       card.appendChild(button);
       listContainer.appendChild(card);
     });
@@ -410,7 +417,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 .template-card {
   background: var(--bg-surface);
-    border-radius: 16px;
+  border-radius: 16px;
   padding: 1rem;
   border: 1px solid var(--bg-surface-soft);
   display: flex;
@@ -435,6 +442,13 @@ document.addEventListener("DOMContentLoaded", function() {
   font-size: 0.82rem;
   color: var(--text-main);
   min-height: 80px;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.template-preview span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
 }
 
 .template-select-btn {
