@@ -120,42 +120,70 @@ templateTriggers.forEach(trigger => {
     modal.style.display = 'flex';
     listContainer.innerHTML = 'Loading templates...';
 
-    try {
-        // Fetch real templates from GitHub (HTML raw content)
-        let templateUrls = [
-            'https://gist.githubusercontent.com/theskumar/1877379/raw/resume.html',
-            'https://gist.githubusercontent.com/1882510/raw/resume.html',
-            'https://raw.githubusercontent.com/jiffyclub/html-css-resume-template/master/resume.html',
-            'https://raw.githubusercontent.com/surajmandal/resume-templates/main/simple.html',
-            'https://raw.githubusercontent.com/surajmandal/resume-templates/main/modern.html',
-            'https://raw.githubusercontent.com/surajmandal/resume-templates/main/creative.html',
-            'https://raw.githubusercontent.com/surajmandal/resume-templates/main/professional.html',
-            'https://raw.githubusercontent.com/surajmandal/resume-templates/main/minimal-gray.html'
-          ];
+    const templates = [
+      {
+        name: 'Simple (Gist)',
+        description: 'Clean, minimal layout from a public Gist.',
+        url: 'https://gist.githubusercontent.com/theskumar/1877379/raw/resume.html',
+      },
+      {
+        name: 'Modern (Gist)',
+        description: 'Modern resume HTML from a public Gist.',
+        url: 'https://gist.githubusercontent.com/1882510/raw/resume.html',
+      },
+      {
+        name: 'HTML/CSS Resume',
+        description: 'Classic resume layout from a GitHub template.',
+        url: 'https://raw.githubusercontent.com/jiffyclub/html-css-resume-template/master/resume.html',
+      },
+      {
+        name: 'Minimal Gray',
+        description: 'Minimal gray theme template from GitHub.',
+        url: 'https://raw.githubusercontent.com/surajmandal/resume-templates/main/minimal-gray.html',
+      },
+    ];
 
+    listContainer.innerHTML = '';
 
-        listContainer.innerHTML = '';
+    templates.forEach(template => {
+      const card = document.createElement('div');
+      card.className = 'template-card';
+      card.innerHTML = `
+        <div class="template-card-header">
+          <h3>${template.name}</h3>
+          <span>${template.description}</span>
+        </div>
+        <div class="template-preview">
+          <p>Source: ${template.url.replace('https://', '')}</p>
+        </div>
+      `;
 
-        for(let url of templateUrls){
-            let btn = document.createElement('button');
-            btn.className = 'builder-btn secondary';
-            btn.type = 'button';;
-            let name = url.split('/').pop().replace('.html','').replace('-',' ');
-            btn.innerText = name.charAt(0).toUpperCase() + name.slice(1);
-
-            btn.onclick = async () => {
-                let response = await fetch(url);
-                let html = await response.text();
-                quill.root.innerHTML = html;
-                modal.style.display = 'none';
-            };
-            listContainer.appendChild(btn);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'builder-btn secondary template-select-btn';
+      button.textContent = 'Use this template';
+      button.onclick = async () => {
+        button.disabled = true;
+        button.textContent = 'Loading...';
+        try {
+          const response = await fetch(template.url);
+          if (!response.ok) {
+            throw new Error('Failed to load template.');
+          }
+          const html = await response.text();
+          quill.setContents([]);
+          quill.clipboard.dangerouslyPasteHTML(html);
+          modal.style.display = 'none';
+        } catch (err) {
+          console.error(err);
+          button.textContent = 'Failed. Try again';
+          button.disabled = false;
         }
-
-    } catch(err) {
-        listContainer.innerHTML = 'Failed to load templates.';
-        console.error(err);
-    }
+      };
+      
+      card.appendChild(button);
+      listContainer.appendChild(card);
+    });
   };
 }
 });
@@ -380,10 +408,38 @@ document.addEventListener("DOMContentLoaded", function() {
   gap: 1rem;
 }
 
-.template-list .builder-btn {
-  border-radius: 16px;
-  padding: 0.9rem 1rem;
+.template-card {
   background: var(--bg-surface);
+    border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid var(--bg-surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.template-card-header h3 {
+  margin: 0 0 0.35rem;
+  color: var(--text-accent);
+}
+
+.template-card-header span {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.template-preview {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--text-main);
+  min-height: 80px;
+}
+
+.template-select-btn {
+  width: 100%;
+  border-radius: 12px;
 }
 
 @media (max-width: 980px) {
