@@ -194,28 +194,38 @@ def get_location_from_ip(ip):
 
 
 # ======================================================
-# INFINIREACH (SMS)
+# BREVO (SMS)
 # ======================================================
-
 def send_sms_infini(phone, message):
     """
-    TextBelt SMS sender (free forever).
+    Brevo transactional SMS sender.
     Function name kept for backward compatibility.
     """
 
+    url = "https://api.brevo.com/v3/transactionalSMS/sms"
+
+    payload = {
+        "sender": "JOBLINK",         
+        "recipient": phone,             
+        "content": message,
+        "type": "transactional"
+    }
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "api-key": settings.BREVO_SMS_API_KEY
+    }
+
     response = requests.post(
-        "https://textbelt.com/text",
-        {
-            "phone": phone,
-            "message": message,
-            "key": settings.TEXTBELT_API_KEY,
-        },
+        url,
+        json=payload,
+        headers=headers,
         timeout=15
     )
 
     response.raise_for_status()
-    return response.json()
-    
+    return response.json()    
 
 # ======================================================
 # CALLMEBOT (WHATSAPP - FREE)
