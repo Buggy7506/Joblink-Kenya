@@ -10,12 +10,14 @@
   --chat-surface-soft: var(--bg-surface-soft);
   --chat-text: var(--text-main);
   --chat-muted: var(--text-muted);
+  --chat-border: rgba(148, 163, 184, 0.25);
+  --chat-deleted: rgba(148, 163, 184, 0.2);
   --chat-accent: #25d366;
   --chat-accent-dark: #128c7e;
   --chat-shadow: var(--alien-shadow);
-  --bubble-me: rgba(37, 211, 102, 0.18);
-  --bubble-them: rgba(148, 163, 184, 0.16);
-  --bubble-border: rgba(148, 163, 184, 0.25);
+  --bubble-me: #d9fdd3;
+  --bubble-them: #ffffff;
+  --bubble-border: rgba(0, 0, 0, 0.05);
 }
 
 body.light-mode .chat-wrap {
@@ -26,6 +28,7 @@ body.light-mode .chat-wrap {
   --bubble-me: #dcf8c6;
   --bubble-them: #ffffff;
   --bubble-border: rgba(0, 0, 0, 0.08);
+  --chat-border: rgba(0, 0, 0, 0.08);
 }
   
 /* --- Layout & Sidebar --- */
@@ -46,7 +49,7 @@ body.light-mode .chat-wrap {
   background: var(--chat-card);
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid var(--bubble-border);
+  border: 1px solid var(--chat-border);
   box-shadow: 0 8px 24px var(--chat-shadow);
   transition: transform 0.3s ease;
   display: flex;
@@ -55,7 +58,7 @@ body.light-mode .chat-wrap {
 }
 .sidebar h3 {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--bubble-border);
+  border-bottom: 1px solid var(--chat-border);
   color: var(--chat-accent-dark);
   font-weight: 600;
 }
@@ -70,7 +73,7 @@ body.light-mode .chat-wrap {
 .applicant {
   padding: 12px 14px;
   cursor: pointer;
-  border-bottom: 1px solid var(--bubble-border);
+  border-bottom: 1px solid var(--chat-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -98,7 +101,7 @@ body.light-mode .chat-wrap {
 .sidebar .applicant.deleted {
   opacity: 0.4;
   cursor: not-allowed;
-  border-bottom: 1px solid rgba(255, 0, 0, 0.05);
+  border-bottom: 1px solid var(--chat-border);
   background: none !important;
   box-shadow: none !important;
   transition: none;
@@ -120,7 +123,7 @@ body.light-mode .chat-wrap {
   flex-direction: column;
   background: var(--chat-card);
   border-radius: 18px;
-  border: 1px solid var(--bubble-border);
+  border: 1px solid var(--chat-border);
   box-shadow: 0 12px 28px var(--chat-shadow);
   overflow: hidden;
   max-height: calc(100vh - 60px);
@@ -128,7 +131,7 @@ body.light-mode .chat-wrap {
 
 .chat-header {
   padding: 14px 18px;
-  border-bottom: 1px solid var(--bubble-border);
+  border-bottom: 1px solid var(--chat-border);
   color: var(--chat-text);
   font-weight: 600;
   display: flex;
@@ -162,24 +165,70 @@ body.light-mode .chat-wrap {
   gap: 10px;
 }
 
+.pinned-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--chat-border);
+  background: var(--chat-surface);
+}
+.pinned-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--chat-accent-dark);
+}
+.pinned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pinned-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--chat-border);
+  background: var(--chat-surface-soft);
+  cursor: pointer;
+}
+.pinned-item span {
+  display: block;
+}
+.pinned-item .pinned-text {
+  font-size: 13px;
+  color: var(--chat-text);
+}
+.pinned-item .pinned-meta {
+  font-size: 11px;
+  color: var(--chat-muted);
+}
+  
 .bubble {
   max-width: 72%;
   margin: 2px 0;
-  padding: 10px 14px;
-  border-radius: 14px;
+  padding: 8px 12px;
+  border-radius: 14px 14px 14px 4px;
   word-wrap: break-word;
   position: relative;
   color: var(--chat-text);
   background: var(--bubble-them);
   border: 1px solid var(--bubble-border);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease-in-out;
+}
+.bubble .message-text {
+  white-space: pre-wrap;
+  line-height: 1.45;
 }
 .bubble strong {
   display: block;
   font-size: 0.78rem;
   color: var(--chat-muted);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .bubble:hover {
   transform: translateY(-1px);
@@ -189,6 +238,7 @@ body.light-mode .chat-wrap {
   background: var(--bubble-me);
   border-color: rgba(37, 211, 102, 0.35);
   text-align: right;
+  border-radius: 14px 14px 4px 14px;
 }
 .them {
   margin-right: auto;
@@ -212,6 +262,30 @@ body.light-mode .chat-wrap {
   border-right-color: var(--bubble-them);
   border-bottom-color: transparent;
 }
+.bubble.deleted {
+  background: var(--chat-deleted);
+  border-color: var(--chat-border);
+  color: var(--chat-muted);
+  font-style: italic;
+}
+.reply-reference {
+  border-left: 3px solid var(--chat-accent);
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  background: rgba(18, 140, 126, 0.12);
+  border-radius: 8px;
+  text-align: left;
+}
+.reply-reference .reply-sender {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chat-accent-dark);
+}
+.reply-reference .reply-text {
+  font-size: 12px;
+  color: var(--chat-text);
+  display: block;
+}
 .meta {
   font-size: 11px;
   margin-top: 6px;
@@ -233,12 +307,41 @@ body.light-mode .chat-wrap {
   font-size: 12px;
 }
 
+/* Reply preview */
+.reply-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--chat-surface-soft);
+  border-top: 1px solid var(--chat-border);
+}
+.reply-preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--chat-text);
+}
+.reply-preview-label {
+  font-weight: 600;
+  color: var(--chat-accent-dark);
+}
+.reply-cancel {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--chat-muted);
+}
+
 /* Chat Input */
 .chat-input {
   display: flex;
   gap: 10px;
   padding: 12px 16px;
-  border-top: 1px solid var(--bubble-border);
+  border-top: 1px solid var(--chat-border);
   background: var(--chat-surface);
   flex-wrap: wrap;
 }
@@ -248,7 +351,7 @@ body.light-mode .chat-wrap {
   min-width: 0;
   padding: 12px 16px;
   border-radius: 999px;
-  border: 1px solid var(--bubble-border);
+  border: 1px solid var(--chat-border);
   outline: none;
   background: var(--chat-surface-soft);
   color: var(--chat-text);
@@ -281,7 +384,7 @@ body.light-mode .chat-wrap {
   padding: 10px 14px;
   border-radius: 14px;
   background: var(--bubble-them);
-  border: 1px solid var(--bubble-border);
+  border: 1px solid var(--chat-border);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
@@ -307,7 +410,7 @@ body.light-mode .chat-wrap {
   background: var(--chat-surface);
   color: var(--chat-text);
   border-radius: 12px;
-  border: 1px solid var(--bubble-border);
+  border: 1px solid var(--chat-border);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
   z-index: 2000;
   display: none;
@@ -408,12 +511,27 @@ body.light-mode .chat-wrap {
       {% endif %}
     </div>
 
+    <div class="pinned-bar" id="pinned-bar" hidden>
+      <div class="pinned-head">
+        <span>📌</span>
+        <span>Pinned messages</span>
+      </div>
+      <div class="pinned-list" id="pinned-list"></div>
+    </div>
+    
     <div id="chat-box" class="chat-box">
       {% for m in messages %}
-        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} pop" 
-             data-id="{{ m.id }}" data-text="{{ m.message }}">
+        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} {% if m.is_pinned %}pinned{% endif %} pop" 
+             data-id="{{ m.id }}" data-text="{{ m.message|escape }}" data-sender="{{ m.sender.username|escape }}"
+             {% if m.reply_to %}data-reply-id="{{ m.reply_to.id }}" data-reply-text="{{ m.reply_to.message|escape }}" data-reply-sender="{{ m.reply_to.sender.username|escape }}"{% endif %}>
           <div><strong>{{ m.sender.username }}</strong></div>
-          <div>{{ m.message }}</div>
+          {% if m.reply_to %}
+            <div class="reply-reference">
+              <span class="reply-sender">{{ m.reply_to.sender.username }}</span>
+              <span class="reply-text">{{ m.reply_to.message|truncatechars:80 }}</span>
+            </div>
+          {% endif %}
+          <div class="message-text">{{ m.message }}</div>
           <div class="meta">{{ m.timestamp }}{% if m.edited_at %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
         </div>
       {% empty %}
@@ -421,6 +539,14 @@ body.light-mode .chat-wrap {
       {% endfor %}
     </div>
 
+      <div class="reply-preview" id="reply-preview" hidden>
+      <div class="reply-preview-body">
+        <span class="reply-preview-label">Replying to <span id="reply-preview-sender"></span></span>
+        <span id="reply-preview-text"></span>
+      </div>
+      <button class="reply-cancel" id="reply-cancel" type="button" aria-label="Cancel reply">✕</button>
+    </div>
+    
     <form id="chat-form" class="chat-input" onsubmit="return false;">
       {% csrf_token %}
       <input id="msg-input" type="text" placeholder="Message…" autocomplete="off" maxlength="2000" />
@@ -476,7 +602,13 @@ body.light-mode .chat-wrap {
   const input = document.getElementById("msg-input");
   const sendBtn = document.getElementById("send-btn");
   const menu = document.getElementById("message-menu");
-
+  const pinnedBar = document.getElementById("pinned-bar");
+  const pinnedList = document.getElementById("pinned-list");
+  const replyPreview = document.getElementById("reply-preview");
+  const replyPreviewSender = document.getElementById("reply-preview-sender");
+  const replyPreviewText = document.getElementById("reply-preview-text");
+  const replyCancel = document.getElementById("reply-cancel");
+  
   // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const appId = {% if application %}{{ application.id }}{% elif selected_app %}{{ selected_app.id }}{% else %}null{% endif %};
@@ -485,6 +617,70 @@ body.light-mode .chat-wrap {
 
   function scrollBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
   scrollBottom(chatBox);
+
+    function normalizeType(type){
+    if(!type) return type;
+    return type.startsWith("chat.") ? type.slice(5) : type;
+  }
+
+  function escapeHtml(text){
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML;
+  }
+
+  function buildReplySnippet(replyData){
+    if(!replyData) return "";
+    const sender = escapeHtml(replyData.sender || "Unknown");
+    const text = escapeHtml(replyData.text || "");
+    return `<div class="reply-reference">
+              <span class="reply-sender">${sender}</span>
+              <span class="reply-text">${text}</span>
+            </div>`;
+  }
+
+  function buildBubble(data){
+    const bubble = document.createElement("div");
+    const isMe = data.sender === username;
+    bubble.className = `bubble ${isMe ? "me" : "them"} ${data.pinned ? "pinned" : ""} pop`;
+    if(data.id) bubble.dataset.id = data.id;
+    bubble.dataset.text = data.message || "";
+    bubble.dataset.sender = data.sender || "";
+    if(data.replyTo && data.replyTo.id){
+      bubble.dataset.replyId = data.replyTo.id;
+      bubble.dataset.replyText = data.replyTo.text || "";
+      bubble.dataset.replySender = data.replyTo.sender || "";
+    }
+
+    const replyHtml = buildReplySnippet(data.replyTo);
+    bubble.innerHTML = `
+      <div><strong>${escapeHtml(data.sender || "")}</strong></div>
+      ${replyHtml}
+      <div class="message-text">${escapeHtml(data.message || "")}</div>
+      <div class="meta">${data.meta || ""}</div>
+    `;
+    return bubble;
+  }
+
+  function showReplyPreview(replyData){
+    if(!replyPreview || !input) return;
+    replyPreview.hidden = false;
+    replyPreviewSender.textContent = replyData.sender || "Unknown";
+    replyPreviewText.textContent = replyData.text || "";
+    input.dataset.replyId = replyData.id;
+  }
+
+  function clearReplyPreview(){
+    if(!replyPreview || !input) return;
+    replyPreview.hidden = true;
+    replyPreviewSender.textContent = "";
+    replyPreviewText.textContent = "";
+    delete input.dataset.replyId;
+  }
+
+  if(replyCancel){
+    replyCancel.addEventListener("click", clearReplyPreview);
+  }
 
   // Typing indicator
   let typingIndicator = null;
@@ -499,74 +695,178 @@ body.light-mode .chat-wrap {
   }
   function hideTyping(){ if(typingIndicator){ typingIndicator.remove(); typingIndicator=null; } }
 
+    const pinnedCache = new Map();
+  function renderPinnedList(pins){
+    if(!pinnedBar || !pinnedList) return;
+    pinnedList.innerHTML = "";
+    pinnedCache.clear();
+    pins.forEach(pin => {
+      pinnedCache.set(String(pin.id), pin);
+      const item = document.createElement("div");
+      item.className = "pinned-item";
+      item.dataset.id = pin.id;
+      item.innerHTML = `
+        <span class="pinned-text">${escapeHtml(pin.message || "")}</span>
+        <span class="pinned-meta">${escapeHtml(pin.sender || "")}</span>
+      `;
+      item.addEventListener("click", ()=>{
+        const target = chatBox?.querySelector(`.bubble[data-id="${pin.id}"]`);
+        if(target){
+          target.scrollIntoView({behavior:"smooth", block:"center"});
+          target.classList.add("pinned");
+        }
+      });
+      pinnedList.appendChild(item);
+    });
+    pinnedBar.hidden = pins.length === 0;
+  }
+
+  function updatePinnedState(id, pinned){
+    const msg = chatBox?.querySelector(`.bubble[data-id="${id}"]`);
+    if(msg){
+      msg.classList.toggle("pinned", pinned);
+    }
+    if(pinned){
+      if(msg){
+        pinnedCache.set(String(id), {
+          id: id,
+          message: msg.dataset.text || "",
+          sender: msg.dataset.sender || "",
+        });
+      }
+    } else {
+      pinnedCache.delete(String(id));
+    }
+    renderPinnedList(Array.from(pinnedCache.values()));
+  }
+
+  function initPinnedFromDom(){
+    if(!chatBox) return;
+    const pins = Array.from(chatBox.querySelectorAll(".bubble.pinned")).map(bubble => ({
+      id: bubble.dataset.id,
+      message: bubble.dataset.text,
+      sender: bubble.dataset.sender,
+    }));
+    renderPinnedList(pins);
+  }
+
   // Send message
-  function sendMessage(msgInput=input, targetBody=chatBox){
+  function sendMessage(msgInput=input){
     if(!msgInput) return;
     const text = msgInput.value.trim();
-    if(!text) return;
-
+    function actuallySend(){
     function reallySend(){
       if(socket.readyState !== 1) return;
-      const payload = msgInput.dataset.editId
-        ? {action:"edit", id: msgInput.dataset.editId, message: text}
-        : {action:"message", message: text};
-      socket.send(JSON.stringify(payload));
-      if(msgInput.dataset.editId) delete msgInput.dataset.editId;
+      if(msgInput.dataset.editId){
+        socket.send(JSON.stringify({action:"edit", id: msgInput.dataset.editId, message: text}));
+        delete msgInput.dataset.editId;
+      } else if(msgInput.dataset.replyId){
+        socket.send(JSON.stringify({action:"reply", reply_to: msgInput.dataset.replyId, message: text}));
+        clearReplyPreview();
+      } else {
+        socket.send(JSON.stringify({action:"message", message: text}));
+      }
+
       msgInput.value = "";
       if(sendBtn){ sendBtn.classList.add("send-effect"); setTimeout(()=>sendBtn.classList.remove("send-effect"),500); }
-
-      // Append bubble
-      if(targetBody){
-        const bubble = document.createElement("div");
-        bubble.className = `bubble me pop`;
-        bubble.dataset.text = text;
-        bubble.innerHTML = `<div><strong>${username}</strong></div>
-                            <div>${text}</div>
-                            <div class="meta">just now</div>`;
-        targetBody.appendChild(bubble);
-        scrollBottom(targetBody);
-      }
     }
 
     if(socket.readyState === 1){
-      reallySend();
+      actuallySend();
     } else {
-      socket.addEventListener("open", reallySend, { once:true });
+      socket.addEventListener("open", actuallySend, { once: true });
     }
   }
 
   // Event listeners
-  if(sendBtn) sendBtn.addEventListener("click", ()=>sendMessage(input, chatBox));
-  if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(input, chatBox); } });
+  if(sendBtn) sendBtn.addEventListener("click", ()=>sendMessage(input));
+  if(input) input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); sendMessage(input); } });
+
+  let typingTimeout = null;
+  function sendTyping(isTyping){
+    if(socket.readyState !== 1) return;
+    socket.send(JSON.stringify({action: "typing", typing: isTyping}));
+  }
+  if(input){
+    input.addEventListener("input", ()=>{
+      if(!input.value.trim()){
+        sendTyping(false);
+        return;
+      }
+      sendTyping(true);
+      if(typingTimeout) clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(()=>sendTyping(false), 1200);
+    });
+  }
 
   // Socket messages
   socket.onmessage = function(e){
     const data = JSON.parse(e.data);
-    if(data.type==="typing"){ showTyping(); setTimeout(hideTyping,1500); }
-    else if(["message","edit","delete"].includes(data.type)){
-      if(!chatBox) return;
-      if(data.type==="message"){
-        const bubble=document.createElement("div");
-        bubble.className=`bubble ${data.sender===username?"me":"them"} pop`;
-        bubble.dataset.id=data.id;
-        bubble.dataset.text=data.message;
-        bubble.innerHTML=`<div><strong>${data.sender}</strong></div>
-                          <div>${data.message}</div>
-                          <div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
-        chatBox.appendChild(bubble);
-        scrollBottom(chatBox);
-      } else if(data.type==="edit"){
-        const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
-        if(msg){ msg.dataset.text=data.message; msg.querySelector("div:nth-child(2)").innerText=data.message;
-          const meta=msg.querySelector(".meta"); if(!meta.innerText.includes("(edited)")) meta.innerText+=" (edited)";
-        }
-      } else if(data.type==="delete"){
-        const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
-        if(msg) data.mode==="everyone"?msg.remove():msg.style.display="none";
+    const eventType = normalizeType(data.type);
+    if(eventType === "typing"){
+      if(data.sender !== username){
+        if(data.typing){ showTyping(); setTimeout(hideTyping,1500); }
+        else { hideTyping(); }
       }
+      return;
+    }
+    if(!chatBox) return;
+
+    if(eventType === "message" || eventType === "reply"){
+      const meta = new Date(data.timestamp).toLocaleString();
+      let replyTo = null;
+      if(eventType === "reply" && data.reply_to){
+        const replyElem = chatBox.querySelector(`.bubble[data-id="${data.reply_to}"]`);
+        replyTo = {
+          id: data.reply_to,
+          sender: replyElem?.dataset.sender || "Unknown",
+          text: replyElem?.dataset.text || "",
+        };
+      }
+            const bubble = buildBubble({
+        id: data.id,
+        sender: data.sender,
+        message: data.message,
+        meta: meta,
+        replyTo: replyTo,
+      });
+      chatBox.appendChild(bubble);
+      scrollBottom(chatBox);
+    } else if(eventType === "edit"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){
+        msg.dataset.text = data.message;
+        const textEl = msg.querySelector(".message-text");
+        if(textEl) textEl.innerText = data.message;
+        const meta = msg.querySelector(".meta");
+        if(meta && !meta.innerText.includes("(edited)")) meta.innerText += " (edited)";
+      }
+    } else if(eventType === "delete"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){
+        const wasPinned = msg.classList.contains("pinned");
+        msg.classList.add("deleted");
+        msg.dataset.text = "";
+        const textEl = msg.querySelector(".message-text");
+        if(textEl) textEl.innerText = "This message was deleted";
+        if(wasPinned) updatePinnedState(data.id, false);
+      }
+    } else if(eventType === "pin"){
+      updatePinnedState(data.id, data.pinned);
+    } else if(eventType === "pins"){
+      renderPinnedList(data.pins || []);
     }
   };
 
+  socket.addEventListener("open", ()=>{
+    socket.send(JSON.stringify({action:"get_pins"}));
+  });
+  if(socket.readyState === 1){
+    socket.send(JSON.stringify({action:"get_pins"}));
+  }
+
+  initPinnedFromDom();
+    
   // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
@@ -644,13 +944,14 @@ body.light-mode .chat-wrap {
     if(!socket || !msgElem) return;
     const msgId = msgElem.dataset.id;
     const text  = msgElem.dataset.text;
-
+    const sender = msgElem.dataset.sender || "Unknown";
+    
     if(action === "copy"){
         navigator.clipboard.writeText(text);
     }
     else if(action === "reply"){
-        input.value = "Replying to: " + text + "\n";
-        input.focus();
+        showReplyPreview({id: msgId, text: text, sender: sender});
+        input?.focus();
     }
     else if(action === "edit"){
         input.value = text;
@@ -658,8 +959,9 @@ body.light-mode .chat-wrap {
         input.focus();
     }
     else if(action === "delete-me"){
-        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
-        msgElem.style.display = "none";
+        const wasPinned = msgElem.classList.contains("pinned");
+        msgElem.remove();
+        if(wasPinned) updatePinnedState(msgId, false);
     }
     else if(action === "delete-everyone"){
         socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
@@ -677,16 +979,9 @@ body.light-mode .chat-wrap {
         }
     }
     else if(action==="pin") {
-    if(!msgElem) return;
-    msgElem.classList.add("pinned"); // optional: add special styling
-    // Move message to top
-    [chatBox, popupBody].forEach(c=>{
-        if(c && c.contains(msgElem)) {
-            c.prepend(msgElem);
-        }
-    });
-    alert("Pinned: " + text);
-}
+      const isPinned = msgElem.classList.contains("pinned");
+      socket.send(JSON.stringify({action:"pin", id: msgId, pin: !isPinned}));
+    }
 
     hideMenu();
 }
