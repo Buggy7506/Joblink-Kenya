@@ -3296,7 +3296,11 @@ def chat_view(request, application_id=None, job_id=None):
                     selected_app = applications.first()
 
                 if selected_app:
-                    messages_list = selected_app.messages.all().order_by("timestamp")
+                    messages_list = selected_app.messages.select_related(
+                        "sender",
+                        "reply_to",
+                        "reply_to__sender",
+                    ).order_by("timestamp")
 
             context.update({
                 "jobs": jobs,
@@ -3327,7 +3331,11 @@ def chat_view(request, application_id=None, job_id=None):
                 selected_app = applications.first()
 
             if selected_app:
-                messages_list = selected_app.messages.all().order_by("timestamp")
+                messages_list = selected_app.messages.select_related(
+                    "sender",
+                    "reply_to",
+                    "reply_to__sender",
+                ).order_by("timestamp")
 
             context.update({
                 "applications": applications,
