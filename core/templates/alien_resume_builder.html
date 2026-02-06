@@ -177,6 +177,57 @@ templateTriggers.forEach(trigger => {
 
     listContainer.innerHTML = '';
 
+        const loadTemplateAssets = async (template) => {
+      if (template.__loaded) {
+        return template;
+      }
+      const response = await fetch(template.url);
+      if (!response.ok) {
+        throw new Error('Failed to load template.');
+      }
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      doc.querySelectorAll('script').forEach(script => script.remove());
+      const styles = Array.from(doc.querySelectorAll('style'))
+        .map(style => style.textContent || '')
+        .join('\n');
+      const cssResponses = await Promise.all(
+        (template.cssUrls || []).map(cssUrl => fetch(cssUrl))
+      );
+      const cssText = await Promise.all(
+        cssResponses
+          .filter(res => res.ok)
+          .map(res => res.text())
+      );
+      const externalStyles = cssText.join('\n');
+      template.__loaded = true;
+      template.htmlContent = html;
+      template.styleText = `${styles}\n${externalStyles}`;
+      template.bodyContent = doc.body ? doc.body.innerHTML : '';
+      return template;
+    };
+
+    const buildPreview = (template, previewContainer) => {
+      const iframe = document.createElement('iframe');
+      iframe.className = 'template-preview-frame';
+      const previewStyles = `
+        html, body { margin: 0; padding: 0; background: #fff; }
+        body { transform: scale(0.38); transform-origin: top left; width: 900px; }
+      `;
+      iframe.srcdoc = `
+        <html>
+          <head>
+            <style>${previewStyles}</style>
+            <style>${template.styleText || ''}</style>
+          </head>
+          <body>${template.bodyContent || ''}</body>
+        </html>
+      `;
+      previewContainer.innerHTML = '';
+      previewContainer.appendChild(iframe);
+    };
+
     templates.forEach(template => {
       const card = document.createElement('div');
       card.className = 'template-card';
@@ -186,8 +237,9 @@ templateTriggers.forEach(trigger => {
           <span>${template.description}</span>
         </div>
         <div class="template-preview">
-          <p>${template.description}</p>
-          <span>Source: ${template.url.replace('https://', '')}</span>
+          <div class="template-preview-placeholder">
+            <span>Loading preview...</span>
+          </div>
         </div>
       `;
 
@@ -199,28 +251,9 @@ templateTriggers.forEach(trigger => {
         button.disabled = true;
         button.textContent = 'Loading...';
         try {
-          const response = await fetch(template.url);
-          if (!response.ok) {
-            throw new Error('Failed to load template.');
-          }
-          const html = await response.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const styles = Array.from(doc.querySelectorAll('style'))
-            .map(style => style.textContent || '')
-            .join('\n');
-          const cssResponses = await Promise.all(
-            (template.cssUrls || []).map(cssUrl => fetch(cssUrl))
-          );
-          const cssText = await Promise.all(
-            cssResponses
-              .filter(res => res.ok)
-              .map(res => res.text())
-          );
-          const externalStyles = cssText.join('\n');
-          const content = doc.body ? doc.body.innerHTML : '';
-          setTemplateStyles(styles + '\n' + externalStyles);
-          applyTemplateToCanvas(content);
+          await loadTemplateAssets(template);
+          setTemplateStyles(template.styleText);
+          applyTemplateToCanvas(template.bodyContent);
           modal.style.display = 'none';
         } catch (err) {
           console.error(err);
@@ -231,6 +264,18 @@ templateTriggers.forEach(trigger => {
 
       card.appendChild(button);
       listContainer.appendChild(card);
+
+      const previewContainer = card.querySelector('.template-preview');
+      loadTemplateAssets(template)
+        .then(() => buildPreview(template, previewContainer))
+        .catch(err => {
+          console.error(err);
+          previewContainer.innerHTML = `
+            <div class="template-preview-placeholder">
+              <span>Preview unavailable</span>
+            </div>
+          `;
+        });
     });
   };
 }
@@ -494,9 +539,13 @@ document.addEventListener("DOMContentLoaded", function() {
   padding: 0.75rem;
   font-size: 0.82rem;
   color: var(--text-main);
-  min-height: 80px;
+  min-height: 180px;
   display: grid;
-  gap: 0.4rem;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 .template-preview span {
@@ -504,6 +553,23 @@ document.addEventListener("DOMContentLoaded", function() {
   font-size: 0.72rem;
 }
 
+.template-preview-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.template-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+  
 .template-select-btn {
   width: 100%;
   border-radius: 12px;
