@@ -3,84 +3,79 @@
 {% block title %}Build Resume{% endblock %}
 
 {% block content %}
-<div class="container main">
-  <div class="glass-card" style="padding: 2rem; max-width: 1000px; margin: auto;">
-    <h1 style="text-align: center; color: var(--text-accent); margin-bottom: 1.5rem;">
-      💼 Build Your Resume
-    </h1>
-
-    {% if messages %}
+<div class="resume-builder-shell">
+  {% if messages %}
+    <div class="builder-messages">
       {% for message in messages %}
         <div class="resume-messages {{ message.tags }}">{{ message }}</div>
       {% endfor %}
-    {% endif %}
+      {% for message in messages %}
+        <div class="resume-messages {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+  {% endif %}
 
-    <!-- Templates Button -->
-    <div style="margin-bottom: 1rem; text-align: center;">
-      <button id="template-btn" class="glow-btn" style="padding: 0.5rem 1.2rem; font-weight: bold;">
-        📄 Templates
-      </button>
+  <form method="POST" class="resume-builder">
+    {% csrf_token %}
     </div>
 
-    <form method="POST">
-      {% csrf_token %}
-
-      <!-- Quill Editor -->
-      <div id="editor" style="
-          min-height: 600px;
-          background: var(--bg-card);
-          border-radius: 1rem;
-          padding: 1rem;
-          overflow-y: auto;
-          color: var(--text-main);
-          font-family: 'Poppins', sans-serif;
-          box-shadow: 0 0 20px rgba(0,0,0,0.15);
-      ">
-        {% if resume.content %}
-          {{ resume.content|safe }}
-        {% endif %}
+    <header class="builder-topbar">
+      <div class="builder-brand">
+        <span class="brand-icon">🛸</span>
+        <div>
+          <h1>Alien Resume Studio</h1>
+          <p>Design like Canva, publish like a pro.</p>
+        </div>
+      </div>
+      <div class="builder-actions">
+        <button type="button" id="template-btn" class="builder-btn ghost">Templates</button>
+        <button type="submit" id="save-btn" class="builder-btn primary">Save Resume</button>
+      </div>
+    </header>
       </div>
 
-      <input type="hidden" name="content" id="resume-content">
+    <div class="builder-body">
+      <aside class="builder-sidebar">
+        <div class="sidebar-card">
+          <h2>Design Tools</h2>
+          <p>Pick a layout, then edit directly on the canvas with the toolbar.</p>
+          <button type="button" class="builder-btn secondary" id="template-btn-sidebar">Browse Templates</button>
+        </div>
+        <div class="sidebar-card">
+          <h3>Tips</h3>
+          <ul>
+            <li>Keep it to one page for most roles.</li>
+            <li>Start bullet points with action verbs.</li>
+            <li>Use numbers to show impact.</li>
+          </ul>
+        </div>
+      </aside>
 
-      <!-- Save Button -->
-      <button type="submit" id="save-btn" class="glow-btn" style="
-          margin-top: 1.5rem;
-          width: 100%;
-          padding: 1rem;
-          font-weight: bold;
-          color: var(--text-main);
-          background: var(--text-accent);
-      ">
-        Save Resume
-      </button>
-    </form>
-  </div>
+      <main class="builder-canvas">
+        <div class="canvas-header">
+          <span>Resume Canvas</span>
+          <span class="canvas-hint">A4 • 8.27 × 11.69 in</span>
+        </div>
+
+        <div id="editor" class="resume-editor">
+          {% if resume.content %}
+            {{ resume.content|safe }}
+          {% endif %}
+        </div>
+      </main>
+    </div>
+
+    <input type="hidden" name="content" id="resume-content">
+  </form>
 </div>
 
 <!-- Template Modal -->
-<div id="template-modal" style="
-    display:none;
-    position:fixed;
-    inset:0;
-    background: rgba(0,0,0,0.5);
-    justify-content:center;
-    align-items:center;
-    z-index:999;
-">
-  <div style="
-      background: var(--bg-card);
-      padding: 2rem;
-      border-radius: 1rem;
-      max-width: 800px;
-      width: 90%;
-      text-align: center;
-      max-height: 80vh;
-      overflow-y: auto;
-  ">
-    <h2 style="color: var(--text-accent); margin-bottom: 1rem;">Choose a Template</h2>
-    <div id="templates-list" style="display:flex; flex-direction:column; gap: 1rem;"></div>
-    <button id="close-modal" class="glow-btn" style="margin-top:1rem;">Close</button>
+<div id="template-modal" class="template-modal">
+  <div class="template-modal-card">
+    <div class="template-modal-header">
+      <h2>Choose a Template</h2>
+      <button type="button" id="close-modal" class="builder-btn ghost">Close</button>
+    </div>
+    <div id="templates-list" class="template-list"></div>
   </div>
 </div>
 
@@ -118,7 +113,10 @@ document.querySelector('form').onsubmit = function() {
 var modal = document.getElementById('template-modal');
 var listContainer = document.getElementById('templates-list');
 
-document.getElementById('template-btn').onclick = async () => {
+const templateTriggers = [document.getElementById('template-btn'), document.getElementById('template-btn-sidebar')];
+templateTriggers.forEach(trigger => {
+  if(trigger){
+    trigger.onclick = async () => {
     modal.style.display = 'flex';
     listContainer.innerHTML = 'Loading templates...';
 
@@ -140,8 +138,8 @@ document.getElementById('template-btn').onclick = async () => {
 
         for(let url of templateUrls){
             let btn = document.createElement('button');
-            btn.className = 'glow-btn';
-            btn.style.margin = '0.2rem';
+            btn.className = 'builder-btn secondary';
+            btn.type = 'button';;
             let name = url.split('/').pop().replace('.html','').replace('-',' ');
             btn.innerText = name.charAt(0).toUpperCase() + name.slice(1);
 
@@ -158,7 +156,9 @@ document.getElementById('template-btn').onclick = async () => {
         listContainer.innerHTML = 'Failed to load templates.';
         console.error(err);
     }
-};
+  };
+}
+});
 
 // Close modal
 document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
@@ -173,20 +173,228 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <style>
 /* Glow buttons */
-.glow-btn {
-  border: none;
-  border-radius: 0.5rem;
-  background: linear-gradient(90deg, var(--text-accent), var(--glow-accent));
-  color: var(--text-main);
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 10px var(--glow-accent), 0 0 20px var(--text-accent);
-  transition: all 0.3s ease;
+.resume-builder-shell {
+  padding: 2rem 1.5rem 3rem;
 }
 
-.glow-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px var(--glow-accent), 0 0 30px var(--text-accent) inset;
+.builder-messages {
+  max-width: 1200px;
+  margin: 0 auto 1rem;
+}
+
+.resume-builder {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  border: 1px solid var(--bg-surface-soft);
+}
+
+.builder-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--bg-surface), var(--bg-card));
+  border-bottom: 1px solid var(--bg-surface-soft);
+}
+
+.builder-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-main);
+}
+
+.builder-brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.builder-brand p {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.brand-icon {
+  font-size: 2rem;
+}
+
+.builder-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.builder-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.builder-btn.primary {
+  background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(0, 255, 255, 0.25);
+}
+
+.builder-btn.secondary {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--bg-surface-soft);
+}
+
+.builder-btn.ghost {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--bg-surface-soft);
+}
+
+.builder-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.builder-body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 720px;
+}
+
+.builder-sidebar {
+  padding: 1.5rem;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--bg-surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: var(--text-main);
+}
+
+.sidebar-card {
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--bg-surface-soft);
+}
+
+.sidebar-card h2,
+.sidebar-card h3 {
+  margin-top: 0;
+  color: var(--text-accent);
+}
+
+.sidebar-card p,
+.sidebar-card li {
+  color: var(--text-muted);
+}
+
+.sidebar-card ul {
+  padding-left: 1.1rem;
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.builder-canvas {
+  padding: 2rem;
+  background: var(--bg-surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.resume-editor {
+  min-height: 640px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 2rem;
+  overflow-y: auto;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.ql-toolbar.ql-snow {
+  border-radius: 16px 16px 0 0;
+  border-color: rgba(148, 163, 184, 0.35);
+  background: var(--bg-surface);
+}
+
+.ql-container.ql-snow {
+  border-radius: 0 0 16px 16px;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.template-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 25, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.template-modal-card {
+  background: var(--bg-card);
+  padding: 2rem;
+  border-radius: 1.25rem;
+  max-width: 860px;
+  width: 92%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+}
+
+.template-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.template-modal-header h2 {
+  margin: 0;
+  color: var(--text-accent);
+}
+
+.template-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.template-list .builder-btn {
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  background: var(--bg-surface);
+}
+
+@media (max-width: 980px) {
+  .builder-body {
+    grid-template-columns: 1fr;
+  }
+
+  .builder-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--bg-surface-soft);
+  }
 }
 </style>
 {% endblock %}
