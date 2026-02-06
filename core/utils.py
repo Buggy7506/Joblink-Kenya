@@ -218,24 +218,25 @@ def send_sms_infini(phone, message):
     
 
 # ======================================================
-# WHAPI.CLOUD (WHATSAPP)
+# CALLMEBOT (WHATSAPP - FREE)
 # ======================================================
 
-def send_whatsapp_whapi(phone, message):
-    url = "https://gate.whapi.cloud/messages/text"
-    headers = {
-        "Authorization": f"Bearer {settings.WHAPI_TOKEN}",
-        "Content-Type": "application/json",
-    }
+def send_whatsapp_callmebot(phone, message):
+    api_key = getattr(settings, "CALLMEBOT_API_KEY", "")
+    if not api_key:
+        raise ValueError("CALLMEBOT_API_KEY is required for WhatsApp OTP.")
 
-    payload = {
-        "to": phone,
-        "body": message,
-    }
-
-    response = requests.post(url, json=payload, headers=headers, timeout=15)
+    response = requests.get(
+        "https://api.callmebot.com/whatsapp.php",
+        params={
+            "phone": phone,
+            "text": message,
+            "apikey": api_key,
+        },
+        timeout=15,
+    )
     response.raise_for_status()
-    return response.json()
+    return {"status": "queued", "response": response.text}
 
 
 # ======================================================
@@ -249,7 +250,7 @@ def send_otp(channel, destination, code):
         return send_sms_infini(destination, message)
 
     if channel == "whatsapp":
-        return send_whatsapp_whapi(destination, message)
+        return send_whatsapp_callmebot(destination, message)
 
     if channel == "email":
         return send_otp_email(destination, code)
