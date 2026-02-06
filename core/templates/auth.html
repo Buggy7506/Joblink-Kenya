@@ -865,19 +865,13 @@
 
           <!-- PHONE -->
             <div class="phone-group" id="phoneGroup" style="display:none;">
-            <select id="countrySelect" class="auth-input country-select" disabled>
-              <option value="KE" data-dial="254" data-max="9">🇰🇪 Kenya (+254)</option>
-              <option value="UG" data-dial="256" data-max="9">🇺🇬 Uganda (+256)</option>
-              <option value="TZ" data-dial="255" data-max="9">🇹🇿 Tanzania (+255)</option>
-              <option value="RW" data-dial="250" data-max="9">🇷🇼 Rwanda (+250)</option>
-              <option value="ET" data-dial="251" data-max="9">🇪🇹 Ethiopia (+251)</option>
-              <option value="ZA" data-dial="27" data-max="9">🇿🇦 South Africa (+27)</option>
-              <option value="NG" data-dial="234" data-max="10">🇳🇬 Nigeria (+234)</option>
-              <option value="GH" data-dial="233" data-max="9">🇬🇭 Ghana (+233)</option>
-              <option value="EG" data-dial="20" data-max="10">🇪🇬 Egypt (+20)</option>
-              <option value="GB" data-dial="44" data-max="10">🇬🇧 United Kingdom (+44)</option>
-              <option value="US" data-dial="1" data-max="10">🇺🇸 United States (+1)</option>
-              <option value="IN" data-dial="91" data-max="10">🇮🇳 India (+91)</option>
+            <select
+              id="countrySelect"
+              class="auth-input country-select"
+              data-default="KE"
+              disabled
+            >
+              <option value="" selected disabled>Loading countries...</option>
             </select>
             <input
               type="text"
@@ -1232,7 +1226,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!phoneDisplayInput || !countrySelect) return false;
     const { max } = getCountryMeta();
     const digits = sanitizeDigits(phoneDisplayInput.value);
-    return Boolean(max) && digits.length === max;
+    if (max) return digits.length === max;
+    return digits.length >= 6 && digits.length <= 15;
   }
 
   function updateContinueState() {
@@ -1283,9 +1278,79 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  prefillPhoneFromStored();
-  updatePhonePlaceholder();
-  updateContinueState();
+  const COUNTRY_PHONE_MAX = {
+    KE: 9,
+    UG: 9,
+    TZ: 9,
+    RW: 9,
+    ET: 9,
+    ZA: 9,
+    NG: 10,
+    GH: 9,
+    EG: 10,
+    GB: 10,
+    US: 10,
+    IN: 10,
+  };
+
+  async function loadCountries() {
+    if (!countrySelect) return;
+    try {
+      const response = await fetch(
+        "https://restcountries.com/v3.1/all?fields=cca2,name,idd,flags,flag"
+      );
+      if (!response.ok) throw new Error("Failed to fetch countries.");
+      const data = await response.json();
+
+      const countries = data
+        .map(country => {
+          const root = country.idd?.root || "";
+          const suffix = Array.isArray(country.idd?.suffixes)
+            ? country.idd.suffixes[0]
+            : "";
+          const dial = root && suffix ? `${root}${suffix}` : root;
+          return {
+            code: country.cca2,
+            name: country.name?.common || country.cca2,
+            dial: dial.replace(/\D/g, ""),
+            flag: country.flag || "",
+          };
+        })
+        .filter(country => country.code && country.dial)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      countrySelect.innerHTML = "";
+      countries.forEach(country => {
+        const option = document.createElement("option");
+        option.value = country.code;
+        option.dataset.dial = country.dial;
+        if (COUNTRY_PHONE_MAX[country.code]) {
+          option.dataset.max = COUNTRY_PHONE_MAX[country.code];
+        }
+        option.textContent = `${country.flag} ${country.name} (+${country.dial})`;
+        countrySelect.appendChild(option);
+      });
+
+      const defaultCode = countrySelect.dataset.default;
+      if (defaultCode) {
+        countrySelect.value = defaultCode;
+      }
+    } catch (error) {
+      console.error(error);
+      countrySelect.innerHTML = `
+        <option value="KE" data-dial="254" data-max="9">🇰🇪 Kenya (+254)</option>
+        <option value="UG" data-dial="256" data-max="9">🇺🇬 Uganda (+256)</option>
+        <option value="TZ" data-dial="255" data-max="9">🇹🇿 Tanzania (+255)</option>
+      `;
+    }
+  }
+
+  loadCountries().finally(() => {
+    prefillPhoneFromStored();
+    updatePhonePlaceholder();
+    updatePhoneState();
+    updateContinueState();
+  });
    
    // =========================
   // LOADING HELPERS
