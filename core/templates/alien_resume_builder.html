@@ -205,6 +205,29 @@ templateTriggers.forEach(trigger => {
           quill.setContents([]);
           quill.clipboard.dangerouslyPasteHTML(styles + externalStyles + content);
           modal.style.display = 'none';
+        } catch (err) {
+          console.error(err);
+          button.textContent = 'Failed. Try again';
+          button.disabled = false;
+        }
+      };
+
+      card.appendChild(button);
+      listContainer.appendChild(card);
+    });
+  };
+}
+});
+
+// Close modal
+document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
+
+// Auto-remove flash messages
+document.addEventListener("DOMContentLoaded", function() {
+  setTimeout(() => {
+    document.querySelectorAll('.resume-messages').forEach(msg => msg.remove());
+  }, 3000);
+});
 </script>
 
 <style>
