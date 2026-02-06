@@ -104,6 +104,26 @@ var quill = new Quill('#editor', {
   }
 });
 
+function setTemplateStyles(cssText) {
+  const existing = document.querySelector('style[data-template-style]');
+  if (existing) {
+    existing.remove();
+  }
+  if (!cssText) {
+    return;
+  }
+  const styleTag = document.createElement('style');
+  styleTag.setAttribute('data-template-style', 'true');
+  styleTag.textContent = cssText;
+  document.head.appendChild(styleTag);
+}
+
+function applyTemplateToCanvas(content) {
+  const wrapped = `<div class="template-canvas">${content}</div>`;
+  quill.setContents([]);
+  quill.clipboard.dangerouslyPasteHTML(wrapped);
+}
+  
 // Save content to hidden input
 document.querySelector('form').onsubmit = function() {
   document.getElementById('resume-content').value = quill.root.innerHTML;
@@ -187,8 +207,8 @@ templateTriggers.forEach(trigger => {
           const parser = new DOMParser();
           const doc = parser.parseFromString(html, 'text/html');
           const styles = Array.from(doc.querySelectorAll('style'))
-            .map(style => style.outerHTML)
-            .join('');
+            .map(style => style.textContent || '')
+            .join('\n');
           const cssResponses = await Promise.all(
             (template.cssUrls || []).map(cssUrl => fetch(cssUrl))
           );
@@ -197,11 +217,11 @@ templateTriggers.forEach(trigger => {
               .filter(res => res.ok)
               .map(res => res.text())
           );
-          const externalStyles = cssText
+          const externalStyles = cssText.join('\n');
             .map(text => `<style>${text}</style>`)
             .join('');
-          doc.querySelectorAll('link[rel="stylesheet"], script').forEach(el => el.remove());
-          const content = doc.body?.innerHTML || html;
+          setTemplateStyles(styles + '\n' + externalStyles);
+          applyTemplateToCanvas(content);
           quill.setContents([]);
           quill.clipboard.dangerouslyPasteHTML(styles + externalStyles + content);
           modal.style.display = 'none';
@@ -387,6 +407,18 @@ document.addEventListener("DOMContentLoaded", function() {
   font-family: 'Poppins', sans-serif;
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(148, 163, 184, 0.35);
+    position: relative;
+}
+
+.resume-editor .template-canvas {
+  min-height: 640px;
+  width: 100%;
+}
+
+.resume-editor .template-canvas img,
+.resume-editor .template-canvas video,
+.resume-editor .template-canvas iframe {
+  max-width: 100%;
 }
 
 .ql-toolbar.ql-snow {
