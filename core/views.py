@@ -117,8 +117,7 @@ from .forms import (
 
 from .utils import (
     generate_code,
-    send_sms_infini,
-    send_whatsapp_callmebot,
+    send_textmebot_message,
     send_otp,
     get_client_ip,
     get_device_fingerprint,
