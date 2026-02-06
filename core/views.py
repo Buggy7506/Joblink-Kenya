@@ -161,7 +161,7 @@ def unified_auth_view(request):
             return CustomUser.objects.filter(email__iexact=identifier).first()
         return CustomUser.objects.filter(phone=identifier).first()
 
-        def derive_name_parts(channel, identifier):
+    def derive_name_parts(channel, identifier):
         if not identifier:
             return ("User", "")
         if channel == "email":
