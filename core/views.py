@@ -33,11 +33,7 @@ from django.contrib import messages
 # Django core utilities
 # =========================
 from django.conf import settings
-from django.core.mail import (
-    send_mail,
-    get_connection,
-    EmailMultiAlternatives,
-)
+
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.core.files.base import ContentFile
@@ -114,7 +110,6 @@ from .forms import (
     AccountSettingsForm,
     CompanyDocumentForm,
 )
-
 from .utils import (
     generate_code,
     send_textmebot_message,
@@ -123,6 +118,7 @@ from .utils import (
     get_device_fingerprint,
     is_business_email,
     brevo_send_email,
+    build_branded_email,
     otp_recently_sent,
     get_location_from_ip,
 )
@@ -1704,11 +1700,18 @@ def process_application(request, app_id):
         application.save()
 
         # send email to applicant
-        send_mail(
-            subject,
-            message,
-            'suppor@stepper.dpdns.org',      # from email
-            [application.applicant.email],     # user's email
+        brevo_send_email(
+            subject=subject,
+            recipient=application.applicant.email,
+            html_content=build_branded_email(
+                title=subject,
+                body_html=f"""
+                <p>{message}</p>
+                <p style="color:#475569;font-size:14px">
+                    If you have questions about this update, reply to this email.
+                </p>
+                """,
+            ),
         )
 
     return redirect('dashboard')  # <— change to your employer dashboard URL name
@@ -2626,13 +2629,15 @@ def post_job(request):
                     'job': job,
                     'job_url': job_link
                 })
-                msg = EmailMultiAlternatives(
+                brevo_send_email(
                     subject=f"New {job.title} Job Posted!",
-                    body=f"A new job matching your alert ({job.title} in {job.location}) is now on JobLink Kenya.",
-                    to=[alert.user.email]
+                    recipient=alert.user.email,
+                    html_content=build_branded_email(
+                        title=f"New {job.title} Job Posted!",
+                        body_html=html_content,
+                        footer_text="Joblink Kenya • Job Alerts",
+                    ),
                 )
-                msg.attach_alternative(html_content, "text/html")
-                msg.send()
 
                 # 🔔 App Notification
                 Notification.objects.create(
