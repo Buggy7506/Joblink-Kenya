@@ -194,73 +194,69 @@ def get_location_from_ip(ip):
 
 
 # ======================================================
-# BREVO (SMS)
+# TEXTMEBOT (SMS + WHATSAPP)
 # ======================================================
-def send_sms_infini(phone, message):
+def send_textmebot_message(phone, message="", image_url=None, document_url=None):
     """
-    Brevo transactional SMS sender.
-    Function name kept for backward compatibility.
+    Send messages via TextMeBot (SMS or WhatsApp).
+
+    Parameters:
+        phone (str): Recipient phone number with country code (e.g., +254712345678)
+        message (str): Text message to send
+        image_url (str, optional): URL of an image to send
+        document_url (str, optional): URL of a PDF or document to send
+
+    Returns:
+        dict: Status and API response
     """
 
-    url = "https://api.brevo.com/v3/transactionalSMS/sms"
-
-    payload = {
-        "sender": "JOBLINK",         
-        "recipient": phone,             
-        "content": message,
-        "type": "transactional"
-    }
-
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "api-key": settings.BREVO_SMS_API_KEY
-    }
-
-    response = requests.post(
-        url,
-        json=payload,
-        headers=headers,
-        timeout=15
-    )
-
-    response.raise_for_status()
-    return response.json()    
-
-# ======================================================
-# CALLMEBOT (WHATSAPP - FREE)
-# ======================================================
-
-def send_whatsapp_callmebot(phone, message):
-    api_key = getattr(settings, "CALLMEBOT_API_KEY", "")
+    api_key = getattr(settings, "TEXTMEBOT_API_KEY", "")
     if not api_key:
-        raise ValueError("CALLMEBOT_API_KEY is required for WhatsApp OTP.")
+        raise ValueError("TEXTMEBOT_API_KEY is required for sending messages.")
 
-    response = requests.get(
-        "https://api.callmebot.com/whatsapp.php",
-        params={
-            "phone": phone,
-            "text": message,
-            "apikey": api_key,
-        },
-        timeout=15,
-    )
+    url = "http://api.textmebot.com/send.php"
+
+    params = {
+        "recipient": phone,
+        "apikey": api_key,
+    }
+
+    if message:
+        params["text"] = message
+    if image_url:
+        params["file"] = image_url
+    if document_url:
+        params["document"] = document_url
+
+    response = requests.get(url, params=params, timeout=15)
     response.raise_for_status()
+
     return {"status": "queued", "response": response.text}
 
 
 # ======================================================
 # UNIFIED OTP DISPATCHER
 # ======================================================
-
 def send_otp(channel, destination, code):
+    """
+    Send OTP via SMS, WhatsApp, or Email.
+
+    Parameters:
+        channel (str): "sms", "whatsapp", or "email"
+        destination (str): Phone number or email address
+        code (str/int): OTP code
+
+    Returns:
+        dict: API response
+    """
+
     message = f"Your Joblink verification code is {code}. Valid for {settings.OTP_EXPIRY_MINUTES} minutes."
 
     if channel == "sms":
-        return send_sms_infini(destination, message)
+        return send_textmebot_message(destination, message)
 
     if channel == "whatsapp":
-        return send_whatsapp_callmebot(destination, message)
+        return send_textmebot_message(destination, message)
 
     if channel == "email":
         return send_otp_email(destination, code)
