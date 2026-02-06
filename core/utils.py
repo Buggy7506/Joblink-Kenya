@@ -99,6 +99,26 @@ def send_otp_email(email, code):
         </div>
         """
     )
+
+
+def build_branded_email(title, body_html, footer_text="Joblink Kenya • Secure Authentication"):
+    return f"""
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:20px">
+        <h2 style="color:#0f172a">Joblink Kenya</h2>
+
+        <h3 style="color:#0f172a;margin-bottom:12px">{title}</h3>
+
+        <div style="color:#0f172a;font-size:15px;line-height:1.6">
+            {body_html}
+        </div>
+
+        <hr style="margin-top:30px;border:none;border-top:1px solid #e5e7eb">
+
+        <p style="font-size:12px;color:#64748b">
+            {footer_text}
+        </p>
+    </div>
+    """
     
 # ======================================================
 # EMPLOYER ACCESS GUARD
