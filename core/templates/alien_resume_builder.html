@@ -218,12 +218,9 @@ templateTriggers.forEach(trigger => {
               .map(res => res.text())
           );
           const externalStyles = cssText.join('\n');
-            .map(text => `<style>${text}</style>`)
-            .join('');
+          const content = doc.body ? doc.body.innerHTML : '';
           setTemplateStyles(styles + '\n' + externalStyles);
           applyTemplateToCanvas(content);
-          quill.setContents([]);
-          quill.clipboard.dangerouslyPasteHTML(styles + externalStyles + content);
           modal.style.display = 'none';
         } catch (err) {
           console.error(err);
