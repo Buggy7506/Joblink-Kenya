@@ -161,11 +161,24 @@ def unified_auth_view(request):
             return CustomUser.objects.filter(email__iexact=identifier).first()
         return CustomUser.objects.filter(phone=identifier).first()
 
+        def derive_name_parts(channel, identifier):
+        if not identifier:
+            return ("User", "")
+        if channel == "email":
+            base = identifier.split("@")[0]
+            parts = re.split(r"[._-]+", base)
+            cleaned = [re.sub(r"\d+", "", part).strip() for part in parts]
+            cleaned = [part for part in cleaned if part]
+            first = cleaned[0].title() if cleaned else "User"
+            last = cleaned[1].title() if len(cleaned) > 1 else ""
+            return (first, last)
+        last_digits = re.sub(r"\D", "", identifier)[-4:]
+        fallback = f"User{last_digits}" if last_digits else "User"
+        return (fallback, "")
+
     def derive_username(channel, identifier):
-        if channel != "email" or not identifier:
-            return None
-    
-        base = identifier.split("@")[0]
+        first_name, _last_name = derive_name_parts(channel, identifier)
+        base = re.sub(r"[^a-zA-Z0-9_]", "", first_name.lower()) or "user"
         username = base
         i = 1
     
@@ -409,7 +422,8 @@ def unified_auth_view(request):
                     "auth.html",
                     {"form": form, "ui_step": "password", "is_new_user": True}
                 )
-        
+                
+            first_name, last_name = derive_name_parts(channel, identifier)
             username = derive_username(channel, identifier)
         
             user = CustomUser.objects.create_user(
@@ -418,11 +432,16 @@ def unified_auth_view(request):
                 phone=identifier if channel != "email" else None,
                 password=password,
                 role=role,
+                first_name=first_name,
+                last_name=last_name,
             )
         
             Profile.objects.get_or_create(
                 user=user,
-                defaults={"full_name": username or identifier, "role": role}
+                defaults={
+                    "full_name": " ".join(part for part in [first_name, last_name] if part).strip() or username or identifier,
+                    "role": role,
+                }
             )
         
             login(request, user)
