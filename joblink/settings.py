@@ -270,6 +270,7 @@ TEXTBELT_API_KEY = os.getenv("TEXTBELT_API_KEY", "textbelt")
 DEFAULT_FROM_EMAIL = "Joblink Kenya <support@stepper.dpdns.org>"
 
 WHAPI_TOKEN = os.getenv("WHAPI_TOKEN")
+CALLMEBOT_API_KEY = os.getenv("CALLMEBOT_API_KEY", "")
 
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_51RvRvyIw0VfmVsTbChuKMjJburhqmWL65VM1qxZ3Az5RYEhMETg5kGZaXH91aK8gosui5RPb7Trr04nus1tE67tD00lBPljhkb')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawUSdB6xKh4RSPtlt4TqLzgNV7u1sWa09mr3XLruD5rq1FinGBmL9XLodixb27p1J3eS3IAz00OfwBFe4V')
