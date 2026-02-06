@@ -56,7 +56,7 @@
           <span class="canvas-hint">A4 • 8.27 × 11.69 in</span>
         </div>
 
-        <div id="editor" class="resume-editor">
+        <div id="canvas-editor" class="resume-editor" contenteditable="true" spellcheck="false">
           {% if resume.content %}
             {{ resume.content|safe }}
           {% endif %}
@@ -79,31 +79,9 @@
   </div>
 </div>
 
-<!-- Quill.js -->
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
-
 <script>
-// Initialize Quill editor
-var quill = new Quill('#editor', {
-  theme: 'snow',
-  placeholder: 'Start building your professional resume...',
-  modules: {
-    toolbar: [
-      [{ font: [] }],
-      [{ size: ['small', false, 'large', 'huge'] }],
-      [{ header: [1, 2, 3, 4, false] }],
-      ['bold','italic','underline','strike'],
-      [{ color: [] }, { background: [] }],
-      [{ align: [] }],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ indent: '-1' }, { indent: '+1' }],
-      ['blockquote','code-block','link','image','video','formula'],
-      ['clean']
-    ]
-  }
-});
-
+const canvasEditor = document.getElementById('canvas-editor');
+  
 function setTemplateStyles(cssText) {
   const existing = document.querySelector('style[data-template-style]');
   if (existing) {
@@ -172,13 +150,12 @@ function rewriteDocumentAssets(doc, baseUrl) {
   
 function applyTemplateToCanvas(content) {
   const wrapped = `<div class="template-canvas">${content}</div>`;
-  quill.setContents([]);
-  quill.clipboard.dangerouslyPasteHTML(wrapped);
+  canvasEditor.innerHTML = wrapped;
 }
   
 // Save content to hidden input
 document.querySelector('form').onsubmit = function() {
-  document.getElementById('resume-content').value = quill.root.innerHTML;
+  document.getElementById('resume-content').value = canvasEditor.innerHTML;
 };
 
 // Modal
@@ -508,7 +485,8 @@ document.addEventListener("DOMContentLoaded", function() {
   font-family: 'Poppins', sans-serif;
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(148, 163, 184, 0.35);
-    position: relative;
+  position: relative;
+  outline: none;
 }
 
 .resume-editor .template-canvas {
@@ -520,17 +498,6 @@ document.addEventListener("DOMContentLoaded", function() {
 .resume-editor .template-canvas video,
 .resume-editor .template-canvas iframe {
   max-width: 100%;
-}
-
-.ql-toolbar.ql-snow {
-  border-radius: 16px 16px 0 0;
-  border-color: rgba(148, 163, 184, 0.35);
-  background: var(--bg-surface);
-}
-
-.ql-container.ql-snow {
-  border-radius: 0 0 16px 16px;
-  border-color: rgba(148, 163, 184, 0.35);
 }
 
 .template-modal {
