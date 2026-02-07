@@ -95,6 +95,7 @@
   background: var(--bg-surface);
   cursor: pointer;
 }
+/* PHONE GROUP CONTAINER */
 .auth-page .phone-group {
   display: flex;
   gap: 0;
@@ -110,75 +111,40 @@
   overflow: hidden;
   transition: border 0.25s ease, box-shadow 0.25s ease;
 }
+
+/* COUNTRY FLAG */
 .auth-page .country-flag {
   position: absolute;
   left: 0.6rem;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   line-height: 1;
   pointer-events: none;
   z-index: 2;
 }
+
+/* COUNTRY SELECT (hidden, only for JS logic) */
 .auth-page .country-select {
   flex: 0 0 var(--country-select-width);
   width: var(--country-select-width);
   max-width: var(--country-select-width);
   min-width: 0;
-  position: relative;
-  margin: 0;
-  z-index: 1;
   border: none;
   border-right: 1px solid color-mix(in srgb, var(--text-muted), transparent 45%);
   border-radius: 0;
   background: transparent;
   padding: 0.55rem 1.6rem 0.55rem 2.2rem;
-  font-weight: 600;
-  white-space: nowrap;
-  text-overflow: clip;
-  overflow: hidden;
-  color: transparent;
-  text-shadow: none;
-  -webkit-text-fill-color: transparent;
-  text-indent: -999px;
   font-size: 0;
-}
-.auth-page .country-select:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.04);
-}
-.auth-page .country-select option {
-  color: var(--text-main);
-  background: var(--bg-surface-soft);
-  font-size: 0.95rem;
-  padding: 0.4rem 0.6rem;
-}
-.auth-page .phone-input-wrapper {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0 0.7rem;
-  min-width: 0;
-}
-.auth-page .phone-dial {
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.9rem;
+  color: transparent;
+  text-indent: -999px; /* hides text, flags handled separately */
   white-space: nowrap;
+  overflow: hidden;
+  z-index: 1;
+  position: relative;
 }
-.auth-page .phone-number-input {
-  flex: 1;
-  min-width: 0;
-  margin-bottom: 0;
-  padding: 0.55rem 0 0.55rem 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-}
-.auth-page .phone-group .auth-input {
-  box-shadow: none;
-}
+
+/* DROPDOWN ARROW */
 .auth-page .phone-group::after {
   content: "▾";
   position: absolute;
@@ -188,10 +154,64 @@
   color: var(--text-muted);
   font-size: 0.9rem;
   pointer-events: none;
+  z-index: 2;
 }
+
+/* PHONE INPUT WRAPPER */
+.auth-page .phone-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.7rem;
+  min-width: 0;
+}
+
+/* DIAL CODE */
+.auth-page .phone-dial {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* PHONE NUMBER INPUT */
+.auth-page .phone-number-input {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+  padding: 0.55rem 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  outline: none;
+}
+
+/* REMOVE INPUT SHADOWS */
+.auth-page .phone-group .auth-input {
+  box-shadow: none;
+}
+
+/* FOCUS STATE */
 .auth-page .phone-group:focus-within {
   border-color: var(--text-accent);
   box-shadow: 0 0 0 2px var(--glow-accent);
+}
+
+/* COUNTRY SELECT OPTIONS */
+.auth-page .country-select option {
+  background: var(--bg-surface-soft);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+}
+
+/* FOCUS ON SELECT */
+.auth-page .country-select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.04);
 }
    
 .auth-page .auth-box input::placeholder {
@@ -959,21 +979,24 @@
             </label>
           </div>
 
-          <!-- PHONE -->
-          <div class="phone-group" id="phoneGroup" style="display:none;">
-            <span class="country-flag" id="countryFlag" aria-hidden="true">🇰🇪</span>
-            <select
-              id="countrySelect"
-              class="auth-input country-select"
-              data-default="KE"
-              disabled
-            >
-              <option value="" selected disabled>Loading countries...</option>
-            </select>
-            <div class="phone-input-wrapper">
-              <span class="phone-dial" id="phoneDial">+254</span>
+            <!-- PHONE -->
+            <div class="phone-group" id="phoneGroup" style="display:none;">
+              <!-- Country flag -->
+              <span class="country-flag" id="countryFlag" aria-hidden="true">🇰🇪</span>
+            
+              <!-- Country select -->
+              <select
+                id="countrySelect"
+                class="auth-input country-select"
+                data-default="KE"
+                disabled
+              >
+                <option value="" selected disabled>Loading countries...</option>
+              </select>
+            
+              <!-- Phone input -->
               <input
-                type="text"
+                type="tel"
                 id="phoneInput"
                 name="phone"
                 value="{{ request.session.auth_phone|default:'' }}"
@@ -984,7 +1007,6 @@
                 disabled
               >
             </div>
-          </div>
             
           <button
             type="submit"
@@ -1041,10 +1063,10 @@
           >
             Resend code (<span id="countdown">30</span>s)
           </button>
-
+           
+        {% if request.session.auth_user_exists %}
           <div class="divider">OR</div>
 
-        {% if request.session.auth_user_exists %}
           <button type="submit" name="action" value="switch_to_password" class="auth-btn">
              Continue with password
            </button>
