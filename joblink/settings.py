@@ -252,16 +252,19 @@ MICROSOFT_REDIRECT_URI = os.getenv(
     f"{SITE_URL}/auth/microsoft/callback/",
 )
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = ENV == "production"
+CSRF_COOKIE_SECURE = ENV == "production"
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = True
 
 # HTTP Strict Transport Security (HSTS)
-SECURE_HSTS_SECONDS = 3600  # Adjust as needed
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+if ENV == "production":
+    SECURE_HSTS_SECONDS = 3600
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECURE_HSTS_SECONDS = 0
 
 # Prevent content sniffing
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -269,8 +272,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # If behind a proxy (like Render), tell Django to trust X-Forwarded-Proto
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
-SECURE_SSL_REDIRECT = True
-
+SECURE_SSL_REDIRECT = ENV == "production"
 
 # Cross-site scripting protection
 SECURE_BROWSER_XSS_FILTER = True
