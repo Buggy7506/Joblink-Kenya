@@ -1,18 +1,30 @@
 import { test, expect } from '@playwright/test';
+import path from 'path';
+import fs from 'fs';
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+// Ensure test-results folder exists
+const screenshotDir = path.resolve(__dirname, '../test-results');
+if (!fs.existsSync(screenshotDir)) {
+  fs.mkdirSync(screenshotDir, { recursive: true });
+}
 
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
-});
+test('Auth page phone input UI screenshot', async ({ page }) => {
+  // Go to your Django auth page (local dev server)
+  await page.goto('/Sign-In-OR-Sign-Up/', {
+    waitUntil: 'networkidle',
+  });
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+  // Ensure phone input is visible
+  const phoneInput = page.locator('input[type="tel"]');
+  await expect(phoneInput).toBeVisible();
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
+  // Ensure country selector is visible
+  const countrySelect = page.locator('.country-select'); // adjust class if different
+  await expect(countrySelect).toBeVisible();
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+  // Take a full-page screenshot
+  await page.screenshot({
+    path: path.join(screenshotDir, 'auth-phone-input.png'),
+    fullPage: true,
+  });
 });
