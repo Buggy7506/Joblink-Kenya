@@ -102,6 +102,7 @@
   margin-bottom: 1rem;
   position: relative;
   width: 100%;
+  max-width: 100%;
   --country-select-width: 140px;
   border: 2px solid var(--text-muted);
   border-radius: 0.9rem;
@@ -111,6 +112,9 @@
 }
 .auth-page .country-select {
   flex: 0 0 var(--country-select-width);
+  width: var(--country-select-width);
+  max-width: var(--country-select-width);
+  min-width: 0;
   position: relative;
   margin: 0;
   z-index: 1;
@@ -120,9 +124,13 @@
   background: transparent;
   padding: 0.75rem 2rem 0.75rem 0.9rem;
   font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .auth-page .phone-number-input {
   flex: 1;
+  min-width: 0;
   margin-bottom: 0;
   padding: 0.75rem 0.9rem;
   border: none;
