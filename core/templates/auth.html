@@ -110,6 +110,16 @@
   overflow: hidden;
   transition: border 0.25s ease, box-shadow 0.25s ease;
 }
+.auth-page .country-flag {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
 .auth-page .country-select {
   flex: 0 0 var(--country-select-width);
   width: var(--country-select-width);
@@ -122,11 +132,16 @@
   border-right: 1px solid var(--text-muted);
   border-radius: 0;
   background: transparent;
-  padding: 0.75rem 2rem 0.75rem 0.9rem;
+  padding: 0.75rem 2rem 0.75rem 2.4rem;
   font-weight: 600;
   white-space: nowrap;
   text-overflow: clip;
   overflow: hidden;
+  color: transparent;
+  text-shadow: none;
+}
+.auth-page .country-select option {
+  color: var(--text-main);
 }
 .auth-page .phone-input-wrapper {
   flex: 1;
@@ -928,6 +943,7 @@
 
           <!-- PHONE -->
           <div class="phone-group" id="phoneGroup" style="display:none;">
+            <span class="country-flag" id="countryFlag" aria-hidden="true">🇰🇪</span>
             <select
               id="countrySelect"
               class="auth-input country-select"
@@ -1155,6 +1171,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const phoneDisplayInput = document.getElementById("phoneDisplayInput");
   const phoneGroup = document.getElementById("phoneGroup");
   const countrySelect = document.getElementById("countrySelect");
+  const countryFlag = document.getElementById("countryFlag");
   const phoneDial = document.getElementById("phoneDial");
   const continueBtn = document.getElementById("continueBtn");
   const channelRadios = document.querySelectorAll('input[name="channel"]');
@@ -1267,7 +1284,19 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function sanitizeDigits(value) {
+   function updateCountryFlag() {
+    if (!countryFlag || !countrySelect) return;
+    const option = countrySelect.selectedOptions?.[0];
+    if (!option) return;
+    const emoji = option.dataset.flagEmoji || option.textContent?.trim().split(" ")[0] || "🏳️";
+    countryFlag.textContent = emoji;
+    countrySelect.setAttribute(
+      "aria-label",
+      option.dataset.label || option.textContent || "Select country"
+    );
+  }
+   
+   function sanitizeDigits(value) {
     return value.replace(/\D/g, "");
   }
 
@@ -1282,6 +1311,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (phoneDial) {
       phoneDial.textContent = dial ? `+${dial}` : "";
     }
+     updateCountryFlag();
   }
 
   function updatePhonePlaceholder() {
@@ -1340,7 +1370,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (countrySelect) {
+   if (countrySelect) {
     countrySelect.addEventListener("change", () => {
       updatePhonePlaceholder();
       updatePhoneState();
@@ -1384,6 +1414,8 @@ document.addEventListener("DOMContentLoaded", () => {
             name: country.name?.common || country.cca2,
             dial: dial.replace(/\D/g, ""),
             flag: country.flag || "",
+            flagEmoji: country.flag || "",
+            flagLabel: `${country.name?.common || country.cca2} (+${dial.replace(/\D/g, "")})`,
           };
         })
         .filter(country => country.code && country.dial)
@@ -1398,6 +1430,8 @@ document.addEventListener("DOMContentLoaded", () => {
           option.dataset.max = COUNTRY_PHONE_MAX[country.code];
         }
         option.textContent = `${country.flag} ${country.name} (+${country.dial})`;
+        option.dataset.flagEmoji = country.flagEmoji;
+        option.dataset.label = country.flagLabel;
         countrySelect.appendChild(option);
       });
 
@@ -1408,9 +1442,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error(error);
       countrySelect.innerHTML = `
-        <option value="KE" data-dial="254" data-max="9">🇰🇪 Kenya (+254)</option>
-        <option value="UG" data-dial="256" data-max="9">🇺🇬 Uganda (+256)</option>
-        <option value="TZ" data-dial="255" data-max="9">🇹🇿 Tanzania (+255)</option>
+        <option value="KE" data-dial="254" data-max="9" data-flag-emoji="🇰🇪" data-label="Kenya (+254)">🇰🇪 Kenya (+254)</option>
+        <option value="UG" data-dial="256" data-max="9" data-flag-emoji="🇺🇬" data-label="Uganda (+256)">🇺🇬 Uganda (+256)</option>
+        <option value="TZ" data-dial="255" data-max="9" data-flag-emoji="🇹🇿" data-label="Tanzania (+255)">🇹🇿 Tanzania (+255)</option>
       `;
     }
   }
