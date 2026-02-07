@@ -103,8 +103,8 @@
   position: relative;
   width: 100%;
   max-width: 100%;
-  --country-select-width: 140px;
-  border: 2px solid var(--text-muted);
+  --country-select-width: 72px;
+  border: 1px solid var(--text-muted);
   border-radius: 0.9rem;
   background: var(--bg-surface);
   overflow: hidden;
@@ -125,14 +125,27 @@
   padding: 0.75rem 2rem 0.75rem 0.9rem;
   font-weight: 600;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   overflow: hidden;
+}
+.auth-page .phone-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.9rem;
+  min-width: 0;
+}
+.auth-page .phone-dial {
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
 }
 .auth-page .phone-number-input {
   flex: 1;
   min-width: 0;
   margin-bottom: 0;
-  padding: 0.75rem 0.9rem;
+  padding: 0.75rem 0;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -914,7 +927,7 @@
           </div>
 
           <!-- PHONE -->
-            <div class="phone-group" id="phoneGroup" style="display:none;">
+          <div class="phone-group" id="phoneGroup" style="display:none;">
             <select
               id="countrySelect"
               class="auth-input country-select"
@@ -923,15 +936,18 @@
             >
               <option value="" selected disabled>Loading countries...</option>
             </select>
-            <input
-              type="text"
-              id="phoneDisplayInput"
-              placeholder="Phone number"
-              class="auth-input phone-number-input"
-              autocomplete="tel"
-              inputmode="numeric"
-              disabled
-            >
+            <div class="phone-input-wrapper">
+              <span class="phone-dial" id="phoneDial">+254</span>
+              <input
+                type="text"
+                id="phoneDisplayInput"
+                placeholder="Phone number"
+                class="auth-input phone-number-input"
+                autocomplete="tel"
+                inputmode="numeric"
+                disabled
+              >
+            </div>
           </div>
           <input
             type="hidden"
@@ -1139,6 +1155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const phoneDisplayInput = document.getElementById("phoneDisplayInput");
   const phoneGroup = document.getElementById("phoneGroup");
   const countrySelect = document.getElementById("countrySelect");
+  const phoneDial = document.getElementById("phoneDial");
   const continueBtn = document.getElementById("continueBtn");
   const channelRadios = document.querySelectorAll('input[name="channel"]');
 
@@ -1262,6 +1279,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (digits !== trimmed) phoneDisplayInput.value = trimmed;
     if (max) phoneDisplayInput.maxLength = max;
     phoneInput.value = trimmed ? `+${dial}${trimmed}` : "";
+    if (phoneDial) {
+      phoneDial.textContent = dial ? `+${dial}` : "";
+    }
   }
 
   function updatePhonePlaceholder() {
