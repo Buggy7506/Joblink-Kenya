@@ -1,0 +1,23 @@
+{
+  "name": "ig",
+  "version": "1.0.0",
+  "description": "[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v3/monitor/2d64d.svg)](https://uptime.betterstack.com/?utm_source=status_badge)",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Buggy7506/Joblink-Kenya.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Buggy7506/Joblink-Kenya/issues"
+  },
+  "homepage": "https://github.com/Buggy7506/Joblink-Kenya#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.2.1"
+  }
+}
