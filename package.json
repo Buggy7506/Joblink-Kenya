@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v3/monitor/2d64d.svg)](https://uptime.betterstack.com/?utm_source=status_badge)",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report",
+    "playwright:install": "npx playwright install"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Buggy7506/Joblink-Kenya.git"
