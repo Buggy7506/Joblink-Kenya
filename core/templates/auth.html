@@ -129,7 +129,7 @@
   margin: 0;
   z-index: 1;
   border: none;
-  border-right: 1px solid var(--text-muted);
+  border-right: 1px solid color-mix(in srgb, var(--text-muted), transparent 45%);
   border-radius: 0;
   background: transparent;
   padding: 0.75rem 2rem 0.75rem 2.4rem;
@@ -139,9 +139,15 @@
   overflow: hidden;
   color: transparent;
   text-shadow: none;
+  -webkit-text-fill-color: transparent;
+  text-indent: -999px;
+  font-size: 0;
 }
 .auth-page .country-select option {
   color: var(--text-main);
+  background: var(--bg-surface);
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
 }
 .auth-page .phone-input-wrapper {
   flex: 1;
@@ -160,7 +166,7 @@
   flex: 1;
   min-width: 0;
   margin-bottom: 0;
-  padding: 0.75rem 0;
+  padding: 0.75rem 0 0.75rem 0;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -956,7 +962,9 @@
               <span class="phone-dial" id="phoneDial">+254</span>
               <input
                 type="text"
-                id="phoneDisplayInput"
+                id="phoneInput"
+                name="phone"
+                value="{{ request.session.auth_phone|default:'' }}"
                 placeholder="Phone number"
                 class="auth-input phone-number-input"
                 autocomplete="tel"
@@ -965,12 +973,6 @@
               >
             </div>
           </div>
-          <input
-            type="hidden"
-            name="phone"
-            id="phoneInput"
-            value="{{ request.session.auth_phone|default:'' }}"
-          >
             
           <button
             type="submit"
@@ -1168,7 +1170,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("emailInput");
   const emailError = document.getElementById("emailError");
   const phoneInput = document.getElementById("phoneInput");
-  const phoneDisplayInput = document.getElementById("phoneDisplayInput");
   const phoneGroup = document.getElementById("phoneGroup");
   const countrySelect = document.getElementById("countrySelect");
   const countryFlag = document.getElementById("countryFlag");
@@ -1252,11 +1253,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (countrySelect) {
       countrySelect.disabled = email;
     }
-    if (phoneDisplayInput) {
-      phoneDisplayInput.disabled = email;
-      if (email) phoneDisplayInput.value = "";
+    if (phoneInput) {
+      phoneInput.disabled = email;
+      if (email) phoneInput.value = "";
     }
-    if (phoneInput && email) phoneInput.value = "";
     updatePhoneState();
     updateContinueState();
   }
@@ -1301,13 +1301,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updatePhoneState() {
-    if (!phoneDisplayInput || !phoneInput || !countrySelect) return;
+    if (!phoneInput || !countrySelect) return;
     const { dial, max } = getCountryMeta();
-    const digits = sanitizeDigits(phoneDisplayInput.value);
+    const digits = sanitizeDigits(phoneInput.value);
     const trimmed = max ? digits.slice(0, max) : digits;
-    if (digits !== trimmed) phoneDisplayInput.value = trimmed;
-    if (max) phoneDisplayInput.maxLength = max;
-    phoneInput.value = trimmed ? `+${dial}${trimmed}` : "";
+    if (digits !== trimmed) phoneInput.value = trimmed;
+    if (max) phoneInput.maxLength = max;
+    phoneInput.dataset.full = trimmed ? `+${dial}${trimmed}` : "";
     if (phoneDial) {
       phoneDial.textContent = dial ? `+${dial}` : "";
     }
@@ -1315,17 +1315,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updatePhonePlaceholder() {
-    if (!phoneDisplayInput) return;
+    if (!phoneInput) return;
     const { max } = getCountryMeta();
-    phoneDisplayInput.placeholder = max
+    phoneInput.placeholder = max
       ? `Phone number (${max} digits)`
       : "Phone number";
   }
 
   function isValidPhone() {
-    if (!phoneDisplayInput || !countrySelect) return false;
+    if (!phoneInput || !countrySelect) return false;
     const { max } = getCountryMeta();
-    const digits = sanitizeDigits(phoneDisplayInput.value);
+    const digits = sanitizeDigits(phoneInput.value);
     if (max) return digits.length === max;
     return digits.length >= 6 && digits.length <= 15;
   }
@@ -1339,7 +1339,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function prefillPhoneFromStored() {
-    if (!phoneInput || !countrySelect || !phoneDisplayInput) return;
+    if (!phoneInput || !countrySelect) return;
     const stored = phoneInput.value;
     if (!stored) return;
     const digits = sanitizeDigits(stored);
@@ -1355,16 +1355,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     if (matchedOption) {
       countrySelect.value = matchedOption.value;
-      phoneDisplayInput.value = digits.slice(matchedDial.length);
+      phoneInput.value = digits.slice(matchedDial.length);
     } else {
-      phoneDisplayInput.value = digits;
+      phoneInput.value = digits;
     }
     updatePhonePlaceholder();
     updatePhoneState();
   }
 
-  if (phoneDisplayInput) {
-    phoneDisplayInput.addEventListener("input", () => {
+  if (phoneInput) {
+    phoneInput.addEventListener("input", () => {
       updatePhoneState();
       updateContinueState();
     });
@@ -1514,6 +1514,10 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         alert("Enter a valid phone number for the selected country.");
         return;
+      }
+      
+      if (phoneInput?.dataset.full) {
+        phoneInput.value = phoneInput.dataset.full;
       }
        
       startLoading(e.submitter);
