@@ -97,28 +97,54 @@
 }
 .auth-page .phone-group {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  gap: 0;
+  align-items: stretch;
   margin-bottom: 1rem;
   position: relative;
   width: 100%;
-  --country-select-width: 150px;
+  --country-select-width: 140px;
+  border: 2px solid var(--text-muted);
+  border-radius: 0.9rem;
+  background: var(--bg-surface);
+  overflow: hidden;
+  transition: border 0.25s ease, box-shadow 0.25s ease;
 }
 .auth-page .country-select {
   flex: 0 0 var(--country-select-width);
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
+  position: relative;
   margin: 0;
-  z-index: 2;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  z-index: 1;
+  border: none;
+  border-right: 1px solid var(--text-muted);
+  border-radius: 0;
+  background: transparent;
+  padding: 0.75rem 2rem 0.75rem 0.9rem;
+  font-weight: 600;
 }
 .auth-page .phone-number-input {
   flex: 1;
   margin-bottom: 0;
-  padding-left: calc(var(--country-select-width) + 0.75rem);
+  padding: 0.75rem 0.9rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.auth-page .phone-group .auth-input {
+  box-shadow: none;
+}
+.auth-page .phone-group::after {
+  content: "▾";
+  position: absolute;
+  left: calc(var(--country-select-width) - 1.4rem);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+.auth-page .phone-group:focus-within {
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 2px var(--glow-accent);
 }
    
 .auth-page .auth-box input::placeholder {
