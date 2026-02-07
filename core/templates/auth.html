@@ -100,13 +100,25 @@
   gap: 10px;
   align-items: center;
   margin-bottom: 1rem;
+  position: relative;
+  width: 100%;
+  --country-select-width: 150px;
 }
 .auth-page .country-select {
-  flex: 0 0 150px;
+  flex: 0 0 var(--country-select-width);
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  margin: 0;
+  z-index: 2;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .auth-page .phone-number-input {
   flex: 1;
   margin-bottom: 0;
+  padding-left: calc(var(--country-select-width) + 0.75rem);
 }
    
 .auth-page .auth-box input::placeholder {
@@ -724,6 +736,10 @@
   /* Eye button remains accessible */
   .auth-page .auth-eye {
     font-size: 18px;
+  }
+   
+.auth-page .phone-group {
+    --country-select-width: 120px;
   }
 }
 </style>
