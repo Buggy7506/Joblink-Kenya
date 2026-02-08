@@ -3102,7 +3102,7 @@ def alien_resume_builder(request):
 # Constants
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
 CANVA_CLIENT_SECRET = os.getenv('CANVA_CLIENT_SECRET')  # Keep secret in env
-CANVA_TOKEN_URL = 'https://www.canva.com/oauth2/token'
+CANVA_TOKEN_URL = 'https://api.canva.com/rest/v1/oauth/token'
 REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'
 
 @login_required
@@ -3142,12 +3142,19 @@ def canva_oauth_callback(request):
         'redirect_uri': REDIRECT_URI,
         'code_verifier': code_verifier
     }
-
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+    }
+    
     try:
-        response = requests.post(CANVA_TOKEN_URL, data=payload)
+        response = requests.post(CANVA_TOKEN_URL, data=payload, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.RequestException as e:
-        return HttpResponse(f"Token exchange failed: {str(e)}", status=500)
+        error_details = ''
+        if getattr(e, 'response', None) is not None:
+            error_details = f" | Response: {e.response.text}"
+        return HttpResponse(f"Token exchange failed: {str(e)}{error_details}", status=500)
 
     token_data = response.json()
 
