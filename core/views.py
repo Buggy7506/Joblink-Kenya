@@ -3036,6 +3036,7 @@ def resume_success(request):
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
 CANVA_REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'  # Dedicated redirect handler
 CANVA_AUTH_URL = 'https://www.canva.com/api/oauth/authorize'
+CANVA_EDITOR_URL = 'https://www.canva.com/design/new'
 
 # Helper: Generate PKCE code challenge
 def generate_code_challenge():
@@ -3047,7 +3048,11 @@ def generate_code_challenge():
 @csrf_protect
 @login_required
 def alien_resume_builder(request):
-    """Redirect resume builder traffic to Canva's OAuth flow."""
+    """Open Canva editor when authorized, otherwise start Canva OAuth flow."""
+
+    # Reuse existing token instead of forcing OAuth on every click.
+    if request.session.get('canva_access_token'):
+        return redirect(CANVA_EDITOR_URL)
 
     # 1. Generate PKCE code challenge and store code_verifier in session
     code_verifier, code_challenge = generate_code_challenge()
@@ -3166,9 +3171,8 @@ def canva_oauth_callback(request):
     request.session.pop('canva_code_verifier', None)
     request.session.pop('canva_oauth_state', None)
 
-    # 7. Redirect user to dashboard or resume builder page
-    # Change this to your desired landing page after authorization
-    return redirect('build_resume')
+    # 7. Redirect user directly to Canva editor after authorization.
+    return redirect(CANVA_EDITOR_URL)
     
 # Optional: store your webhook secret from Canva
 CANVA_WEBHOOK_SECRET = os.getenv('CANVA_WEBHOOK_SECRET', 'super-secret-key')
