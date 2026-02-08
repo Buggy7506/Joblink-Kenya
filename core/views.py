@@ -3168,7 +3168,7 @@ def canva_oauth_callback(request):
 
     # 7. Redirect user to dashboard or resume builder page
     # Change this to your desired landing page after authorization
-    return redirect('alien_resume_builder')
+    return redirect('build_resume')
     
 # Optional: store your webhook secret from Canva
 CANVA_WEBHOOK_SECRET = os.getenv('CANVA_WEBHOOK_SECRET', 'super-secret-key')
