@@ -60,6 +60,9 @@ import stripe
 import pdfkit
 import requests
 import cloudinary.uploader
+import secrets
+import base64
+import hashlib
 
 # =========================
 # Python standard library
@@ -3029,10 +3032,33 @@ def resume_success(request):
     """Simple success page after resume is saved."""
     return render(request, 'resume_success.html')
 
+# Constants
+CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
+CANVA_REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'  # NEW dedicated redirect handler
+CANVA_AUTH_URL = 'https://www.canva.com/api/oauth/authorize'
+
+# Helper: Generate PKCE code challenge
+def generate_code_challenge():
+    code_verifier = secrets.token_urlsafe(64)  # 43–128 chars
+    code_verifier_bytes = code_verifier.encode('utf-8')
+    digest = hashlib.sha256(code_verifier_bytes).digest()
+    code_challenge = base64.urlsafe_b64encode(digest).rstrip(b'=').decode('utf-8')
+    return code_verifier, code_challenge
+
 @csrf_protect
 @login_required
 def alien_resume_builder(request):
-    """Redirect resume builder traffic to Canva's full editor OAuth flow."""
+    """Redirect resume builder traffic to Canva's OAuth flow."""
+
+    # 1. Generate PKCE code challenge and store code_verifier in session
+    code_verifier, code_challenge = generate_code_challenge()
+    request.session['canva_code_verifier'] = code_verifier
+
+    # 2. Generate CSRF protection state and store in session
+    state = secrets.token_urlsafe(16)
+    request.session['canva_oauth_state'] = state
+
+    # 3. Define required scopes
     scopes = [
         'asset:read',
         'design:content:write',
@@ -3054,18 +3080,81 @@ def alien_resume_builder(request):
         'comment:write',
         'brandtemplate:meta:read',
     ]
+
+    # 4. Build query params
     query_params = {
         'code_challenge_method': 's256',
         'response_type': 'code',
-        'client_id': 'OC-AZw940cg5ae3',
+        'client_id': CANVA_CLIENT_ID,
+        'redirect_uri': CANVA_REDIRECT_URI,
         'scope': ' '.join(scopes),
-        'code_challenge': os.getenv('CANVA_CODE_CHALLENGE', '<CODE_CHALLENGE>'),
+        'code_challenge': code_challenge,
+        'state': state,
     }
-    canva_authorize_url = (
-        'https://www.canva.com/api/oauth/authorize?'
-        f"{urllib.parse.urlencode(query_params)}"
-    )
+
+    canva_authorize_url = f"{CANVA_AUTH_URL}?{urllib.parse.urlencode(query_params)}"
+
+    # 5. Redirect user to Canva OAuth
     return redirect(canva_authorize_url)
+
+# Constants
+CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
+CANVA_CLIENT_SECRET = os.getenv('CANVA_CLIENT_SECRET')  # Store securely in environment
+CANVA_TOKEN_URL = 'https://www.canva.com/oauth2/token'
+REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'
+
+@login_required
+@csrf_exempt
+def canva_oauth_callback(request):
+    """
+    Handles redirect from Canva after user authorizes app.
+    Exchanges code for access token and stores it in session.
+    """
+    error = request.GET.get('error')
+    if error:
+        return HttpResponse(f"Authorization failed: {error}", status=400)
+
+    code = request.GET.get('code')
+    state = request.GET.get('state')
+    stored_state = request.session.get('canva_oauth_state')
+    code_verifier = request.session.get('canva_code_verifier')
+
+    # Basic checks
+    if not code:
+        return HttpResponse("No authorization code received.", status=400)
+    if stored_state and state != stored_state:
+        return HttpResponse("Invalid state parameter.", status=400)
+    if not code_verifier:
+        return HttpResponse("Missing code verifier in session.", status=400)
+
+    # Exchange authorization code for access token
+    data = {
+        'client_id': CANVA_CLIENT_ID,
+        'client_secret': CANVA_CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': REDIRECT_URI,
+        'code_verifier': code_verifier
+    }
+
+    try:
+        response = requests.post(CANVA_TOKEN_URL, data=data)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        return HttpResponse(f"Token exchange failed: {str(e)}", status=500)
+
+    token_data = response.json()
+
+    # Store tokens in session or DB for the logged-in user
+    request.session['canva_access_token'] = token_data.get('access_token')
+    request.session['canva_refresh_token'] = token_data.get('refresh_token')
+
+    # Optional: clean up temporary session variables
+    request.session.pop('canva_code_verifier', None)
+    request.session.pop('canva_oauth_state', None)
+
+    # Redirect user to dashboard or resume builder page
+    return redirect('alien_resume_builder')  # Adjust this to where you want users to go
     
 @csrf_protect
 @login_required
