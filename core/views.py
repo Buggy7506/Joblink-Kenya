@@ -3034,14 +3034,13 @@ def resume_success(request):
 
 # Constants
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
-CANVA_REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'  # NEW dedicated redirect handler
+CANVA_REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'  # Dedicated redirect handler
 CANVA_AUTH_URL = 'https://www.canva.com/api/oauth/authorize'
 
 # Helper: Generate PKCE code challenge
 def generate_code_challenge():
     code_verifier = secrets.token_urlsafe(64)  # 43–128 chars
-    code_verifier_bytes = code_verifier.encode('utf-8')
-    digest = hashlib.sha256(code_verifier_bytes).digest()
+    digest = hashlib.sha256(code_verifier.encode('utf-8')).digest()
     code_challenge = base64.urlsafe_b64encode(digest).rstrip(b'=').decode('utf-8')
     return code_verifier, code_challenge
 
@@ -3054,9 +3053,12 @@ def alien_resume_builder(request):
     code_verifier, code_challenge = generate_code_challenge()
     request.session['canva_code_verifier'] = code_verifier
 
-    # 2. Generate CSRF protection state and store in session
-    state = secrets.token_urlsafe(16)
-    request.session['canva_oauth_state'] = state
+    # 2. Generate CSRF protection state only if it doesn't exist
+    if not request.session.get('canva_oauth_state'):
+        state = secrets.token_urlsafe(16)
+        request.session['canva_oauth_state'] = state
+    else:
+        state = request.session['canva_oauth_state']
 
     # 3. Define required scopes
     scopes = [
@@ -3099,7 +3101,7 @@ def alien_resume_builder(request):
 
 # Constants
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
-CANVA_CLIENT_SECRET = os.getenv('CANVA_CLIENT_SECRET')  # Store securely in environment
+CANVA_CLIENT_SECRET = os.getenv('CANVA_CLIENT_SECRET')  # Keep secret in env
 CANVA_TOKEN_URL = 'https://www.canva.com/oauth2/token'
 REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'
 
@@ -3110,25 +3112,29 @@ def canva_oauth_callback(request):
     Handles redirect from Canva after user authorizes app.
     Exchanges code for access token and stores it in session.
     """
+    # 1. Check for error from Canva
     error = request.GET.get('error')
     if error:
         return HttpResponse(f"Authorization failed: {error}", status=400)
 
+    # 2. Get code and state
     code = request.GET.get('code')
-    state = request.GET.get('state')
+    returned_state = request.GET.get('state')
     stored_state = request.session.get('canva_oauth_state')
     code_verifier = request.session.get('canva_code_verifier')
 
-    # Basic checks
+    # 3. Basic validations
     if not code:
         return HttpResponse("No authorization code received.", status=400)
-    if stored_state and state != stored_state:
+    if not stored_state:
+        return HttpResponse("Session expired or state missing.", status=400)
+    if returned_state != stored_state:
         return HttpResponse("Invalid state parameter.", status=400)
     if not code_verifier:
         return HttpResponse("Missing code verifier in session.", status=400)
 
-    # Exchange authorization code for access token
-    data = {
+    # 4. Exchange authorization code for access token
+    payload = {
         'client_id': CANVA_CLIENT_ID,
         'client_secret': CANVA_CLIENT_SECRET,
         'grant_type': 'authorization_code',
@@ -3138,24 +3144,25 @@ def canva_oauth_callback(request):
     }
 
     try:
-        response = requests.post(CANVA_TOKEN_URL, data=data)
+        response = requests.post(CANVA_TOKEN_URL, data=payload)
         response.raise_for_status()
     except requests.RequestException as e:
         return HttpResponse(f"Token exchange failed: {str(e)}", status=500)
 
     token_data = response.json()
 
-    # Store tokens in session or DB for the logged-in user
+    # 5. Store tokens in session or database (recommended)
     request.session['canva_access_token'] = token_data.get('access_token')
     request.session['canva_refresh_token'] = token_data.get('refresh_token')
 
-    # Optional: clean up temporary session variables
+    # 6. Clean up temporary session variables
     request.session.pop('canva_code_verifier', None)
     request.session.pop('canva_oauth_state', None)
 
-    # Redirect user to dashboard or resume builder page
-    return redirect('alien_resume_builder')  # Adjust this to where you want users to go
-
+    # 7. Redirect user to dashboard or resume builder page
+    # Change this to your desired landing page after authorization
+    return redirect('alien_resume_builder')
+    
 # Optional: store your webhook secret from Canva
 CANVA_WEBHOOK_SECRET = os.getenv('CANVA_WEBHOOK_SECRET', 'super-secret-key')
 
