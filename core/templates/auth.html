@@ -124,24 +124,48 @@
   z-index: 2;
 }
 
-/* COUNTRY SELECT (hidden, only for JS logic) */
+/* =========================================
+   COUNTRY SELECT — DESKTOP & MOBILE FIX
+   (Emoji flags visible everywhere)
+========================================= */
+
 .auth-page .country-select {
   flex: 0 0 var(--country-select-width);
   width: var(--country-select-width);
   max-width: var(--country-select-width);
   min-width: 0;
+
   border: none;
   border-right: 1px solid color-mix(in srgb, var(--text-muted), transparent 45%);
   border-radius: 0;
+
   background: transparent;
   padding: 0.55rem 1.6rem 0.55rem 2.2rem;
-  font-size: 0;
-  color: transparent;
-  text-indent: -999px; /* hides text, flags handled separately */
+
+  /* 🔧 CRITICAL FIX */
+  font-size: 0.85rem;          /* MUST NOT be 0 */
+  color: transparent;          /* hide text when closed */
+  caret-color: transparent;
+
+  text-indent: -999px;         /* hide text without breaking emojis */
   white-space: nowrap;
   overflow: hidden;
-  z-index: 1;
+
   position: relative;
+  z-index: 1;
+}
+
+/* Dropdown options MUST render text + emoji */
+.auth-page .country-select option {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background: var(--bg-surface-soft);
+}
+
+/* When user interacts, allow visibility (accessibility) */
+.auth-page .country-select:focus,
+.auth-page .country-select:active {
+  color: var(--text-main);
 }
 
 /* DROPDOWN ARROW */
