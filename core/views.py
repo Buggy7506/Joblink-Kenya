@@ -3155,6 +3155,49 @@ def canva_oauth_callback(request):
 
     # Redirect user to dashboard or resume builder page
     return redirect('alien_resume_builder')  # Adjust this to where you want users to go
+
+# Optional: store your webhook secret from Canva
+CANVA_WEBHOOK_SECRET = os.getenv('CANVA_WEBHOOK_SECRET', 'super-secret-key')
+
+@csrf_exempt
+def canva_webhook(request):
+    """
+    Endpoint to receive Canva webhook events.
+    """
+    if request.method != 'POST':
+        return HttpResponse("Only POST requests are allowed.", status=405)
+
+    # Get raw body for signature verification
+    payload = request.body
+
+    # Optional: verify signature if Canva provides X-Canva-Signature
+    signature = request.headers.get('X-Canva-Signature')
+    if signature:
+        computed_sig = hmac.new(
+            key=CANVA_WEBHOOK_SECRET.encode('utf-8'),
+            msg=payload,
+            digestmod=hashlib.sha256
+        ).hexdigest()
+
+        if not hmac.compare_digest(signature, computed_sig):
+            return HttpResponse("Invalid signature", status=403)
+
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return HttpResponse("Invalid JSON", status=400)
+
+    # Example: log or process event
+    event_type = data.get('event')
+    event_data = data.get('data', {})
+
+    print(f"Received Canva event: {event_type}")
+    print(f"Event data: {event_data}")
+
+    # TODO: Add your processing logic here, e.g., update DB, trigger actions
+
+    # Respond with 200 OK to acknowledge receipt
+    return JsonResponse({'status': 'success'})
     
 @csrf_protect
 @login_required
