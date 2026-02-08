@@ -142,11 +142,13 @@
   background: transparent;
   padding: 0.55rem 1.6rem 0.55rem 2.2rem;
 
-  /* 🔧 CRITICAL FIX */
-  font-size: 0.85rem;          /* MUST NOT be 0 */
-  color: transparent;          /* hide text when closed */
+  /* Keep selected flag visible on desktop and mobile */
+  font-size: 0.85rem;
+  color: var(--text-main);
+  -webkit-text-fill-color: var(--text-main);
   caret-color: transparent;
 
+  text-indent: 0;
   text-indent: -999px;         /* hide text without breaking emojis */
   white-space: nowrap;
   overflow: hidden;
