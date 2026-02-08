@@ -9,20 +9,24 @@ if (!fs.existsSync(screenshotDir)) {
 }
 
 test('Auth page phone input UI screenshot', async ({ page }) => {
-  // Go to your Django auth page (local dev server)
+  // Go to auth page
   await page.goto('/Sign-In-OR-Sign-Up/', {
     waitUntil: 'networkidle',
   });
 
-  // Ensure phone input is visible
-  const phoneInput = page.locator('input[type="tel"]');
-  await expect(phoneInput).toBeVisible();
+  // 🔹 Select SMS or WhatsApp to reveal phone input
+  await page.check('input[name="channel"][value="sms"]');
 
-  // Ensure country selector is visible
-  const countrySelect = page.locator('.country-select'); // adjust class if different
+  // 🔹 Phone input should now be visible and enabled
+  const phoneInput = page.locator('#phoneInput');
+  await expect(phoneInput).toBeVisible();
+  await expect(phoneInput).toBeEnabled();
+
+  // 🔹 Country selector should also be visible
+  const countrySelect = page.locator('.country-select');
   await expect(countrySelect).toBeVisible();
 
-  // Take a full-page screenshot
+  // 🔹 Take screenshot AFTER correct UI state
   await page.screenshot({
     path: path.join(screenshotDir, 'auth-phone-input.png'),
     fullPage: true,
