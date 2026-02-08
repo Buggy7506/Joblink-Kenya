@@ -199,7 +199,7 @@ def unified_auth_view(request):
         # ===============================
         # CONTEXT (SESSION SAFE)
         # ===============================
-        if action in ["verify_code", "login_password", "magic_link"]:
+        if action in ["verify_code", "login_password", "magic_link", "resend_code"]:
             channel = request.session.get("otp_channel") or request.POST.get("channel", "email")
         else:
             channel = request.POST.get("channel", "email")
@@ -503,6 +503,42 @@ def unified_auth_view(request):
             next_url = request.session.pop("auth_next", None) 
             return redirect(next_url or "dashboard")
                 
+        # ===============================
+        # RESEND CODE
+        # ===============================
+        if action == "resend_code":
+            identifier = request.session.get("auth_identifier")
+            channel = request.session.get("otp_channel") or channel
+
+            if not identifier:
+                messages.error(request, "Session expired. Please start again.")
+                return render(request, "auth.html", {"form": form, "ui_step": "email"})
+
+            if otp_recently_sent(identifier, device_fingerprint):
+                messages.warning(request, "Please wait before requesting another code.")
+                return render(request, "auth.html", {"form": form, "ui_step": "code"})
+
+            DeviceVerification.objects.filter(
+                identifier=identifier,
+                device_fingerprint=device_fingerprint,
+                is_used=False
+            ).update(is_used=True)
+
+            code = generate_code()
+
+            DeviceVerification.objects.create(
+                identifier=identifier,
+                code=code,
+                verified_via=channel,
+                device_fingerprint=device_fingerprint,
+                ip_address=ip_address,
+                location=location,
+            )
+
+            send_otp(channel, identifier, code)
+            messages.success(request, f"Code resent via {channel.upper()}.")
+            return render(request, "auth.html", {"form": form, "ui_step": "code"})
+            
         # ===============================
         # MAGIC LINK (EXISTING USERS ONLY)
         # ===============================
