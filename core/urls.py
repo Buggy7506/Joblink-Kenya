@@ -24,6 +24,11 @@ urlpatterns = [
     # Resume / CV URLs
     # -------------------------
     path('resume/build/', views.alien_resume_builder, name='build_resume'),
+    # OAuth redirect/callback
+    path('oauth/canva/callback/', views.canva_oauth_callback, name='canva_oauth_callback'),
+    # Webhook endpoint
+    path('resume/webhook/', views.canva_webhook, name='canva_webhook'),
+    
     path('resume/success/', views.resume_success, name='resume_success'),
     path('resume/view/', views.view_resume, name='view_resume'),
     path('resume/download/', views.download_resume_pdf, name='download_resume'),
