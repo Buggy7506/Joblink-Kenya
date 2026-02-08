@@ -3032,24 +3032,40 @@ def resume_success(request):
 @csrf_protect
 @login_required
 def alien_resume_builder(request):
-    """
-    Full-page, immersive resume editor.
-    - Automatically creates a resume if none exists.
-    - Overwrites existing resume content on save.
-    - Supports full-page rich HTML editing.
-    """
-    # Get existing resume or create a new one
-    resume, created = Resume.objects.get_or_create(user=request.user)
-
-    if request.method == 'POST':
-        # Save the HTML content from the builder
-        content = request.POST.get('content', '')
-        resume.content = content
-        resume.save()
-        messages.success(request, "✅ Your resume has been saved successfully!")
-        return redirect('view_resume')
-
-    return render(request, 'alien_resume_builder.html', {'resume': resume})
+    """Redirect resume builder traffic to Canva's full editor OAuth flow."""
+    scopes = [
+        'asset:read',
+        'design:content:write',
+        'collaboration:event',
+        'asset:write',
+        'design:permission:read',
+        'design:permission:write',
+        'folder:write',
+        'comment:read',
+        'profile:read',
+        'design:content:read',
+        'app:write',
+        'app:read',
+        'folder:permission:write',
+        'folder:permission:read',
+        'brandtemplate:content:read',
+        'design:meta:read',
+        'folder:read',
+        'comment:write',
+        'brandtemplate:meta:read',
+    ]
+    query_params = {
+        'code_challenge_method': 's256',
+        'response_type': 'code',
+        'client_id': 'OC-AZw940cg5ae3',
+        'scope': ' '.join(scopes),
+        'code_challenge': os.getenv('CANVA_CODE_CHALLENGE', '<CODE_CHALLENGE>'),
+    }
+    canva_authorize_url = (
+        'https://www.canva.com/api/oauth/authorize?'
+        f"{urllib.parse.urlencode(query_params)}"
+    )
+    return redirect(canva_authorize_url)
     
 @csrf_protect
 @login_required
