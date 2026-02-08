@@ -990,24 +990,28 @@
                 class="auth-input country-select"
                 data-default="KE"
                 disabled
+                aria-label="Select country"
               >
                 <option value="" selected disabled>Loading countries...</option>
               </select>
             
-              <!-- Phone input -->
-              <input
-                type="tel"
-                id="phoneInput"
-                name="phone"
-                value="{{ request.session.auth_phone|default:'' }}"
-                placeholder="Phone number"
-                class="auth-input phone-number-input"
-                autocomplete="tel"
-                inputmode="numeric"
-                disabled
-              >
+              <!-- Phone input wrapper -->
+              <div class="phone-input-wrapper">
+                <span class="phone-dial" id="phoneDial">+254</span>
+                <input
+                  type="tel"
+                  id="phoneInput"
+                  name="phone"
+                  value="{{ request.session.auth_phone|default:'' }}"
+                  placeholder="Phone number"
+                  class="auth-input phone-number-input"
+                  autocomplete="tel"
+                  inputmode="numeric"
+                  disabled
+                >
+              </div>
             </div>
-            
+           
           <button
             type="submit"
             name="action"
