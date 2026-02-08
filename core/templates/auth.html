@@ -121,7 +121,8 @@
   font-size: 1.2rem;
   line-height: 1;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
+  display: inline-flex;
 }
 
 /* =========================================
@@ -336,36 +337,37 @@
 ========================================= */
 
 .auth-page .resend-btn {
-  background: none;
-  border: none;
-  padding: 0;
   margin-top: 0.75rem;
-
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--text-muted);
+  background: var(--bg-surface);
+  padding: 0.55rem 0.7rem;
   font-size: 0.85rem;
-  font-weight: 500;
-
+  font-weight: 600;
   color: var(--text-muted);
   cursor: not-allowed;
-
-  transition: color 0.25s ease, opacity 0.25s ease;
+  transition: all 0.25s ease;
 }
 
 /* Enabled state */
 .auth-page .resend-btn:not(:disabled) {
   color: var(--text-link);
   cursor: pointer;
-  text-decoration: underline;
+  border-color: var(--text-link);
+  background: color-mix(in srgb, var(--bg-surface), var(--glow-accent) 14%);
 }
 
 /* Hover when enabled */
 .auth-page .resend-btn:not(:disabled):hover {
   color: var(--text-accent);
-  text-shadow: 0 0 6px var(--glow-accent);
+  border-color: var(--text-accent);
+  box-shadow: 0 0 10px var(--glow-accent);
 }
 
 /* Disabled state */
 .auth-page .resend-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 /* =========================================
@@ -858,7 +860,7 @@
   }
   .auth-page .country-select {
     font-size: 0.85rem;
-    text-indent: 0;
+    text-indent: -999px;
     color: var(--text-main);
     -webkit-text-fill-color: var(--text-main);
     padding: 0.55rem 1.8rem 0.55rem 2.1rem;
@@ -1101,7 +1103,7 @@
           <button
             type="submit"
             name="action"
-            value="magic_link"
+            value="resend_code"
             id="resendBtn"
             class="resend-btn"
             disabled
@@ -1266,6 +1268,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (uiStepInput?.value && steps[uiStepInput.value]) {
     setStep(uiStepInput.value);
+    if (uiStepInput.value === "code") {
+      startResendCooldown();
+    }
   } else {
     setStep("email");
   }
@@ -1621,7 +1626,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // ---------- MAGIC LINK ----------
+    // ---------- RESEND CODE ----------
+    if (action === "resend_code") {
+      startLoading(e.submitter);
+      return;
+    }
+     
+   // ---------- MAGIC LINK ----------
     if (action === "magic_link") {
       startLoading(e.submitter);
       return;
