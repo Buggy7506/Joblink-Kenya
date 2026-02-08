@@ -79,7 +79,7 @@
 }
 
 /* INPUTS */
-.auth-page .auth-box input {
+.auth-page .auth-box input:not(.phone-number-input) {
   width: 100%;
   padding: 0.6rem 0.75rem;
   margin-bottom: 1rem;
@@ -190,13 +190,6 @@
   outline: none;
 }
 
-/* REMOVE INPUT SHADOWS */
-.auth-page .phone-group .auth-input {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent;
-}
-
 /* FOCUS STATE */
 .auth-page .phone-group:focus-within {
   border-color: var(--text-accent);
@@ -221,7 +214,7 @@
   color: var(--text-muted);
 }
 
-.auth-page .auth-box input:focus {
+.auth-page .auth-box input:not(.phone-number-input):focus {
   outline: none;
   border-color: var(--text-accent);
   box-shadow: 0 0 8px var(--glow-accent);
@@ -844,6 +837,25 @@
     -webkit-text-fill-color: var(--text-main);
     padding: 0.55rem 1.8rem 0.55rem 2.1rem;
   }
+}
+/* =========================================
+   PHONE GROUP — ISOLATION FIX (FINAL)
+========================================= */
+
+.auth-page .phone-group input,
+.auth-page .phone-group select {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  outline: none !important;
+  margin-bottom: 0;
+}
+
+/* Prevent global focus glow leakage */
+.auth-page .phone-group input:focus,
+.auth-page .phone-group select:focus {
+  box-shadow: none !important;
 }
 </style>
 
