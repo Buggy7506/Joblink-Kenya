@@ -6,178 +6,129 @@
 {% block content %}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* =========================================================
-   LOGIN/SIGNUP FORM (THEME-AWARE & NAMESPACE-WRAPPED)
-========================================================= */
-
 .auth-page * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.auth-page body,
-.auth-page .auth-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.auth-page body {
-  background: var(--bg-main);
-  color: var(--text-main);
-  transition: background 0.4s ease, color 0.4s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .auth-page .auth-wrapper {
   min-height: 100vh;
   display: grid;
   place-items: center;
+  padding: 1.5rem;
 }
 
-/* AUTH BOX */
 .auth-page .auth-box {
-  background: var(--bg-card);
+  width: min(100%, 460px);
+  max-height: 85vh;
+  overflow-y: auto;
   padding: 2rem;
   border-radius: 1rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-  backdrop-filter: blur(14px);
-  transition: background 0.4s ease, color 0.4s ease;
-  width: min(100%, 460px);
-  max-height: 80vh; /* Prevents box from being too long */
-  height: auto;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  background: var(--bg-card);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+  border: 1px solid color-mix(in srgb, var(--text-muted), transparent 55%);
 }
 
-/* LOGO */
 .auth-page .auth-logo {
   display: grid;
   place-items: center;
   margin-bottom: 1rem;
 }
 
-.auth-page .auth-logo svg {
-  width: 38px;
-  height: 38px;
-  stroke: var(--text-accent);
-  filter: drop-shadow(0 0 8px var(--glow-accent));
+.auth-page .auth-logo-img {
+  width: 52px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 6px var(--glow-accent));
 }
 
-/* HEADINGS */
-.auth-page .auth-box h1,
 .auth-page .auth-box h2 {
   text-align: center;
-  margin-bottom: 0.8rem;
-  font-weight: 600;
-  font-size: 1.5rem;
+  margin-bottom: 0.65rem;
+  font-size: 1.45rem;
+  font-weight: 650;
   color: var(--text-main);
 }
 
 .auth-page .auth-box p {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.35rem;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
-/* INPUTS */
-.auth-page .auth-box input:not(.phone-number-input) {
+.auth-page .auth-box input:not(.phone-number-input),
+.auth-page .auth-box select.auth-input {
   width: 100%;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.9rem;
   border: 1px solid var(--text-muted);
   border-radius: 0.75rem;
   font-size: 0.95rem;
   background: var(--bg-surface);
   color: var(--text-main);
-  transition: border 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
-.auth-page .auth-box select.auth-input {
-  appearance: none;
-  background: var(--bg-surface);
-  cursor: pointer;
+
+.auth-page .auth-box input::placeholder {
+  color: var(--text-muted);
 }
-/* PHONE GROUP CONTAINER */
+
+.auth-page .auth-box input:not(.phone-number-input):focus,
+.auth-page .auth-box select.auth-input:focus {
+  outline: none;
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow-accent), transparent 45%);
+}
+
 .auth-page .phone-group {
   display: flex;
-  gap: 0;
   align-items: stretch;
-  margin-bottom: 1rem;
-  position: relative;
   width: 100%;
-  max-width: 100%;
+  margin-bottom: 0.9rem;
   --country-select-width: 64px;
   border: 1px solid var(--text-muted);
   border-radius: 0.75rem;
-  background: linear-gradient(180deg, var(--bg-surface), var(--bg-surface-soft));
   overflow: hidden;
-  transition: border 0.25s ease, box-shadow 0.25s ease;
+  background: linear-gradient(180deg, var(--bg-surface), var(--bg-surface-soft));
+  position: relative;
 }
 
-/* COUNTRY FLAG */
+.auth-page .phone-group:focus-within {
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow-accent), transparent 45%);
+}
+
 .auth-page .country-flag {
   position: absolute;
   left: 0.6rem;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1.2rem;
-  line-height: 1;
+  font-size: 1.1rem;
   pointer-events: none;
-  z-index: 3;
-  display: inline-flex;
 }
-
-/* =========================================
-   COUNTRY SELECT — DESKTOP & MOBILE FIX
-   (Emoji flags visible everywhere)
-========================================= */
 
 .auth-page .country-select {
   flex: 0 0 var(--country-select-width);
-  width: var(--country-select-width);
-  max-width: var(--country-select-width);
-  min-width: 0;
-
   border: none;
   border-right: 1px solid color-mix(in srgb, var(--text-muted), transparent 45%);
   border-radius: 0;
-
+  margin-bottom: 0;
   background: transparent;
-  padding: 0.55rem 1.6rem 0.55rem 2.2rem;
-
-  /* Keep selected flag visible on desktop and mobile */
-  font-size: 0.85rem;
   color: var(--text-main);
   -webkit-text-fill-color: var(--text-main);
-  caret-color: transparent;
-
-  text-indent: 0;
-  text-indent: -999px;         /* hide text without breaking emojis */
-  white-space: nowrap;
-  overflow: hidden;
-
-  position: relative;
-  z-index: 1;
+  text-indent: -999px;
+  padding: 0.55rem 1.7rem 0.55rem 2.2rem;
 }
 
-/* Dropdown options MUST render text + emoji */
 .auth-page .country-select option {
   font-size: 0.95rem;
   color: var(--text-main);
   background: var(--bg-surface-soft);
 }
 
-/* When user interacts, allow visibility (accessibility) */
-.auth-page .country-select:focus,
-.auth-page .country-select:active {
-  color: var(--text-main);
-}
-
-/* DROPDOWN ARROW */
 .auth-page .phone-group::after {
   content: "▾";
   position: absolute;
@@ -187,124 +138,75 @@
   color: var(--text-muted);
   font-size: 0.9rem;
   pointer-events: none;
-  z-index: 2;
 }
 
-/* PHONE INPUT WRAPPER */
 .auth-page .phone-input-wrapper {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   padding: 0.55rem 0.7rem;
   min-width: 0;
 }
 
-/* DIAL CODE */
 .auth-page .phone-dial {
   color: var(--text-muted);
   font-weight: 600;
   font-size: 0.9rem;
-  white-space: nowrap;
-  margin-right: 0.35rem;
 }
 
-/* PHONE NUMBER INPUT */
 .auth-page .phone-number-input {
   flex: 1;
   min-width: 0;
-  margin-bottom: 0;
-  padding: 0.55rem 0;
   border: none;
   border-radius: 0;
+  margin-bottom: 0;
   background: transparent;
   font-size: 0.95rem;
   color: var(--text-main);
   outline: none;
 }
 
-/* FOCUS STATE */
-.auth-page .phone-group:focus-within {
-  border-color: var(--text-accent);
-  box-shadow: 0 0 0 2px var(--glow-accent);
-}
-
-/* COUNTRY SELECT OPTIONS */
-.auth-page .country-select option {
-  background: var(--bg-surface-soft);
-  color: var(--text-main);
-  font-size: 0.95rem;
-  padding: 0.4rem 0.6rem;
-}
-
-/* FOCUS ON SELECT */
-.auth-page .country-select:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.04);
-}
-   
-.auth-page .auth-box input::placeholder {
-  color: var(--text-muted);
-}
-
-.auth-page .auth-box input:not(.phone-number-input):focus {
-  outline: none;
-  border-color: var(--text-accent);
-  box-shadow: 0 0 8px var(--glow-accent);
-}
-
-/* BUTTONS */
 .auth-page .auth-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 0.6rem;
-  margin-bottom: 0.8rem;
+  padding: 0.62rem;
+  margin-bottom: 0.75rem;
   border: 1px solid var(--text-muted);
-  border-radius: 0.6rem;
+  border-radius: 0.7rem;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 550;
   background: transparent;
   color: var(--text-main);
-  transition: all 0.25s ease;
+  transition: all .2s ease;
 }
 
 .auth-page .auth-btn:hover {
   border-color: var(--text-accent);
-  color: var(--text-accent);
-  box-shadow: 0 0 8px var(--glow-accent);
+  box-shadow: 0 0 10px var(--glow-accent);
 }
 
-/* PRIMARY BUTTON */
 .auth-page .auth-btn.primary {
+  border: none;
   background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
   color: var(--text-main);
-  border: none;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .auth-page .auth-btn.primary:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 0 14px var(--glow-accent);
+  filter: brightness(1.08);
 }
 
-/* LINKS */
 .auth-page .auth-link {
   background: none;
   border: none;
   color: var(--text-link);
   font-size: 0.85rem;
-  cursor: pointer;
-  transition: color 0.25s ease;
 }
 
-.auth-page .auth-link:hover {
-  color: var(--text-accent);
-}
-
-/* DIVIDER */
 .auth-page .divider {
   display: flex;
   align-items: center;
@@ -316,7 +218,7 @@
 
 .auth-page .divider::before,
 .auth-page .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background: var(--text-muted);
@@ -325,318 +227,138 @@
 .auth-page .divider:not(:empty)::before { margin-right: .5em; }
 .auth-page .divider:not(:empty)::after { margin-left: .5em; }
 
-/* ROW (FOR PASSWORD STEP) */
 .auth-page .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
 }
 
-/* HIDDEN ELEMENTS */
-.auth-page .hidden {
-  display: none;
-}
-
-/* =========================================
-   RESEND OTP BUTTON (COOLDOWN-AWARE)
-========================================= */
-
+.auth-page .hidden { display: none; }
+   
 .auth-page .resend-btn {
-  margin-top: 0.75rem;
+  margin-top: .7rem;
   width: 100%;
-  border-radius: 0.6rem;
+  border-radius: .65rem;
   border: 1px solid var(--text-muted);
   background: var(--bg-surface);
-  padding: 0.55rem 0.7rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: .55rem .7rem;
   color: var(--text-muted);
   cursor: not-allowed;
-  transition: all 0.25s ease;
 }
 
-/* Enabled state */
 .auth-page .resend-btn:not(:disabled) {
   color: var(--text-link);
   cursor: pointer;
   border-color: var(--text-link);
-  background: color-mix(in srgb, var(--bg-surface), var(--glow-accent) 14%);
 }
-
-/* Hover when enabled */
-.auth-page .resend-btn:not(:disabled):hover {
-  color: var(--text-accent);
-  border-color: var(--text-accent);
-  box-shadow: 0 0 10px var(--glow-accent);
-}
-
-/* Disabled state */
-.auth-page .resend-btn:disabled {
-  opacity: 0.55;
-}
-
-/* =========================================
-   OTP CHANNEL SELECTOR (EMAIL / SMS / WHATSAPP)
-========================================= */
-
+   
 .auth-page .channel-group {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: .5rem;
+  margin-bottom: .95rem;
 }
 
-.auth-page .channel-group label {
-  flex: 1;
-  cursor: pointer;
-}
-
-.auth-page .channel-group input {
-  display: none;
-}
-
+.auth-page .channel-group label { flex: 1; cursor: pointer; }
+.auth-page .channel-group input { display: none; }
+   
 .auth-page .channel-group span {
   display: block;
-  padding: 0.5rem 0.4rem;
   text-align: center;
-  font-size: 0.8rem;
-  font-weight: 500;
-
-  border-radius: 0.6rem;
+  padding: .55rem .4rem;
+  border-radius: .6rem;
   border: 1px solid var(--text-muted);
-
   color: var(--text-muted);
-  background: transparent;
-
-  transition: all 0.25s ease;
+  font-size: .82rem;
 }
 
-/* Selected state */
 .auth-page .channel-group input:checked + span {
   border-color: var(--text-accent);
   color: var(--text-main);
-  box-shadow: 0 0 6px var(--glow-accent);
+  box-shadow: 0 0 8px var(--glow-accent);
 }
 
-/* WhatsApp highlight */
 .auth-page .channel-group .whatsapp input:checked + span {
   background: var(--bg-success-soft);
   border-color: var(--text-success);
-  box-shadow: 0 0 8px var(--text-success);
 }
 
-/* SMS highlight */
 .auth-page .channel-group .sms input:checked + span {
   background: var(--bg-info-soft);
   border-color: var(--text-info);
-  box-shadow: 0 0 8px var(--text-info);
 }
 
-/* =========================================
-   PHONE INPUT (SMS / WHATSAPP)
-========================================= */
-
-.auth-page #phoneGroup {
-  display: none;
-  animation: fadeSlideIn 0.25s ease forwards;
-}
-
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* =========================================
-   SMALL UX POLISH
-========================================= */
-
-/* Make OTP input feel intentional */
 .auth-page input[name="code"] {
-  letter-spacing: 0.35em;
+  letter-spacing: .35em;
   text-align: center;
-  font-weight: 600;
+  font-weight: 650;
 }
 
-/* Disabled resend clarity */
-.auth-page .resend-btn:disabled {
-  opacity: 0.45;
-  text-decoration: none;
-}
 .auth-page .google-btn {
   background: var(--bg-surface);
-  color: var(--text-main);
-  border: 1px solid var(--text-muted);
 }
 
 .auth-page .google-btn:hover {
   background: var(--bg-surface-soft);
   border-color: var(--text-muted);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
-.auth-page .google-btn svg {
-  flex-shrink: 0;
-}
-.auth-logo-img {
-  width: 48px;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-
-  /* subtle glow to match your theme */
-  filter: drop-shadow(0 0 6px var(--glow-accent));
-}
-/* =========================================
-   ROLE SELECTOR (APPLICANT / EMPLOYER)
-========================================= */
-
-.auth-page .role-group {
-  display: flex;
-  gap: 0.5rem;
-  margin: 1rem 0;
-}
-
-.auth-page .role-option {
-  flex: 1;
-  cursor: pointer;
-}
-
-.auth-page .role-option input {
+.auth-page .field-error {;
   display: none;
-}
-
-.auth-page .role-option span {
-  display: block;
-  padding: 0.6rem 0.5rem;
-  text-align: center;
-
-  font-size: 0.85rem;
-  font-weight: 600;
-
-  border-radius: 0.6rem;
-  border: 1px solid var(--text-muted);
-
-  background: transparent;
-  color: var(--text-muted);
-
-  transition: all 0.25s ease;
-}
-
-/* Selected */
-.auth-page .role-option input:checked + span {
-  color: var(--text-main);
-  border-color: var(--text-accent);
-  box-shadow: 0 0 8px var(--glow-accent);
-}
-
-/* Applicant accent */
-.auth-page .role-option.applicant input:checked + span {
-  background: rgba(34, 211, 238, 0.15);
-  border-color: var(--text-accent);
-}
-
-/* Employer accent */
-.auth-page .role-option.employer input:checked + span {
-  background: var(--bg-warning-soft);
-  border-color: var(--text-warning);
-  box-shadow: 0 0 8px var(--bg-warning);
-}
-.auth-page .field-error {
   color: var(--text-danger);
-  font-size: 0.9rem;
-  margin-top: 6px;
-  display: none;
+  font-size: .88rem;
+  margin-top: -.35rem;
+  margin-bottom: .8rem;
 }
 
-.auth-page .field-error.show {
-  display: block;
-}
-
+.auth-page .field-error.show { display: block; }
+   
 .auth-page .role-selection {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin: 18px 0 8px;
+  gap: 12px;
+  margin: 16px 0 10px;
 }
 
 .auth-page .role-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
   background: var(--bg-surface-soft);
-  border: 2px solid var(--text-muted);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border: 1px solid var(--text-muted);
+  border-radius: 14px;
+  padding: 14px 18px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all .2s ease;
 }
 
 .auth-page .role-card:hover {
-  background: var(--bg-info-soft);
   border-color: var(--text-accent);
-  transform: translateY(-2px);
-}
-
-.auth-page .role-card input {
-  display: none;
-}
-
-.auth-page .role-card input:checked + span {
   background: var(--bg-info-soft);
-  border-radius: 14px;
-  padding: 6px 10px;
-  box-shadow: 0 0 16px var(--glow-accent);
 }
-/* ===== AUTH PROVIDER BUTTONS (NORMAL) ===== */
+
+.auth-page .role-card input { display: none; }
+   
+.auth-page .role-card input:checked + span {
+  box-shadow: 0 0 14px var(--glow-accent);
+  border-radius: 10px;
+  padding: 4px 8px;
+}
 
 .auth-provider-wrapper .auth-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
-   
-  width: 100%;
-  padding: 10px 14px;
-
-  border: 1px solid #e5e7eb;
   border-radius: 999px;
-  background: #ffffff;
-
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: center;
+  background: #fff;
   color: #111827;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
 }
 
-/* SVG sizing */
 .auth-provider-wrapper .auth-btn svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
 
-/* Apple button */
-.auth-provider-wrapper .apple-btn {
-  background: #ffffff;
-  color: #111827;
-}
-.auth-provider-wrapper .apple-btn svg {
-  padding-left: 2px;
-}
-.auth-provider-wrapper .apple-btn svg path {
-  fill: currentColor;
-}
-
-/* Main row (icon + text) */
 .auth-provider-wrapper .auth-main {
   display: flex;
   align-items: center;
@@ -644,261 +366,102 @@
   justify-content: center;
 }
 
-/* ===== DISABLED PROVIDERS (Apple & Microsoft) ===== */
-
-.auth-provider-wrapper .disabled-btn {
-  opacity: 0.6;
-  cursor: not-allowed;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-/* Force ONE ROW for disabled buttons */
-.auth-provider-wrapper .disabled-btn {
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-/* Prevent text from breaking */
-.auth-provider-wrapper .auth-main span,
-.auth-provider-wrapper .coming-soon {
-  white-space: nowrap;
-}
-/* Main content stays inline */
-.auth-provider-wrapper .disabled-btn .auth-main {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Dot separator before "Coming soon" */
-.auth-provider-wrapper .coming-soon::before {
-  content: "·";
-  margin: 0 6px;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-/* Coming soon INLINE */
-.auth-provider-wrapper .coming-soon {
-  display: inline;
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-/* Microsoft text color */
-.auth-provider-wrapper .microsoft-btn,
-.auth-provider-wrapper .microsoft-btn span {
-  color: #111827;
-}
-.auth-provider-wrapper .apple-btn,
-.auth-provider-wrapper .apple-btn span {
-  color: #111827;
-}
-/* Disable ALL interaction */
 .auth-provider-wrapper .disabled-btn,
 .auth-provider-wrapper .disabled-btn * {
   pointer-events: none;
 }
-/* ========================================
-   AUTH PAGE — ChatGPT-like inline spinner
-======================================== */
+
+.auth-provider-wrapper .disabled-btn {
+  opacity: 0.6;
+  cursor: not-allowed;
+  white-space: nowrap;
+}
+
+.auth-provider-wrapper .coming-soon {
+  display: inline;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.auth-provider-wrapper .coming-soon::before {
+  content: "·";
+  margin: 0 6px;
+}
+
 .auth-page .spinner {
   display: inline-flex;
   gap: 4px;
-  align-items: center;
 }
 
 .auth-page .spinner span {
   width: 4px;
   height: 4px;
-  background: currentColor;
   border-radius: 50%;
+  background: currentColor;
   animation: auth-blink 1.4s infinite both;
 }
 
-.auth-page .spinner span:nth-child(2) {
-  animation-delay: .2s;
-}
-
-.auth-page .spinner span:nth-child(3) {
-  animation-delay: .4s;
-}
+.auth-page .spinner span:nth-child(2) { animation-delay: .2s; }
+.auth-page .spinner span:nth-child(3) { animation-delay: .4s; }
 
 @keyframes auth-blink {
-  0% { opacity: .2; }
+  0%,100% { opacity: .2; }
   20% { opacity: 1; }
-  100% { opacity: .2; }
 }
 
 .auth-page .btn-loading {
   pointer-events: none;
   opacity: .85;
 }
-/* ========================================
-   AUTH PAGE — Show / Hide password (FIXED)
-======================================== */
 
 .auth-page .password-wrapper {
   position: relative;
   width: 100%;
 }
 
-/* Password input needs right padding for the eye */
 .auth-page .password-wrapper input {
-  padding-right: 2.8rem; /* space for the eye */
+  padding-right: 2.8rem;
 }
 
-/* Eye button */
 .auth-page .auth-eye {
   position: absolute;
-  right: 0.65rem;               /* inside the input */
   top: 50%;
+  right: 0.65rem;
   transform: translateY(-50%);
-
-  background: none;
   border: none;
-  padding: 0;
-
+  background: none;
   cursor: pointer;
   font-size: 16px;
-  line-height: 1;
-
-  opacity: 0.65;
-  color: inherit;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  opacity: .65;
 }
 
-/* Hover polish */
 .auth-page .auth-eye:hover {
   opacity: 1;
 }
 
-/* Disabled state */
-.auth-page .auth-eye:disabled {
-  cursor: default;
-  opacity: 0.4;
-}
-.auth-page .password-wrapper input:placeholder-shown + .auth-eye {
-  opacity: 0.35;
-}
-.auth-page .auth-eye:hover {
-  background: rgba(255,255,255,0.08);
-  border-radius: 50%;
-}
-@media (hover: hover) {
-  .auth-page .auth-eye:hover {
-    background: rgba(255,255,255,0.08);
-    border-radius: 50%;
-  }
-}
-/* =========================================
-   MOBILE OPTIMIZATIONS
-========================================= */
 @media (max-width: 480px) {
-  /* Auth box keeps a stable size while allowing scroll */
+  .auth-page .auth-wrapper { padding: .5rem; }
+
   .auth-page .auth-box {
     width: 100%;
     max-width: 100%;
-    padding: 1.5rem 1rem;
-    height: calc(100dvh - 1rem);
-    min-height: 0;
-    max-height: 90vh; /* Adjusted for mobile view */
-  }
-
-    /* Prevent mobile browsers from zooming inputs on focus */
-  .auth-page .auth-box input,
-  .auth-page .auth-box select {
-    font-size: 16px;
+    padding: 1.25rem 1rem;
+    max-height: 94vh;
   }
    
-   /* Headings scale down */
-  .auth-page .auth-box h1,
-  .auth-page .auth-box h2 {
-    font-size: 1.3rem;
-  }
+  .auth-page .auth-box input,
+  .auth-page .auth-box select { font-size: 16px; }
 
-  /* Paragraphs scale down */
-  .auth-page .auth-box p {
-    font-size: 0.85rem;
-  }
+  .auth-page .auth-box h2 { font-size: 1.25rem; }
 
-  /* Buttons slightly taller and bigger for tap */
-  .auth-page .auth-btn {
-    padding: 0.55rem;
-    font-size: 0.95rem;
-  }
-
-  /* OTP input spacing adjusted */
-  .auth-page input[name="code"] {
-    letter-spacing: 0.25em;
-  }
-
-  /* Channel selector: wrap on small screens */
   .auth-page .channel-group {
     flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-  .auth-page .channel-group label {
-    flex: 1 1 100%;
+    gap: .4rem;
   }
 
-  /* Row items stack vertically */
-  .auth-page .row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
-  }
+  .auth-page .channel-group label { flex: 1 1 100%; }
 
-  /* Role selector wraps */
-  .auth-page .role-group {
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-  .auth-page .role-option {
-    flex: 1 1 48%;
-    margin-bottom: 0.4rem;
-  }
-
-  /* Eye button remains accessible */
-  .auth-page .auth-eye {
-    font-size: 18px;
-  }
-   
-  .auth-page .phone-group {
-    --country-select-width: 108px;
-  }
-  .auth-page .country-select {
-    font-size: 0.85rem;
-    text-indent: -999px;
-    color: var(--text-main);
-    -webkit-text-fill-color: var(--text-main);
-    padding: 0.55rem 1.8rem 0.55rem 2.1rem;
-  }
-}
-/* =========================================
-   PHONE GROUP — ISOLATION FIX (FINAL)
-========================================= */
-
-.auth-page .phone-group input,
-.auth-page .phone-group select {
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  outline: none !important;
-  margin-bottom: 0;
-}
-
-/* Prevent global focus glow leakage */
-.auth-page .phone-group input:focus,
-.auth-page .phone-group select:focus {
-  box-shadow: none !important;
+  .auth-page .phone-group { --country-select-width: 108px; }
 }
 </style>
 
