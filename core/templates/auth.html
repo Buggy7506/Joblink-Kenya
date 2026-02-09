@@ -21,7 +21,7 @@
 }
 
 .auth-page .auth-box {
-  width: min(100%, 460px);
+  width: min(100%, 410px);
   max-height: none;
   overflow-y: visible;
   padding: 2rem;
@@ -107,6 +107,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 1.15rem;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   pointer-events: none;
   z-index: 1;
 }
@@ -134,6 +135,7 @@
 
 .auth-page .country-select option {
   font-size: 0.95rem;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   color: var(--text-main);
   background: var(--bg-surface-soft);
 }
@@ -956,11 +958,18 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-   function updateCountryFlag() {
+    function codeToFlagEmoji(code) {
+    if (!code || code.length !== 2) return "🏳️";
+    return code
+      .toUpperCase()
+      .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
+  }
+  
+  function updateCountryFlag() {
     if (!countryFlag || !countrySelect) return;
     const option = countrySelect.selectedOptions?.[0];
     if (!option) return;
-    const emoji = option.dataset.flagEmoji || option.textContent?.trim().split(" ")[0] || "🏳️";
+    const emoji = option.dataset.flagEmoji || codeToFlagEmoji(option.value) || "🏳️";
     countryFlag.textContent = emoji;
     countrySelect.setAttribute(
       "aria-label",
@@ -1086,7 +1095,7 @@ document.addEventListener("DOMContentLoaded", () => {
             name: country.name?.common || country.cca2,
             dial: dial.replace(/\D/g, ""),
             flag: country.flag || "",
-            flagEmoji: country.flag || "",
+            flagEmoji: codeToFlagEmoji(country.cca2),
             flagLabel: `${country.name?.common || country.cca2} (+${dial.replace(/\D/g, "")})`,
           };
         })
