@@ -6,6 +6,10 @@
 {% block content %}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+.auth-page {
+  overflow-x: clip;
+}
+
 .auth-page * {
   box-sizing: border-box;
   margin: 0;
@@ -18,12 +22,14 @@
   display: grid;
   place-items: center;
   padding: 1.5rem;
+  overflow-x: clip;
 }
 
 .auth-page .auth-box {
   width: min(100%, 410px);
   max-height: none;
-  overflow-y: visible;
+  overflow: visible;
+  position: relative;
   padding: 2rem;
   border-radius: 1rem;
   background: var(--bg-card);
@@ -173,7 +179,8 @@
   position: absolute;
   top: calc(100% + 0.45rem);
   left: 0;
-  right: 0;
+  width: 100%;
+  max-width: 100%;
   z-index: 40;
   border: 1px solid color-mix(in srgb, var(--text-muted), transparent 30%);
   border-radius: 0.95rem;
@@ -181,6 +188,8 @@
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
   max-height: 280px;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .auth-page .country-menu.hidden {
@@ -215,7 +224,7 @@
 
 .auth-page .country-option-label {
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
   text-overflow: ellipsis;
   font-size: 0.9rem;
 }
@@ -528,8 +537,8 @@
     width: 100%;
     max-width: 100%;
     padding: 1.25rem 1rem;
-    max-height: 94vh;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
   }
    
   .auth-page .auth-box input,
