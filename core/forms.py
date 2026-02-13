@@ -1,3 +1,5 @@
+import os
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
@@ -353,7 +355,13 @@ class EditProfileForm(TooltipFormMixin, forms.ModelForm):
         if self.user:
             latest_cv = CVUpload.objects.filter(applicant=self.user).order_by('-uploaded_on').first()
             if latest_cv:
-                self.fields['upload_cv'].initial = latest_cv.cv.name  # use .name for file display
+                cv_name = getattr(latest_cv.cv, 'name', None)
+                if not cv_name:
+                    cv_url = getattr(latest_cv.cv, 'url', '')
+                    cv_name = os.path.basename(cv_url) if cv_url else getattr(latest_cv.cv, 'public_id', None)
+
+                if cv_name:
+                    self.fields['upload_cv'].initial = cv_name
 
     def clean(self):
         cleaned_data = super().clean()
