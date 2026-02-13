@@ -2169,89 +2169,69 @@ def login_view(request):
 def complete_employer_profile(request):
     user = request.user
 
-    # ---------------------------
-    # Only employers allowed
-    # ---------------------------
+    
     profile = getattr(user, "profile", None)
     if not profile or profile.role != "employer":
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
-    # ---------------------------
-    # Fetch company WITHOUT creating on GET
-    # ---------------------------
     company = EmployerCompany.objects.filter(user=user).first()
 
-    # ---------------------------
-    # If already verified → redirect immediately
-    # ---------------------------
     if company and company.is_verified:
         messages.info(request, "Your company is already verified.")
         return redirect("dashboard")
 
-    # ============================
-    # POST → Create/update company + upload document
-    # ============================
     if request.method == "POST":
         company_form = EmployerCompanyForm(request.POST, instance=company)
-
-        if not company_form.is_valid():
-            return JsonResponse(
-                {"success": False, "errors": company_form.errors.get_json_data()},
-                status=400
+        doc_form = CompanyDocumentForm(
+            {"document_type": request.POST.get("document_type")},
+            {"file": request.FILES.get("file")},
+        )
+        
+        if not company_form.is_valid() or not doc_form.is_valid():
+            if not company_form.is_valid():
+                messages.error(request, "Please correct the company profile errors below.")
+            if not doc_form.is_valid():
+                messages.error(request, "Please correct the document upload errors below.")
+            return render(
+                request,
+                "complete_profile.html",
+                {
+                    "form": company_form,
+                    "doc_form": doc_form,
+                    "company": company,
+                    "documents": company.documents.all() if company else [],
+                },
+                status=400,
             )
 
-        # Save company (auto_verify runs inside model save)
         company = company_form.save(commit=False)
         company.user = user
         company.save()
 
-        # ---- Handle document upload if provided ----
         uploaded_file = request.FILES.get("file")
-        if uploaded_file:
-            doc_form = CompanyDocumentForm(
-                {"document_type": request.POST.get("document_type")},
-                {"file": uploaded_file}
-            )
+        temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        temp_path = temp_dir / uploaded_file.name
 
-            if not doc_form.is_valid():
-                return JsonResponse(
-                    {"success": False, "errors": doc_form.errors.get_json_data()},
-                    status=400
-                )
+        with open(temp_path, "wb+") as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
 
-            temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
-            temp_dir.mkdir(parents=True, exist_ok=True)
-            temp_path = temp_dir / uploaded_file.name
-
-            with open(temp_path, "wb+") as f:
-                for chunk in uploaded_file.chunks():
-                    f.write(chunk)
-
-            # Queue background verification
-            save_employer_document.delay(
-                user.id,
-                str(temp_path),
-                doc_form.cleaned_data["document_type"]
-            )
+        save_employer_document.delay(
+            user.id,
+            str(temp_path),
+            doc_form.cleaned_data["document_type"],
+        )
 
         company.refresh_from_db()
-
-        # ---- JSON response for JS ----
         if company.is_verified:
-            return JsonResponse({
-                "success": True,
-                "redirect": reverse("dashboard")
-            })
+            messages.success(request, "Company verified successfully.")
+            return redirect("dashboard")
 
-        return JsonResponse({
-            "success": True,
-            "message": "Profile saved. Verification is in progress."
-        })
+        messages.success(request, "Profile saved. Verification is in progress.")
+        return redirect("complete_employer_profile")
 
-    # ============================
-    # GET → Render forms safely
-    # ============================
     company_form = EmployerCompanyForm(instance=company)
     doc_form = CompanyDocumentForm()
 
@@ -2263,7 +2243,7 @@ def complete_employer_profile(request):
             "doc_form": doc_form,
             "company": company,
             "documents": company.documents.all() if company else [],
-        }
+        },
     )
     
 #User Logout
@@ -2333,102 +2313,8 @@ def dashboard(request):
 @csrf_protect
 @login_required
 def upload_company_docs(request):
-    user = request.user
-
-    # ---------------------------
-    # Only employers allowed
-    # ---------------------------
-    profile = getattr(user, "profile", None)
-    if not profile or profile.role != "employer":
-        messages.error(request, "Only employers can upload verification documents.")
-        return redirect("dashboard")
-
-    # ---------------------------
-    # Fetch company WITHOUT creating on GET
-    # ---------------------------
-    company = EmployerCompany.objects.filter(user=user).first()
-
-    # ---------------------------
-    # Already verified → block access
-    # ---------------------------
-    if company and company.is_verified:
-        messages.info(request, "Your company is already verified.")
-        return redirect("dashboard")
-
-    # ============================
-    # POST → Update company + upload document
-    # ============================
-    if request.method == "POST":
-        if not company:
-            return JsonResponse(
-                {"success": False, "error": "Company profile not found."},
-                status=400
-            )
-
-        # ---- Optional company updates ----
-        company_form = EmployerCompanyForm(request.POST, instance=company)
-        if company_form.is_valid():
-            company_form.save()  # triggers auto_verify internally
-
-        # ---- Handle uploaded document ----
-        uploaded_file = request.FILES.get("file")
-        if uploaded_file:
-            doc_form = CompanyDocumentForm(
-                {"document_type": request.POST.get("document_type")},
-                {"file": uploaded_file}
-            )
-
-            if not doc_form.is_valid():
-                return JsonResponse(
-                    {"success": False, "errors": doc_form.errors.get_json_data()},
-                    status=400
-                )
-
-            temp_dir = Path(settings.MEDIA_ROOT) / "temp_uploads"
-            temp_dir.mkdir(parents=True, exist_ok=True)
-            temp_path = temp_dir / uploaded_file.name
-
-            with open(temp_path, "wb+") as f:
-                for chunk in uploaded_file.chunks():
-                    f.write(chunk)
-
-            # Queue background verification
-            save_employer_document.delay(
-                user.id,
-                str(temp_path),
-                doc_form.cleaned_data["document_type"]
-            )
-
-        company.refresh_from_db()
-
-        # ---- JSON response for JS ----
-        if company.is_verified:
-            return JsonResponse({
-                "success": True,
-                "redirect": reverse("dashboard")
-            })
-
-        return JsonResponse({
-            "success": True,
-            "message": "Documents uploaded. Verification is in progress."
-        })
-
-    # ============================
-    # GET → Render forms safely
-    # ============================
-    company_form = EmployerCompanyForm(instance=company)
-    doc_form = CompanyDocumentForm()
-
-    return render(
-        request,
-        "complete_profile.html",
-        {
-            "form": company_form,
-            "doc_form": doc_form,
-            "company": company,
-            "documents": company.documents.all() if company else [],
-        }
-    )
+    """Use the same non-JSON form flow as complete_employer_profile."""
+    return complete_employer_profile(request)
 
 @csrf_protect
 @login_required
