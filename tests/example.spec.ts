@@ -13,8 +13,9 @@ test('Auth page phone input UI screenshot', async ({ page }) => {
     waitUntil: 'domcontentloaded',
   });
 
-  // Target radio by label text to avoid brittle attribute selectors.
-  await page.getByLabel('SMS').click();
+  // Radios are visually hidden; click the visible label text instead.
+  await page.locator('.channel-group label.sms span').click();
+  await expect(page.locator('input[name="channel"][value="sms"]')).toBeChecked();
 
   const phoneInput = page.locator('#phoneInput');
   await expect(phoneInput).toBeVisible();
