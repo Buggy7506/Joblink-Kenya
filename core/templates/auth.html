@@ -347,7 +347,7 @@
    
 .auth-page .channel-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: .5rem;
   margin-bottom: .95rem;
 }
@@ -368,6 +368,16 @@
   color: var(--text-muted);
   font-size: .82rem;
   white-space: nowrap;
+}
+
+.auth-page .channel-input-area {
+  min-height: 52px;
+  margin-bottom: 0.9rem;
+}
+
+.auth-page #emailInput,
+.auth-page .phone-group {
+  margin-bottom: 0;
 }
 
 .auth-page .channel-group input:checked + span {
@@ -556,8 +566,6 @@
   
   .auth-page .channel-group { gap: .4rem; }
 
-  .auth-page .channel-group label { flex: 1 1 100%; }
-
   .auth-page .phone-group { --country-select-width: 82px; }
 }
 </style>
@@ -664,20 +672,7 @@
             </button>
             
           <div class="divider">OR</div>
-
-          <!-- EMAIL -->
-          <input
-            type="email"
-            id="emailInput"
-            name="identifier"
-            value="{{ request.session.auth_email|default:'' }}"
-            placeholder="Email address"
-            class="auth-input"
-            autocomplete="email"
-            required
-          />
-         <div class="field-error" id="emailError">Please enter a valid email address.</div>
-
+        <div class="field-error" id="emailError">Please enter a valid email address.</div>
           <!-- OTP CHANNEL -->
           <div class="channel-group">
             <label>
@@ -696,6 +691,20 @@
             </label>
           </div>
 
+          <div class="channel-input-area">
+            <!-- EMAIL -->
+            <input
+              type="email"
+              id="emailInput"
+              name="identifier"
+              value="{{ request.session.auth_email|default:'' }}"
+              placeholder="Email address"
+              class="auth-input"
+              autocomplete="email"
+              required
+            />
+            <div class="field-error" id="emailError">Please enter a valid email address.</div>
+            
             <!-- PHONE -->
             <div class="phone-group" id="phoneGroup" style="display:none;">
               <button
@@ -744,6 +753,7 @@
               
               <div class="country-menu hidden" id="countryMenu" role="listbox" aria-label="Country list"></div>
             </div>
+          </div>
            
           <button
             type="submit"
