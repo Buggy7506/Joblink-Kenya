@@ -21,8 +21,13 @@ test('Auth page phone input UI screenshot', async ({ page }) => {
   await expect(phoneInput).toBeVisible();
   await expect(phoneInput).toBeEnabled();
 
+    const countryTrigger = page.locator('#countryTrigger');
+  await expect(countryTrigger).toBeVisible();
+  await expect(countryTrigger).toBeEnabled();
+
+  // The native select is intentionally hidden in favor of the custom trigger/menu UI.
   const countrySelect = page.locator('#countrySelect');
-  await expect(countrySelect).toBeVisible();
+   await expect(countrySelect).toBeHidden();
   await expect(countrySelect).toBeEnabled();
 
   await page.screenshot({
