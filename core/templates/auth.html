@@ -32,8 +32,9 @@
 }
 
 .auth-page .auth-box {
-  width: min(410px, 100%);
-  max-width: 410px;
+  width: 100%;
+  max-width: min(410px, calc(100vw - 1.5rem));
+  min-width: 0;
   margin-inline: auto;
   max-height: none;
   overflow: visible;
@@ -372,15 +373,25 @@
 }
 
 .auth-page .channel-input-area {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 52px;
   margin-bottom: 0.9rem;
 }
 
 .auth-page #emailInput,
 .auth-page .phone-group {
+  max-width: 100%;
   margin-bottom: 0;
 }
 
+.auth-page form,
+.auth-page section {
+  width: 100%;
+  min-width: 0;
+}
+  
 .auth-page .channel-group input:checked + span {
   border-color: var(--text-accent);
   color: var(--text-main);
@@ -553,8 +564,8 @@
   .auth-page .auth-wrapper { padding: .75rem; }
 
   .auth-page .auth-box {
-    width: min(410px, 100%);
-    max-width: 410px;
+    width: 100%;
+    max-width: min(410px, calc(100vw - 1rem));
     padding: 1.25rem 1rem;
     max-height: none;
     overflow: visible;
