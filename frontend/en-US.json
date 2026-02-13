@@ -1,0 +1,22 @@
+{
+  "app_title": {
+    "defaultMessage": "Canva App",
+    "description": "This is the title of your app in the Canva sidebar"
+  },
+  "btn_test": {
+    "defaultMessage": "Test Button",
+    "description": "The label on the button that triggers a test action in the app"
+  },
+  "btn_submit": {
+    "defaultMessage": "Submit Design",
+    "description": "The button that the user clicks to submit the design"
+  },
+  "error_network": {
+    "defaultMessage": "Something went wrong. Please try again.",
+    "description": "This message is displayed when there is a network issue"
+  },
+  "sidebar_welcome": {
+    "defaultMessage": "Welcome to the Canva App",
+    "description": "Welcome message shown in the sidebar when the app is loaded"
+  }
+}
