@@ -144,7 +144,7 @@ h2.section-title {
     </div>
 
     <!-- Hidden file input -->
-    <input id="fileInput" type="file" name="file" class="d-none" multiple
+    <input id="fileInput" type="file" name="file" class="d-none"
            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
 
     <!-- Document type -->
@@ -177,28 +177,26 @@ const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
 const fileCount = document.getElementById("fileCount");
 const form = document.getElementById("companyFullForm");
-const progressWrap = document.getElementById("progressWrap");
+   
+if (dropZone && fileInput) {
+  dropZone.addEventListener("click", () => fileInput.click());
 
-// ===============================
-// Drag & Drop UI
-// ===============================
-dropZone.addEventListener("click", () => fileInput.click());
-
-dropZone.addEventListener("dragover", e => {
-  e.preventDefault();
-  dropZone.classList.add("glass-drop");
-});
+  dropZone.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropZone.classList.add("glass-drop");
+  });
 
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("glass-drop"));
 
-dropZone.addEventListener("drop", e => {
-  e.preventDefault();
-  dropZone.classList.remove("glass-drop");
-  fileInput.files = e.dataTransfer.files;
-  updateCounter();
-});
+  dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("glass-drop");
+    fileInput.files = e.dataTransfer.files;
+    updateCounter();
+  });
 
-fileInput.addEventListener("change", updateCounter);
+  fileInput.addEventListener("change", updateCounter);
+}
 
 function updateCounter() {
   if (fileInput.files.length > 0) {
@@ -208,147 +206,15 @@ function updateCounter() {
     fileCount.classList.add("d-none");
   }
 }
-
-// ===============================
-// Form Submit (Company + Files)
-// ===============================
-form.addEventListener("submit", e => {
-  e.preventDefault();
-
-  const docSelect = document.getElementById("document_type");
-  if (!docSelect || !docSelect.value) {
-    alert("Please select a document type.");
-    return;
-  }
-
-  const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
-  const docType = docSelect.value;
-  const files = Array.from(fileInput.files);
-
-  progressWrap.innerHTML = "";
-  progressWrap.classList.remove("d-none");
-
-  // If no files → submit company form only
-  if (files.length === 0) {
-    submitCompanyForm(csrf, docType);
-    return;
-  }
-
-  // Upload files sequentially
-  let index = 0;
-  function nextFile() {
-    if (index >= files.length) return;
-    uploadFile(files[index++], csrf, docType, nextFile);
-  }
-  nextFile();
-});
-
-// ===============================
-// Submit company form only
-// ===============================
-function submitCompanyForm(csrf, docType) {
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
-  xhr.setRequestHeader("X-CSRFToken", csrf);
-
-  xhr.onload = () => {
-    let resp;
-    try { resp = JSON.parse(xhr.responseText); }
-    catch { alert("Save failed: invalid response"); return; }
-
-    // If backend says redirect → company auto-verified
-    if (resp.redirect) {
-      window.location.href = resp.redirect;
-      return;
-    }
-
-    // Success but not verified yet
-    if (resp.success) {
-      alert(resp.message || "Saved successfully!");
-    } else {
-      alert("Error: " + JSON.stringify(resp.errors || resp.message));
-    }
-  };
-
-  const fd = new FormData(form);
-  fd.set("document_type", docType);
-  fd.set("auto_verify", "true"); // trigger backend auto-verification
-  xhr.send(fd);
-}
-
-// ===============================
-// Upload a single file
-// ===============================
-function uploadFile(file, csrf, docType, callback) {
-  const row = document.createElement("div");
-  row.className = "mb-2";
-  row.innerHTML = `
-    <div class="small fw-semibold">${file.name}</div>
-    <div class="progress rounded">
-      <div class="progress-bar" role="progressbar" style="width:0%">0%</div>
-    </div>
-  `;
-  progressWrap.appendChild(row);
-
-  const bar = row.querySelector(".progress-bar");
-  const xhr = new XMLHttpRequest();
-
-  xhr.upload.addEventListener("progress", e => {
-    if (e.lengthComputable) {
-      const percent = Math.round((e.loaded / e.total) * 100);
-      bar.style.width = percent + "%";
-      bar.textContent = percent + "%";
+   
+if (form) {
+  form.addEventListener("submit", e => {
+    const docSelect = document.getElementById("document_type");
+    if (!docSelect || !docSelect.value) {
+      e.preventDefault();
+      alert("Please select a document type.");
     }
   });
-
-  xhr.onload = () => {
-    let resp;
-    try { resp = JSON.parse(xhr.responseText); }
-    catch { bar.classList.add("bg-danger"); alert("Upload failed: invalid response"); return; }
-
-    // If backend responds with redirect → company now verified
-    if (resp.redirect) {
-      window.location.href = resp.redirect;
-      return;
-    }
-
-    if (xhr.status === 200 && resp.success) {
-      bar.style.width = "100%";
-      bar.textContent = "Done";
-      refreshDocs();
-      if (callback) callback();
-    } else {
-      bar.classList.add("bg-danger");
-      alert("Upload failed: " + JSON.stringify(resp.errors || resp.message));
-      if (callback) callback();
-    }
-  };
-
-  const fd = new FormData(form);
-  fd.append("file", file);
-  fd.set("document_type", docType);
-  fd.set("auto_verify", "true"); // trigger backend auto-verification
-
-  xhr.open("POST", "{% url 'complete_employer_profile' %}", true);
-  xhr.setRequestHeader("X-CSRFToken", csrf);
-  xhr.send(fd);
-}
-
-// ===============================
-// Refresh list of uploaded documents
-// ===============================
-function refreshDocs() {
-  const docList = document.getElementById("docList");
-  if (!docList) return;
-
-  fetch(window.location.href)
-    .then(r => r.text())
-    .then(html => {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      const updated = temp.querySelector("#docList");
-      if (updated) docList.innerHTML = updated.innerHTML;
-    });
 }
 </script>
 
