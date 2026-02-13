@@ -820,7 +820,8 @@
             class="resend-btn"
             disabled
           >
-            Resend code (<span id="countdown">30</span>s)
+            <span id="resendLabel">Resend code</span>
+            <span id="countdownWrap">(<span id="countdown">30</span>s)</span>
           </button>
            
         {% if request.session.auth_user_exists %}
@@ -1010,11 +1011,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   function startResendCooldown() {
     const resendBtn = document.getElementById("resendBtn");
+    const resendLabel = document.getElementById("resendLabel");
     const countdown = document.getElementById("countdown");
-    if (!resendBtn || !countdown) return;
+    const countdownWrap = document.getElementById("countdownWrap");
+    if (!resendBtn || !resendLabel || !countdown || !countdownWrap) return;
 
     let remaining = RESEND_COOLDOWN;
     resendBtn.disabled = true;
+    resendLabel.textContent = "Resend code";
+    countdownWrap.classList.remove("hidden");
     countdown.textContent = remaining;
 
     clearInterval(resendTimer);
@@ -1025,7 +1030,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (remaining <= 0) {
         clearInterval(resendTimer);
         resendBtn.disabled = false;
-        countdown.textContent = RESEND_COOLDOWN;
+        countdownWrap.classList.add("hidden");
       }
     }, 1000);
   }
