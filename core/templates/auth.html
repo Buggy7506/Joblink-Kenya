@@ -91,7 +91,7 @@
   --country-select-width: 76px;
   border: 1px solid var(--text-muted);
   border-radius: 0.75rem;
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(180deg, var(--bg-surface), var(--bg-surface-soft));
   position: relative;
 }
@@ -101,54 +101,43 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow-accent), transparent 45%);
 }
 
-.auth-page .country-flag {
-  position: absolute;
-  left: 0.72rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.15rem;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-  pointer-events: none;
-  z-index: 1;
+.auth-page .country-select {
+  flex: 0 0 var(--country-select-width);
+  width: var(--country-select-width);
+  display: none;
 }
 
-.auth-page .country-select {
+.auth-page .country-trigger {
   flex: 0 0 var(--country-select-width);
   width: var(--country-select-width);
   border: none;
   border-right: 1px solid color-mix(in srgb, var(--text-muted), transparent 45%);
-  border-radius: 0;
   margin-bottom: 0;
   background: transparent;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   cursor: pointer;
-  padding: 0;
-  position: relative;
-  z-index: 2;
-}
-
-.auth-page .country-select option {
-  font-size: 0.95rem;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   color: var(--text-main);
-  background: var(--bg-surface-soft);
+}
+  
+.auth-page .country-trigger:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--glow-accent), transparent 35%);
+  outline-offset: -2px;
+}
+  
+.auth-page .country-flag {
+  width: 22px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #fff, transparent 85%);
 }
 
-.auth-page .phone-group::after {
-  content: "▾";
-  position: absolute;
-  left: calc(var(--country-select-width) - 1.3rem);
-  top: 50%;
-  transform: translateY(-50%);
+.auth-page .country-caret {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  pointer-events: none;
+  font-size: 0.82rem;
 }
 
 .auth-page .phone-input-wrapper {
@@ -176,6 +165,72 @@
   font-size: 0.95rem;
   color: var(--text-main);
   outline: none;
+  letter-spacing: 0.09em;
+  font-variant-numeric: tabular-nums;
+}
+
+.auth-page .country-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  border: 1px solid color-mix(in srgb, var(--text-muted), transparent 30%);
+  border-radius: 0.95rem;
+  background: var(--bg-card);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.auth-page .country-menu.hidden {
+  display: none;
+}
+
+.auth-page .country-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+}
+
+.auth-page .country-option:hover,
+.auth-page .country-option:focus-visible {
+  background: var(--bg-surface-soft);
+}
+
+.auth-page .country-option-main {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.auth-page .country-option-label {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+
+.auth-page .country-option-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  flex-shrink: 0;
+}
+
+.auth-page .country-option.active .country-option-check {
+  border-color: var(--text-accent);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--glow-accent), transparent 15%);
 }
 /* FIX WHITE BACKGROUND ON PHONE INPUT (ANDROID / CHROME) */
 .auth-page .phone-number-input,
@@ -630,10 +685,25 @@
 
             <!-- PHONE -->
             <div class="phone-group" id="phoneGroup" style="display:none;">
-              <!-- Country flag -->
-              <span class="country-flag" id="countryFlag" aria-hidden="true">🇰🇪</span>
-            
-              <!-- Country select -->
+              <button
+                type="button"
+                class="country-trigger"
+                id="countryTrigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select country"
+                disabled
+              >
+                <img
+                  src=""
+                  alt=""
+                  class="country-flag"
+                  id="countryFlag"
+                  loading="lazy"
+                >
+                <span class="country-caret" aria-hidden="true">▾</span>
+              </button>
+              
               <select
                 id="countrySelect"
                 class="auth-input country-select"
@@ -643,8 +713,7 @@
               >
                 <option value="" selected disabled>Loading countries...</option>
               </select>
-            
-              <!-- Phone input wrapper -->
+
               <div class="phone-input-wrapper">
                 <span class="phone-dial" id="phoneDial">+254</span>
                 <input
@@ -659,6 +728,8 @@
                   disabled
                 >
               </div>
+              
+              <div class="country-menu hidden" id="countryMenu" role="listbox" aria-label="Country list"></div>
             </div>
            
           <button
@@ -860,6 +931,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const phoneGroup = document.getElementById("phoneGroup");
   const countrySelect = document.getElementById("countrySelect");
   const countryFlag = document.getElementById("countryFlag");
+  const countryTrigger = document.getElementById("countryTrigger");
+  const countryMenu = document.getElementById("countryMenu");
   const phoneDial = document.getElementById("phoneDial");
   const continueBtn = document.getElementById("continueBtn");
   const channelRadios = document.querySelectorAll('input[name="channel"]');
@@ -926,6 +999,72 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // CHANNEL TOGGLE
   // =========================
+  function renderCountryMenu() {
+    if (!countryMenu || !countrySelect) return;
+    const selectedCode = countrySelect.value;
+    countryMenu.innerHTML = "";
+
+    Array.from(countrySelect.options).forEach(option => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "country-option";
+      item.setAttribute("role", "option");
+      item.dataset.code = option.value;
+      if (option.value === selectedCode) {
+        item.classList.add("active");
+        item.setAttribute("aria-selected", "true");
+      } else {
+        item.setAttribute("aria-selected", "false");
+      }
+
+      const flagSrc = getFlagSrc(option.value, option.dataset.flagSrc || "");
+      item.innerHTML = `
+        <span class="country-option-main">
+          <img src="${flagSrc}" alt="" class="country-flag" loading="lazy">
+          <span class="country-option-label">${option.dataset.label || option.textContent}</span>
+        </span>
+        <span class="country-option-check" aria-hidden="true"></span>
+      `;
+
+      item.addEventListener("click", () => {
+        countrySelect.value = option.value;
+        countrySelect.dispatchEvent(new Event("change"));
+        closeCountryMenu();
+      });
+
+      countryMenu.appendChild(item);
+    });
+  }
+
+  function openCountryMenu() {
+    if (!countryMenu || !countryTrigger || countryTrigger.disabled) return;
+    countryMenu.classList.remove("hidden");
+    countryTrigger.setAttribute("aria-expanded", "true");
+  }
+
+  function closeCountryMenu() {
+    if (!countryMenu || !countryTrigger) return;
+    countryMenu.classList.add("hidden");
+    countryTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  if (countryTrigger) {
+    countryTrigger.addEventListener("click", () => {
+      if (countryMenu?.classList.contains("hidden")) {
+        openCountryMenu();
+      } else {
+        closeCountryMenu();
+      }
+    });
+  }
+
+  document.addEventListener("click", event => {
+    if (!countryMenu || !countryTrigger || !phoneGroup) return;
+    if (!phoneGroup.contains(event.target)) {
+      closeCountryMenu();
+    }
+  });
+  
   function syncChannelFields() {
     const checked = document.querySelector('input[name="channel"]:checked');
     if (!checked) return;
@@ -942,6 +1081,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (countrySelect) {
       countrySelect.disabled = email;
+    }
+    if (countryTrigger) {
+      countryTrigger.disabled = email;
+      if (email) closeCountryMenu();
     }
     if (phoneInput) {
       phoneInput.disabled = email;
@@ -974,27 +1117,33 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-    function codeToFlagEmoji(code) {
-    if (!code || code.length !== 2) return "🏳️";
-    return code
-      .toUpperCase()
-      .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
+  function getFlagSrc(code, source) {
+    if (source) return source;
+    if (!code || code.length !== 2) return "";
+    return `https://flagsapi.com/${code.toUpperCase()}/flat/64.png`;
   }
   
   function updateCountryFlag() {
     if (!countryFlag || !countrySelect) return;
     const option = countrySelect.selectedOptions?.[0];
     if (!option) return;
-    const emoji = option.dataset.flagEmoji || codeToFlagEmoji(option.value) || "🏳️";
-    countryFlag.textContent = emoji;
-    countrySelect.setAttribute(
-      "aria-label",
-      option.dataset.label || option.textContent || "Select country"
-    );
+    const label = option.dataset.label || option.textContent || "Select country";
+    const flagSrc = getFlagSrc(option.value, option.dataset.flagSrc || "");
+    countryFlag.src = flagSrc;
+    countryFlag.alt = label;
+    if (countryTrigger) {
+      countryTrigger.setAttribute("aria-label", label);
+    }
+    countrySelect.setAttribute("aria-label", label);
+    renderCountryMenu();
   }
-   
-   function sanitizeDigits(value) {
+
+  function sanitizeDigits(value) {
     return value.replace(/\D/g, "");
+  }
+
+  function formatPhoneDisplay(value) {
+    return value.replace(/(\d{3})(?=\d)/g, "$1 ").trim();
   }
 
   function updatePhoneState() {
@@ -1002,8 +1151,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const { dial, max } = getCountryMeta();
     const digits = sanitizeDigits(phoneInput.value);
     const trimmed = max ? digits.slice(0, max) : digits;
-    if (digits !== trimmed) phoneInput.value = trimmed;
-    if (max) phoneInput.maxLength = max;
+    const formatted = formatPhoneDisplay(trimmed);
+    if (phoneInput.value !== formatted) phoneInput.value = formatted;
+    if (max) {
+      phoneInput.maxLength = max + Math.floor((max - 1) / 3);
+    }
     phoneInput.dataset.full = trimmed ? `+${dial}${trimmed}` : "";
     if (phoneDial) {
       phoneDial.textContent = dial ? `+${dial}` : "";
@@ -1110,9 +1262,8 @@ document.addEventListener("DOMContentLoaded", () => {
             code: country.cca2,
             name: country.name?.common || country.cca2,
             dial: dial.replace(/\D/g, ""),
-            flag: country.flag || "",
-            flagEmoji: codeToFlagEmoji(country.cca2),
             flagLabel: `${country.name?.common || country.cca2} (+${dial.replace(/\D/g, "")})`,
+            flagSrc: country.flags?.png || country.flags?.svg || "",
           };
         })
         .filter(country => country.code && country.dial)
@@ -1126,8 +1277,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (COUNTRY_PHONE_MAX[country.code]) {
           option.dataset.max = COUNTRY_PHONE_MAX[country.code];
         }
-        option.textContent = `${country.flag} ${country.name} (+${country.dial})`;
-        option.dataset.flagEmoji = country.flagEmoji;
+        option.textContent = `${country.name} (+${country.dial})`;
+        option.dataset.flagSrc = getFlagSrc(country.code, country.flagSrc);
         option.dataset.label = country.flagLabel;
         countrySelect.appendChild(option);
       });
@@ -1139,9 +1290,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error(error);
       countrySelect.innerHTML = `
-        <option value="KE" data-dial="254" data-max="9" data-flag-emoji="🇰🇪" data-label="Kenya (+254)">🇰🇪 Kenya (+254)</option>
-        <option value="UG" data-dial="256" data-max="9" data-flag-emoji="🇺🇬" data-label="Uganda (+256)">🇺🇬 Uganda (+256)</option>
-        <option value="TZ" data-dial="255" data-max="9" data-flag-emoji="🇹🇿" data-label="Tanzania (+255)">🇹🇿 Tanzania (+255)</option>
+        <option value="KE" data-dial="254" data-max="9" data-label="Kenya (+254)">Kenya (+254)</option>
+        <option value="UG" data-dial="256" data-max="9" data-label="Uganda (+256)">Uganda (+256)</option>
+        <option value="TZ" data-dial="255" data-max="9" data-label="Tanzania (+255)">Tanzania (+255)</option>
       `;
     }
   }
