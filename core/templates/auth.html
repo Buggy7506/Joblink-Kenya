@@ -177,6 +177,22 @@
   color: var(--text-main);
   outline: none;
 }
+/* FIX WHITE BACKGROUND ON PHONE INPUT (ANDROID / CHROME) */
+.auth-page .phone-number-input,
+.auth-page .phone-number-input:focus,
+.auth-page .phone-number-input:active {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Chrome / Android autofill fix */
+.auth-page .phone-number-input:-webkit-autofill,
+.auth-page .phone-number-input:-webkit-autofill:hover,
+.auth-page .phone-number-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-main);
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
 
 .auth-page .auth-btn {
   display: flex;
