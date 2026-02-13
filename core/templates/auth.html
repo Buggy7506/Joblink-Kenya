@@ -91,7 +91,7 @@
   --country-select-width: 76px;
   border: 1px solid var(--text-muted);
   border-radius: 0.75rem;
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(180deg, var(--bg-surface), var(--bg-surface-soft));
   position: relative;
 }
@@ -695,7 +695,7 @@
                 disabled
               >
                 <img
-                  src="https://flagcdn.com/w40/ke.png"
+                  src=""
                   alt=""
                   class="country-flag"
                   id="countryFlag"
@@ -1120,7 +1120,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getFlagSrc(code, source) {
     if (source) return source;
     if (!code || code.length !== 2) return "";
-    return `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
+    return `https://flagsapi.com/${code.toUpperCase()}/flat/64.png`;
   }
   
   function updateCountryFlag() {
@@ -1290,9 +1290,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error(error);
       countrySelect.innerHTML = `
-        <option value="KE" data-dial="254" data-max="9" data-flag-src="https://flagcdn.com/w40/ke.png" data-label="Kenya (+254)">Kenya (+254)</option>
-        <option value="UG" data-dial="256" data-max="9" data-flag-src="https://flagcdn.com/w40/ug.png" data-label="Uganda (+256)">Uganda (+256)</option>
-        <option value="TZ" data-dial="255" data-max="9" data-flag-src="https://flagcdn.com/w40/tz.png" data-label="Tanzania (+255)">Tanzania (+255)</option>
+        <option value="KE" data-dial="254" data-max="9" data-label="Kenya (+254)">Kenya (+254)</option>
+        <option value="UG" data-dial="256" data-max="9" data-label="Uganda (+256)">Uganda (+256)</option>
+        <option value="TZ" data-dial="255" data-max="9" data-label="Tanzania (+255)">Tanzania (+255)</option>
       `;
     }
   }
