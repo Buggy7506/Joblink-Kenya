@@ -658,22 +658,6 @@ body.light-mode .active-link {
 .mobile-dropdown.open .mobile-dropdown-menu {
   display: block;
 }
-.theme-toggle-btn {
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--text-link);
-  padding: 0.45rem 0.6rem;
-  border-radius: 0.4rem;
-  font-size: 0.9rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.theme-toggle-btn:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--text-accent);
-}
 .nav-dropdown-toggle {
   display: flex;
   align-items: center;
@@ -738,16 +722,15 @@ body.light-mode .active-link {
 
 /* DESKTOP THEME TOGGLE (smaller size) */
 #darkModeToggleDesktop {
-  font-size: 0.9rem !important;   /* shrink text */
+  font-size: 0.9rem !important;
   padding: 4px 6px;
   line-height: 1;
 }
 
 #darkModeToggleDesktop span {
-  font-size: 0.95rem !important;  /* make icon & text same scale */
+  font-size: 0.95rem !important;
 }
 
-/* shrink icon slightly more */
 #desktopThemeIcon {
   font-size: 1rem !important;
 }
@@ -770,39 +753,48 @@ body.light-mode .active-link {
   display: block;
   z-index: 9999;
 }
+.mobile-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  background: linear-gradient(140deg, rgba(0, 255, 204, 0.12), rgba(0, 136, 255, 0.2));
+  border-radius: 0.65rem;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0, 255, 204, 0.25);
+  border: 1px solid rgba(60, 247, 255, 0.35);
+}
+
 .menu-toggle {
-  font-size: 1.7rem;
-  color: white;
-  font-weight: bold;
+  width: 100%;
+  height: 100%;
+  font-size: 1.5rem;
+  color: var(--text-link);
+  font-weight: 700;
   background: transparent;
   border: none;
   cursor: pointer;
   text-shadow: 0 0 10px var(--alien-shadow);
 }
-/* FIX MOBILE MENU TOGGLE BUTTON POSITION */
-.mobile-toggle {
-  position: sticky;
-  top: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(140deg, rgba(0, 255, 204, 0.12), rgba(0, 136, 255, 0.2));
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.5rem;
-  box-shadow: 0 2px 12px rgba(0, 255, 204, 0.25);
-  border: 1px solid rgba(60, 247, 255, 0.35);
+
+.mobile-toggle .menu-toggle {
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
-/* Make the button inside fully clickable */
-.mobile-toggle .menu-toggle {
-  font-size: 1.8rem;   /* bigger touch target */
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  color: var(--text-link);
-  padding: 0;
-  line-height: 1;
-  letter-spacing: 0.1em;
+.mobile-menu a,
+.mobile-menu button {
+  border-radius: 0.45rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.mobile-menu a:hover,
+.mobile-menu button:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 /* =========================================================
    MOBILE HEADER FIX (LOGO + TITLE vs HAMBURGER)
@@ -817,12 +809,22 @@ body.light-mode .active-link {
     flex-wrap: nowrap;
   }
 
- .brand img {
+  .brand {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .brand-title {
+    font-size: clamp(1.05rem, 4.3vw, 1.25rem);
+  }
+
+  .brand img {
     height: clamp(28px, 6vw, 40px);
   }
 
   .mobile-toggle {
     flex-shrink: 0;
+    margin-left: auto;
   }
 }
 
