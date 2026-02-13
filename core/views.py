@@ -1153,6 +1153,23 @@ def quick_profile_update(request):
             else:
                 user.location = location
 
+        # ---------- EMAIL ----------
+        elif modal_type == "email":
+            email = request.POST.get("email", "").strip().lower()
+            if not email:
+                errors["email"] = ["Email is required."]
+            else:
+                try:
+                    validate_email(email)
+                except ValidationError:
+                    errors["email"] = ["Enter a valid email address."]
+                else:
+                    exists = CustomUser.objects.filter(email__iexact=email).exclude(pk=user.pk).exists()
+                    if exists:
+                        errors["email"] = ["This email is already in use."]
+                    else:
+                        user.email = email
+                        
         # ---------- SKILLS ----------
         elif modal_type == "skills":
             skills = request.POST.get("skills", "").strip()
