@@ -32,7 +32,7 @@
 }
 
 .auth-page .auth-box {
-  width: min(410px, calc(100vw - 3rem));
+  width: min(410px, 100%);
   max-width: 410px;
   margin-inline: auto;
   max-height: none;
@@ -346,8 +346,8 @@
 }
    
 .auth-page .channel-group {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .5rem;
   margin-bottom: .95rem;
 }
@@ -367,7 +367,8 @@
   border: 1px solid var(--text-muted);
   color: var(--text-muted);
   font-size: .82rem;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .auth-page .channel-input-area {
@@ -552,7 +553,7 @@
   .auth-page .auth-wrapper { padding: .75rem; }
 
   .auth-page .auth-box {
-    width: min(410px, calc(100vw - 1.5rem));
+    width: min(410px, 100%);
     max-width: 410px;
     padding: 1.25rem 1rem;
     max-height: none;
