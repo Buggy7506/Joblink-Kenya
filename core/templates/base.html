@@ -1,6 +1,7 @@
 {% load static %}
 {% load widget_tweaks %}
 {% load humanize %}
+{% load form_alerts %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1130,6 +1131,7 @@ body.light-mode .active-link {
 </header>
 
 <main id="main-content" class="main container" data-aos="fade-up">
+  {% render_form_errors %}
   {% block content %}{% endblock %}
 </main>
 
