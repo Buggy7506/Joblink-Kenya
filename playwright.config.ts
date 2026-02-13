@@ -10,6 +10,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  testMatch: '*.spec.ts',
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -39,20 +40,28 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-  ],
+  projects:
+    process.env.PW_TEST_BROWSERS === 'all'
+      ? [
+          {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+          },
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+        ]
+      : [
+          {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ],
 
   /* Auto-start Django dev server before tests */
   webServer: {
