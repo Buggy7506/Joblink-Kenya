@@ -4,11 +4,11 @@
 {% block title %}Sign In or Sign Up{% endblock %}
 
 {% block content %}
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 .auth-page {
   width: 100%;
-  overflow-x: hidden;
+  min-height: 100svh;
+  margin: 0;
 }
 
 .auth-page * {
@@ -20,16 +20,16 @@
 
 .auth-page .auth-wrapper {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
+  box-sizing: border-box;
   padding: 1.5rem;
-  overflow-x: hidden;
 }
 
 .auth-page .auth-box {
-  width: 100%;
-  max-width: min(410px, calc(100vw - 1rem));
+  width: min(100%, 410px);
+  max-width: 410px;
   margin-inline: auto;
   max-height: none;
   overflow: visible;
@@ -184,14 +184,13 @@
   position: absolute;
   top: calc(100% + 0.45rem);
   left: 0;
-  width: 100%;
-  max-width: 100%;
+  right: 0;
   z-index: 40;
   border: 1px solid color-mix(in srgb, var(--text-muted), transparent 30%);
   border-radius: 0.95rem;
   background: var(--bg-card);
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
-  max-height: 280px;
+  max-height: min(280px, 45vh);
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -228,9 +227,9 @@
 }
 
 .auth-page .country-option-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
   font-size: 0.9rem;
 }
 
@@ -323,12 +322,6 @@
 .auth-page .divider:not(:empty)::before { margin-right: .5em; }
 .auth-page .divider:not(:empty)::after { margin-left: .5em; }
 
-.auth-page .row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .auth-page .hidden { display: none; }
    
 .auth-page .resend-btn {
@@ -350,14 +343,15 @@
    
 .auth-page .channel-group {
   display: flex;
+  flex-wrap: wrap;
   gap: .5rem;
   margin-bottom: .95rem;
 }
 
-.auth-page .channel-group label { flex: 1; cursor: pointer; }
-
 .auth-page .channel-group label {
+  flex: 1 1 0;
   min-width: 0;
+  cursor: pointer;
 }
 .auth-page .channel-group input { display: none; }
    
@@ -403,7 +397,7 @@
   border-color: var(--text-muted);
 }
 
-.auth-page .field-error {;
+.auth-page .field-error {
   display: none;
   color: var(--text-danger);
   font-size: .88rem;
@@ -541,11 +535,11 @@
 }
 
 @media (max-width: 480px) {
-  .auth-page .auth-wrapper { padding: .5rem; }
+  .auth-page .auth-wrapper { padding: .75rem; }
 
   .auth-page .auth-box {
-    width: min(100%, calc(100vw - 1rem));
-    max-width: min(410px, calc(100vw - 1rem));
+    width: min(100%, 410px);
+    max-width: 410px;
     padding: 1.25rem 1rem;
     max-height: none;
     overflow: visible;
@@ -555,11 +549,8 @@
   .auth-page .auth-box select { font-size: 16px; }
 
   .auth-page .auth-box h2 { font-size: 1.25rem; }
-
-  .auth-page .channel-group {
-    flex-wrap: wrap;
-    gap: .4rem;
-  }
+  
+  .auth-page .channel-group { gap: .4rem; }
 
   .auth-page .channel-group label { flex: 1 1 100%; }
 
@@ -567,8 +558,7 @@
 }
 </style>
 
-<body data-new-user="{{ is_new_user|yesno:'true,false' }}">
-<div class="auth-page">
+<div class="auth-page" data-new-user="{{ is_new_user|yesno:'true,false' }}">
   <div class="auth-wrapper">
     <div class="auth-box">
 
@@ -917,7 +907,6 @@
     </div>
   </div>
 </div>
-</body>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
