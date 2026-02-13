@@ -355,7 +355,11 @@
 
     <div>
         <p class="label">Email</p>
-        <p class="value">{{ user.email }}</p>
+        {% if user.email %}
+            <p class="value">{{ user.email }}</p>
+        {% else %}
+            <p><span class="add-link" onclick="openModal('email')">➕ Add email</span></p>
+        {% endif %}
     </div>
 
     <div>
@@ -450,6 +454,15 @@
             </div>
             <input type="hidden" name="phone" id="modalPhoneHidden" value="{{ user.phone|default:'' }}">
 
+            <!-- Email -->
+            <input id="emailInput" 
+                   type="email"
+                   name="email"
+                   placeholder="Enter email address"
+                   class="form-input"
+                   style="display:none"
+                   value="{{ user.email|default:'' }}">
+
             <!-- Location with OpenStreetMap Autocomplete -->
             <input id="locationInput" 
                    name="location" 
@@ -511,6 +524,7 @@ function openModal(type) {
   const title = document.getElementById('modalTitle');
   const inputs = {
     phone: document.getElementById('phoneInput'),
+    email: document.getElementById('emailInput'),
     location: document.getElementById('locationInput'),
     skills: document.getElementById('skillsInput'),
     upload_cv: document.getElementById('cvInput'),
@@ -524,6 +538,7 @@ function openModal(type) {
     inputs[type].style.display = 'block';
     title.innerText = {
       phone: "Add Phone",
+      email: "Add Email",
       location: "Add Location",
       skills: "Add Skills",
       upload_cv: "Upload CV",
