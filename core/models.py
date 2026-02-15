@@ -5,11 +5,7 @@ from django.utils import timezone
 from cloudinary.models import CloudinaryField
 from datetime import timedelta
 
-from django.conf import settings
-from django.db import models
-from django.utils import timezone
 import uuid
-import os
 
 class EmployerCompany(models.Model):
     STATUS_PENDING = "pending"
@@ -655,9 +651,6 @@ class CVUpload(models.Model):
 # ======================================================
 # RESUME
 # ======================================================
-from django.conf import settings
-from django.db import models
-
 class Resume(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
