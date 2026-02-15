@@ -162,6 +162,46 @@
     box-shadow: 0 0 18px color-mix(in srgb, var(--glow-accent) 40%, transparent);
   }
 
+
+  .category-suggestion-box {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid color-mix(in srgb, var(--glow-accent) 35%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  }
+
+  .category-suggestion-title {
+    margin: 0 0 8px;
+    font-weight: 700;
+    color: var(--text-accent);
+  }
+
+  .category-suggestion-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .category-chip {
+    border: 1px solid color-mix(in srgb, var(--glow-accent) 55%, transparent);
+    background: color-mix(in srgb, var(--bg-surface, var(--bg-card)) 88%, transparent);
+    color: var(--text-main);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .category-chip:hover,
+  .category-chip:focus-visible {
+    color: var(--text-inverse);
+    background: linear-gradient(45deg, var(--glow-accent), var(--text-accent));
+  }
+
 </style>
 
 <div class="edit-job-container">
@@ -187,22 +227,19 @@
       {% endfor %}
     </div>
 
-    <!-- Category -->
-    <div class="form-group">
-      <label for="category">Category</label>
-      {{ form.category }}
-      {% for error in form.category.errors %}
-        <p class="text-red-600 text-sm">{{ error }}</p>
-      {% endfor %}
-    </div>
+    {{ form.category.as_hidden }}
 
     <!-- Custom Category -->
     <div class="form-group">
-      <label for="{{ form.custom_category.id_for_label }}">Custom Category</label>
-      {{ form.custom_category }}
-      {% if form.custom_category.help_text %}
-        <small>{{ form.custom_category.help_text }}</small>
-      {% endif %}
+      <label for="{{ form.custom_category.id_for_label }}">Category</label>
+      {{ form.custom_category|add_class:"form-input"|attr:"list:external-categories"|attr:"autocomplete:off" }}
+      <small>Start typing to see category suggestions.</small>
+      <div class="category-suggestion-box">
+        <p class="category-suggestion-title">Suggested categories</p>
+        <ul id="category-suggestions" class="category-suggestion-list">
+          <li id="category-suggestion-status">Loading categories…</li>
+        </ul>
+      </div>
       {% for error in form.custom_category.errors %}
         <p class="text-red-600 text-sm">{{ error }}</p>
       {% endfor %}
@@ -294,5 +331,79 @@
     <button type="submit" class="btn btn-save">💾 Save Changes</button>
     <a href="{% url 'view_posted_jobs' %}" class="btn btn-cancel">❌ Cancel</a>
   </form>
+
+  <datalist id="external-categories"></datalist>
 </div>
+
+<script>
+  const categoryInput = document.getElementById('id_custom_category');
+  const categoryDatalist = document.getElementById('external-categories');
+  const categorySuggestions = document.getElementById('category-suggestions');
+  const categorySuggestionStatus = document.getElementById('category-suggestion-status');
+  let categoryTimer;
+
+  function renderSuggestionChips(categories) {
+    if (!categorySuggestions) return;
+
+    categorySuggestions.innerHTML = '';
+
+    if (!categories.length) {
+      const emptyItem = document.createElement('li');
+      emptyItem.className = 'form-help';
+      emptyItem.textContent = 'No matching categories found.';
+      categorySuggestions.appendChild(emptyItem);
+      return;
+    }
+
+    categories.slice(0, 10).forEach((name) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'category-chip';
+      button.textContent = name;
+      button.addEventListener('click', () => {
+        if (categoryInput) {
+          categoryInput.value = name;
+          categoryInput.focus();
+        }
+      });
+      item.appendChild(button);
+      categorySuggestions.appendChild(item);
+    });
+  }
+
+  async function fetchCategories(query = '') {
+    if (!categoryInput || !categoryDatalist) return;
+
+    try {
+      const response = await fetch(`{% url "api_categories" %}?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      const categories = Array.isArray(data.categories) ? data.categories : [];
+
+      categoryDatalist.innerHTML = '';
+      categories.forEach((name) => {
+        const option = document.createElement('option');
+        option.value = name;
+        categoryDatalist.appendChild(option);
+      });
+      renderSuggestionChips(categories);
+      if (categorySuggestionStatus) categorySuggestionStatus.remove();
+    } catch (error) {
+      console.error('Unable to load external categories:', error);
+      if (categorySuggestionStatus) {
+        categorySuggestionStatus.textContent = 'Showing fallback categories.';
+      }
+    }
+  }
+
+  if (categoryInput && categoryDatalist) {
+    fetchCategories('');
+    categoryInput.addEventListener('input', (event) => {
+      clearTimeout(categoryTimer);
+      categoryTimer = setTimeout(() => {
+        fetchCategories(event.target.value.trim());
+      }, 250);
+    });
+  }
+</script>
 {% endblock %}
