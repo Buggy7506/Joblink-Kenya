@@ -369,6 +369,27 @@ class ExpiredJobCleanupMiddlewareTests(SimpleTestCase):
         mock_filter.assert_called_once()
         mock_filter.return_value.delete.assert_called_once()
 
+    def test_async_stack_awaits_async_get_response(self):
+        import asyncio
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from core.middleware.job_expiry_cleanup import ExpiredJobCleanupMiddleware
+
+        request = RequestFactory().get("/")
+
+        async def get_response(req):
+            return SimpleNamespace(status_code=200)
+
+        middleware = ExpiredJobCleanupMiddleware(get_response)
+
+        with patch("core.middleware.job_expiry_cleanup.Job.objects.filter") as mock_filter:
+            response = asyncio.run(middleware(request))
+
+        self.assertEqual(response.status_code, 200)
+        mock_filter.assert_called_once()
+        mock_filter.return_value.delete.assert_called_once()
+
 
 class SuppressProbeNoiseFilterTests(SimpleTestCase):
     def test_filter_blocks_known_probe_message(self):
