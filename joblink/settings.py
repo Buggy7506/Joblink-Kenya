@@ -47,6 +47,7 @@ default_allowed_hosts = [
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
     ".onrender.com",
+    "joblink-kenya-9a9c.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
@@ -324,7 +325,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://fazul.dpdns.org",
     "https://www.stepper.dpdns.org",
     "https://stepper.dpdns.org",
-    "https://joblink-kenya-6flx.onrender.com",
+    "https://joblink-kenya-9a9c.onrender.com",
 ]
 
 REQUEST_SHIELD = {
