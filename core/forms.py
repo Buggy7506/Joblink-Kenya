@@ -3,18 +3,12 @@ import os
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
-from django.contrib.auth import get_user_model
 from django.forms.widgets import ClearableFileInput 
 from .models import Job, CVUpload, Resume, JobPlan, CustomUser, Profile, JobCategory, CompanyDocument, EmployerCompany
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.models import User
 from .utils import is_business_email
-from django import forms
-from django.contrib.auth import authenticate
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-from django.utils.text import slugify
 from django.utils import timezone
+from datetime import timedelta
 
 ROLE_CHOICES = (
     ('applicant', 'Applicant'),
@@ -295,8 +289,6 @@ class JobPlanSelectForm(TooltipFormMixin, forms.Form):
 
 
 # 🔹 Profile Edit Form
-User = get_user_model()
-
 class EditProfileForm(TooltipFormMixin, forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password'}),
