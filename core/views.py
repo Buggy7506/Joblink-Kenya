@@ -739,29 +739,68 @@ def available_jobs(request):
 def api_job_categories(request):
     q = request.GET.get("q", "").strip().lower()
 
-    url = "https://raw.githubusercontent.com/dwyl/job-categories/master/job-categories.json"
+    # Keep a local fallback so suggestions always render even when providers fail.
+    fallback_categories = [
+        "Accounting", "Administration", "Agriculture", "Architecture", "Beauty & Wellness",
+        "Customer Service", "Data & Analytics", "Design", "Driver", "Education",
+        "Engineering", "Finance", "Healthcare", "Hospitality", "Human Resources",
+        "Information Technology", "Legal", "Logistics", "Manufacturing", "Marketing",
+        "Operations", "Procurement", "Project Management", "Sales", "Security",
+        "Software Development", "Supply Chain", "Teaching", "Telecommunications", "Writing",
+    ]
 
-    try:
-        r = requests.get(url, timeout=4)
-        r.raise_for_status()
+    provider_urls = [
+        "https://api.trademe.co.nz/v1/categories/jobs.json",
+    ]
 
-        data = r.json()
+    categories = set()
 
-        categories = sorted({
-            item.get("Category")
-            for item in data
-            if item.get("Category")
-            and (not q or q in item.get("Category").lower())
+    for url in provider_urls:
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            payload = response.json()
+
+            if isinstance(payload, list):
+                for item in payload:
+                    if isinstance(item, dict):
+                        name = item.get("Category") or item.get("category") or item.get("name")
+                    else:
+                        name = item if isinstance(item, str) else None
+
+                    if name:
+                        categories.add(str(name).strip().title())
+            elif isinstance(payload, dict):
+                for key in ("categories", "data", "items", "job-titles", "job_titles"):
+                    data = payload.get(key)
+                    if isinstance(data, list):
+                        for item in data:
+                            if isinstance(item, dict):
+                                name = item.get("Category") or item.get("category") or item.get("name")
+                            else:
+                                name = item if isinstance(item, str) else None
+                            if name:
+                                categories.add(str(name).strip().title())
+        except Exception:
+            continue
+
+    if not categories:
+        categories.update(fallback_categories)
+
+    if q:
+        filtered_categories = sorted({
+            name for name in categories
+            if name and q in name.lower()
         })[:15]
-
-        return JsonResponse({
-            "categories": list(categories)
-        })
-
-    except Exception:
-        return JsonResponse({
-            "categories": []
-        }, status=200)
+        if not filtered_categories:
+            filtered_categories = sorted({
+                name for name in fallback_categories
+                if q in name.lower()
+            })[:15]
+    else:
+        filtered_categories = fallback_categories[:15]
+        
+    return JsonResponse({"categories": filtered_categories})
 
 
 # =====================================================
