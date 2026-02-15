@@ -126,6 +126,36 @@ class RoleGuardTests(SimpleTestCase):
         self.assertEqual(response.url, reverse("dashboard"))
 
 
+class ProxyHeaderNormalizeMiddlewareTests(SimpleTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_x_forwarded_headers_are_normalized_to_first_value(self):
+        from core.middleware.proxy_fix import ProxyHeaderNormalizeMiddleware
+
+        request = self.factory.get("/")
+        request.META["HTTP_X_FORWARDED_PROTO"] = "https,http"
+        request.META["HTTP_X_FORWARDED_HOST"] = "stepper.dpdns.org,internal.render"
+
+        middleware = ProxyHeaderNormalizeMiddleware(lambda req: req)
+        middleware(request)
+
+        self.assertEqual(request.META["HTTP_X_FORWARDED_PROTO"], "https")
+        self.assertEqual(request.META["HTTP_X_FORWARDED_HOST"], "stepper.dpdns.org")
+
+    def test_cf_visitor_https_overrides_proto_to_prevent_loops(self):
+        from core.middleware.proxy_fix import ProxyHeaderNormalizeMiddleware
+
+        request = self.factory.get("/")
+        request.META["HTTP_X_FORWARDED_PROTO"] = "http"
+        request.META["HTTP_CF_VISITOR"] = '{"scheme":"https"}'
+
+        middleware = ProxyHeaderNormalizeMiddleware(lambda req: req)
+        middleware(request)
+
+        self.assertEqual(request.META["HTTP_X_FORWARDED_PROTO"], "https")
+
+
 class GoogleRoleSelectionTests(TestCase):
     def test_google_choose_role_persists_role_for_set_password_step(self):
         session = self.client.session
