@@ -353,3 +353,32 @@ else:
 
 # Channels & chat defaults
 CHAT_MAX_MESSAGE_LENGTH = 2000
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "suppress_probe_noise": {
+            "()": "core.logging_filters.SuppressProbeNoiseFilter",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "filters": ["suppress_probe_noise"],
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.security.csrf": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
