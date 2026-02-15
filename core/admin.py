@@ -2,8 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Profile, JobCategory, Job, Application,
-    ChatMessage, PinnedMessage, CVUpload, Resume,
-    SkillResource, Notification, JobAlert,
+    ChatMessage, PinnedMessage, CVUpload, SkillResource, Notification, JobAlert,
     JobPlan, JobPayment
 )
 
