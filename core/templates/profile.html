@@ -354,6 +354,16 @@
     </div>
 
     <div>
+        <p class="label">First Name</p>
+        <p class="value">{{ user.first_name|default:"not set" }}</p>
+    </div>
+
+    <div>
+        <p class="label">Last Name</p>
+        <p class="value">{{ user.last_name|default:"not set" }}</p>
+    </div>
+
+    <div>
         <p class="label">Email</p>
         {% if user.email %}
             <p class="value">{{ user.email }}</p>
