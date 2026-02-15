@@ -282,6 +282,16 @@
     </div>
 
     <div>
+      <p class="label">First Name</p>
+      <p class="value">{{ request.user.first_name|default:"not set" }}</p>
+    </div>
+
+    <div>
+      <p class="label">Last Name</p>
+      <p class="value">{{ request.user.last_name|default:"not set" }}</p>
+    </div>
+
+    <div>
       <p class="label">Email</p>
       {% if request.user.email %}
         <p class="value">{{ request.user.email }}</p>
