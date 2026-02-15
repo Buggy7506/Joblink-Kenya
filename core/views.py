@@ -1380,14 +1380,29 @@ def set_google_password(request):
         profile.role = role
         profile.save()
 
-        # Optional: Save Google profile picture
+        # Optional: Save social profile picture (Google/Microsoft/Apple)
+        picture_b64 = oauth_user.get('picture_b64')
         picture_url = oauth_user.get('picture')
-        if picture_url:
+
+        if picture_b64:
+            try:
+                image_bytes = base64.b64decode(picture_b64)
+                picture_ext = oauth_user.get('picture_ext', 'jpg')
+                provider = oauth_user.get('provider', 'oauth')
+                user.profile_pic.save(
+                    f"{username}_{provider}.{picture_ext}",
+                    ContentFile(image_bytes),
+                    save=True
+                )
+            except Exception:
+                pass
+        elif picture_url:
             try:
                 response = requests.get(picture_url, timeout=5)
                 if response.status_code == 200:
+                    provider = oauth_user.get('provider', 'oauth')
                     user.profile_pic.save(
-                        f"{username}_google.jpg",
+                        f"{username}_{provider}.jpg",
                         ContentFile(response.content),
                         save=True
                     )
@@ -1628,6 +1643,7 @@ def apple_callback(request):
 MICROSOFT_AUTH_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 MICROSOFT_TOKEN_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MICROSOFT_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+MICROSOFT_PHOTO_ENDPOINT = "https://graph.microsoft.com/v1.0/me/photo/$value"
 
 @ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
@@ -1672,6 +1688,18 @@ def microsoft_callback(request):
     first_name = user_info.get("givenName", "")
     last_name = user_info.get("surname", "")
 
+    picture_b64 = None
+    picture_ext = "jpg"
+    try:
+        photo_response = requests.get(MICROSOFT_PHOTO_ENDPOINT, headers=headers, timeout=10)
+        if photo_response.status_code == 200 and photo_response.content:
+            content_type = photo_response.headers.get("Content-Type", "image/jpeg")
+            if "png" in content_type:
+                picture_ext = "png"
+            picture_b64 = base64.b64encode(photo_response.content).decode("utf-8")
+    except Exception:
+        pass
+
     try:
         user = CustomUser.objects.get(email=email)
         login(request, user)
@@ -1681,6 +1709,8 @@ def microsoft_callback(request):
             "email": email,
             "first_name": first_name,
             "last_name": last_name,
+            "picture_b64": picture_b64,
+            "picture_ext": picture_ext,
             "provider": "microsoft",
         }
         return redirect("google_choose_role")
