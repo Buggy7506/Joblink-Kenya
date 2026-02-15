@@ -139,7 +139,7 @@ input:focus, select:focus, textarea:focus {
     </div>
   {% endif %}
 
-  <form method="POST" class="job-form">
+  <form method="POST" enctype="multipart/form-data" class="job-form">
     {% csrf_token %}
     
     {% for field in form %}
