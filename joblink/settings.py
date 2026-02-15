@@ -19,6 +19,13 @@ load_dotenv()
 
 ENV = os.getenv("DJANGO_ENV", "development")
 
+
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,11 +35,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-
+if not SECRET_KEY:
+    if ENV == "production":
+        raise ValueError("SECRET_KEY environment variable must be set in production")
+    SECRET_KEY = "django-insecure-local-dev-key-change-before-production"
+    
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False").strip().lower() in {"1", "true", "yes", "on"}
+DEBUG = env_bool("DEBUG", default=ENV != "production")
 
-ALLOWED_HOSTS = [
+default_allowed_hosts = [
     "www.stepper.dpdns.org",
     "stepper.dpdns.org",
     ".onrender.com",
@@ -40,6 +51,11 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", ",".join(default_allowed_hosts)).split(",")
+    if host.strip()
+]
 
 # Application definition
 
@@ -86,6 +102,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'core.middleware.request_shield.RequestShieldMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 
@@ -100,7 +117,6 @@ MIDDLEWARE = [
     'core.middleware.employer_verification.EmployerVerificationMiddleware',
 
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 
