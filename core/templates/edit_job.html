@@ -212,7 +212,8 @@
     <!-- Job Title -->
     <div class="form-group">
       <label for="title">Job Title</label>
-      <input type="text" id="title" name="title" value="{{ form.title.value }}" required>
+      <input type="text" id="title" name="title" value="{{ form.title.value }}" list="external-job-titles" autocomplete="off" required>
+      <small>Start typing to pick a standardized job title.</small>
       {% for error in form.title.errors %}
         <p class="text-red-600 text-sm">{{ error }}</p>
       {% endfor %}
@@ -333,14 +334,56 @@
   </form>
 
   <datalist id="external-categories"></datalist>
+  <datalist id="external-job-titles"></datalist>
 </div>
 
 <script>
   const categoryInput = document.getElementById('id_custom_category');
   const categoryDatalist = document.getElementById('external-categories');
+  const titleInput = document.getElementById('title');
+  const titleDatalist = document.getElementById('external-job-titles');
+  const occupationsUrl = 'https://raw.githubusercontent.com/dariusk/corpora/master/data/humans/occupations.json';
+  const fallbackJobTitles = ['Software Engineer', 'Sales Representative', 'Teacher', 'Nurse', 'Accountant'];
+  let availableJobTitles = [...fallbackJobTitles];
   const categorySuggestions = document.getElementById('category-suggestions');
   const categorySuggestionStatus = document.getElementById('category-suggestion-status');
   let categoryTimer;
+
+
+  function renderJobTitleOptions(query = '') {
+    if (!titleDatalist) return;
+
+    const normalizedQuery = query.trim().toLowerCase();
+    const matchedTitles = normalizedQuery
+      ? availableJobTitles.filter((title) => title.toLowerCase().includes(normalizedQuery)).slice(0, 50)
+      : availableJobTitles.slice(0, 200);
+
+    titleDatalist.innerHTML = '';
+    matchedTitles.forEach((title) => {
+      const option = document.createElement('option');
+      option.value = title;
+      titleDatalist.appendChild(option);
+    });
+  }
+
+  async function fetchJobTitles() {
+    try {
+      const response = await fetch(occupationsUrl);
+      const data = await response.json();
+      const occupations = Array.isArray(data.occupations) ? data.occupations : [];
+      const titles = occupations
+        .map((item) => item?.occupation)
+        .filter((title) => typeof title === 'string' && title.trim().length > 0);
+
+      if (titles.length) {
+        availableJobTitles = [...new Set(titles)];
+      }
+    } catch (error) {
+      console.error('Unable to load occupation titles:', error);
+    }
+
+    renderJobTitleOptions(titleInput?.value || '');
+  }
 
   function renderSuggestionChips(categories) {
     if (!categorySuggestions) return;
@@ -403,6 +446,14 @@
       categoryTimer = setTimeout(() => {
         fetchCategories(event.target.value.trim());
       }, 250);
+    });
+  }
+
+  if (titleInput && titleDatalist) {
+    renderJobTitleOptions('');
+    fetchJobTitles();
+    titleInput.addEventListener('input', (event) => {
+      renderJobTitleOptions(event.target.value || '');
     });
   }
 </script>
