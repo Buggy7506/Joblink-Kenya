@@ -1,218 +1,311 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Posted Jobs{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h2 class="glow-header">📄 My Posted Jobs</h2>
+<div class="available-jobs-page">
+  <div class="container">
+    <h2>My Posted Jobs</h2>
 
-  <!-- Display Success or Error Messages -->
-  {% if messages %}
-    <div id="messages-popup">
-      {% for message in messages %}
-        <div class="message {{ message.tags }}">{{ message }}</div>
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message-text {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div id="jobResults">
+      {% for job in posted_jobs %}
+        <div class="job-card normal-job {% if job.is_premium %}premium-job{% endif %}">
+          <div class="job-title">
+            {{ job.title }}
+            {% if job.is_premium %}
+              <span class="premium-badge">Featured</span>
+            {% endif %}
+          </div>
+
+          <p class="job-meta">
+            <span class="company-meta">
+              {% if job.company_logo %}
+                <img src="{{ job.company_logo.url }}" alt="{{ job.company|default:'Company' }} logo" class="company-logo-img" loading="lazy">
+              {% else %}
+                <span class="company-logo-fallback">{{ job.company|default:"C"|slice:":1"|upper }}</span>
+              {% endif %}
+              {{ job.company|default:"Company not specified" }}
+            </span>
+          </p>
+
+          <p class="job-salary">
+            Salary:
+            {% if job.salary %}
+              KES {{ job.salary|intcomma }}
+            {% else %}
+              Not specified
+            {% endif %}
+          </p>
+
+          <p class="job-meta">📌 {{ job.location|default:"Location not specified" }}</p>
+
+          {% if job.expiry_date %}
+            <p class="job-expiry">
+              Expires: {{ job.expiry_date|date:"M d, Y" }}
+              <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}">
+                ⏳ Calculating time left...
+              </span>
+            </p>
+          {% endif %}
+
+          <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
+
+          <div class="actions-row">
+            <a href="{% url 'edit_job' job.id %}" class="apply-link">✏️ Edit</a>
+            <a href="{% url 'confirm_delete' job.id %}" class="apply-link danger-link">❌ Delete</a>
+          </div>
+
+          <a href="{% url 'employer_chat' job.id %}" class="apply-link chat-link">💬 Chat with Applicants</a>
+        </div>
+      {% empty %}
+        <p class="no-jobs">No jobs posted yet.</p>
       {% endfor %}
     </div>
-  {% endif %}
-
-  <!-- Job Cards -->
-  <div class="jobs-grid">
-    {% for job in jobs %}
-      <div class="job-card">
-        <h3>{{ job.title }}</h3>
-        <p class="job-desc">{{ job.description|truncatewords:30 }}</p>
-        <p class="posted-date">📅 Posted on: {{ job.posted_on }}</p>
-
-        <!-- Action Buttons -->
-        <div class="job-actions">
-          <a href="{% url 'edit_job' job.id %}" class="btn btn-save">✏️ Edit</a>
-          <a href="{% url 'confirm_delete' job.id %}" class="btn btn-cancel">❌ Delete</a>
-        </div>
-
-        <!-- Chat Button - full width -->
-        <div class="chat-action">
-          <a href="{% url 'employer_chat' job.id %}" class="btn btn-chat">💬 Chat with Applicants</a>
-        </div>
-      </div>
-    {% empty %}
-      <p class="text-center text-muted">No jobs posted yet.</p>
-    {% endfor %}
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const timers = document.querySelectorAll('.countdown-timer[data-expiry]');
+
+  function renderRemainingTime(diffMs) {
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days > 0) return `${days}d ${hours}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${Math.max(minutes, 0)}m left`;
+  }
+
+  function updateCountdowns() {
+    timers.forEach((timer) => {
+      const expiryDate = new Date(timer.dataset.expiry);
+      const diffMs = expiryDate - new Date();
+
+      timer.classList.remove('urgent', 'expired');
+
+      if (Number.isNaN(expiryDate.getTime())) {
+        timer.textContent = '⏳ Expiry date unavailable';
+        return;
+      }
+
+      if (diffMs <= 0) {
+        timer.textContent = '⏳ Expired';
+        timer.classList.add('expired');
+        return;
+      }
+
+      if (diffMs <= 24 * 60 * 60 * 1000) {
+        timer.classList.add('urgent');
+      }
+
+      timer.textContent = `⏳ ${renderRemainingTime(diffMs)}`;
+    });
+  }
+
+  updateCountdowns();
+  setInterval(updateCountdowns, 60000);
+
+  const msgs = document.querySelectorAll('.available-jobs-page .message-text');
+  if (msgs.length) {
+    setTimeout(() => {
+      msgs.forEach((msg) => msg.remove());
+    }, 3500);
+  }
+});
+</script>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-/* Page Container */
-.container {
+.available-jobs-page {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+.available-jobs-page .container {
   max-width: 1100px;
-  margin: auto;
-  padding: 20px;
-  font-family: 'Poppins', sans-serif;
-  color: var(--text-main);
-  transition: color 0.4s ease, background 0.4s ease;
+  margin: 30px auto;
+  padding: 16px;
 }
 
-/* Glowing Header */
-.glow-header {
-  font-size: 2.2rem;
-  text-align: center;
-  margin-bottom: 40px;
-  color: var(--glow-main);
-  text-shadow: 0 0 10px var(--glow-main), 0 0 20px var(--glow-accent);
-  animation: fadeIn 1s ease-in-out;
+.available-jobs-page h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 28px 0 14px;
+  color: var(--text-accent);
+  border-bottom: 1px solid var(--glow-accent);
+  padding-bottom: 6px;
 }
 
-/* Jobs Grid */
-.jobs-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 30px;
-  margin: 0 auto;
+.available-jobs-page .job-card {
+  background: var(--bg-card);
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  border-left: 4px solid var(--text-accent);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Job Card */
-.job-card {
-  background: var(--bg-card, rgba(15, 15, 30, 0.95));
-  padding: 25px;
-  border-radius: 20px;
-  box-shadow: 0 0 25px var(--glow-accent, rgba(0, 255, 200, 0.4));
-  transition: all 0.4s ease-in-out;
-  color: var(--text-main);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 320px;
-  text-align: left;
-}
-.job-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 0 30px var(--glow-main), 0 0 60px var(--glow-accent);
+.available-jobs-page .job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
-/* Job Title */
-.job-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 12px;
-  color: var(--glow-main);
-  text-shadow: 0 0 10px var(--glow-main), 0 0 20px var(--glow-accent);
+.available-jobs-page .premium-job {
+  border-left-color: var(--text-warning);
+  background: linear-gradient(180deg, var(--bg-warning-soft), var(--bg-card));
 }
 
-/* Job Description */
-.job-desc {
+.available-jobs-page .job-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-accent);
+}
+
+.available-jobs-page .premium-job .job-title {
+  color: var(--text-warning);
+}
+
+.available-jobs-page .job-meta,
+.available-jobs-page .job-salary,
+.available-jobs-page .job-expiry,
+.available-jobs-page .job-posted {
+  font-size: 14px;
   color: var(--text-muted);
-  margin-bottom: 12px;
-  line-height: 1.6;
+  margin: 4px 0;
 }
 
-/* Posted Date */
-.posted-date {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 20px;
+.available-jobs-page .premium-badge {
+  background: var(--bg-warning);
+  color: var(--text-inverse);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 14px;
+  margin-left: 8px;
+  font-weight: 600;
+  vertical-align: middle;
 }
 
-/* Buttons */
-.btn {
+.available-jobs-page .apply-link {
   display: inline-block;
-  padding: 12px 30px;
-  border-radius: 25px;
-  font-weight: bold;
-  font-size: 1rem;
+  margin-top: 14px;
+  padding: 10px 22px;
+  border-radius: 22px;
+  background: var(--text-accent);
+  color: var(--text-inverse);
+  font-weight: 600;
+  font-size: 14px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* Save/Edit Button */
-.btn-save {
-  background: var(--glow-main);
-  color: var(--text-inverse);
-  box-shadow: 0 0 15px var(--glow-main), 0 0 30px var(--glow-accent);
+.available-jobs-page .countdown-timer {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 8px;
+  font-weight: 600;
 }
-.btn-save:hover {
+
+.available-jobs-page .countdown-timer.urgent,
+.available-jobs-page .countdown-timer.expired {
+  color: var(--bg-danger);
+}
+
+.available-jobs-page .apply-link:hover {
   background: var(--glow-accent);
-  box-shadow: 0 0 25px var(--glow-main), 0 0 50px var(--glow-accent);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
-/* Cancel/Delete Button */
-.btn-cancel {
+.available-jobs-page .actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.available-jobs-page .danger-link {
   background: var(--bg-danger);
-  color: var(--text-inverse);
-  box-shadow: 0 0 15px var(--bg-danger), 0 0 30px var(--bg-danger);
 }
-.btn-cancel:hover {
+
+.available-jobs-page .danger-link:hover {
   background: var(--bg-danger-hover);
-  box-shadow: 0 0 25px var(--bg-danger), 0 0 50px var(--bg-danger);
-  transform: translateY(-2px);
 }
 
-/* Job Actions */
-.job-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: auto;
-}
-
-/* Chat Button - full width */
-.chat-action {
-  margin-top: 15px;
-  width: 100%;
-}
-.btn-chat {
+.available-jobs-page .chat-link {
   display: block;
-  width: 100%;
   text-align: center;
-  padding: 14px 0;
-  border-radius: 15px;
-  background: var(--bg-danger-hover);
-  box-shadow: 0 0 25px var(--bg-danger), 0 0 50px var(--bg-danger);
-  font-weight: bold;
-  box-shadow: 0 0 15px var(--bg-info), 0 0 30px var(--bg-info);
-  transition: all 0.3s ease;
-}
-.btn-chat:hover {
-  background: var(--bg-info-hover);
-  box-shadow: 0 0 25px var(--bg-info), 0 0 50px var(--bg-info);
-  transform: translateY(-2px);
+  background: linear-gradient(45deg, #0b5ed7, #1e88ff);
 }
 
-/* Messages Popup */
-#messages-popup {
-  position: fixed;
-  top: 20px; left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.available-jobs-page .chat-link:hover {
+  background: linear-gradient(45deg, #1565c0, #3f9cff);
 }
-.message {
-  padding: 15px 30px;
-  border-radius: 30px;
-  font-weight: bold;
-  text-align: center;
-  font-size: 1rem;
-  opacity: 0.95;
-  animation: slideDown 0.5s forwards;
+
+.available-jobs-page .message-text {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
   color: var(--text-inverse);
-  box-shadow: 0 0 15px var(--glow-main), 0 0 25px var(--glow-accent);
-}
-.message.success {
-  background: linear-gradient(90deg, var(--glow-main), var(--glow-accent));
-}
-.message.error {
-  background: linear-gradient(90deg, var(--bg-danger), var(--bg-danger-hover));
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
-@keyframes slideDown {
-  from { transform: translateY(-50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+.available-jobs-page .message-text.success {
+  background: var(--bg-success);
 }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+
+.available-jobs-page .message-text.error {
+  background: var(--bg-danger);
+}
+
+.available-jobs-page .company-logo-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 70%, transparent);
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.available-jobs-page .company-logo-fallback {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-accent) 85%, #111);
+  color: var(--text-inverse);
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.available-jobs-page .company-meta {
+  display: inline-flex;
+  align-items: center;
+}
+
+.available-jobs-page .no-jobs {
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 12px;
 }
 </style>
 {% endblock %}
