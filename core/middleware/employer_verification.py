@@ -1,8 +1,9 @@
 # core/middleware/employer_verification.py
 
-from django.shortcuts import redirect
-from django.urls import resolve, Resolver404
+from asgiref.sync import iscoroutinefunction
 from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import Resolver404, resolve
 
 
 class EmployerVerificationMiddleware:
@@ -11,7 +12,12 @@ class EmployerVerificationMiddleware:
       - No company or incomplete → force complete profile
       - Complete but not verified → force upload docs
       - Verified → unrestricted access
+
+    Supports both sync and async request stacks.
     """
+
+    async_capable = True
+    sync_capable = True
 
     SAFE_VIEWS = {
         "complete_employer_profile",
@@ -31,16 +37,28 @@ class EmployerVerificationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if iscoroutinefunction(self.get_response):
+            return self.__acall__(request)
+        return self._process_request(request, request.user, self.get_response)
+
+    async def __acall__(self, request):
+        user = await request.auser() if hasattr(request, "auser") else request.user
+        response = self._process_request(request, user)
+        if response is not None:
+            return response
+        return await self.get_response(request)
+
+    def _process_request(self, request, user, get_response=None):
         # -----------------------------
         # Skip unauthenticated users
         # -----------------------------
-        if not request.user.is_authenticated:
-            return self.get_response(request)
+        if not user.is_authenticated:
+            return get_response(request) if get_response else None
 
         path = request.path_info
         for prefix in self.SAFE_PREFIXES:
             if path.startswith(prefix):
-                return self.get_response(request)
+                return get_response(request) if get_response else None
 
         # -----------------------------
         # Resolve view name safely
@@ -48,24 +66,24 @@ class EmployerVerificationMiddleware:
         try:
             current_view = resolve(path).url_name
         except Resolver404:
-            return self.get_response(request)
+            return get_response(request) if get_response else None
 
         if current_view in self.SAFE_VIEWS:
-            return self.get_response(request)
+            return get_response(request) if get_response else None
 
         # -----------------------------
         # Only restrict employers
         # -----------------------------
-        profile = getattr(request.user, "profile", None)
-        user_role = getattr(request.user, "role", None)
+        profile = getattr(user, "profile", None)
+        user_role = getattr(user, "role", None)
         profile_role = getattr(profile, "role", None)
 
         # Guard against temporary role mismatch between CustomUser and Profile.
         is_employer = user_role == "employer" or profile_role == "employer"
         if not is_employer:
-            return self.get_response(request)
+            return get_response(request) if get_response else None
 
-        company = getattr(request.user, "employer_company", None)
+        company = getattr(user, "employer_company", None)
 
         # --------------------------------------------------
         # No company or incomplete → force complete profile
@@ -74,10 +92,10 @@ class EmployerVerificationMiddleware:
             if current_view != "complete_employer_profile":
                 messages.warning(
                     request,
-                    "Complete your company profile to unlock full access."
+                    "Complete your company profile to unlock full access.",
                 )
                 return redirect("complete_employer_profile")
-            return self.get_response(request)
+            return get_response(request) if get_response else None
 
         # --------------------------------------------------
         # Company exists but NOT verified → force upload docs
@@ -86,12 +104,12 @@ class EmployerVerificationMiddleware:
             if current_view != "upload_company_docs":
                 messages.warning(
                     request,
-                    "Your company is pending verification. Upload documents."
+                    "Your company is pending verification. Upload documents.",
                 )
                 return redirect("upload_company_docs")
-            return self.get_response(request)
+            return get_response(request) if get_response else None
 
         # --------------------------------------------------
         # Verified employer → allow everything
         # --------------------------------------------------
-        return self.get_response(request)
+        return get_response(request) if get_response else None
