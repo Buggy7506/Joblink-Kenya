@@ -4,7 +4,6 @@ from .models import CompanyDocument, EmployerCompany
 from django.contrib.auth import get_user_model
 import os
 from django.core.files import File
-from django.conf import settings
 
 User = get_user_model()
 
