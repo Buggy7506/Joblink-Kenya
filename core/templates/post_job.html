@@ -49,17 +49,23 @@
 input, select, textarea {
   width: 100%;
   padding: 10px 14px;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
   border-radius: 8px;
-  background-color: rgba(46,46,62,0.9); /* subtle theme-aware input background */
+  background-color: color-mix(in srgb, var(--bg-surface, var(--bg-card)) 86%, transparent);
   color: var(--text-main);
   font-size: 1rem;
   box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  transition: box-shadow 0.2s ease, background 0.4s, color 0.4s;
+  transition: box-shadow 0.2s ease, background 0.4s, color 0.4s, border-color 0.3s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 80%, var(--text-main) 20%);
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
+  border-color: color-mix(in srgb, var(--glow-accent) 75%, transparent);
   box-shadow: 0 0 10px var(--glow-accent);
 }
 
@@ -86,6 +92,51 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-danger);
   font-size: 0.875rem;
   margin-top: 4px;
+}
+
+.form-help {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.category-suggestion-box {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--glow-accent) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+}
+
+.category-suggestion-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
+.category-suggestion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-chip {
+  border: 1px solid color-mix(in srgb, var(--glow-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--bg-surface, var(--bg-card)) 88%, transparent);
+  color: var(--text-main);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.category-chip:hover,
+.category-chip:focus-visible {
+  color: var(--text-inverse);
+  background: linear-gradient(45deg, var(--glow-accent), var(--text-accent));
 }
 
 /* Messages Popup */
@@ -201,12 +252,18 @@ input:focus, select:focus, textarea:focus {
           <div style="display:none;">
             {{ field|add_class:"form-input" }}
           </div>
-          <small>Categories are suggested below from an external source.</small>
+          <small class="form-help">Categories are suggested below from an external source.</small>
 
         {% elif field.name == "custom_category" %}
           <label class="form-label" for="{{ field.id_for_label }}">Category</label>
           {{ field|add_class:"form-input"|attr:"list:external-categories"|attr:"autocomplete:off" }}
-          <small>Start typing to see category suggestions.</small>
+          <small class="form-help">Start typing to see category suggestions.</small>
+          <div class="category-suggestion-box">
+            <p class="category-suggestion-title">Suggested categories</p>
+            <ul id="category-suggestions" class="category-suggestion-list">
+              <li class="form-help" id="category-suggestion-status">Loading suggestions…</li>
+            </ul>
+          </div>
 
         {% elif field.name == "company_logo" %}
           <div class="logo-upload-shell">
@@ -218,7 +275,7 @@ input:focus, select:focus, textarea:focus {
         {% endif %}
 
         {% if field.help_text %}
-          <small>{{ field.help_text }}</small>
+          <small class="form-help">{{ field.help_text }}</small>
         {% endif %}
 
         {% for error in field.errors %}
@@ -250,7 +307,39 @@ input:focus, select:focus, textarea:focus {
 
   const categoryInput = document.getElementById('id_custom_category');
   const categoryDatalist = document.getElementById('external-categories');
+  const categorySuggestions = document.getElementById('category-suggestions');
+  const categorySuggestionStatus = document.getElementById('category-suggestion-status');
   let categoryTimer;
+
+  function renderSuggestionChips(categories) {
+    if (!categorySuggestions) return;
+
+    categorySuggestions.innerHTML = '';
+
+    if (!categories.length) {
+      const emptyItem = document.createElement('li');
+      emptyItem.className = 'form-help';
+      emptyItem.textContent = 'No matching categories found.';
+      categorySuggestions.appendChild(emptyItem);
+      return;
+    }
+
+    categories.slice(0, 10).forEach((name) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'category-chip';
+      button.textContent = name;
+      button.addEventListener('click', () => {
+        if (categoryInput) {
+          categoryInput.value = name;
+          categoryInput.focus();
+        }
+      });
+      item.appendChild(button);
+      categorySuggestions.appendChild(item);
+    });
+  }
 
   async function fetchCategories(query = '') {
     if (!categoryInput || !categoryDatalist) return;
@@ -266,8 +355,13 @@ input:focus, select:focus, textarea:focus {
         option.value = name;
         categoryDatalist.appendChild(option);
       });
+      renderSuggestionChips(categories);
+      if (categorySuggestionStatus) categorySuggestionStatus.remove();
     } catch (error) {
       console.error('Unable to load external categories:', error);
+      if (categorySuggestionStatus) {
+        categorySuggestionStatus.textContent = 'Could not load category suggestions right now.';
+      }
     }
   }
 
