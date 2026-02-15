@@ -5,128 +5,196 @@
 
 {% block content %}
 <style>
-/* ==============================================
-   COMPANY PROFILE (THEME AWARE)
-============================================== */
-
-.company-section-wrapper {
-    max-width: 850px;
-    margin: 30px auto;
-    font-family: inherit;
+.company-profile-page .profile-container {
+  max-width: 800px;
+  margin: 60px auto;
+  background: var(--bg-card);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(128, 0, 255, 0.6);
+  border: 1px solid var(--text-accent);
+  animation: fadeIn 1s ease;
 }
 
-/* Card inherits your base colors */
-.company-card {
-    background: var(--bg-card);
-    color: var(--text-main);
-    padding: 22px 28px;
-    border-radius: 1rem;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.22);
-    border: 1px solid var(--text-muted);
+.company-profile-page .profile-pic {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
-/* Headings */
-.company-card h2 {
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--text-accent);
-    text-align: center;
+.company-profile-page .logo-badge {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--text-accent);
+  box-shadow: 0 0 15px var(--glow-accent);
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 20%, var(--glow-accent), var(--bg-main));
+  color: var(--text-main);
+  font-size: 2.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+   
+.company-profile-page .company-title {
+  text-align: center;
+  color: var(--text-accent);
+  margin-bottom: 30px;
+  font-size: clamp(1.6rem, 3vw, 2rem);
 }
 
-/* Info text */
-.company-card p {
-    margin: 6px 0;
-    font-size: 15px;
+.company-profile-page .profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
 }
 
-/* =========================
-   BADGES
-========================= */
-.verified-badge {
-    background: var(--bg-success);
-    color: var(--text-inverse);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+.company-profile-page .profile-info div {
+  background: var(--bg-main);
+  padding: 15px 20px;
+  border-radius: 12px;
+  border-left: 5px solid var(--text-accent);
 }
 
-.pending-badge {
-    background: var(--bg-warning);
-    color: var(--text-inverse);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+.company-profile-page .profile-info div p:first-child {
+  font-weight: bold;
+  color: var(--text-accent);
+  margin-bottom: 6px;
 }
 
-/* Warning box (theme aware) */
-.warning-box {
-    background: var(--bg-warning-soft);
-    border-left: 4px solid var(--bg-warning);
-    padding: 10px 15px;
-    margin-top: 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    color: var(--text-main);
+.company-profile-page .profile-info div p:last-child {
+  color: var(--text-main);
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
-/* =========================
-   CTA BUTTON
-========================= */
-.primary-btn {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 18px;
-    background: var(--text-accent);
-    color: var(--text-inverse) !important;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    transition: 0.25s ease;
+.company-profile-page .badge-row {
+  margin-top: 24px;
 }
-.primary-btn:hover {
-    filter: brightness(1.15);
+
+.company-profile-page .verified-badge,
+.company-profile-page .pending-badge {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.company-profile-page .verified-badge {
+  background: var(--bg-success);
+  color: var(--text-inverse);
+}
+
+.company-profile-page .pending-badge {
+  background: var(--bg-warning);
+  color: var(--text-inverse);
+}
+
+.company-profile-page .warning-box {
+  background: var(--bg-warning-soft);
+  border-left: 4px solid var(--bg-warning);
+  padding: 12px 15px;
+  margin-top: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.company-profile-page .edit-button {
+  display: block;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.company-profile-page .edit-button a {
+  display: inline-block;
+  background: var(--text-accent);
+  color: var(--text-main);
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 0 12px var(--glow-accent);
+  transition: 0.3s;
+}
+
+.company-profile-page .edit-button a:hover {
+  background: var(--glow-accent);
+  box-shadow: 0 0 20px var(--glow-accent);
+}
+
+@media (max-width: 768px) {
+  .company-profile-page .profile-container {
+    margin: 24px 14px;
+    padding: 24px;
+  }
+
+  .company-profile-page .profile-info {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 }
 </style>
 
-<div class="company-section-wrapper">
-<div class="company-card">
-    <h2>🏢 Company Profile</h2>
-
+<section class="company-profile-page">
+  <div class="profile-container">
     {% if company %}
-        <p><strong>Company Name:</strong> {{ company.company_name|default:"Not provided" }}</p>
-        <p><strong>Business Email:</strong> {{ company.business_email|default:"Not provided" }}</p>
-        <p><strong>Company Website:</strong>
+      <div class="profile-pic">
+        <div class="logo-badge">{{ company.company_name|default:"C"|slice:":1" }}</div>
+      </div>
+
+      <h2 class="company-title">{{ company.company_name|default:"Company Name" }}</h2>
+
+      <div class="profile-info">
+        <div>
+          <p>Business Email</p>
+          <p>{{ company.business_email|default:"Not provided" }}</p>
+        </div>
+        <div>
+          <p>Company Website</p>
+          <p>
             {% if company.company_website %}
-                <a href="{{ company.company_website }}" target="_blank">{{ company.company_website }}</a>
+              <a href="{{ company.company_website }}" target="_blank" rel="noopener noreferrer">{{ company.company_website }}</a>
             {% else %}
-                Not provided
+              Not provided
             {% endif %}
-        </p>
-        <p><strong>Registration Number:</strong> {{ company.registration_number|default:"Not generated yet" }}</p>
+          </p>
+        </div>
+        <div>
+          <p>Registration Number</p>
+          <p>{{ company.registration_number|default:"Not generated yet" }}</p>
+        </div>
+        <div>
+          <p>Status</p>
+          <p>{{ company.get_status_display }}</p>
+        </div>
+      </div>
 
+      <div class="badge-row">
         {% if company_verified %}
-            <span class="verified-badge">✔ Verified Employer</span>
+          <span class="verified-badge">✔ Verified Employer</span>
         {% else %}
-            <span class="pending-badge">⏳ Awaiting Verification</span>
-            <div class="warning-box">
-                Your company is not verified yet.  
-                Complete your employer setup to get approved.
-            </div>
-            <a href="{% url 'complete_employer_profile' %}" class="primary-btn">
-                Complete Profile
-            </a>
+          <span class="pending-badge">⏳ Awaiting Verification</span>
+          <div class="warning-box">
+            Your company is not verified yet.
+            Complete your employer setup to get approved.
+          </div>
+          <div class="edit-button">
+            <a href="{% url 'complete_employer_profile' %}">Complete Profile</a>
+          </div>
         {% endif %}
-        
+      </div> 
     {% else %}
-        <p>No company profile found.</p>
-        <a href="{% url 'complete_employer_profile' %}" class="primary-btn">
-            ➕ Create Company Profile
-        </a>
+      <div class="profile-pic">
+        <div class="logo-badge">C</div>
+      </div>
+      <h2 class="company-title">Company Name</h2>
+      <div class="edit-button">
+        <a href="{% url 'complete_employer_profile' %}">➕ Create Company Profile</a>
+      </div>
     {% endif %}
-</div>
-</div>
-
+  </div>
+</section>
 {% endblock %}
