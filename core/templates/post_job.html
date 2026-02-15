@@ -249,6 +249,10 @@ input:focus, select:focus, textarea:focus {
           {% endif %}
           {{ field|add_class:"form-input" }}
 
+        {% elif field.name == "title" %}
+          {{ field|add_class:"form-input"|attr:"list:external-job-titles"|attr:"autocomplete:off" }}
+          <small class="form-help">Start typing to pick a standardized job title.</small>
+
         {% elif field.name == "custom_category" %}
           <label class="form-label" for="{{ field.id_for_label }}">Category</label>
           {{ field|add_class:"form-input"|attr:"list:external-categories"|attr:"autocomplete:off" }}
@@ -285,6 +289,7 @@ input:focus, select:focus, textarea:focus {
   </form>
 
   <datalist id="external-categories"></datalist>
+  <datalist id="external-job-titles"></datalist>
 </div>
 
 <script>
@@ -303,9 +308,49 @@ input:focus, select:focus, textarea:focus {
 
   const categoryInput = document.getElementById('id_custom_category');
   const categoryDatalist = document.getElementById('external-categories');
+  const titleInput = document.querySelector('input[name="title"]');
+  const titleDatalist = document.getElementById('external-job-titles');
   const categorySuggestions = document.getElementById('category-suggestions');
   const categorySuggestionStatus = document.getElementById('category-suggestion-status');
+  const occupationsUrl = 'https://raw.githubusercontent.com/dariusk/corpora/master/data/humans/occupations.json';
+  const fallbackJobTitles = ['Software Engineer', 'Sales Representative', 'Teacher', 'Nurse', 'Accountant'];
+  let availableJobTitles = [...fallbackJobTitles];
   let categoryTimer;
+
+  function renderJobTitleOptions(query = '') {
+    if (!titleDatalist) return;
+
+    const normalizedQuery = query.trim().toLowerCase();
+    const matchedTitles = normalizedQuery
+      ? availableJobTitles.filter((title) => title.toLowerCase().includes(normalizedQuery)).slice(0, 50)
+      : availableJobTitles.slice(0, 200);
+
+    titleDatalist.innerHTML = '';
+    matchedTitles.forEach((title) => {
+      const option = document.createElement('option');
+      option.value = title;
+      titleDatalist.appendChild(option);
+    });
+  }
+
+  async function fetchJobTitles() {
+    try {
+      const response = await fetch(occupationsUrl);
+      const data = await response.json();
+      const occupations = Array.isArray(data.occupations) ? data.occupations : [];
+      const titles = occupations
+        .map((item) => item?.occupation)
+        .filter((title) => typeof title === 'string' && title.trim().length > 0);
+
+      if (titles.length) {
+        availableJobTitles = [...new Set(titles)];
+      }
+    } catch (error) {
+      console.error('Unable to load occupation titles:', error);
+    }
+
+    renderJobTitleOptions(titleInput?.value || '');
+  }
 
   function renderSuggestionChips(categories) {
     if (!categorySuggestions) return;
@@ -368,6 +413,14 @@ input:focus, select:focus, textarea:focus {
       categoryTimer = setTimeout(() => {
         fetchCategories(event.target.value.trim());
       }, 250);
+    });
+  }
+
+  if (titleInput && titleDatalist) {
+    renderJobTitleOptions('');
+    fetchJobTitles();
+    titleInput.addEventListener('input', (event) => {
+      renderJobTitleOptions(event.target.value || '');
     });
   }
 </script>
