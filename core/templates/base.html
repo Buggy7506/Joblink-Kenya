@@ -177,10 +177,10 @@ button:focus-visible {
 .text-info { color: var(--text-info); }
 .text-inverse { color: var(--text-inverse); }
       
-.container { width: 90%; max-width: 1200px; margin: 0 auto; }
+.jl-container { width: 90%; max-width: 1200px; margin: 0 auto; }
 
-.main { flex-grow: 1; padding: 1.5rem 0 2.5rem; }
-.main {
+.jl-main { flex-grow: 1; padding: 1.5rem 0 2.5rem; }
+.jl-main {
   position: relative;
   border-radius: 1.2rem;
   background: linear-gradient(180deg, rgba(6, 11, 24, 0.4), rgba(6, 11, 24, 0.15));
@@ -803,7 +803,7 @@ body.light-mode .active-link {
 ========================================================= */
 @media (max-width: 768px) {
   /* Container flex adjustments */
-  header .container {
+  header .jl-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -864,7 +864,7 @@ body.light-mode .active-link {
 </script>
 <!-- /Brevo Conversations {/literal} -->
 </head>
-<body data-new-user="{% block new_user_flag %}{{ request.headers.new_user|default:'false' }}{% endblock %}">
+<body class="jl-base" data-new-user="{% block new_user_flag %}{{ request.headers.new_user|default:'false' }}{% endblock %}">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="bg-slideshow">
   <div class="bg-slide" style="background-image:url('https://res.cloudinary.com/dc6z1giw2/image/upload/v1754404727/cld-sample-4.jpg')"></div>
@@ -882,7 +882,7 @@ body.light-mode .active-link {
 <header class="nav-bg">
   <div class="nav-halo" aria-hidden="true"></div>
   <div class="nav-scanline" aria-hidden="true"></div>
-  <div class="container nav-shell">
+  <div class="jl-container nav-shell">
     <!-- LOGO -->
     <a href="{% url 'home' %}" class="brand">
       <img src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1769181337/ChatGPT_Image_Jan_23_2026_05_49_37_PM_j0ocdp.png" alt="JobLink Logo">
@@ -1130,7 +1130,7 @@ body.light-mode .active-link {
   </div>
 </header>
 
-<main id="main-content" class="main container" data-aos="fade-up">
+<main id="main-content" class="jl-main jl-container" data-aos="fade-up">
   {% render_form_errors %}
   {% block content %}{% endblock %}
 </main>
