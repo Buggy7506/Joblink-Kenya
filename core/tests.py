@@ -179,6 +179,28 @@ class ProxyHeaderNormalizeMiddlewareTests(SimpleTestCase):
 
         self.assertEqual(request.META["HTTP_X_FORWARDED_PROTO"], "https")
 
+    def test_cloudfront_forwarded_proto_sets_https(self):
+        from core.middleware.proxy_fix import ProxyHeaderNormalizeMiddleware
+
+        request = self.factory.get("/")
+        request.META["HTTP_CLOUDFRONT_FORWARDED_PROTO"] = "https"
+
+        middleware = ProxyHeaderNormalizeMiddleware(lambda req: req)
+        middleware(request)
+
+        self.assertEqual(request.META["HTTP_X_FORWARDED_PROTO"], "https")
+
+    def test_x_forwarded_scheme_fallback_sets_https(self):
+        from core.middleware.proxy_fix import ProxyHeaderNormalizeMiddleware
+
+        request = self.factory.get("/")
+        request.META["HTTP_X_FORWARDED_SCHEME"] = "https"
+
+        middleware = ProxyHeaderNormalizeMiddleware(lambda req: req)
+        middleware(request)
+
+        self.assertEqual(request.META["HTTP_X_FORWARDED_PROTO"], "https")
+
 class GoogleRoleSelectionTests(TestCase):
     def test_google_choose_role_persists_role_for_set_password_step(self):
         session = self.client.session
