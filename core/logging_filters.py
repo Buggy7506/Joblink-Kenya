@@ -24,3 +24,18 @@ class SuppressProbeNoiseFilter:
     def filter(self, record) -> bool:
         message = record.getMessage()
         return not any(token in message for token in self.suppressed_message_tokens)
+
+
+class SuppressAsyncCancelNoiseFilter:
+    """Suppress noisy disconnect cancellations emitted by the ASGI sync adapter."""
+
+    suppressed_message_tokens = (
+        "CancelledError exception in shielded future",
+    )
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def filter(self, record) -> bool:
+        message = record.getMessage()
+        return not any(token in message for token in self.suppressed_message_tokens)
