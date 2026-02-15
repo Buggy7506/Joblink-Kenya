@@ -103,24 +103,42 @@ class RoleGuardTests(SimpleTestCase):
         setattr(request, "_messages", FallbackStorage(request))
         return request
 
-    def test_get_effective_role_prefers_profile_role(self):
+    def test_get_effective_role_prefers_user_role_when_mismatched(self):
         from types import SimpleNamespace
 
         user = SimpleNamespace(role="employer", profile=SimpleNamespace(role="applicant"))
-        self.assertEqual(_get_effective_role(user), "applicant")
+        self.assertEqual(_get_effective_role(user), "employer")
 
-    def test_view_posted_jobs_blocks_applicant_with_employer_user_role(self):
+    def test_view_posted_jobs_blocks_non_employer_when_profile_is_stale(self):
         from types import SimpleNamespace
 
         request = self._build_request(reverse("view_posted_jobs"))
         request.user = SimpleNamespace(
             is_authenticated=True,
             is_superuser=False,
-            role="employer",
-            profile=SimpleNamespace(role="applicant"),
+            role="applicant",
+            profile=SimpleNamespace(role="employer"),
         )
 
         response = view_posted_jobs(request)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("dashboard"))
+
+
+class GoogleRoleSelectionTests(TestCase):
+    def test_google_choose_role_persists_role_for_set_password_step(self):
+        session = self.client.session
+        session["oauth_user"] = {
+            "email": "new.user@example.com",
+            "first_name": "New",
+            "last_name": "User",
+            "provider": "google",
+        }
+        session.save()
+
+        response = self.client.post(reverse("google_choose_role"), {"role": "employer"})
+
+        self.assertRedirects(response, reverse("set_google_password"))
+        self.assertEqual(self.client.session.get("oauth_role"), "employer")
+        self.assertEqual(self.client.session.get("oauth_user", {}).get("role"), "employer")
