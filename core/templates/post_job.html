@@ -252,7 +252,6 @@ input:focus, select:focus, textarea:focus {
           <div style="display:none;">
             {{ field|add_class:"form-input" }}
           </div>
-          <small class="form-help">Categories are suggested below from an external source.</small>
 
         {% elif field.name == "custom_category" %}
           <label class="form-label" for="{{ field.id_for_label }}">Category</label>
@@ -261,7 +260,7 @@ input:focus, select:focus, textarea:focus {
           <div class="category-suggestion-box">
             <p class="category-suggestion-title">Suggested categories</p>
             <ul id="category-suggestions" class="category-suggestion-list">
-              <li class="form-help" id="category-suggestion-status">Loading suggestions…</li>
+              <li class="form-help" id="category-suggestion-status">Loading categories…</li>
             </ul>
           </div>
 
@@ -360,7 +359,7 @@ input:focus, select:focus, textarea:focus {
     } catch (error) {
       console.error('Unable to load external categories:', error);
       if (categorySuggestionStatus) {
-        categorySuggestionStatus.textContent = 'Could not load category suggestions right now.';
+        categorySuggestionStatus.textContent = 'Showing fallback categories.';
       }
     }
   }
