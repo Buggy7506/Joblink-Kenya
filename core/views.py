@@ -2560,7 +2560,7 @@ def post_job(request):
 
     # 4️⃣ Handle job posting
     if request.method == 'POST':
-        form = JobForm(request.POST)
+        form = JobForm(request.POST, request.FILES)
         if form.is_valid():
             job = form.save(commit=False)
             job.employer = request.user  # Assign correct employer
@@ -2631,7 +2631,7 @@ def edit_job(request, job_id):
     job = get_object_or_404(Job, id=job_id, employer=request.user)
 
     if request.method == 'POST':
-        form = JobForm(request.POST, instance=job)
+       form = JobForm(request.POST, request.FILES, instance=job)
         if form.is_valid():
             job = form.save(commit=False)
             job.employer = request.user  # Ensure correct employer assignment
