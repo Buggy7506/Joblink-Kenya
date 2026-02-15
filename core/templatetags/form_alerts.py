@@ -9,4 +9,9 @@ def render_form_errors(context):
     request = context.get("request")
     form = context.get("form")
     flash_messages = list(get_messages(request)) if request else []
-    return {"form": form, "flash_messages": flash_messages}
+    return {
+        "form": form,
+        # Keep both names for compatibility across templates.
+        "messages": flash_messages,
+        "flash_messages": flash_messages,
+    }
