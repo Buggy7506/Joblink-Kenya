@@ -288,7 +288,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # If behind a proxy (like Render), tell Django to trust X-Forwarded-Proto
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = env_bool("USE_X_FORWARDED_HOST", default=ENV == "production")
-SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=ENV == "production")
+
+# Keep HTTPS redirect opt-in so deployments that terminate TLS upstream without
+# forwarding HTTP_X_FORWARDED_PROTO don't get trapped in redirect loops.
+SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=False)
 
 # Cross-site scripting protection
 SECURE_BROWSER_XSS_FILTER = True
