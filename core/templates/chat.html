@@ -142,6 +142,21 @@ body.light-mode .chat-wrap {
   gap: 12px;
   background: var(--chat-surface);
 }
+.chat-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.group-toggle-btn {
+  border: 1px solid var(--chat-border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--chat-surface-soft);
+  color: var(--chat-accent-dark);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
 #sidebar-toggle {
   display: none;
   background: none;
@@ -333,26 +348,39 @@ body.light-mode .chat-wrap {
   color: var(--chat-text);
   cursor: pointer;
 }
-.job-lounge {
+.applicants-group-panel {
   border-top: 1px solid var(--chat-border);
   background: var(--chat-surface);
   padding: 10px 16px;
 }
-.job-lounge-feed {
+.applicants-group-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.applicants-group-members span {
+  border: 1px solid var(--chat-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  background: var(--chat-surface-soft);
+}
+.applicants-group-feed {
   max-height: 120px;
   overflow-y: auto;
   font-size: 12px;
   color: var(--chat-muted);
   margin-bottom: 8px;
 }
-.job-lounge-item {
+.applicants-group-item {
   margin-bottom: 4px;
 }
-.job-lounge-form {
+.applicants-group-form {
   display: flex;
   gap: 8px;
 }
-.job-lounge-form input {
+.applicants-group-form input {
   flex: 1;
   border: 1px solid var(--chat-border);
   border-radius: 999px;
@@ -360,7 +388,7 @@ body.light-mode .chat-wrap {
   background: var(--chat-surface-soft);
   color: var(--chat-text);
 }
-.job-lounge-form button {
+.applicants-group-form button {
   border: none;
   border-radius: 999px;
   padding: 8px 14px;
@@ -577,6 +605,9 @@ body.light-mode .chat-wrap {
       {% if job %}
         <button id="sidebar-toggle">☰</button>
         <div class="chat-title"><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
+        <div class="chat-header-actions">
+          <button id="group-toggle-btn" class="group-toggle-btn" type="button">Applicants Group</button>
+        </div>
       {% else %}
         <div class="chat-title"><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
       {% endif %}
@@ -618,12 +649,13 @@ body.light-mode .chat-wrap {
       </div>
     </div>
 
-    <div class="job-lounge" id="job-lounge">
-      <div style="font-weight:600;color:var(--chat-accent-dark);margin-bottom:6px;">Applicants Lounge</div>
-      <div class="job-lounge-feed" id="job-lounge-feed"></div>
-      <div class="job-lounge-form">
-        <input id="job-lounge-input" type="text" placeholder="Share with applicants of this job..." maxlength="500" />
-        <button id="job-lounge-send" type="button">Share</button>
+    <div class="applicants-group-panel" id="applicants-group-panel" hidden>
+      <div style="font-weight:600;color:var(--chat-accent-dark);margin-bottom:6px;">Applicants Group</div>
+      <div class="applicants-group-members" id="applicants-group-members"></div>
+      <div class="applicants-group-feed" id="applicants-group-feed"></div>
+      <div class="applicants-group-form">
+        <input id="applicants-group-input" type="text" placeholder="Share with applicants who applied for this job..." maxlength="500" />
+        <button id="applicants-group-send" type="button">Share</button>
       </div>
     </div>
 
@@ -700,9 +732,12 @@ body.light-mode .chat-wrap {
   const selectedCount = document.getElementById("selected-count");
   const clearSelectedBtn = document.getElementById("clear-selected-btn");
   const forwardSelectedBtn = document.getElementById("forward-selected-btn");
-  const jobLoungeFeed = document.getElementById("job-lounge-feed");
-  const jobLoungeInput = document.getElementById("job-lounge-input");
-  const jobLoungeSend = document.getElementById("job-lounge-send");
+  const groupToggleBtn = document.getElementById("group-toggle-btn");
+  const applicantsGroupPanel = document.getElementById("applicants-group-panel");
+  const applicantsGroupMembers = document.getElementById("applicants-group-members");
+  const applicantsGroupFeed = document.getElementById("applicants-group-feed");
+  const applicantsGroupInput = document.getElementById("applicants-group-input");
+  const applicantsGroupSend = document.getElementById("applicants-group-send");
   
   // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
@@ -880,14 +915,30 @@ body.light-mode .chat-wrap {
     updateSelectionUi();
   }
 
-  function appendLoungeMessage(sender, message, timestamp){
-    if(!jobLoungeFeed) return;
+  function buildApplicantsGroup(){
+    if(!applicantsGroupMembers) return;
+    applicantsGroupMembers.innerHTML = "";
+    const applicants = Array.from(document.querySelectorAll("#active-applicants .applicant"));
+    applicants.forEach((applicant)=>{
+      const chip = document.createElement("span");
+      chip.textContent = applicant.textContent.trim();
+      applicantsGroupMembers.appendChild(chip);
+    });
+    if(!applicants.length){
+      const chip = document.createElement("span");
+      chip.textContent = "No applicants yet";
+      applicantsGroupMembers.appendChild(chip);
+    }
+  }
+
+  function appendGroupMessage(sender, message, timestamp){
+    if(!applicantsGroupFeed) return;
     const row = document.createElement("div");
-    row.className = "job-lounge-item";
+    row.className = "applicants-group-item";
     const when = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
     row.textContent = `[${when}] ${sender}: ${message}`;
-    jobLoungeFeed.appendChild(row);
-    jobLoungeFeed.scrollTop = jobLoungeFeed.scrollHeight;
+    applicantsGroupFeed.appendChild(row);
+    applicantsGroupFeed.scrollTop = applicantsGroupFeed.scrollHeight;
   }
 
   // Send message
@@ -999,7 +1050,7 @@ body.light-mode .chat-wrap {
       alert(`Forwarded ${data.count} message(s).`);
       clearSelection();
     } else if(eventType === "job_message") {
-      appendLoungeMessage(data.sender || "Unknown", data.message || "", data.timestamp);
+      appendGroupMessage(data.sender || "Unknown", data.message || "", data.timestamp);
     }
   };
 
@@ -1184,17 +1235,24 @@ body.light-mode .chat-wrap {
     });
   }
 
-  if(jobLoungeSend && jobLoungeInput){
-    jobLoungeSend.addEventListener("click", ()=>{
-      const msg = jobLoungeInput.value.trim();
+  if(groupToggleBtn && applicantsGroupPanel){
+    groupToggleBtn.addEventListener("click", ()=>{
+      applicantsGroupPanel.hidden = !applicantsGroupPanel.hidden;
+      if(!applicantsGroupPanel.hidden) buildApplicantsGroup();
+    });
+  }
+
+  if(applicantsGroupSend && applicantsGroupInput){
+    applicantsGroupSend.addEventListener("click", ()=>{
+      const msg = applicantsGroupInput.value.trim();
       if(!msg) return;
       socket.send(JSON.stringify({action:"job_message", message: msg}));
-      jobLoungeInput.value = "";
+      applicantsGroupInput.value = "";
     });
-    jobLoungeInput.addEventListener("keydown", e=>{
+    applicantsGroupInput.addEventListener("keydown", e=>{
       if(e.key === "Enter"){
         e.preventDefault();
-        jobLoungeSend.click();
+        applicantsGroupSend.click();
       }
     });
   }
