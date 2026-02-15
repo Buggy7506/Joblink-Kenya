@@ -402,13 +402,14 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
 
     class Meta:
         model = Job
-        fields = ['title', 'description', 'category', 'location', 'company', 'salary', 'expiry_date']
+        fields = ['title', 'description', 'category', 'location', 'company', 'company_logo', 'salary', 'expiry_date']
         help_texts = {
             'title': "Enter the job title.",
             'description': "Provide job details and requirements.",
             'category': "Select or create a job category.",
             'location': "Enter job location.",
             'company': "Enter your company name.",
+            'company_logo': "Upload your company logo (PNG/JPG/WebP) to boost brand visibility.",
             'salary': "Enter the salary for this job in KES.",
             'expiry_date': "Optional: Set a custom expiry date. Default is 30 days from posting."
         }
@@ -422,6 +423,7 @@ class JobForm(TooltipFormMixin, forms.ModelForm):
                 'data-lon-input': 'job-longitude'
             }),
             'company': forms.TextInput(attrs={'placeholder': 'Enter company name'}),
+            'company_logo': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
             'salary': forms.NumberInput(attrs={'placeholder': 'Enter salary in KES'}),
             'expiry_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
