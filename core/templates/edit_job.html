@@ -118,13 +118,48 @@
     font-size: 0.85rem;
   }
 
+  .edit-job-container .logo-upload-panel {
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--glow-accent) 40%, transparent);
+    padding: 16px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--bg-main) 90%, transparent), color-mix(in srgb, var(--glow-accent) 14%, transparent));
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--glow-accent) 22%, transparent), 0 0 20px color-mix(in srgb, var(--glow-accent) 20%, transparent);
+  }
+
+  .edit-job-container .logo-upload-panel::before {
+    content: "🔥 Make your job post pop with your logo";
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.82rem;
+    color: color-mix(in srgb, var(--text-accent) 92%, white);
+  }
+
+  .edit-job-container .logo-upload-panel input[type="file"] {
+    border: 1px dashed color-mix(in srgb, var(--glow-accent) 55%, transparent);
+    border-radius: 12px;
+    padding: 12px;
+    background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+  }
+
+  .edit-job-container .logo-upload-panel input[type="file"]::file-selector-button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    margin-right: 12px;
+    font-weight: 700;
+    background: linear-gradient(45deg, var(--text-accent), var(--glow-accent));
+    color: var(--text-main);
+    cursor: pointer;
+  }
+
   .edit-job-container .company-logo-preview {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
     object-fit: cover;
-    border: 1px solid color-mix(in srgb, var(--text-muted) 70%, transparent);
-    margin-top: 8px;
+    border: 2px solid color-mix(in srgb, var(--glow-accent) 55%, transparent);
+    margin-top: 12px;
+    box-shadow: 0 0 18px color-mix(in srgb, var(--glow-accent) 40%, transparent);
   }
 
 </style>
@@ -206,10 +241,12 @@
     <!-- Company Logo -->
     <div class="form-group">
       <label for="{{ form.company_logo.id_for_label }}">Company Logo</label>
-      {{ form.company_logo }}
-      {% if job.company_logo %}
-        <img src="{{ job.company_logo.url }}" alt="Current company logo" class="company-logo-preview">
-      {% endif %}
+      <div class="logo-upload-panel">
+        {{ form.company_logo }}
+        {% if job.company_logo %}
+          <img src="{{ job.company_logo.url }}" alt="Current company logo" class="company-logo-preview">
+        {% endif %}
+      </div>
       {% if form.company_logo.help_text %}
         <small>{{ form.company_logo.help_text }}</small>
       {% endif %}
