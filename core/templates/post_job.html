@@ -125,6 +125,44 @@ input:focus, select:focus, textarea:focus {
 @keyframes fadeOut {
   to { opacity: 0; transform: translateX(-50%) translateY(-50px); }
 }
+
+
+.logo-upload-shell {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--glow-accent) 40%, transparent);
+  border-radius: 16px;
+  padding: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-card) 72%, transparent), color-mix(in srgb, var(--glow-accent) 16%, transparent));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--glow-accent) 30%, transparent);
+}
+
+.logo-upload-shell::before {
+  content: "✨ Brand it beautifully";
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+  color: color-mix(in srgb, var(--text-accent) 86%, white);
+}
+
+.logo-upload-shell input[type="file"] {
+  border: 1px dashed color-mix(in srgb, var(--glow-accent) 55%, transparent);
+  padding: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-main) 82%, transparent);
+}
+
+.logo-upload-shell input[type="file"]::file-selector-button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  margin-right: 10px;
+  font-weight: 700;
+  background: linear-gradient(45deg, var(--glow-accent), var(--text-accent));
+  color: var(--text-main);
+  cursor: pointer;
+}
+
 </style>
 
 <div class="post-job-container">
@@ -158,6 +196,11 @@ input:focus, select:focus, textarea:focus {
             </strong>
           {% endif %}
           {{ field|add_class:"form-input" }}
+
+        {% elif field.name == "company_logo" %}
+          <div class="logo-upload-shell">
+            {{ field }}
+          </div>
 
         {% else %}
           {{ field|add_class:"form-input" }}
