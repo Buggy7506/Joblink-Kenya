@@ -2,6 +2,8 @@
 {% block title %}Chat{% if job %} — {{ job.title }}{% elif application %} — {{ application.job.title }}{% endif %}{% endblock %}
 {% block content %}
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,500,0,0" />
+
 <style>
 :root {
   --chat-bg: var(--bg-main);
@@ -431,7 +433,17 @@ body.light-mode .chat-wrap {
 #message-menu li:hover {
   background: rgba(37, 211, 102, 0.12);
 }
-
+.menu-item-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.menu-item-icon {
+  font-family: "Material Symbols Outlined";
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 500;
+}
 /* Responsive Sidebar Drawer */
 #sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px); z-index: 999; opacity: 0; transition: opacity 0.3s ease; }
 @media (max-width: 900px) {
@@ -558,13 +570,13 @@ body.light-mode .chat-wrap {
 <!-- Context Menu -->
 <div id="message-menu">
   <ul>
-    <li data-action="reply">↩️ Reply</li>
-    <li data-action="copy">📋 Copy</li>
-    <li data-action="edit">✏️ Edit</li>
-    <li data-action="delete-me">🗑️ Delete for Me</li>
-    <li data-action="delete-everyone">🚫 Delete for Everyone</li>
-    <li data-action="forward">📤 Forward</li>
-    <li data-action="pin">📌 Pin</li>
+    <li data-action="reply"><span class="menu-item-content"><span class="menu-item-icon">reply</span><span>Reply</span></span></li>
+    <li data-action="copy"><span class="menu-item-content"><span class="menu-item-icon">content_copy</span><span>Copy</span></span></li>
+    <li data-action="edit"><span class="menu-item-content"><span class="menu-item-icon">edit</span><span>Edit</span></span></li>
+    <li data-action="delete-me"><span class="menu-item-content"><span class="menu-item-icon">delete</span><span>Delete for Me</span></span></li>
+    <li data-action="delete-everyone"><span class="menu-item-content"><span class="menu-item-icon">delete_forever</span><span>Delete for Everyone</span></span></li>
+    <li data-action="forward"><span class="menu-item-content"><span class="menu-item-icon">forward_to_inbox</span><span>Forward</span></span></li>
+    <li data-action="pin"><span class="menu-item-content"><span class="menu-item-icon">keep</span><span>Pin</span></span></li>
   </ul>
 </div>
 
@@ -898,6 +910,19 @@ body.light-mode .chat-wrap {
     menu.style.top  = `${y}px`;
     menu.style.display = "block";
 
+
+    const isMe = msgElem.classList.contains("me");
+    const isPinned = msgElem.classList.contains("pinned");
+    const editItem = menu.querySelector('li[data-action="edit"]');
+    const deleteEveryoneItem = menu.querySelector('li[data-action="delete-everyone"]');
+    const pinItemLabel = menu.querySelector('li[data-action="pin"] .menu-item-content span:last-child');
+    const pinItemIcon = menu.querySelector('li[data-action="pin"] .menu-item-icon');
+
+    if(editItem) editItem.style.display = isMe ? "" : "none";
+    if(deleteEveryoneItem) deleteEveryoneItem.style.display = isMe ? "" : "none";
+    if(pinItemLabel) pinItemLabel.textContent = isPinned ? "Unpin" : "Pin";
+    if(pinItemIcon) pinItemIcon.textContent = isPinned ? "keep_off" : "keep";
+
     void menu.offsetWidth; // trigger animation
     menu.classList.add("show");
 
@@ -954,6 +979,10 @@ body.light-mode .chat-wrap {
         if(input) input.focus();
     }
     else if(action === "edit"){
+        if(!msgElem.classList.contains("me")) {
+          hideMenu();
+          return;
+        }
         input.value = text;
         input.dataset.editId = msgId;
         input.focus();
@@ -964,6 +993,10 @@ body.light-mode .chat-wrap {
         if(wasPinned) updatePinnedState(msgId, false);
     }
     else if(action === "delete-everyone"){
+        if(!msgElem.classList.contains("me")) {
+          hideMenu();
+          return;
+        }
         socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
     }
     else if(action === "forward"){
