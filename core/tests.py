@@ -3,7 +3,12 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
-from core.views import _get_effective_role, _normalize_next_url, view_posted_jobs
+from core.views import (
+    _get_effective_role,
+    _normalize_next_url,
+    complete_employer_profile,
+    view_posted_jobs,
+)
 
 
 class NextRedirectTests(SimpleTestCase):
@@ -125,6 +130,27 @@ class RoleGuardTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("dashboard"))
 
+    def test_complete_employer_profile_allows_employer_user_role_when_profile_missing(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        request = self._build_request(reverse("complete_employer_profile"))
+        request.method = "GET"
+        request.user = SimpleNamespace(
+            is_authenticated=True,
+            role="employer",
+        )
+
+        with patch("core.views.EmployerCompany.objects.filter") as mock_filter, patch(
+            "core.views.render"
+        ) as mock_render:
+            mock_filter.return_value.first.return_value = None
+            mock_render.return_value = SimpleNamespace(status_code=200)
+
+            response = complete_employer_profile.__wrapped__.__wrapped__(request)
+
+        self.assertEqual(response.status_code, 200)
+        mock_render.assert_called_once()
 
 class ProxyHeaderNormalizeMiddlewareTests(SimpleTestCase):
     def setUp(self):
