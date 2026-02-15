@@ -97,6 +97,27 @@ class EmployerVerificationMiddlewareTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("upload_company_docs"))
 
+    def test_async_stack_uses_request_auser_and_returns_async_response(self):
+        import asyncio
+        from types import SimpleNamespace
+
+        from core.middleware.employer_verification import EmployerVerificationMiddleware
+
+        request = self.factory.get(reverse("dashboard"))
+
+        async def auser():
+            return SimpleNamespace(is_authenticated=False)
+
+        request.auser = auser
+
+        async def get_response(req):
+            return SimpleNamespace(status_code=200)
+
+        middleware = EmployerVerificationMiddleware(get_response)
+        response = asyncio.run(middleware(request))
+
+        self.assertEqual(response.status_code, 200)
+
 
 class RoleGuardTests(SimpleTestCase):
     def setUp(self):
