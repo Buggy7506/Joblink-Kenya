@@ -80,6 +80,9 @@ INSTALLED_APPS = [
 INSTALLED_APPS += ["django_celery_results"]
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+CELERY_BROKER_USE_SSL = {
+    "ssl_cert_reqs": None
+}
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
