@@ -108,6 +108,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'core.middleware.request_shield.RequestShieldMiddleware',
+    'core.middleware.job_expiry_cleanup.ExpiredJobCleanupMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     # Messages MUST come immediately after sessions
