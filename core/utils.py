@@ -101,6 +101,22 @@ def send_otp_email(email, code):
     )
 
 
+
+
+def send_verification_email(email, code):
+    """Backward-compatible wrapper for device verification OTP emails."""
+    return send_otp_email(email, code)
+
+
+def send_whatsapp_otp(phone, code):
+    """Send OTP using WhatsApp channel via TextMeBot."""
+    return send_textmebot_message(phone, message=f"Your Joblink Kenya verification code is: {code}")
+
+
+def send_sms_otp(phone, code):
+    """Send OTP using SMS channel via TextMeBot."""
+    return send_textmebot_message(phone, message=f"Your Joblink Kenya verification code is: {code}")
+    
 def build_branded_email(title, body_html, footer_text="Joblink Kenya • Secure Authentication"):
     return f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:20px">
