@@ -11,7 +11,6 @@ from django.http import (
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView
 
 # =========================
 # Django authentication
@@ -21,10 +20,8 @@ from django.contrib.auth import (
     logout,
     authenticate,
     update_session_auth_hash,
-    get_user_model,
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib import messages
@@ -39,13 +36,12 @@ from django.core.validators import validate_email
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 from django.core.paginator import Paginator
-from django.db import transaction
 from django.db.models import Count, Q, F
 
 # =========================
 # Django templates & utils
 # =========================
-from django.template.loader import get_template, render_to_string
+from django.template.loader import render_to_string
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 from django.utils import timezone
@@ -57,23 +53,22 @@ from django.utils.text import slugify
 # =========================
 from weasyprint import HTML
 import stripe
-import pdfkit
 import requests
 import cloudinary.uploader
 import secrets
 import base64
 import hashlib
+import hmac
+import json
 
 # =========================
 # Python standard library
 # =========================
 import os
 import re
-import random
 import urllib.parse
 from pathlib import Path
 from collections import namedtuple
-from datetime import datetime, timedelta
 
 # =========================
 # Local app imports
@@ -87,27 +82,20 @@ from .models import (
     SkillResource,
     Resume,
     CVUpload,
-    JobPlan,
-    JobPayment,
     Profile,
     Notification,
-    TrustedDevice,
     DeviceVerification,
     CustomUser,
     EmployerCompany,
-    CompanyDocument,
 )
 
 from .forms import (
     EditProfileForm,
-    UserForm,
     ProfileForm,
     JobForm,
-    ResumeForm,
     EmployerCompanyForm,
     UnifiedAuthForm,
     CVUploadForm,
-    JobPlanSelectForm,
     CustomUserCreationForm,
     ChangeUsernamePasswordForm,
     AccountSettingsForm,
@@ -115,7 +103,6 @@ from .forms import (
 )
 from .utils import (
     generate_code,
-    send_textmebot_message,
     send_otp,
     get_client_ip,
     get_device_fingerprint,
@@ -126,7 +113,6 @@ from .utils import (
     get_location_from_ip,
 )
 
-from core.middleware.employer_required import employer_verified_required
 from .tasks import save_employer_document
 from .email_backend import send_password_reset
 
@@ -1449,11 +1435,11 @@ def google_callback(request):
 
     # Check if user already exists
     try:
-        user = User.objects.get(email=email)
+        user = CustomUser.objects.get(email=email)
         # Existing user: log in directly
         login(request, user)
         return redirect('dashboard')
-    except User.DoesNotExist:
+    except CustomUser.DoesNotExist:
         # New user: save info in session and redirect to role selection
         request.session['oauth_user'] = {
             'email': email,
@@ -1506,6 +1492,25 @@ def google_choose_role(request):
         "oauth_user": user_data,
     })
 
+def generate_apple_client_secret():
+    """Return Apple client secret from environment configuration."""
+    return os.getenv("APPLE_CLIENT_SECRET", "")
+
+
+def decode_unverified_jwt_payload(token):
+    """Decode JWT payload without signature verification for profile extraction."""
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            return {}
+        payload_segment = parts[1]
+        padding = "=" * (-len(payload_segment) % 4)
+        decoded = base64.urlsafe_b64decode(payload_segment + padding)
+        return json.loads(decoded.decode("utf-8"))
+    except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+        return {}
+
+
 APPLE_AUTH_ENDPOINT = "https://appleid.apple.com/auth/authorize"
 APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token"
 
@@ -1530,9 +1535,14 @@ def apple_callback(request):
         return redirect("unified_auth")
 
     # Exchange code for token (JWT client_secret required)
+    client_secret = generate_apple_client_secret()
+    if not client_secret:
+        messages.error(request, "Apple login is not configured.")
+        return redirect("unified_auth")
+
     token_response = requests.post(APPLE_TOKEN_ENDPOINT, data={
         "client_id": settings.APPLE_CLIENT_ID,
-        "client_secret": generate_apple_client_secret(),  # JWT
+        "client_secret": client_secret,
         "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": settings.APPLE_REDIRECT_URI,
@@ -1544,7 +1554,7 @@ def apple_callback(request):
     if not id_token:
         return redirect("unified_auth")
 
-    decoded = jwt.decode(id_token, options={"verify_signature": False})
+    decoded = decode_unverified_jwt_payload(id_token)
     email = decoded.get("email")
     first_name = decoded.get("given_name", "")
     last_name = decoded.get("family_name", "")
@@ -1790,8 +1800,6 @@ def process_application(request, app_id):
         )
 
     return redirect('dashboard')  # <— change to your employer dashboard URL name
-    
-User = get_user_model()
 
 #Home Page
 @csrf_protect
@@ -2372,7 +2380,7 @@ def view_posted_jobs(request):
             messages.success(request, f"Job '{job.title}' deleted successfully.")
             return redirect('view_posted_jobs')
         else:
-            messages.error(request, f"Job ID is missing.")
+            messages.error(request, "Job ID is missing.")
     return render(request, 'view_posted_jobs.html', {
         'jobs': jobs,
         'posted_jobs': posted_jobs,
@@ -2945,11 +2953,11 @@ def confirm_delete(request, job_id):
 @user_passes_test(lambda u: u.is_superuser or u.role == 'admin')
 def admin_dashboard(request):
     context = {
-        'total_users': User.objects.count(),
+        'total_users': CustomUser.objects.count(),
         'total_jobs': Job.objects.count(),
         'total_alerts': JobAlert.objects.count(),
         'total_reports': 0,  # or change to real Report count
-        'recent_users': User.objects.order_by('-date_joined')[:5],
+        'recent_users': CustomUser.objects.order_by('-date_joined')[:5],
     }
     return render(request, 'admin_dashboard.html', context)
     
