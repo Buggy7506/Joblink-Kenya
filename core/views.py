@@ -137,6 +137,12 @@ def _redirect_to_next_or_dashboard(request):
     next_url = _normalize_next_url(request, request.session.pop("auth_next", None))
     return redirect(next_url or "dashboard")
 
+
+def _get_effective_role(user):
+    """Return role with profile.role as source of truth, then fallback to user.role."""
+    profile = getattr(user, "profile", None)
+    return getattr(profile, "role", None) or getattr(user, "role", None)
+
 def robots_txt(request):
     content = """User-agent: *
 Allow: /
@@ -2309,10 +2315,8 @@ def dashboard(request):
     notifications_count = Notification.objects.filter(user=user, is_read=False).count()
     total_notifications = unread_messages_count + notifications_count
 
-    profile = getattr(user, "profile", None)
-    profile_role = getattr(profile, "role", None)
     user_role = getattr(user, "role", None)
-    effective_role = profile_role or user_role
+    effective_role = _get_effective_role(user)
 
     # Admin dashboard
     if user.is_superuser or user_role == "admin":
@@ -2404,8 +2408,9 @@ def profile_view(request):
 @csrf_protect
 @login_required
 def view_posted_jobs(request):
-    if not request.user.is_superuser and request.user.role != 'employer':
-        return redirect('unified_auth')
+    if not request.user.is_superuser and _get_effective_role(request.user) != 'employer':
+        messages.error(request, "❌ Only employers can access posted jobs.")
+        return redirect('dashboard')
     jobs = Job.objects.all().order_by('-posted_on')
     posted_jobs = Job.objects.filter(employer=request.user).order_by('-posted_on')
     posted_jobs_count = posted_jobs.count()
@@ -2429,6 +2434,10 @@ def view_posted_jobs(request):
 @csrf_protect
 @login_required
 def view_applicants(request):
+    if not request.user.is_superuser and _get_effective_role(request.user) != "employer":
+        messages.error(request, "❌ Only employers can access applicants.")
+        return redirect("dashboard")
+
     job_id = request.GET.get("job_id")  # Check if employer is filtering for a specific job
 
     if job_id:
@@ -2460,8 +2469,9 @@ def view_applicants(request):
 @csrf_protect
 @login_required
 def employer_control_panel_view(request):
-    if not request.user.is_superuser and request.user.role != 'employer':
-        return redirect('unified_auth')
+    if not request.user.is_superuser and _get_effective_role(request.user) != 'employer':
+        messages.error(request, "❌ Only employers can access employer dashboard.")
+        return redirect('dashboard')
 
     posted_jobs_count = Job.objects.filter(employer=request.user).count()
     active_jobs = Job.objects.filter(employer=request.user, is_active=True).count()
@@ -2476,6 +2486,10 @@ def employer_control_panel_view(request):
 @csrf_protect
 @login_required
 def employer_profile(request):
+    if not request.user.is_superuser and _get_effective_role(request.user) != "employer":
+        messages.error(request, "❌ Only employers can access employer profile.")
+        return redirect("dashboard")
+
     return render(request, 'employer_profile.html', {
         'user': request.user
     })
@@ -2483,6 +2497,10 @@ def employer_profile(request):
 @csrf_protect
 @login_required
 def company_profile(request):
+    if not request.user.is_superuser and _get_effective_role(request.user) != "employer":
+        messages.error(request, "❌ Only employers can access company profile.")
+        return redirect("dashboard")
+
     company = None
     is_verified = False
 
@@ -3428,7 +3446,7 @@ def chat_view(request, application_id=None, job_id=None):
     # Case 3: General landing
     # -----------------------------
     else:
-        if getattr(user, "is_employer", False):
+        if _get_effective_role(user) == "employer":
             jobs = Job.objects.filter(employer=user).prefetch_related(
                 "applications__applicant"
             )
