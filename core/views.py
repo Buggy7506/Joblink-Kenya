@@ -2309,12 +2309,17 @@ def dashboard(request):
     notifications_count = Notification.objects.filter(user=user, is_read=False).count()
     total_notifications = unread_messages_count + notifications_count
 
+    profile = getattr(user, "profile", None)
+    profile_role = getattr(profile, "role", None)
+    user_role = getattr(user, "role", None)
+    effective_role = profile_role or user_role
+
     # Admin dashboard
-    if user.is_superuser or getattr(user, "role", None) == "admin":
+    if user.is_superuser or user_role == "admin":
         return redirect("admin_dashboard")
 
     # Applicant dashboard
-    if getattr(user, "role", None) == "applicant":
+    if effective_role == "applicant":
         applications = Application.objects.filter(applicant=user)
         premium_jobs = applications.filter(job__is_premium=True).count()
         deleted_apps_count = applications.filter(is_deleted=True).count()
@@ -2327,7 +2332,7 @@ def dashboard(request):
         })
 
     # Employer dashboard
-    elif getattr(user, "role", None) == "employer":
+    elif effective_role == "employer":
         # Check employer verification
         company = getattr(user, "employer_company", None)
         if not company or not company.is_verified:
