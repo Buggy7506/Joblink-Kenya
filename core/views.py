@@ -69,6 +69,7 @@ import json
 import os
 import re
 import urllib.parse
+import logging
 from pathlib import Path
 from collections import namedtuple
 
@@ -117,6 +118,9 @@ from .utils import (
 
 from .tasks import save_employer_document
 from .email_backend import send_password_reset
+
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_next_url(request, next_url):
@@ -1469,6 +1473,28 @@ GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
 
+
+def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
+    """Download and persist an OAuth profile picture for a user."""
+    if not picture_url:
+        return False
+
+    try:
+        response = requests.get(picture_url, timeout=8)
+        if response.status_code != 200:
+            return False
+
+        username = user.username or user.email or f"user_{user.id}"
+        user.profile_pic.save(
+            f"{slugify(username)}_{provider}.jpg",
+            ContentFile(response.content),
+            save=True,
+        )
+        return True
+    except Exception as exc:
+        logger.warning("OAuth profile picture sync failed for user %s: %s", user.pk, exc)
+        return False
+
 @ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def google_login(request):
@@ -1537,6 +1563,7 @@ def google_callback(request):
     # Check if user already exists
     try:
         user = CustomUser.objects.get(email=email)
+        _sync_oauth_profile_picture(user, user_info.get('picture'), provider='google')
         # Existing user: log in directly
         login(request, user)
         return _redirect_to_next_or_dashboard(request)
