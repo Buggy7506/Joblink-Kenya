@@ -1,7 +1,9 @@
+from datetime import timedelta
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from core.views import (
     _get_effective_role,
@@ -293,3 +295,19 @@ class GoogleRoleSelectionTests(TestCase):
         self.assertRedirects(response, reverse("set_google_password"))
         self.assertEqual(self.client.session.get("oauth_role"), "employer")
         self.assertEqual(self.client.session.get("oauth_user", {}).get("role"), "employer")
+
+
+class ExpiredJobCleanupMiddlewareTests(SimpleTestCase):
+    def test_middleware_deletes_expired_jobs_on_each_request(self):
+        from unittest.mock import patch
+
+        from core.middleware.job_expiry_cleanup import ExpiredJobCleanupMiddleware
+
+        request = RequestFactory().get("/")
+        middleware = ExpiredJobCleanupMiddleware(lambda req: None)
+
+        with patch("core.middleware.job_expiry_cleanup.Job.objects.filter") as mock_filter:
+            middleware(request)
+
+        mock_filter.assert_called_once()
+        mock_filter.return_value.delete.assert_called_once()
