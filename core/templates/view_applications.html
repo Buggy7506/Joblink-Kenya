@@ -5,128 +5,71 @@
 {% block content %}
 
 <style>
-/* Container */
 .applications-container {
-  background: var(--bg-card, rgba(15, 15, 30, 0.95));
-  border-radius: 16px;
-  padding: 30px;
-  margin: 40px auto;
-  max-width: 950px;
-  box-shadow: 0 0 25px rgba(0, 255, 255, 0.25);
-  animation: fadeIn 1s ease-in-out;
-  overflow-x: auto;
-  transition: background 0.4s, color 0.4s;
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin: 1.5rem auto;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.15);
 }
 
-/* Heading */
 .glow-heading {
-  font-size: 2rem;
+  font-size: 1.8rem;
   text-align: center;
-  margin-bottom: 25px;
-  color: var(--glow-main);
-  text-shadow: 0 0 8px var(--glow-main), 0 0 16px var(--glow-accent);
+  margin-bottom: 1.5rem;
+  color: var(--text-main);
 }
 
-/* Table */
-.table {
+.applications-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 12px;
-}
-
-.table thead th {
-  background: linear-gradient(90deg, var(--glow-main), var(--text-accent));
+  min-width: 700px;
   color: var(--text-main);
-  padding: 14px 18px;
-  font-size: 1rem;
-  border-radius: 8px;
 }
 
-.table tbody tr {
-  background: var(--bg-surface);
-  border-radius: 12px;
-  box-shadow: 0 0 10px var(--glow-main, rgba(0,255,200,0.12));
-  transition: transform 0.2s ease, box-shadow 0.3s ease, opacity 0.4s;
-}
-
-.table tbody tr:hover {
+.applications-table thead th {
   background: var(--bg-surface-soft);
-  transform: translateY(-3px);
-  box-shadow: 0 0 18px var(--glow-main, rgba(0,255,200,0.3));
-}
-
-.table td {
-  padding: 14px 18px;
-  font-size: 0.95rem;
   color: var(--text-main);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent);
 }
 
-/* Links */
-.table a {
+.applications-table tbody td {
+  background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+  color: var(--text-main);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 18%, transparent);
+}
+
+.applications-table tbody tr:hover td {
+  background: var(--bg-surface-soft);
+}
+
+.applications-table a {
   color: var(--text-accent);
-  text-decoration: none;
-  font-weight: bold;
-  transition: 0.3s;
+  font-weight: 600;
 }
 
-.table a:hover {
-  color: var(--glow-main);
-  text-shadow: 0 0 6px var(--glow-accent);
+.applications-table a:hover {
+  color: var(--text-link);
 }
 
-/* Status Labels */
-.text-success { color: var(--text-success); font-weight: bold; text-shadow: 0 0 6px var(--text-success); }
-.text-danger { color: var(--text-danger); font-weight: bold; text-shadow: 0 0 6px var(--text-danger); }
-.text-warning { color: var(--text-warning); font-weight: bold; text-shadow: 0 0 6px var(--text-warning); }
-
-/* Chat Button */
-.chat-btn {
-  display: inline-block;
-  padding: 10px 18px;
-  border-radius: 12px;
-  background: var(--text-accent);
-  color: var(--text-main);
-  font-weight: bold;
-  text-align: center;
-  box-shadow: 0 0 15px var(--glow-main), 0 0 30px var(--glow-accent);
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-.chat-btn:hover {
-  box-shadow: 0 0 25px var(--glow-main), 0 0 50px var(--glow-accent);
-  transform: translateY(-2px);
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
 }
 
-/* Delete Button */
-.delete-btn {
-  display: inline-block;
-  padding: 10px 18px;
-  border-radius: 12px;
-  background: var(--bg-danger);
-  color: var(--text-inverse);
-  font-weight: bold;
-  box-shadow: 0 0 15px var(--bg-danger), 0 0 30px var(--bg-danger);
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-.delete-btn:hover {
-  background: var(--bg-danger-hover);
-  box-shadow: 0 0 25px var(--bg-danger), 0 0 50px var(--bg-danger);
-  transform: translateY(-2px);
+.application-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-/* Empty State */
 .empty-msg {
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--text-muted);
-  padding: 20px;
-}
-
-/* Fade Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  margin: 0;
 }
 </style>
 
@@ -137,7 +80,8 @@
   <h2 class="glow-heading">💼 My Job Applications</h2>
 
   {% if applications %}
-    <table class="table">
+    <div class="table-responsive">
+    <table class="table applications-table align-middle mb-0">
       <thead>
         <tr>
           <th>Job Title</th>
@@ -154,22 +98,25 @@
           <td>{{ app.job.employer.username }}</td>
           <td>
             {% if app.status == "accepted" %}
-              <span class="text-success">✅ Accepted</span>
+              <span class="status-pill text-success">✅ Accepted</span>
             {% elif app.status == "rejected" %}
-              <span class="text-danger">❌ Rejected</span>
+              <span class="status-pill text-danger">❌ Rejected</span>
             {% else %}
-              <span class="text-warning">⏳ Pending</span>
+              <span class="status-pill text-warning">⏳ Pending</span>
             {% endif %}
           </td>
           <td>{{ app.applied_on|date:"M d, Y H:i" }}</td>
-          <td style="display:flex; gap:8px;">
-            <a href="{% url 'job_chat' app.id %}" class="chat-btn">💬 Chat</a>
-            <button class="delete-btn" onclick="deleteApplication({{ app.id }})">🗑 Delete</button>
+          <td>
+            <div class="application-actions">
+              <a href="{% url 'job_chat' app.id %}" class="btn btn-sm btn-outline-info">💬 Chat</a>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteApplication({{ app.id }})">🗑 Delete</button>
+            </div>
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="empty-msg">🚀 You haven’t applied for any jobs yet.</p>
   {% endif %}
