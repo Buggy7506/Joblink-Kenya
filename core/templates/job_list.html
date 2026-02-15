@@ -224,11 +224,32 @@
    COMPANY LOGO
 ========================================================= */
 .available-jobs-page .company-logo-img {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--text-muted);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 70%, transparent);
   object-fit: cover;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.available-jobs-page .company-logo-fallback {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-accent) 85%, #111);
+  color: var(--text-inverse);
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.available-jobs-page .company-meta {
+  display: inline-flex;
+  align-items: center;
 }
 
 /* =========================================================
@@ -494,7 +515,22 @@
       </div>
 
       <p class="job-meta">
-        🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
+        <span class="company-meta">
+          {% if job.company_logo %}
+            <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo" class="company-logo-img" loading="lazy">
+          {% elif job.employer.employer_company.company_website %}
+            <img
+              src="https://www.google.com/s2/favicons?domain_url={{ job.employer.employer_company.company_website|urlencode }}&sz=64"
+              alt="{{ job.company }} logo"
+              class="company-logo-img"
+              loading="lazy"
+            >
+          {% else %}
+            <span class="company-logo-fallback">{{ job.company|default:"C"|slice:":1"|upper }}</span>
+          {% endif %}
+          {{ job.company }}
+        </span>
+        &nbsp; | &nbsp; 📍 {{ job.location }}
       </p>
 
       {% if job.category %}
@@ -544,7 +580,22 @@
         </div>
 
         <p class="job-meta">
-          🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
+          <span class="company-meta">
+            {% if job.company_logo %}
+              <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo" class="company-logo-img" loading="lazy">
+            {% elif job.employer.employer_company.company_website %}
+              <img
+                src="https://www.google.com/s2/favicons?domain_url={{ job.employer.employer_company.company_website|urlencode }}&sz=64"
+                alt="{{ job.company }} logo"
+                class="company-logo-img"
+                loading="lazy"
+              >
+            {% else %}
+              <span class="company-logo-fallback">{{ job.company|default:"C"|slice:":1"|upper }}</span>
+            {% endif %}
+            {{ job.company }}
+          </span>
+          &nbsp; | &nbsp; 📍 {{ job.location }}
         </p>
          
         {% if job.category %}
