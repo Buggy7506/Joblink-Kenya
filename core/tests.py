@@ -152,6 +152,56 @@ class RoleGuardTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         mock_render.assert_called_once()
 
+    def test_complete_employer_profile_falls_back_when_broker_unavailable(self):
+        import tempfile
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+        from kombu.exceptions import OperationalError as KombuOperationalError
+
+        request = self._build_request(reverse("complete_employer_profile"))
+        request.method = "POST"
+        request.POST = {
+            "document_type": "incorporation",
+        }
+        request.FILES["file"] = SimpleUploadedFile("company.pdf", b"test-file", content_type="application/pdf")
+        request.user = SimpleNamespace(
+            is_authenticated=True,
+            id=42,
+            role="employer",
+        )
+
+        company_obj = SimpleNamespace(user=request.user, is_verified=False)
+        company_obj.save = lambda: None
+        company_obj.refresh_from_db = lambda: None
+
+        company_form = SimpleNamespace(
+            is_valid=lambda: True,
+            save=lambda commit=False: company_obj,
+        )
+        doc_form = SimpleNamespace(
+            is_valid=lambda: True,
+            cleaned_data={"document_type": "incorporation"},
+        )
+
+        with tempfile.TemporaryDirectory() as temp_media_root, override_settings(MEDIA_ROOT=temp_media_root), patch(
+            "core.views.EmployerCompany.objects.filter"
+        ) as mock_filter, patch("core.views.EmployerCompanyForm", return_value=company_form), patch(
+            "core.views.CompanyDocumentForm", return_value=doc_form
+        ), patch("core.views.redirect", return_value=SimpleNamespace(status_code=302)) as mock_redirect, patch(
+            "core.views.save_employer_document.delay",
+            side_effect=KombuOperationalError("connection refused"),
+        ), patch("core.views.save_employer_document.apply") as mock_apply:
+            mock_filter.return_value.first.return_value = None
+
+            response = complete_employer_profile.__wrapped__.__wrapped__(request)
+
+        self.assertEqual(response.status_code, 302)
+        mock_apply.assert_called_once()
+        mock_redirect.assert_called_with("complete_employer_profile")
+
 class ProxyHeaderNormalizeMiddlewareTests(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
