@@ -347,3 +347,39 @@ class ExpiredJobCleanupMiddlewareTests(SimpleTestCase):
 
         mock_filter.assert_called_once()
         mock_filter.return_value.delete.assert_called_once()
+
+
+class SuppressProbeNoiseFilterTests(SimpleTestCase):
+    def test_filter_blocks_known_probe_message(self):
+        import logging
+
+        from core.logging_filters import SuppressProbeNoiseFilter
+
+        log_record = logging.LogRecord(
+            name="django.request",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=1,
+            msg="Not Found: /.git/HEAD",
+            args=(),
+            exc_info=None,
+        )
+
+        self.assertFalse(SuppressProbeNoiseFilter().filter(log_record))
+
+    def test_filter_allows_non_probe_warning(self):
+        import logging
+
+        from core.logging_filters import SuppressProbeNoiseFilter
+
+        log_record = logging.LogRecord(
+            name="django.request",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=1,
+            msg="Not Found: /jobs/some-slug",
+            args=(),
+            exc_info=None,
+        )
+
+        self.assertTrue(SuppressProbeNoiseFilter().filter(log_record))
