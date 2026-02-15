@@ -468,7 +468,8 @@ class Job(models.Model):
     )
     posted_on = models.DateTimeField(auto_now_add=True)
     company = models.CharField(max_length=200, blank=True)
-    
+    company_logo = CloudinaryField('image', blank=True, null=True)
+
     salary = models.PositiveIntegerField(
         null=True,
         blank=True,
