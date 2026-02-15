@@ -232,6 +232,7 @@ input:focus, select:focus, textarea:focus {
     {% csrf_token %}
     
     {% for field in form %}
+      {% if field.name != "category" %}
       <div class="form-group">
         {% if field.name != "custom_category" %}<label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{% endif %}
 
@@ -247,11 +248,6 @@ input:focus, select:focus, textarea:focus {
             </strong>
           {% endif %}
           {{ field|add_class:"form-input" }}
-
-        {% elif field.name == "category" %}
-          <div style="display:none;">
-            {{ field|add_class:"form-input" }}
-          </div>
 
         {% elif field.name == "custom_category" %}
           <label class="form-label" for="{{ field.id_for_label }}">Category</label>
@@ -281,6 +277,7 @@ input:focus, select:focus, textarea:focus {
           <div class="error">{{ error }}</div>
         {% endfor %}
       </div>
+      {% endif %}
     {% endfor %}
     
     <!-- Submit Button -->
