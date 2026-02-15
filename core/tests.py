@@ -383,3 +383,38 @@ class SuppressProbeNoiseFilterTests(SimpleTestCase):
         )
 
         self.assertTrue(SuppressProbeNoiseFilter().filter(log_record))
+
+class SuppressAsyncCancelNoiseFilterTests(SimpleTestCase):
+    def test_filter_blocks_asgiref_cancelled_error_noise(self):
+        import logging
+
+        from core.logging_filters import SuppressAsyncCancelNoiseFilter
+
+        log_record = logging.LogRecord(
+            name="asgiref.sync",
+            level=logging.ERROR,
+            pathname=__file__,
+            lineno=1,
+            msg="CancelledError exception in shielded future",
+            args=(),
+            exc_info=None,
+        )
+
+        self.assertFalse(SuppressAsyncCancelNoiseFilter().filter(log_record))
+
+    def test_filter_allows_unrelated_asgiref_errors(self):
+        import logging
+
+        from core.logging_filters import SuppressAsyncCancelNoiseFilter
+
+        log_record = logging.LogRecord(
+            name="asgiref.sync",
+            level=logging.ERROR,
+            pathname=__file__,
+            lineno=1,
+            msg="Unhandled exception while running sync adapter",
+            args=(),
+            exc_info=None,
+        )
+
+        self.assertTrue(SuppressAsyncCancelNoiseFilter().filter(log_record))
