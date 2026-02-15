@@ -2,23 +2,15 @@
 {% block title %}Employer Profile{% endblock %}
 {% block content %}
 <style>
-/* ===================== Employer Profile ===================== */
-.employer-profile-container { 
-  padding: 30px;
-  display: flex;
-  justify-content: center;
-}
-
-.profile-box {
+.profile-container {
+  max-width: 800px;
+  margin: 60px auto;
   background: var(--bg-card);
-  padding: 25px;
-  border-radius: 15px;
-  max-width: 500px;
-  width: 100%;
-  margin: auto;
-  box-shadow: 0 0 15px var(--glow-accent);
-  color: var(--text-main);
-  text-align: center;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(128, 0, 255, 0.6);
+  border: 1px solid var(--text-accent);
+  animation: fadeIn 1s ease;
 }
 
 .profile-pic {
@@ -35,20 +27,40 @@
   border: 3px solid var(--text-accent);
   box-shadow: 0 0 15px var(--glow-accent);
   cursor: pointer;
-  transition: border 0.4s, box-shadow 0.4s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.user-details {
-  text-align: left;
-  margin-top: 20px;
+.profile-pic img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px var(--glow-accent);
 }
 
-.user-details p {
-  margin-bottom: 10px;
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.profile-info div {
+  background: var(--bg-main);
+  padding: 15px 20px;
+  border-radius: 12px;
+  border-left: 5px solid var(--text-accent);
+}
+
+.profile-info div p:first-child {
+  font-weight: bold;
+  color: var(--text-accent);
+  margin-bottom: 6px;
+}
+
+.profile-info div p:last-child {
   color: var(--text-main);
 }
 
 .edit-button {
+  display: block;
+  text-align: center;
   margin-top: 40px;
 }
 
@@ -69,71 +81,144 @@
   box-shadow: 0 0 20px var(--glow-accent);
 }
 
-/* ===================== Alien Image Viewer ===================== */
+.add-link {
+  color: var(--text-accent);
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-link:hover {
+  text-shadow: 0 0 12px var(--glow-accent);
+}
+
+.add-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 3000;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-box {
+  background: var(--bg-card);
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 0 40px var(--glow-accent);
+}
+
+.add-box h2 { color: var(--text-accent); text-align: center; }
+
+.add-box input,
+.add-box select {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  background: var(--bg-main);
+  border: none;
+  border-radius: 10px;
+  color: white;
+}
+
+.add-box .phone-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin: 15px 0;
+  border: 1px solid var(--text-muted);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--bg-surface), var(--bg-surface-soft));
+  position: relative;
+}
+
+.add-box .phone-group:focus-within { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-info-soft); }
+.add-box .country-select { display: none; }
+.add-box .country-trigger { width: 76px; border: none; border-right: 1px solid color-mix(in srgb, var(--text-muted), transparent 45%); background: transparent; display:flex; align-items:center; justify-content:center; gap:.35rem; cursor:pointer; }
+.add-box .country-flag { width:22px; height:16px; object-fit:cover; border-radius:2px; }
+.add-box .country-caret { color: var(--text-muted); font-size: .82rem; }
+.add-box .phone-input-wrapper { flex:1; display:flex; align-items:center; gap:.35rem; padding:.55rem .7rem; }
+.add-box .phone-dial { color: var(--text-muted); font-weight: 600; font-size: .9rem; }
+.add-box input.phone-number-input { margin: 0; border: none; background: transparent; padding: 0; }
+.add-box .country-menu { position:absolute; top: calc(100% + .45rem); left:0; right:0; z-index:20; border:1px solid color-mix(in srgb, var(--text-muted), transparent 30%); border-radius:.95rem; background: var(--bg-card); box-shadow: 0 16px 35px rgba(0,0,0,.35); max-height: 240px; overflow: auto; }
+.add-box .country-menu.hidden { display:none; }
+.add-box .country-option { width:100%; border:none; background:transparent; color:var(--text-main); text-align:left; display:flex; align-items:center; justify-content:space-between; padding:.65rem .85rem; cursor:pointer; }
+.add-box .country-option-main { display:flex; align-items:center; gap:.55rem; }
+.add-box .country-option-check { width:18px; height:18px; border-radius:50%; border:2px solid var(--text-muted); }
+.add-box .country-option.active .country-option-check { border-color: var(--text-accent); box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--glow-accent), transparent 15%); }
+
+.add-box button {
+  width: 100%;
+  padding: 12px;
+  background: var(--text-accent);
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-add { float: right; cursor: pointer; font-size: 25px; }
+
 .alien-modal {
   display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.9);
   z-index: 5000;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding-top: 40px;
 }
 
-/* 🔴 FIX: Lock modal height and layout */
 .alien-frame {
   position: relative;
   width: 90%;
   max-width: 500px;
-  height: 90vh;                 /* ← FIX */
   border-radius: 20px;
-  background: black;
-  display: flex;
-  flex-direction: column;       /* ← FIX */
   overflow: hidden;
+  background: black;
   box-shadow: 0 0 60px var(--glow-accent), 0 0 120px var(--alien-shadow);
+  margin: 0 auto 40px auto;
 }
 
-/* 🔴 FIX: Image can NEVER push buttons away */
 .alien-frame img {
   width: 100%;
-  max-height: calc(90vh - 90px); /* ← FIX */
+  height: auto;
   object-fit: contain;
   cursor: zoom-in;
   transition: transform 0.3s ease;
-  flex-shrink: 1;               /* ← FIX */
+  display: block;
 }
 
-.alien-frame img:hover {
-  transform: scale(1.05);
-}
+.alien-frame img:hover { transform: scale(1.05); }
 
-/* ===================== Buttons ===================== */
 .alien-controls {
+  position: relative;
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 10px;
-  padding: 10px 0;
-  background: rgba(0,0,0,0.4);
-  margin-top: auto;             /* ← FIX: pins buttons */
-  flex-shrink: 0;
+  margin-top: 15px;
+  padding: 0 10px;
+  overflow-x: auto;
 }
 
 .alien-controls button {
-  flex: 1 1 auto;
-  min-width: 70px;
-  padding: 10px;
+  flex: 0 0 auto;
+  min-width: 60px;
+  padding: 10px 8px;
+  font-size: 14px;
   background: rgba(0,0,0,0.7);
   border: 1px solid var(--text-accent);
   border-radius: 12px;
-  border: 1px solid var(--text-accent);
+  color: var(--text-accent);
   font-weight: bold;
   box-shadow: 0 0 15px var(--glow-accent);
   cursor: pointer;
   transition: 0.25s;
-  text-align: center;
-  white-space: nowrap;
 }
 
 .alien-controls button:hover {
@@ -142,7 +227,6 @@
   box-shadow: 0 0 30px var(--glow-accent);
 }
 
-/* ===================== Upload Ring ===================== */
 .upload-ring {
   position: absolute;
   top: 50%;
@@ -150,81 +234,142 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 6px solid rgba(34,211,238,.2);
+  border: 6px solid rgba(255,255,255,0.2);
   border-top: 6px solid var(--text-accent);
   transform: translate(-50%, -50%);
   display: none;
   justify-content: center;
   align-items: center;
-  color: var(--text-accent);
+  color: white;
   font-weight: bold;
+  font-size: 16px;
   animation: spin 1s linear infinite;
   backdrop-filter: blur(4px);
   background: rgba(0,0,0,0.4);
   z-index: 6000;
 }
 
-.message-box {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.7);
-  color: var(--text-accent);
-  padding: 8px 15px;
-  border-radius: 12px;
-  font-weight: bold;
-  display: none;
-  z-index: 6001;
+@media (max-width: 768px) {
+  .profile-info { grid-template-columns: 1fr; }
+  .alien-frame { width: 95%; max-width: none; border-radius: 15px; }
+  .alien-frame img { max-height: 50vh; }
 }
 
 @keyframes spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(360deg); }
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-.alien-frame.default img {
-  filter: brightness(0.6);
-  cursor: default;
-}
-
-/* ===================== Mobile ===================== */
-@media (max-width: 480px) {
-  .alien-controls {
-    gap: 5px;
-  }
-  .alien-controls button {
-    font-size: 14px;
-    min-width: 50px;
-    padding: 8px;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
-<div class="employer-profile-container">
-  <div class="profile-box">
-    <div class="profile-pic">
-      {% if user.profile_pic %}
-        <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
+<div class="profile-container">
+  <div class="profile-pic">
+    {% if user.profile_pic %}
+      <img id="profile-pic" src="{{ user.profile_pic.url }}" alt="Profile Picture">
+    {% else %}
+      <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+    {% endif %}
+  </div>
+
+  <div class="profile-info">
+    <div>
+      <p class="label">Username</p>
+      <p class="value">{{ request.user.username }}</p>
+    </div>
+
+    <div>
+      <p class="label">Email</p>
+      {% if request.user.email %}
+        <p class="value">{{ request.user.email }}</p>
       {% else %}
-        <img id="profile-pic" src="https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png" alt="Default Picture">
+        <p><span class="add-link" onclick="openModal('email')">➕ Add email</span></p>
       {% endif %}
     </div>
-    <div class="user-details">
-      <p><strong>Username:</strong> {{ request.user.username }}</p>
-      <p><strong>Email:</strong> {{ request.user.email }}</p>
-      <p><strong>Date Joined:</strong> {{ request.user.date_joined }}</p>
+
+    <div>
+      <p class="label">Phone</p>
+      {% if request.user.phone %}
+        <p class="value">{{ request.user.phone }}</p>
+      {% else %}
+        <p><span class="add-link" onclick="openModal('phone')">➕ Add phone</span></p>
+      {% endif %}
     </div>
-    <div class="edit-button">
-      <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+
+    <div>
+      <p class="label">Location</p>
+      {% if request.user.location %}
+        <p class="value">{{ request.user.location }}</p>
+      {% else %}
+        <p><span class="add-link" onclick="openModal('location')">➕ Add location</span></p>
+      {% endif %}
     </div>
+
+    <div>
+      <p class="label">Role</p>
+      {% if request.user.role %}
+        <p class="value">{{ request.user.role|capfirst }}</p>
+      {% else %}
+        <p><span class="add-link" onclick="openModal('role')">➕ Add role</span></p>
+      {% endif %}
+    </div>
+
+    <div>
+      <p class="label">Date Joined</p>
+      <p class="value">{{ request.user.date_joined }}</p>
+    </div>
+  </div>
+
+  <div class="edit-button">
+    <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
   </div>
 </div>
 
-<!-- Profile Picture Modal -->
+<div id="addModal" class="add-modal">
+  <div class="add-box">
+    <span class="close-add" onclick="closeModal()">×</span>
+    <h2 id="modalTitle"></h2>
+
+    <form method="POST" action="{% url 'quick_profile_update' %}">
+      {% csrf_token %}
+      <input type="hidden" name="modal_type" id="modalTypeInput">
+
+      <div class="phone-group" id="phoneInput" style="display:none;">
+        <select id="modal_country" class="country-select" data-default="KE"></select>
+        <button type="button" class="country-trigger" id="modal_country_trigger" aria-haspopup="listbox" aria-expanded="false">
+          <img class="country-flag" id="modal_country_flag" src="https://flagsapi.com/KE/flat/64.png" alt="Kenya (+254)">
+          <span class="country-caret">▾</span>
+        </button>
+        <div class="phone-input-wrapper">
+          <span class="phone-dial" id="modal_phone_dial">+254</span>
+          <input id="modal_phone_display" class="phone-number-input" placeholder="712 345 678" autocomplete="tel-national" inputmode="numeric">
+        </div>
+        <div class="country-menu hidden" id="modal_country_menu"></div>
+      </div>
+      <input type="hidden" name="phone" id="modalPhoneHidden" value="{{ request.user.phone|default:'' }}">
+
+      <input id="emailInput" type="email" name="email" placeholder="Enter email address" style="display:none" value="{{ request.user.email|default:'' }}">
+
+      <input id="locationInput" name="location" placeholder="Search location" data-lat-input="latitudeInput" data-lon-input="longitudeInput" style="display:none" value="{{ request.user.location|default:'' }}">
+      <input type="hidden" id="latitudeInput" name="latitude" value="{{ request.user.latitude|default:'' }}">
+      <input type="hidden" id="longitudeInput" name="longitude" value="{{ request.user.longitude|default:'' }}">
+
+      <select id="roleInput" name="role" style="display:none">
+        <option value="">Select role</option>
+        <option value="employer" {% if request.user.role == 'employer' %}selected{% endif %}>Employer</option>
+        <option value="jobseeker" {% if request.user.role == 'jobseeker' %}selected{% endif %}>Jobseeker</option>
+      </select>
+
+      <button type="submit">Save</button>
+    </form>
+  </div>
+</div>
+
 <div id="imgModal" class="alien-modal">
   <div class="alien-frame">
-    <div id="modalMessage" class="message-box"></div>
     <img id="imgPreview" alt="Preview">
     <div id="uploadRing" class="upload-ring">0%</div>
     <div class="alien-controls">
@@ -238,140 +383,295 @@
 </div>
 
 <script>
-const DEFAULT_FILENAME = 'jo2wvg1a0wgiava5be20.png';
-const profilePic = document.getElementById('profile-pic');
-const alienModal = document.getElementById('imgModal');
-const alienPreview = document.getElementById('imgPreview');
-const closeBtn = document.getElementById('closeBtn');
-const infoBtn = document.getElementById('infoBtn');
-const editBtn = document.getElementById('editBtn');
-const deleteBtn = document.getElementById('deleteBtn');
-const profilePicInputModal = document.getElementById('profilePicInputModal');
-const uploadRing = document.getElementById('uploadRing');
-const modalMessage = document.getElementById('modalMessage');
+const DEFAULT_PIC = "https://res.cloudinary.com/dc6z1giw2/image/upload/v1754578015/jo2wvg1a0wgiava5be20.png";
 
-function showMessage(msg, duration=2000){
-  modalMessage.innerText = msg;
-  modalMessage.style.display = 'block';
-  setTimeout(()=>modalMessage.style.display='none', duration);
-}
+function openModal(type) {
+  const modal = document.getElementById('addModal');
+  const title = document.getElementById('modalTitle');
+  const inputs = {
+    phone: document.getElementById('phoneInput'),
+    email: document.getElementById('emailInput'),
+    location: document.getElementById('locationInput'),
+    role: document.getElementById('roleInput')
+  };
 
-function isDefaultPic(){
-  const filename = profilePic.src.split('/').pop().split('?')[0];
-  return filename === DEFAULT_FILENAME;
-}
+  if (!modal || !title) return;
+  modal.style.display = 'flex';
+  document.getElementById('modalTypeInput').value = type;
+  Object.values(inputs).forEach(i => i.style.display = 'none');
 
-function updateModalButtons(){
-  if(isDefaultPic()){
-    alienPreview.src = profilePic.src;
-    alienModal.classList.add('default');
-    infoBtn.style.opacity = 0.3; infoBtn.style.pointerEvents = "none";
-    deleteBtn.style.opacity = 0.3; deleteBtn.style.pointerEvents = "none";
-    editBtn.style.opacity = 1; editBtn.style.pointerEvents = "auto";
-  } else {
-    alienPreview.src = profilePic.src;
-    alienModal.classList.remove('default');
-    infoBtn.style.opacity = 1; infoBtn.style.pointerEvents = "auto";
-    editBtn.style.opacity = 1; editBtn.style.pointerEvents = "auto";
-    deleteBtn.style.opacity = 1; deleteBtn.style.pointerEvents = "auto";
+  if (inputs[type]) {
+    inputs[type].style.display = 'block';
+    title.innerText = {
+      phone: 'Add Phone',
+      email: 'Add Email',
+      location: 'Add Location',
+      role: 'Add Role'
+    }[type];
+
+    const target = inputs[type].querySelector ? (inputs[type].querySelector('input:not([type=hidden]), select') || inputs[type]) : inputs[type];
+    if (target && target.focus) target.focus();
+    if (type === 'location') initLocationAutocomplete(inputs[type]);
   }
 }
 
-profilePic.addEventListener('click', ()=> {
-  alienModal.style.display='flex';
-  updateModalButtons();
+function closeModal() {
+  document.getElementById('addModal').style.display = 'none';
+}
+
+function initModalPhoneInput() {
+  const select = document.getElementById('modal_country');
+  const trigger = document.getElementById('modal_country_trigger');
+  const flag = document.getElementById('modal_country_flag');
+  const menu = document.getElementById('modal_country_menu');
+  const dial = document.getElementById('modal_phone_dial');
+  const display = document.getElementById('modal_phone_display');
+  const hidden = document.getElementById('modalPhoneHidden');
+  if (!select || !trigger || !flag || !menu || !dial || !display || !hidden) return;
+
+  const fallback = [
+    { code: 'KE', name: 'Kenya', dial: '254' },
+    { code: 'UG', name: 'Uganda', dial: '256' },
+    { code: 'TZ', name: 'Tanzania', dial: '255' }
+  ];
+  const getFlag = code => `https://flagsapi.com/${code}/flat/64.png`;
+
+  const apply = () => {
+    const option = select.selectedOptions[0];
+    if (!option) return;
+    const digits = display.value.replace(/\D/g, '').slice(0, 12);
+    display.value = digits.replace(/(.{3})/g, '$1 ').trim();
+    dial.textContent = `+${option.dataset.dial}`;
+    flag.src = getFlag(option.value);
+    flag.alt = option.dataset.label;
+    hidden.value = digits ? `+${option.dataset.dial}${digits}` : '';
+    menu.querySelectorAll('.country-option').forEach(btn => btn.classList.toggle('active', btn.dataset.code === option.value));
+  };
+
+  const renderMenu = () => {
+    menu.innerHTML = '';
+    Array.from(select.options).forEach(option => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'country-option';
+      btn.dataset.code = option.value;
+      btn.innerHTML = `<span class="country-option-main"><img class="country-flag" src="${getFlag(option.value)}" alt="${option.dataset.label}"><span>${option.textContent}</span></span><span class="country-option-check"></span>`;
+      btn.onclick = () => { select.value = option.value; menu.classList.add('hidden'); trigger.setAttribute('aria-expanded', 'false'); apply(); };
+      menu.appendChild(btn);
+    });
+    apply();
+  };
+
+  const setCountries = countries => {
+    select.innerHTML = countries.map(c => `<option value="${c.code}" data-dial="${c.dial}" data-label="${c.name} (+${c.dial})">${c.name} (+${c.dial})</option>`).join('');
+    select.value = select.dataset.default || 'KE';
+    renderMenu();
+    if (hidden.value.startsWith('+')) display.value = hidden.value.slice(1);
+    apply();
+  };
+
+  fetch('https://restcountries.com/v3.1/all?fields=cca2,name,idd')
+    .then(r => r.json())
+    .then(data => data.map(c => ({ code: c.cca2, name: c.name?.common || c.cca2, dial: `${c.idd?.root || ''}${Array.isArray(c.idd?.suffixes) ? c.idd.suffixes[0] : ''}`.replace(/\D/g, '') }))
+      .filter(c => c.code && c.dial)
+      .sort((a, b) => a.name.localeCompare(b.name)))
+    .then(setCountries)
+    .catch(() => setCountries(fallback));
+
+  trigger.addEventListener('click', () => {
+    const hiddenMenu = menu.classList.toggle('hidden');
+    trigger.setAttribute('aria-expanded', String(!hiddenMenu));
+  });
+
+  document.addEventListener('click', e => {
+    if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+      menu.classList.add('hidden');
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  display.addEventListener('input', apply);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const profilePic = document.getElementById('profile-pic');
+  const alienModal = document.getElementById('imgModal');
+  const alienPreview = document.getElementById('imgPreview');
+  const closeBtn = document.getElementById('closeBtn');
+  const editBtn = document.getElementById('editBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const infoBtn = document.getElementById('infoBtn');
+  const profilePicInputModal = document.getElementById('profilePicInputModal');
+  initModalPhoneInput();
+
+  function updateModalButtons() {
+    if (profilePic.src === DEFAULT_PIC || profilePic.src.endsWith('jo2wvg1a0wgiava5be20.png')) {
+      alienPreview.src = DEFAULT_PIC;
+      alienModal.classList.add('default');
+      infoBtn.style.opacity = 0.3; infoBtn.style.pointerEvents = 'none';
+      deleteBtn.style.opacity = 0.3; deleteBtn.style.pointerEvents = 'none';
+      editBtn.style.opacity = 1; editBtn.style.pointerEvents = 'auto';
+    } else {
+      alienPreview.src = profilePic.src;
+      alienModal.classList.remove('default');
+      infoBtn.style.opacity = 1; infoBtn.style.pointerEvents = 'auto';
+      editBtn.style.opacity = 1; editBtn.style.pointerEvents = 'auto';
+      deleteBtn.style.opacity = 1; deleteBtn.style.pointerEvents = 'auto';
+    }
+  }
+
+  profilePic.addEventListener('click', () => {
+    alienModal.style.display = 'flex';
+    updateModalButtons();
+  });
+
+  closeBtn.onclick = () => alienModal.style.display = 'none';
+  infoBtn.onclick = () => { if (infoBtn.style.pointerEvents === 'none') return; alert(`📷 Profile Picture\nUploaded by: {{ user.username }}`); };
+
+  deleteBtn.onclick = () => {
+    if (deleteBtn.style.pointerEvents === 'none') return;
+    if (confirm('Delete your profile picture?')) {
+      fetch("{% url 'quick_profile_update' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: new URLSearchParams({ modal_type: 'profile_pic_delete' })
+      }).then(() => {
+        profilePic.src = DEFAULT_PIC;
+        alienPreview.src = DEFAULT_PIC;
+        updateModalButtons();
+      });
+    }
+  };
+
+  editBtn.onclick = () => { if (editBtn.style.pointerEvents === 'none') return; profilePicInputModal.click(); };
+
+  profilePicInputModal.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const compressedFile = await compressImage(file);
+    const formData = new FormData();
+    formData.append('modal_type', 'profile_pic');
+    formData.append('profile_pic', compressedFile);
+
+    const uploadRing = document.getElementById('uploadRing');
+    uploadRing.style.display = 'flex';
+    uploadRing.innerText = '0%';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', "{% url 'quick_profile_update' %}");
+    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+    xhr.upload.onprogress = event => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        uploadRing.innerText = `${percent}%`;
+      }
+    };
+    xhr.onload = () => {
+      uploadRing.style.display = 'none';
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        if (data.success) {
+          profilePic.src = data.url;
+          alienPreview.src = data.url;
+          updateModalButtons();
+        }
+      }
+    };
+    xhr.send(formData);
+  };
+
+  let startY = 0;
+  alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+  alienPreview.addEventListener('touchmove', e => { if (e.touches[0].clientY - startY > 120) alienModal.style.display = 'none'; });
+
+  {% if form_errors %} openModal("{{ modal_type }}"); {% endif %}
 });
 
-closeBtn.onclick = ()=>alienModal.style.display='none';
-
-infoBtn.onclick = ()=> {
-  if(infoBtn.style.pointerEvents!=='none')
-    showMessage(`📷 Profile Picture\nUploaded by: {{ user.username }}\nEmail: {{ user.email }}\nJoined: {{ user.date_joined }}`,4000);
-};
-
-deleteBtn.onclick = async ()=> {
-  if(deleteBtn.style.pointerEvents==='none') return;
-  if(!confirm("Delete your profile picture?")) return;
-
-  try {
-    const form = new FormData();
-    form.append('modal_type','profile_pic_delete');
-
-    const res = await fetch("{% url 'quick_profile_update' %}", {
-      method: 'POST',
-      headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-      body: form
-    });
-
-    const data = await res.json();
-    if(data.success){
-      profilePic.src = data.url;
-      alienPreview.src = data.url;
-      updateModalButtons();
-      showMessage('Profile picture deleted',2000);
-    } else {
-      showMessage(data.error || 'Delete failed',2000);
-    }
-  } catch(e){
-    showMessage('Delete failed',2000);
-  }
-};
-
-editBtn.onclick = ()=> { if(editBtn.style.pointerEvents!=='none') profilePicInputModal.click(); };
-
-profilePicInputModal.onchange = async e => {
-  const file = e.target.files[0];
-  if(!file) return;
-  const compressedFile = await compressImage(file);
-  const formData = new FormData();
-  formData.append('modal_type','profile_pic');
-  formData.append('profile_pic', compressedFile);
-
-  uploadRing.style.display='flex';
-  uploadRing.innerText='0%';
-
-  try {
-    const res = await fetch("{% url 'quick_profile_update' %}", {
-      method: 'POST',
-      headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-      body: formData
-    });
-
-    const data = await res.json();
-    uploadRing.style.display='none';
-    if(data.success){
-      profilePic.src = data.url;
-      alienPreview.src = data.url;
-      updateModalButtons();
-      showMessage('Upload successful!',2000);
-    } else {
-      showMessage(data.error || 'Upload failed',2000);
-    }
-  } catch(e){
-    uploadRing.style.display='none';
-    showMessage('Upload failed',2000);
-  }
-};
-
-// Mobile swipe down to close modal
-let startY = 0;
-alienPreview.addEventListener('touchstart', e => startY = e.touches[0].clientY);
-alienPreview.addEventListener('touchmove', e => {
-  if(e.touches[0].clientY - startY > 120) alienModal.style.display='none';
-});
-
-async function compressImage(file){
+async function compressImage(file) {
   return new Promise(resolve => {
     const img = new Image();
-    img.onload = ()=> {
+    img.onload = () => {
       const canvas = document.createElement('canvas');
       const scale = Math.min(1, 800 / img.width);
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;
-      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-      canvas.toBlob(blob => resolve(new File([blob],file.name,{type:'image/jpeg'})),'image/jpeg',0.7);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.7);
     };
     img.src = URL.createObjectURL(file);
+  });
+}
+
+function initLocationAutocomplete(input) {
+  if (!input) return;
+  const latInput = document.getElementById(input.dataset.latInput);
+  const lonInput = document.getElementById(input.dataset.lonInput);
+  if (input.dataset.autocompleteInitialized) return;
+  input.dataset.autocompleteInitialized = true;
+
+  const existingDropdown = input.parentNode.querySelector('.autocomplete-results');
+  if (existingDropdown) existingDropdown.remove();
+
+  const resultsList = document.createElement('ul');
+  resultsList.classList.add('autocomplete-results');
+  resultsList.style.position = 'absolute';
+  resultsList.style.top = '100%';
+  resultsList.style.left = '0';
+  resultsList.style.right = '0';
+  resultsList.style.zIndex = '1000';
+  resultsList.style.background = 'var(--bg-main)';
+  resultsList.style.listStyle = 'none';
+  resultsList.style.padding = '0';
+  resultsList.style.margin = '0';
+  const themeStyles = getComputedStyle(document.documentElement);
+  resultsList.style.border = `1px solid ${themeStyles.getPropertyValue('--text-muted').trim() || '#ccc'}`;
+  resultsList.style.maxHeight = '200px';
+  resultsList.style.overflowY = 'auto';
+  resultsList.style.display = 'none';
+  input.parentNode.appendChild(resultsList);
+
+  let debounceTimeout;
+  input.addEventListener('input', e => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(async () => {
+      const query = e.target.value;
+      if (!query) {
+        resultsList.style.display = 'none';
+        return;
+      }
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`;
+      try {
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        resultsList.innerHTML = '';
+        data.forEach(place => {
+          const li = document.createElement('li');
+          li.textContent = place.display_name;
+          li.style.padding = '6px 10px';
+          li.style.cursor = 'pointer';
+          li.addEventListener('mouseenter', () => {
+            li.style.backgroundColor = themeStyles.getPropertyValue('--bg-surface-soft').trim() || '#444';
+          });
+          li.addEventListener('mouseleave', () => li.style.backgroundColor = '');
+          li.addEventListener('click', () => {
+            input.value = place.display_name;
+            if (latInput) latInput.value = place.lat;
+            if (lonInput) lonInput.value = place.lon;
+            resultsList.style.display = 'none';
+          });
+          resultsList.appendChild(li);
+        });
+        resultsList.style.display = data.length ? 'block' : 'none';
+      } catch (err) {
+        console.error(err);
+      }
+    }, 300);
+  });
+
+  document.addEventListener('click', e => {
+    if (!resultsList.contains(e.target) && e.target !== input) {
+      resultsList.style.display = 'none';
+    }
   });
 }
 </script>
