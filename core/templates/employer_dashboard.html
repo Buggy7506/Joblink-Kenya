@@ -43,6 +43,17 @@ body {
   margin-bottom: 40px;
 }
 
+@media (max-width: 768px) {
+  .dashboard-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dashboard-actions .btn-glow {
+    width: min(100%, 280px);
+  }
+}
+
 .btn-glow {
   padding: 14px 25px;
   border-radius: 25px;
