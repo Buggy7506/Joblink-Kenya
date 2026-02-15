@@ -182,7 +182,7 @@ input:focus, select:focus, textarea:focus {
     
     {% for field in form %}
       <div class="form-group">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {% if field.name != "custom_category" %}<label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{% endif %}
 
         {% if field.name == "location" %}
           {{ field|add_class:"form-input location-input" }}
@@ -196,6 +196,17 @@ input:focus, select:focus, textarea:focus {
             </strong>
           {% endif %}
           {{ field|add_class:"form-input" }}
+
+        {% elif field.name == "category" %}
+          <div style="display:none;">
+            {{ field|add_class:"form-input" }}
+          </div>
+          <small>Categories are suggested below from an external source.</small>
+
+        {% elif field.name == "custom_category" %}
+          <label class="form-label" for="{{ field.id_for_label }}">Category</label>
+          {{ field|add_class:"form-input"|attr:"list:external-categories"|attr:"autocomplete:off" }}
+          <small>Start typing to see category suggestions.</small>
 
         {% elif field.name == "company_logo" %}
           <div class="logo-upload-shell">
@@ -219,6 +230,8 @@ input:focus, select:focus, textarea:focus {
     <!-- Submit Button -->
     <button type="submit" class="submit-btn">Post Job</button>
   </form>
+
+  <datalist id="external-categories"></datalist>
 </div>
 
 <script>
@@ -234,5 +247,38 @@ input:focus, select:focus, textarea:focus {
     const popup = document.getElementById('messages-popup');
     if (popup) popup.remove();
   }, 3500);
+
+  const categoryInput = document.getElementById('id_custom_category');
+  const categoryDatalist = document.getElementById('external-categories');
+  let categoryTimer;
+
+  async function fetchCategories(query = '') {
+    if (!categoryInput || !categoryDatalist) return;
+
+    try {
+      const response = await fetch(`{% url "api_categories" %}?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      const categories = Array.isArray(data.categories) ? data.categories : [];
+
+      categoryDatalist.innerHTML = '';
+      categories.forEach((name) => {
+        const option = document.createElement('option');
+        option.value = name;
+        categoryDatalist.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Unable to load external categories:', error);
+    }
+  }
+
+  if (categoryInput && categoryDatalist) {
+    fetchCategories('');
+    categoryInput.addEventListener('input', (event) => {
+      clearTimeout(categoryTimer);
+      categoryTimer = setTimeout(() => {
+        fetchCategories(event.target.value.trim());
+      }, 250);
+    });
+  }
 </script>
 {% endblock %}
