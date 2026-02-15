@@ -167,13 +167,13 @@
 <div class="role-selection-wrapper">
     <h2>Welcome to JobLink</h2>
 
-    {% if profile_picture %}
-        <img src="{{ profile_picture }}" alt="Profile Picture" class="profile-pic">
+    {% if oauth_user.picture %}
+        <img src="{{ oauth_user.picture }}" alt="Profile Picture" class="profile-pic">
     {% endif %}
 
     <div class="user-info">
-        Hello, {{ request.session.google_user.first_name }} {{ request.session.google_user.last_name }}<br>
-        {{ request.session.google_user.email }}
+        Hello, {{ oauth_user.first_name|default:"User" }} {{ oauth_user.last_name }}<br>
+        {{ oauth_user.email }}
     </div>
 
     <form method="post">
