@@ -308,7 +308,66 @@ body.light-mode .chat-wrap {
   right: 10px;
   font-size: 12px;
 }
-
+.bubble.selected-message {
+  outline: 2px solid var(--chat-accent-dark);
+  outline-offset: 1px;
+}
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--chat-border);
+  background: var(--chat-surface-soft);
+}
+.bulk-actions-buttons {
+  display: inline-flex;
+  gap: 8px;
+}
+.bulk-actions button {
+  border: 1px solid var(--chat-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--chat-surface);
+  color: var(--chat-text);
+  cursor: pointer;
+}
+.job-lounge {
+  border-top: 1px solid var(--chat-border);
+  background: var(--chat-surface);
+  padding: 10px 16px;
+}
+.job-lounge-feed {
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: var(--chat-muted);
+  margin-bottom: 8px;
+}
+.job-lounge-item {
+  margin-bottom: 4px;
+}
+.job-lounge-form {
+  display: flex;
+  gap: 8px;
+}
+.job-lounge-form input {
+  flex: 1;
+  border: 1px solid var(--chat-border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--chat-surface-soft);
+  color: var(--chat-text);
+}
+.job-lounge-form button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-dark));
+  color: #fff;
+}
+  
 /* Reply preview */
 .reply-preview {
   display: flex;
@@ -551,6 +610,23 @@ body.light-mode .chat-wrap {
       {% endfor %}
     </div>
 
+    <div class="bulk-actions" id="bulk-actions" hidden>
+      <span id="selected-count">0 selected</span>
+      <div class="bulk-actions-buttons">
+        <button type="button" id="forward-selected-btn">Forward selected</button>
+        <button type="button" id="clear-selected-btn">Clear</button>
+      </div>
+    </div>
+
+    <div class="job-lounge" id="job-lounge">
+      <div style="font-weight:600;color:var(--chat-accent-dark);margin-bottom:6px;">Applicants Lounge</div>
+      <div class="job-lounge-feed" id="job-lounge-feed"></div>
+      <div class="job-lounge-form">
+        <input id="job-lounge-input" type="text" placeholder="Share with applicants of this job..." maxlength="500" />
+        <button id="job-lounge-send" type="button">Share</button>
+      </div>
+    </div>
+
       <div class="reply-preview" id="reply-preview" hidden>
       <div class="reply-preview-body">
         <span class="reply-preview-label">Replying to <span id="reply-preview-sender"></span></span>
@@ -620,6 +696,13 @@ body.light-mode .chat-wrap {
   const replyPreviewSender = document.getElementById("reply-preview-sender");
   const replyPreviewText = document.getElementById("reply-preview-text");
   const replyCancel = document.getElementById("reply-cancel");
+    const bulkActions = document.getElementById("bulk-actions");
+  const selectedCount = document.getElementById("selected-count");
+  const clearSelectedBtn = document.getElementById("clear-selected-btn");
+  const forwardSelectedBtn = document.getElementById("forward-selected-btn");
+  const jobLoungeFeed = document.getElementById("job-lounge-feed");
+  const jobLoungeInput = document.getElementById("job-lounge-input");
+  const jobLoungeSend = document.getElementById("job-lounge-send");
   
   // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
@@ -735,18 +818,22 @@ body.light-mode .chat-wrap {
 
   function updatePinnedState(id, pinned){
     const msg = chatBox ? chatBox.querySelector(`.bubble[data-id="${id}"]`) : null;
+    if(pinned){
+      if(chatBox){
+        chatBox.querySelectorAll(".bubble.pinned").forEach(el => el.classList.remove("pinned"));
+      }
+      pinnedCache.clear();
+    }
     if(msg){
       msg.classList.toggle("pinned", pinned);
     }
-    if(pinned){
-      if(msg){
-        pinnedCache.set(String(id), {
-          id: id,
-          message: msg.dataset.text || "",
-          sender: msg.dataset.sender || "",
-        });
-      }
-    } else {
+    if(pinned && msg){
+      pinnedCache.set(String(id), {
+        id: id,
+        message: msg.dataset.text || "",
+        sender: msg.dataset.sender || "",
+      });
+    } else if(!pinned) {
       pinnedCache.delete(String(id));
     }
     renderPinnedList(Array.from(pinnedCache.values()));
@@ -760,6 +847,47 @@ body.light-mode .chat-wrap {
       sender: bubble.dataset.sender,
     }));
     renderPinnedList(pins);
+  }
+
+
+  const selectedMessageIds = new Set();
+
+  function updateSelectionUi(){
+    if(!bulkActions || !selectedCount) return;
+    const count = selectedMessageIds.size;
+    selectedCount.textContent = `${count} selected`;
+    bulkActions.hidden = count === 0;
+  }
+
+  function toggleMessageSelection(msgElem){
+    if(!msgElem || !msgElem.dataset.id) return;
+    const id = String(msgElem.dataset.id);
+    if(selectedMessageIds.has(id)){
+      selectedMessageIds.delete(id);
+      msgElem.classList.remove("selected-message");
+    } else {
+      selectedMessageIds.add(id);
+      msgElem.classList.add("selected-message");
+    }
+    updateSelectionUi();
+  }
+
+  function clearSelection(){
+    selectedMessageIds.clear();
+    if(chatBox){
+      chatBox.querySelectorAll('.bubble.selected-message').forEach(el => el.classList.remove('selected-message'));
+    }
+    updateSelectionUi();
+  }
+
+  function appendLoungeMessage(sender, message, timestamp){
+    if(!jobLoungeFeed) return;
+    const row = document.createElement("div");
+    row.className = "job-lounge-item";
+    const when = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+    row.textContent = `[${when}] ${sender}: ${message}`;
+    jobLoungeFeed.appendChild(row);
+    jobLoungeFeed.scrollTop = jobLoungeFeed.scrollHeight;
   }
 
   // Send message
@@ -867,6 +995,11 @@ body.light-mode .chat-wrap {
       updatePinnedState(data.id, data.pinned);
     } else if(eventType === "pins"){
       renderPinnedList(data.pins || []);
+      } else if(eventType === "forward_done") {
+      alert(`Forwarded ${data.count} message(s).`);
+      clearSelection();
+    } else if(eventType === "job_message") {
+      appendLoungeMessage(data.sender || "Unknown", data.message || "", data.timestamp);
     }
   };
 
@@ -1000,15 +1133,16 @@ body.light-mode .chat-wrap {
         socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
     }
     else if(action === "forward"){
-        // --- Forward implementation ---
-        const targetAppId = prompt("Enter the target chat/app ID to forward this message:");
-        if(targetAppId){
-            socket.send(JSON.stringify({
-                action: "forward",
-                message: text,
-                target_app: targetAppId
-            }));
-            alert("Message forwarded!");
+        const targetAppsRaw = prompt("Enter target chat IDs separated by commas (example: 12,18):");
+        if(targetAppsRaw){
+            const targetApps = targetAppsRaw.split(",").map(v => v.trim()).filter(Boolean);
+            if(targetApps.length){
+              socket.send(JSON.stringify({
+                  action: "forward",
+                  message_ids: [msgId],
+                  target_apps: targetApps
+              }));
+            }
         }
     }
     else if(action==="pin") {
@@ -1019,6 +1153,52 @@ body.light-mode .chat-wrap {
     hideMenu();
 }
 
+
+  if(chatBox){
+    chatBox.addEventListener("click", e=>{
+      const bubble = e.target.closest(".bubble");
+      if(!bubble) return;
+      if(e.ctrlKey || e.metaKey){
+        e.preventDefault();
+        toggleMessageSelection(bubble);
+      }
+    });
+  }
+
+  if(clearSelectedBtn){
+    clearSelectedBtn.addEventListener("click", clearSelection);
+  }
+
+  if(forwardSelectedBtn){
+    forwardSelectedBtn.addEventListener("click", ()=>{
+      if(!selectedMessageIds.size) return;
+      const targetAppsRaw = prompt("Enter target chat IDs separated by commas (example: 12,18):");
+      if(!targetAppsRaw) return;
+      const targetApps = targetAppsRaw.split(",").map(v => v.trim()).filter(Boolean);
+      if(!targetApps.length) return;
+      socket.send(JSON.stringify({
+        action: "forward",
+        message_ids: Array.from(selectedMessageIds),
+        target_apps: targetApps
+      }));
+    });
+  }
+
+  if(jobLoungeSend && jobLoungeInput){
+    jobLoungeSend.addEventListener("click", ()=>{
+      const msg = jobLoungeInput.value.trim();
+      if(!msg) return;
+      socket.send(JSON.stringify({action:"job_message", message: msg}));
+      jobLoungeInput.value = "";
+    });
+    jobLoungeInput.addEventListener("keydown", e=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        jobLoungeSend.click();
+      }
+    });
+  }
+  
   // Right-click to open menu
   if(chatBox){
     chatBox.addEventListener("contextmenu", e=>{ e.preventDefault(); const t=e.target.closest(".bubble"); if(t) showMenu(t); });
