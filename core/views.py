@@ -139,9 +139,21 @@ def _redirect_to_next_or_dashboard(request):
 
 
 def _get_effective_role(user):
-    """Return role with profile.role as source of truth, then fallback to user.role."""
+    """Return a stable role, tolerating temporary user/profile mismatches."""
     profile = getattr(user, "profile", None)
-    return getattr(profile, "role", None) or getattr(user, "role", None)
+    profile_role = getattr(profile, "role", None)
+    user_role = getattr(user, "role", None)
+
+    valid_roles = {"applicant", "employer", "admin"}
+    profile_role = profile_role if profile_role in valid_roles else None
+    user_role = user_role if user_role in valid_roles else None
+
+    if profile_role and user_role and profile_role != user_role:
+        # OAuth/account-creation can briefly leave profile.role at default.
+        # Prefer the explicit role on CustomUser in that mismatch window.
+        return user_role
+
+    return profile_role or user_role
 
 def robots_txt(request):
     content = """User-agent: *
@@ -1340,7 +1352,10 @@ def set_google_password(request):
         # 3️⃣ Create user
         # -------------------------
         last_name = oauth_user.get('last_name', '')
-        role = request.session.get('oauth_role')
+        role = request.session.get('oauth_role') or oauth_user.get('role')
+        if role not in ['applicant', 'employer']:
+            messages.error(request, "Please choose your role again.")
+            return redirect('google_choose_role')
 
         # Username generation
         base_username = ''.join(e for e in first_name.lower() if e.isalnum()) or 'user'
@@ -1515,7 +1530,9 @@ def google_choose_role(request):
 
         # Store role in session for later account creation
         request.session['oauth_role'] = role
-
+        user_data['role'] = role
+        request.session['oauth_user'] = user_data
+        
         return redirect('set_google_password')
 
     # GET request → render role selection template
