@@ -1,13 +1,29 @@
 import json
 
 
+_HTTPS_HINT_HEADERS = (
+    "HTTP_X_FORWARDED_PROTO",
+    "HTTP_X_FORWARDED_PROTOCOL",
+    "HTTP_X_FORWARDED_SCHEME",
+    "HTTP_X_URL_SCHEME",
+    "HTTP_X_SCHEME",
+    "HTTP_CLOUDFRONT_FORWARDED_PROTO",
+)
+
+
+def _extract_forwarded_values(request):
+    values = []
+    for header in _HTTPS_HINT_HEADERS:
+        raw = request.META.get(header, "")
+        if not raw:
+            continue
+        values.extend(value.strip().lower() for value in raw.split(",") if value.strip())
+    return values
+
+
 def _coerce_https_from_proxy_headers(request):
     """Best-effort HTTPS detection across common reverse proxy headers."""
-    forwarded_values = [
-        value.strip().lower()
-        for value in request.META.get("HTTP_X_FORWARDED_PROTO", "").split(",")
-        if value.strip()
-    ]
+    forwarded_values = _extract_forwarded_values(request)
     if "https" in forwarded_values:
         return True
 
@@ -41,6 +57,16 @@ class ProxyHeaderNormalizeMiddleware:
 
     def __call__(self, request):
         forwarded_proto = request.META.get("HTTP_X_FORWARDED_PROTO")
+        if not forwarded_proto:
+            for header in _HTTPS_HINT_HEADERS:
+                if header == "HTTP_X_FORWARDED_PROTO":
+                    continue
+                candidate = request.META.get(header)
+                if candidate:
+                    forwarded_proto = candidate
+                    request.META["HTTP_X_FORWARDED_PROTO"] = candidate
+                    break
+
         if forwarded_proto:
             normalized_values = [value.strip() for value in forwarded_proto.split(",") if value.strip()]
             if normalized_values:
