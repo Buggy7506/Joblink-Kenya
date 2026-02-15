@@ -117,11 +117,21 @@
     color: var(--text-accent);
     font-size: 0.85rem;
   }
+
+  .edit-job-container .company-logo-preview {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid color-mix(in srgb, var(--text-muted) 70%, transparent);
+    margin-top: 8px;
+  }
+
 </style>
 
 <div class="edit-job-container">
   <h2>Edit Job Posting</h2>
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     
     <!-- Job Title -->
@@ -188,6 +198,22 @@
       <input type="hidden" id="job-latitude" name="latitude" value="{{ form.instance.latitude|default_if_none:'' }}">
       <input type="hidden" id="job-longitude" name="longitude" value="{{ form.instance.longitude|default_if_none:'' }}">
       {% for error in form.location.errors %}
+        <p class="text-red-600 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    
+    <!-- Company Logo -->
+    <div class="form-group">
+      <label for="{{ form.company_logo.id_for_label }}">Company Logo</label>
+      {{ form.company_logo }}
+      {% if job.company_logo %}
+        <img src="{{ job.company_logo.url }}" alt="Current company logo" class="company-logo-preview">
+      {% endif %}
+      {% if form.company_logo.help_text %}
+        <small>{{ form.company_logo.help_text }}</small>
+      {% endif %}
+      {% for error in form.company_logo.errors %}
         <p class="text-red-600 text-sm">{{ error }}</p>
       {% endfor %}
     </div>
