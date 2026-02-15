@@ -2234,8 +2234,8 @@ def complete_employer_profile(request):
     user = request.user
 
     
-    profile = getattr(user, "profile", None)
-    if not profile or profile.role != "employer":
+    effective_role = _get_effective_role(user)
+    if effective_role != "employer":
         messages.error(request, "Only employers can access this page.")
         return redirect("dashboard")
 
