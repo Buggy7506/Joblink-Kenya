@@ -3,6 +3,8 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
+from django.db import models
+from django.utils import timezone
 
 from .models import Application, ChatMessage, PinnedMessage
 
@@ -19,7 +21,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.application_id = self.scope["url_route"]["kwargs"].get("application_id")
         self.group_name = f"chat_{self.application_id}"
-
+        self.job_group_name = None
+        
         user = self.scope.get("user") or AnonymousUser()
 
         if not self.application_id or not user.is_authenticated:
@@ -31,7 +34,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        job_id = await self.get_application_job_id(self.application_id)
+        if job_id:
+            self.job_group_name = f"job_applicants_{job_id}"
+
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        if self.job_group_name:
+            is_applicant = await self.user_is_job_applicant(job_id, user.id)
+            if is_applicant:
+                await self.channel_layer.group_add(self.job_group_name, self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -41,7 +52,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.group_name,
                 self.channel_name,
             )
-
+        if getattr(self, "job_group_name", None):
+            await self.channel_layer.group_discard(
+                self.job_group_name,
+                self.channel_name,
+            )
+            
     # ==========================
     # Receive messages
     # ==========================
@@ -71,6 +87,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "reply": self.handle_reply,
             "pin": self.handle_pin,
             "get_pins": self.handle_get_pins,
+            "forward": self.handle_forward,
+            "job_message": self.handle_job_message,
         }
 
         handler = handlers.get(action)
@@ -214,6 +232,54 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         )
 
+    async def handle_forward(self, user, payload):
+        target_apps = payload.get("target_apps") or []
+        message_ids = payload.get("message_ids") or []
+        if isinstance(target_apps, str):
+            target_apps = [app_id.strip() for app_id in target_apps.split(",") if app_id.strip()]
+        if not isinstance(target_apps, list) or not isinstance(message_ids, list):
+            return
+
+        forwarded = await self.forward_messages(
+            source_application_id=self.application_id,
+            sender_id=user.id,
+            message_ids=message_ids,
+            target_app_ids=target_apps,
+        )
+        if not forwarded:
+            return
+
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "chat.forward_done",
+                    "count": forwarded,
+                }
+            )
+        )
+
+    async def handle_job_message(self, user, payload):
+        if not self.job_group_name:
+            return
+
+        text = payload.get("message", "").strip()
+        if not text:
+            return
+
+        allowed = await self.user_is_job_applicant_by_application(self.application_id, user.id)
+        if not allowed:
+            return
+
+        await self.channel_layer.group_send(
+            self.job_group_name,
+            {
+                "type": "chat.job_message",
+                "sender": user.username,
+                "message": text,
+                "timestamp": timezone.now().isoformat(),
+            },
+        )
+
     # ==========================
     # Group event handlers
     # ==========================
@@ -238,6 +304,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_pin(self, event):
         await self.send(text_data=json.dumps(event))
 
+    async def chat_job_message(self, event):
+        await self.send(text_data=json.dumps(event))
+
     # ==========================
     # Database helpers
     # ==========================
@@ -253,6 +322,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
         return user_id in (app.applicant_id, app.job.employer_id)
+
+    @database_sync_to_async
+    def get_application_job_id(self, application_id):
+        try:
+            return Application.objects.only("job_id").get(id=application_id).job_id
+        except Application.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def user_is_job_applicant(self, job_id, user_id):
+        return Application.objects.filter(job_id=job_id, applicant_id=user_id).exists()
+
+    @database_sync_to_async
+    def user_is_job_applicant_by_application(self, application_id, user_id):
+        try:
+            app = Application.objects.only("job_id").get(id=application_id)
+        except Application.DoesNotExist:
+            return False
+        return Application.objects.filter(job_id=app.job_id, applicant_id=user_id).exists()
 
     @database_sync_to_async
     def save_message(self, application_id, sender_id, message, reply_to=None):
@@ -297,6 +385,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def toggle_pin(self, message_id, user_id, pin_state):
         try:
             msg = ChatMessage.objects.get(id=message_id)
+            if pin_state:
+                ChatMessage.objects.filter(application_id=msg.application_id, is_pinned=True).exclude(id=msg.id).update(is_pinned=False)
+                PinnedMessage.objects.filter(message__application_id=msg.application_id).exclude(message=msg).delete()
+
             msg.is_pinned = pin_state
             msg.save(update_fields=["is_pinned"])
 
@@ -314,6 +406,43 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return True
         except ChatMessage.DoesNotExist:
             return False
+
+    @database_sync_to_async
+    def forward_messages(self, source_application_id, sender_id, message_ids, target_app_ids):
+        if not message_ids or not target_app_ids:
+            return 0
+
+        source_messages = list(
+            ChatMessage.objects.filter(
+                application_id=source_application_id,
+                id__in=message_ids,
+            ).order_by("timestamp")
+        )
+        if not source_messages:
+            return 0
+
+        target_ids = [int(app_id) for app_id in target_app_ids if str(app_id).isdigit()]
+        if not target_ids:
+            return 0
+
+        allowed_targets = set(
+            Application.objects.filter(id__in=target_ids).filter(
+                models.Q(applicant_id=sender_id) | models.Q(job__employer_id=sender_id)
+            ).values_list("id", flat=True)
+        )
+        if not allowed_targets:
+            return 0
+
+        created_count = 0
+        for target_id in allowed_targets:
+            for original in source_messages:
+                ChatMessage.objects.create(
+                    application_id=target_id,
+                    sender_id=sender_id,
+                    message=f"[Forwarded] {original.message}",
+                )
+                created_count += 1
+        return created_count
 
     @database_sync_to_async
     def get_pinned_messages(self, application_id):
