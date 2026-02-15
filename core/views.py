@@ -45,6 +45,7 @@ from django.template.loader import render_to_string
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
 from django.utils.text import slugify
 
@@ -116,6 +117,26 @@ from .utils import (
 from .tasks import save_employer_document
 from .email_backend import send_password_reset
 
+
+def _normalize_next_url(request, next_url):
+    """Return a safe local next URL or None."""
+    if not next_url:
+        return None
+
+    if url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+
+    return None
+
+
+def _redirect_to_next_or_dashboard(request):
+    next_url = _normalize_next_url(request, request.session.pop("auth_next", None))
+    return redirect(next_url or "dashboard")
+
 def robots_txt(request):
     content = """User-agent: *
 Allow: /
@@ -135,7 +156,10 @@ def unified_auth_view(request):
     is_new_user = False
 
     # Preserve ?next= across the entire auth flow
-    next_url = request.GET.get("next") or request.POST.get("next")
+    next_url = _normalize_next_url(
+        request,
+        request.GET.get("next") or request.POST.get("next"),
+    )
     
     if next_url:
         request.session["auth_next"] = next_url
@@ -312,11 +336,10 @@ def unified_auth_view(request):
                 verification.save(update_fields=["user"])
         
                 for k in list(request.session.keys()):
-                    if k.startswith("auth_") or k.startswith("otp_"):
+                    if (k.startswith("auth_") and k != "auth_next") or k.startswith("otp_"):
                         del request.session[k]
         
-                next_url = request.session.pop("auth_next", None) 
-                return redirect(next_url or "dashboard")
+                return _redirect_to_next_or_dashboard(request)
         
             # 🆕 NEW USER → PASSWORD SETUP
             request.session["otp_verified"] = True
@@ -437,11 +460,10 @@ def unified_auth_view(request):
         
             # 🔑 CLEAN SESSION (VERY IMPORTANT)
             for k in list(request.session.keys()):
-                if k.startswith("auth_") or k.startswith("otp_"):
+                if (k.startswith("auth_") and k != "auth_next") or k.startswith("otp_"):
                     del request.session[k]
-        
-            next_url = request.session.pop("auth_next", None) 
-            return redirect(next_url or "dashboard")
+
+            return _redirect_to_next_or_dashboard(request)
 
         # ===============================
         # STEP 3 — PASSWORD LOGIN (EXISTING USERS ONLY)
@@ -483,11 +505,10 @@ def unified_auth_view(request):
         
             # 🔑 Clean auth session state
             for k in list(request.session.keys()):
-                if k.startswith("auth_") or k.startswith("otp_"):
+                if (k.startswith("auth_") and k != "auth_next") or k.startswith("otp_"):
                     del request.session[k]
-        
-            next_url = request.session.pop("auth_next", None) 
-            return redirect(next_url or "dashboard")
+
+            return _redirect_to_next_or_dashboard(request)
                 
         # ===============================
         # RESEND CODE
@@ -1359,7 +1380,7 @@ def set_google_password(request):
         request.session.pop('oauth_role', None)
 
         messages.success(request, "Account created successfully!")
-        return redirect('dashboard')
+        return _redirect_to_next_or_dashboard(request)
 
     # GET request
     return render(request, 'set_google_password.html', {'user': oauth_user})
@@ -1376,6 +1397,10 @@ GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v1/userinfo'
 @csrf_protect
 def google_login(request):
     """Step 1: Redirect user to Google's OAuth 2.0 server"""
+    next_url = _normalize_next_url(request, request.GET.get("next"))
+    if next_url:
+        request.session["auth_next"] = next_url
+
     params = {
         'client_id': GOOGLE_CLIENT_ID,
         'redirect_uri': GOOGLE_REDIRECT_URI,
@@ -1438,7 +1463,7 @@ def google_callback(request):
         user = CustomUser.objects.get(email=email)
         # Existing user: log in directly
         login(request, user)
-        return redirect('dashboard')
+        return _redirect_to_next_or_dashboard(request)
     except CustomUser.DoesNotExist:
         # New user: save info in session and redirect to role selection
         request.session['oauth_user'] = {
@@ -1472,7 +1497,7 @@ def google_choose_role(request):
         if existing_user.has_usable_password():
             login(request, existing_user)
             request.session.pop('oauth_user', None)
-            return redirect('dashboard')
+            return _redirect_to_next_or_dashboard(request)
     except CustomUser.DoesNotExist:
         pass
 
@@ -1517,6 +1542,10 @@ APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token"
 @ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def apple_login(request):
+    next_url = _normalize_next_url(request, request.GET.get("next"))
+    if next_url:
+        request.session["auth_next"] = next_url
+
     params = {
         "client_id": settings.APPLE_CLIENT_ID,
         "redirect_uri": settings.APPLE_REDIRECT_URI,
@@ -1562,7 +1591,7 @@ def apple_callback(request):
     try:
         user = CustomUser.objects.get(email=email)
         login(request, user)
-        return redirect("dashboard")
+        return _redirect_to_next_or_dashboard(request)
     except CustomUser.DoesNotExist:
         request.session["oauth_user"] = {
             "email": email,
@@ -1579,6 +1608,10 @@ MICROSOFT_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 @ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def microsoft_login(request):
+    next_url = _normalize_next_url(request, request.GET.get("next"))
+    if next_url:
+        request.session["auth_next"] = next_url
+
     params = {
         "client_id": settings.MICROSOFT_CLIENT_ID,
         "response_type": "code",
@@ -1618,7 +1651,7 @@ def microsoft_callback(request):
     try:
         user = CustomUser.objects.get(email=email)
         login(request, user)
-        return redirect("dashboard")
+        return _redirect_to_next_or_dashboard(request)
     except CustomUser.DoesNotExist:
         request.session["oauth_user"] = {
             "email": email,
