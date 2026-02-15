@@ -362,11 +362,18 @@ LOGGING = {
         "suppress_probe_noise": {
             "()": "core.logging_filters.SuppressProbeNoiseFilter",
         },
+        "suppress_async_cancel_noise": {
+            "()": "core.logging_filters.SuppressAsyncCancelNoiseFilter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "filters": ["suppress_probe_noise"],
+        },
+        "console_async": {
+            "class": "logging.StreamHandler",
+            "filters": ["suppress_async_cancel_noise"],
         },
     },
     "loggers": {
@@ -378,6 +385,11 @@ LOGGING = {
         "django.security.csrf": {
             "handlers": ["console"],
             "level": "WARNING",
+            "propagate": False,
+        },
+        "asgiref.sync": {
+            "handlers": ["console_async"],
+            "level": "ERROR",
             "propagate": False,
         },
     },
