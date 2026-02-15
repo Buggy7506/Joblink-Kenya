@@ -56,6 +56,7 @@ from weasyprint import HTML
 import stripe
 import requests
 import cloudinary.uploader
+from kombu.exceptions import OperationalError as KombuOperationalError
 import secrets
 import base64
 import hashlib
@@ -2282,11 +2283,20 @@ def complete_employer_profile(request):
             for chunk in uploaded_file.chunks():
                 f.write(chunk)
 
-        save_employer_document.delay(
-            user.id,
-            str(temp_path),
-            doc_form.cleaned_data["document_type"],
-        )
+        try:
+            save_employer_document.delay(
+                user.id,
+                str(temp_path),
+                doc_form.cleaned_data["document_type"],
+            )
+        except KombuOperationalError:
+            save_employer_document.apply(
+                args=(
+                    user.id,
+                    str(temp_path),
+                    doc_form.cleaned_data["document_type"],
+                )
+            )
 
         company.refresh_from_db()
         if company.is_verified:
