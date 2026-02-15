@@ -57,7 +57,12 @@ class EmployerVerificationMiddleware:
         # Only restrict employers
         # -----------------------------
         profile = getattr(request.user, "profile", None)
-        if not profile or profile.role != "employer":
+        user_role = getattr(request.user, "role", None)
+        profile_role = getattr(profile, "role", None)
+
+        # Guard against temporary role mismatch between CustomUser and Profile.
+        is_employer = user_role == "employer" or profile_role == "employer"
+        if not is_employer:
             return self.get_response(request)
 
         company = getattr(request.user, "employer_company", None)
