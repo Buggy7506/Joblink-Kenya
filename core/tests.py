@@ -297,6 +297,42 @@ class GoogleRoleSelectionTests(TestCase):
         self.assertEqual(self.client.session.get("oauth_user", {}).get("role"), "employer")
 
 
+class GoogleCallbackProfilePictureSyncTests(TestCase):
+    def test_existing_google_user_syncs_latest_profile_picture(self):
+        from unittest.mock import Mock, patch
+
+        from core.models import CustomUser
+
+        user = CustomUser.objects.create_user(
+            username="existing-google-user",
+            email="existing.google@example.com",
+            password="StrongPass123",
+            role="applicant",
+        )
+
+        with patch("core.views.requests.post") as mock_post, patch(
+            "core.views.requests.get"
+        ) as mock_get, patch("core.views._sync_oauth_profile_picture", return_value=True) as mock_sync:
+            mock_post.return_value = Mock(json=lambda: {"access_token": "token-123"})
+            mock_get.return_value = Mock(
+                json=lambda: {
+                    "email": "existing.google@example.com",
+                    "given_name": "Existing",
+                    "family_name": "Google",
+                    "picture": "https://example.com/new-google-avatar.jpg",
+                }
+            )
+
+            response = self.client.get(reverse("google_callback"), {"code": "auth-code"})
+
+        self.assertEqual(response.status_code, 302)
+        mock_sync.assert_called_once_with(
+            user,
+            "https://example.com/new-google-avatar.jpg",
+            provider="google",
+        )
+
+
 class ExpiredJobCleanupMiddlewareTests(SimpleTestCase):
     def test_middleware_deletes_expired_jobs_on_each_request(self):
         from unittest.mock import patch
