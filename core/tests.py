@@ -1,7 +1,9 @@
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
-from core.views import _normalize_next_url
+from core.views import _get_effective_role, _normalize_next_url, view_posted_jobs
 
 
 class NextRedirectTests(SimpleTestCase):
@@ -87,3 +89,38 @@ class EmployerVerificationMiddlewareTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("upload_company_docs"))
+
+
+class RoleGuardTests(SimpleTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def _build_request(self, path):
+        request = self.factory.get(path)
+
+        session_middleware = SessionMiddleware(lambda req: None)
+        session_middleware.process_request(request)
+        setattr(request, "_messages", FallbackStorage(request))
+        return request
+
+    def test_get_effective_role_prefers_profile_role(self):
+        from types import SimpleNamespace
+
+        user = SimpleNamespace(role="employer", profile=SimpleNamespace(role="applicant"))
+        self.assertEqual(_get_effective_role(user), "applicant")
+
+    def test_view_posted_jobs_blocks_applicant_with_employer_user_role(self):
+        from types import SimpleNamespace
+
+        request = self._build_request(reverse("view_posted_jobs"))
+        request.user = SimpleNamespace(
+            is_authenticated=True,
+            is_superuser=False,
+            role="employer",
+            profile=SimpleNamespace(role="applicant"),
+        )
+
+        response = view_posted_jobs(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("dashboard"))
