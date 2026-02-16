@@ -357,7 +357,7 @@ class GoogleCallbackProfilePictureSyncTests(TestCase):
         )
 
 
-class ExpiredJobCleanupMiddlewareTests(SimpleTestCase):
+class ExpiredJobCleanupMiddlewareTests(TestCase):
     def test_middleware_deletes_expired_jobs_on_each_request(self):
         from unittest.mock import patch
 
@@ -372,6 +372,23 @@ class ExpiredJobCleanupMiddlewareTests(SimpleTestCase):
         mock_filter.assert_called_once()
         mock_filter.return_value.delete.assert_called_once()
 
+    
+    def test_async_stack_runs_db_cleanup_without_sync_only_error(self):
+        import asyncio
+        from types import SimpleNamespace
+
+        from core.middleware.job_expiry_cleanup import ExpiredJobCleanupMiddleware
+
+        request = RequestFactory().get("/")
+
+        async def get_response(req):
+            return SimpleNamespace(status_code=200)
+
+        middleware = ExpiredJobCleanupMiddleware(get_response)
+        response = asyncio.run(middleware(request))
+
+        self.assertEqual(response.status_code, 200)
+        
     def test_async_stack_awaits_async_get_response(self):
         import asyncio
         from types import SimpleNamespace
