@@ -207,8 +207,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not msg_id:
             return
 
-        success = await self.toggle_pin(msg_id, user.id, pin_state)
-        if not success:
+        pin_result = await self.toggle_pin(msg_id, user.id, pin_state)
+        if not pin_result["ok"]:
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "chat.pin_denied",
+                        "id": msg_id,
+                        "reason": pin_result.get("reason", "Permission denied."),
+                    }
+                )
+            )
             return
 
         await self.channel_layer.group_send(
@@ -218,6 +227,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "id": msg_id,
                 "pinned": pin_state,
                 "sender": user.username,
+                "pinned_by": pin_result.get("pinned_by"),
             },
         )
 
@@ -388,24 +398,44 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if pin_state:
                 ChatMessage.objects.filter(application_id=msg.application_id, is_pinned=True).exclude(id=msg.id).update(is_pinned=False)
                 PinnedMessage.objects.filter(message__application_id=msg.application_id).exclude(message=msg).delete()
-
-            msg.is_pinned = pin_state
-            msg.save(update_fields=["is_pinned"])
-
-            if pin_state:
-                PinnedMessage.objects.get_or_create(
+                msg.is_pinned = True
+                msg.save(update_fields=["is_pinned"])
+                PinnedMessage.objects.update_or_create(
                     message=msg,
-                    pinned_by_id=user_id,
+                    defaults={"pinned_by_id": user_id},
                 )
-            else:
-                PinnedMessage.objects.filter(
-                    message=msg,
-                    pinned_by_id=user_id,
-                ).delete()
+                return {"ok": True, "pinned_by": self._username_for_id(user_id)}
 
-            return True
+            pin_entry = PinnedMessage.objects.filter(message=msg).select_related("pinned_by").first()
+            if not pin_entry:
+                msg.is_pinned = False
+                msg.save(update_fields=["is_pinned"])
+                return {"ok": True, "pinned_by": None}
+
+            if pin_entry.pinned_by_id != user_id:
+                return {
+                    "ok": False,
+                    "reason": f"Only {pin_entry.pinned_by.username} can unpin this message.",
+                    "pinned_by": pin_entry.pinned_by.username,
+                }
+
+            msg.is_pinned = False
+            msg.save(update_fields=["is_pinned"])
+            pin_entry.delete()
+
+            return {"ok": True, "pinned_by": None}
         except ChatMessage.DoesNotExist:
-            return False
+            return {"ok": False, "reason": "Message not found."}
+
+    def _username_for_id(self, user_id):
+        app = Application.objects.filter(id=self.application_id).select_related("applicant", "job__employer").first()
+        if not app:
+            return None
+        if app.applicant_id == user_id:
+            return app.applicant.username
+        if app.job.employer_id == user_id:
+            return app.job.employer.username
+        return None
 
     @database_sync_to_async
     def forward_messages(self, source_application_id, sender_id, message_ids, target_app_ids):
