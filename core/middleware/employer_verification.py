@@ -4,6 +4,7 @@ from asgiref.sync import iscoroutinefunction
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import Resolver404, resolve
+from inspect import isawaitable
 
 
 class EmployerVerificationMiddleware:
@@ -46,7 +47,10 @@ class EmployerVerificationMiddleware:
         response = self._process_request(request, user)
         if response is not None:
             return response
-        return await self.get_response(request)
+        downstream_response = self.get_response(request)
+        if isawaitable(downstream_response):
+            return await downstream_response
+        return downstream_response
 
     def _process_request(self, request, user, get_response=None):
         # -----------------------------
