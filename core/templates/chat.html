@@ -19,6 +19,7 @@
   --bubble-me: #1f7d4f;
   --bubble-them: var(--chat-surface);
   --bubble-border: var(--chat-border);
+  --chat-icon-filter: brightness(0) invert(1);
 }
 
 body.light-mode .chat-wrap {
@@ -30,6 +31,7 @@ body.light-mode .chat-wrap {
   --bubble-them: #ffffff;
   --bubble-border: rgba(0, 0, 0, 0.08);
   --chat-border: rgba(0, 0, 0, 0.08);
+  --chat-icon-filter: none;
 }
   
 /* --- Layout & Sidebar --- */
@@ -528,6 +530,14 @@ body.light-mode .chat-wrap {
   width: 18px;
   height: 18px;
   opacity: 0.8;
+  filter: var(--chat-icon-filter);
+  object-fit: contain;
+}
+.theme-icon {
+  width: 18px;
+  height: 18px;
+  filter: var(--chat-icon-filter);
+  object-fit: contain;
 }
 
 /* Responsive Sidebar Drawer */
@@ -614,7 +624,7 @@ body.light-mode .chat-wrap {
 
     <div class="pinned-bar" id="pinned-bar" hidden>
       <div class="pinned-head">
-        <img src="{% static 'icons/pin.svg' %}" alt="">
+        <img src="{% static 'icons/pin.svg' %}" class="theme-icon" alt="">
         <span>Pinned messages</span>
       </div>
       <div class="pinned-list" id="pinned-list"></div>
@@ -686,7 +696,7 @@ body.light-mode .chat-wrap {
 
     <li data-action="copy">
       <span class="menu-item-content">
-        <img id="pin-icon" src="{% static 'icons/content_copy.svg' %}" class="menu-svg-icon" alt="">
+        <img src="{% static 'icons/content_copy.svg' %}" class="menu-svg-icon" alt="">
         <span>Copy</span>
       </span>
     </li>
@@ -721,7 +731,7 @@ body.light-mode .chat-wrap {
 
     <li data-action="pin">
       <span class="menu-item-content">
-        <img id="pin-icon" src="{% static 'icons/pin.svg' %}" class="menu-svg-icon" alt="">
+        <img id="pin-action-icon" src="{% static 'icons/pin.svg' %}" class="menu-svg-icon" alt="">
         <span id="pin-label">Pin</span>
       </span>
     </li>
@@ -1140,7 +1150,7 @@ body.light-mode .chat-wrap {
     const editItem = menu.querySelector('li[data-action="edit"]');
     const deleteEveryoneItem = menu.querySelector('li[data-action="delete-everyone"]');
     const pinItemLabel = document.getElementById("pin-label");
-    const pinItemIcon = document.getElementById("pin-icon");
+    const pinItemIcon = document.getElementById("pin-action-icon");
 
     if(editItem) editItem.style.display = isMe ? "" : "none";
     if(deleteEveryoneItem) deleteEveryoneItem.style.display = isMe ? "" : "none";
