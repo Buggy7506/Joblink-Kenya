@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase
@@ -9,6 +10,7 @@ from core.views import (
     _get_effective_role,
     _normalize_next_url,
     complete_employer_profile,
+    chat_view,
     view_posted_jobs,
 )
 
@@ -460,3 +462,18 @@ class SuppressAsyncCancelNoiseFilterTests(SimpleTestCase):
         )
 
         self.assertTrue(SuppressAsyncCancelNoiseFilter().filter(log_record))
+
+
+class ChatViewAuthGuardTests(SimpleTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_chat_view_redirects_anonymous_user_to_login(self):
+        request = self.factory.get("/chat/job/3/")
+        request.user = AnonymousUser()
+
+        response = chat_view(request, job_id=3)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/Sign-In-OR-Sign-Up/", response.url)
+        self.assertIn("next=/chat/job/3/", response.url)
