@@ -3441,9 +3441,9 @@ def change_username_password(request):
 
     return render(request, 'change_username_password.html', {'form': form})
 
-@ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 @login_required
+@ratelimit(key='ip', rate='10/m', block=True)
 def chat_view(request, application_id=None, job_id=None):
     """
     Unified chat view for both applicants and employers.
