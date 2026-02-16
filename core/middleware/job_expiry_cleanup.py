@@ -1,4 +1,4 @@
-from asgiref.sync import iscoroutinefunction, markcoroutinefunction
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from inspect import isawaitable
 from django.utils import timezone
 
@@ -26,7 +26,7 @@ class ExpiredJobCleanupMiddleware:
         return self.get_response(request)
 
     async def __acall__(self, request):
-        self._cleanup_expired_jobs()
+        await sync_to_async(self._cleanup_expired_jobs, thread_sensitive=True)()
         response = self.get_response(request)
         if isawaitable(response):
             return await response
