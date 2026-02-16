@@ -1,4 +1,5 @@
 from asgiref.sync import iscoroutinefunction
+from inspect import isawaitable
 from django.utils import timezone
 
 from core.models import Job
@@ -24,7 +25,10 @@ class ExpiredJobCleanupMiddleware:
 
     async def __acall__(self, request):
         self._cleanup_expired_jobs()
-        return await self.get_response(request)
+                response = self.get_response(request)
+        if isawaitable(response):
+            return await response
+        return response
 
     def _cleanup_expired_jobs(self):
         Job.objects.filter(expiry_date__isnull=False, expiry_date__lte=timezone.now()).delete()
