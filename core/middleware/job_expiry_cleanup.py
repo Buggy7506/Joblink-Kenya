@@ -25,7 +25,7 @@ class ExpiredJobCleanupMiddleware:
 
     async def __acall__(self, request):
         self._cleanup_expired_jobs()
-                response = self.get_response(request)
+        response = self.get_response(request)
         if isawaitable(response):
             return await response
         return response
