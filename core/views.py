@@ -3681,8 +3681,16 @@ def chat_view(request, application_id=None, job_id=None):
                 {
                     "id": msg.id,
                     "sender_id": msg.sender_id,
+                    "sender": msg.sender.username,
                     "text": msg.message,
                     "created": msg.timestamp.strftime("%Y-%m-%d %H:%M"),
+                    "pinned": msg.is_pinned,
+                    "pinned_by": msg.pinned_entries.first().pinned_by.username if msg.is_pinned and msg.pinned_entries.exists() else None,
+                    "reply_to": {
+                        "id": msg.reply_to_id,
+                        "sender": msg.reply_to.sender.username,
+                        "text": msg.reply_to.message,
+                    } if msg.reply_to_id and msg.reply_to else None,
                 }
                 for msg in messages_list
             ],
