@@ -1,6 +1,6 @@
 # core/middleware/employer_verification.py
 
-from asgiref.sync import iscoroutinefunction, markcoroutinefunction
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import Resolver404, resolve
@@ -46,7 +46,10 @@ class EmployerVerificationMiddleware:
 
     async def __acall__(self, request):
         user = await request.auser() if hasattr(request, "auser") else request.user
-        response = self._process_request(request, user)
+        response = await sync_to_async(
+            self._process_request,
+            thread_sensitive=True,
+        )(request, user)
         if response is not None:
             return response
         downstream_response = self.get_response(request)
