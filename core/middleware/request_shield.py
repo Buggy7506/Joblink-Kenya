@@ -1,11 +1,19 @@
+from inspect import isawaitable
+
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 
 
 class RequestShieldMiddleware:
+    async_capable = True
+    sync_capable = True
+
     def __init__(self, get_response):
         self.get_response = get_response
+        if iscoroutinefunction(self.get_response):
+            markcoroutinefunction(self)
         config = getattr(settings, "REQUEST_SHIELD", {})
         self.enabled = config.get("ENABLED", True)
         self.rate_limit_window = config.get("RATE_LIMIT_WINDOW_SECONDS", 60)
@@ -47,30 +55,54 @@ class RequestShieldMiddleware:
         )
 
     def __call__(self, request):
+        if iscoroutinefunction(self.get_response):
+            return self.__acall__(request)
+
+        if not self._should_allow_request(request):
+            return self._blocked_response(request)
+
+        return self.get_response(request)
+
+    async def __acall__(self, request):
+        if not self._should_allow_request(request):
+            return self._blocked_response(request)
+
+        response = self.get_response(request)
+        if isawaitable(response):
+            return await response
+        return response
+
+    def _should_allow_request(self, request):
         if not self.enabled:
-            return self.get_response(request)
+            return True
 
         path = (request.path_info or "").lower()
         for prefix in self.safe_prefixes:
             if path.startswith(prefix):
-                return self.get_response(request)
+                return True
 
         if self.block_paths and self._matches_blocked_path(path):
-            return HttpResponseNotFound()
+            request._request_shield_blocked = HttpResponseNotFound()
+            return False
 
         user_agent = (request.META.get("HTTP_USER_AGENT") or "").lower()
         if self.block_user_agents and self._matches_blocked_user_agent(user_agent):
-            return HttpResponseForbidden("Forbidden")
+            request._request_shield_blocked = HttpResponseForbidden("Forbidden")
+            return False
 
         client_ip = self._get_client_ip(request)
         if client_ip:
             cache_key = f"request-shield:{client_ip}"
             current = cache.get(cache_key, 0)
             if current >= self.rate_limit_max:
-                return HttpResponseForbidden("Too many requests")
+                request._request_shield_blocked = HttpResponseForbidden("Too many requests")
+                return False
             cache.set(cache_key, current + 1, timeout=self.rate_limit_window)
 
-        return self.get_response(request)
+        return True
+
+    def _blocked_response(self, request):
+        return getattr(request, "_request_shield_blocked", HttpResponseForbidden("Forbidden"))
 
     def _matches_blocked_path(self, path):
         return any(token in path for token in self.blocked_path_fragments)
