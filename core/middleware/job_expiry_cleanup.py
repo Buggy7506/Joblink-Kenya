@@ -1,4 +1,4 @@
-from asgiref.sync import iscoroutinefunction
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction
 from inspect import isawaitable
 from django.utils import timezone
 
@@ -15,7 +15,9 @@ class ExpiredJobCleanupMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-
+        if iscoroutinefunction(self.get_response):
+            markcoroutinefunction(self)
+            
     def __call__(self, request):
         if iscoroutinefunction(self.get_response):
             return self.__acall__(request)
