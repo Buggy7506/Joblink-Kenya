@@ -24,6 +24,7 @@ from django.contrib.auth import (
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib import messages
 
@@ -3443,8 +3444,6 @@ def change_username_password(request):
 
     return render(request, 'change_username_password.html', {'form': form})
 
-@csrf_protect
-@login_required
 def chat_view(request, application_id=None, job_id=None):
     """
     Unified chat view for both applicants and employers.
@@ -3453,6 +3452,9 @@ def chat_view(request, application_id=None, job_id=None):
     - General landing if neither is provided
     Soft-deleted applications are hidden from the respective users.
     """
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path(), login_url=settings.LOGIN_URL)
+
     # Avoid django_ratelimit decorator async/sync wrapper issues on this endpoint.
     if is_ratelimited(
         request=request,
