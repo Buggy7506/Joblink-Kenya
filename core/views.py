@@ -7,6 +7,7 @@ from django.http import (
     HttpResponseRedirect,
     FileResponse,
     JsonResponse,
+    HttpResponseForbidden,
 )
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -43,6 +44,7 @@ from django.db.models import Count, Q, F
 # =========================
 from django.template.loader import render_to_string
 from django_ratelimit.decorators import ratelimit
+from django_ratelimit.core import is_ratelimited
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -3443,7 +3445,6 @@ def change_username_password(request):
 
 @csrf_protect
 @login_required
-@ratelimit(key='ip', rate='10/m', block=True)
 def chat_view(request, application_id=None, job_id=None):
     """
     Unified chat view for both applicants and employers.
@@ -3452,6 +3453,17 @@ def chat_view(request, application_id=None, job_id=None):
     - General landing if neither is provided
     Soft-deleted applications are hidden from the respective users.
     """
+    # Avoid django_ratelimit decorator async/sync wrapper issues on this endpoint.
+    if is_ratelimited(
+        request=request,
+        group="chat_view",
+        key="ip",
+        rate="10/m",
+        method=["GET", "POST"],
+        increment=True,
+    ):
+        return HttpResponseForbidden("Too many requests")
+
     user = request.user
     context = {
         "application": None,
