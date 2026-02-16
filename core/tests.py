@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponse
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase
@@ -477,3 +478,51 @@ class ChatViewAuthGuardTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/Sign-In-OR-Sign-Up/", response.url)
         self.assertIn("next=/chat/job/3/", response.url)
+
+
+class RequestShieldMiddlewareTests(SimpleTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_sync_stack_allows_normal_request(self):
+        from core.middleware.request_shield import RequestShieldMiddleware
+
+        request = self.factory.get('/chat/job/3/')
+        request.META['REMOTE_ADDR'] = '127.0.0.10'
+
+        middleware = RequestShieldMiddleware(lambda req: HttpResponse('ok'))
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_async_stack_awaits_downstream_response(self):
+        import asyncio
+
+        from core.middleware.request_shield import RequestShieldMiddleware
+
+        request = self.factory.get('/chat/job/3/')
+        request.META['REMOTE_ADDR'] = '127.0.0.11'
+
+        async def get_response(req):
+            return HttpResponse('ok')
+
+        middleware = RequestShieldMiddleware(get_response)
+        response = asyncio.run(middleware(request))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_async_stack_blocks_probe_path_without_await_errors(self):
+        import asyncio
+
+        from core.middleware.request_shield import RequestShieldMiddleware
+
+        request = self.factory.get('/.env')
+        request.META['REMOTE_ADDR'] = '127.0.0.12'
+
+        async def get_response(req):
+            return HttpResponse('ok')
+
+        middleware = RequestShieldMiddleware(get_response)
+        response = asyncio.run(middleware(request))
+
+        self.assertEqual(response.status_code, 404)
