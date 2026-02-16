@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -7,6 +8,7 @@ from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from core.models import Profile
 from core.views import (
     _get_effective_role,
     _normalize_next_url,
@@ -115,6 +117,42 @@ class EmployerVerificationMiddlewareTests(SimpleTestCase):
 
         async def get_response(req):
             return SimpleNamespace(status_code=200)
+
+        middleware = EmployerVerificationMiddleware(get_response)
+        response = asyncio.run(middleware(request))
+
+        self.assertEqual(response.status_code, 200)
+
+
+class EmployerVerificationMiddlewareAsyncDBTests(TestCase):
+    def test_async_stack_handles_profile_relation_without_sync_only_error(self):
+        import asyncio
+        from types import SimpleNamespace
+
+        from core.middleware.employer_verification import EmployerVerificationMiddleware
+
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
+            username="async-employer-mw",
+            email="async-employer-mw@example.com",
+            password="testpass123",
+            role="applicant",
+        )
+        Profile.objects.update_or_create(
+            user=user,
+            defaults={"role": "applicant"},
+        )
+
+        request = RequestFactory().get(reverse("dashboard"))
+
+        async def auser():
+            return user
+
+        async def get_response(req):
+            return SimpleNamespace(status_code=200)
+
+        request.auser = auser
+        request.user = user
 
         middleware = EmployerVerificationMiddleware(get_response)
         response = asyncio.run(middleware(request))
