@@ -113,6 +113,7 @@ urlpatterns = [
     # -------------------------
     path("chat/job/<int:job_id>/", views.chat_view, name="employer_chat"),
     path("chat/application/<int:application_id>/", views.chat_view, name="job_chat"),
+    path("chat/job-applicants/", views.chat_job_applicants, name="chat_job_applicants"),
     path("chat/message/<int:msg_id>/edit/", views.edit_message, name="edit_message"),
     path("chat/message/<int:msg_id>/delete/", views.delete_message, name="delete_message"),
 
