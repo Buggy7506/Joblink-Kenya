@@ -6,7 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.utils import timezone
 
-from .models import Application, ChatMessage, PinnedMessage
+from .models import Application, ChatMessage, JobApplicantsMessage, PinnedMessage
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -40,8 +40,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         if self.job_group_name:
-            is_applicant = await self.user_is_job_applicant(job_id, user.id)
-            if is_applicant:
+            is_participant = await self.user_is_job_participant(job_id, user.id)
+            if is_participant:
                 await self.channel_layer.group_add(self.job_group_name, self.channel_name)
         await self.accept()
 
@@ -279,17 +279,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not text:
             return
 
-        allowed = await self.user_is_job_applicant_by_application(self.application_id, user.id)
+        allowed = await self.user_is_job_participant_by_application(self.application_id, user.id)
         if not allowed:
             return
+
+        job_id = await self.get_application_job_id(self.application_id)
+        if not job_id:
+            return
+
+        room_msg = await self.save_job_room_message(job_id, user.id, text)
 
         await self.channel_layer.group_send(
             self.job_group_name,
             {
                 "type": "chat.job_message",
-                "sender": user.username,
-                "message": text,
-                "timestamp": timezone.now().isoformat(),
+                **room_msg,
             },
         )
 
@@ -344,17 +348,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return None
 
     @database_sync_to_async
-    def user_is_job_applicant(self, job_id, user_id):
-        return Application.objects.filter(job_id=job_id, applicant_id=user_id).exists()
+    def user_is_job_participant(self, job_id, user_id):
+        return Application.objects.filter(job_id=job_id).filter(
+            models.Q(applicant_id=user_id) | models.Q(job__employer_id=user_id)
+        ).exists()
 
     @database_sync_to_async
-    def user_is_job_applicant_by_application(self, application_id, user_id):
+    def user_is_job_participant_by_application(self, application_id, user_id):
         try:
-            app = Application.objects.only("job_id").get(id=application_id)
+            app = Application.objects.select_related("job").only("job_id", "job__employer_id").get(id=application_id)
         except Application.DoesNotExist:
             return False
+        if app.job.employer_id == user_id:
+            return True            
         return Application.objects.filter(job_id=app.job_id, applicant_id=user_id).exists()
 
+    @database_sync_to_async
+    def save_job_room_message(self, job_id, sender_id, message):
+        msg = JobApplicantsMessage.objects.create(
+            job_id=job_id,
+            sender_id=sender_id,
+            message=message,
+        )
+        return {
+            "id": msg.id,
+            "sender": msg.sender.username,
+            "message": msg.message,
+            "timestamp": msg.timestamp.isoformat(),
+        }
+    
     @database_sync_to_async
     def save_message(self, application_id, sender_id, message, reply_to=None):
         app = Application.objects.get(id=application_id)
