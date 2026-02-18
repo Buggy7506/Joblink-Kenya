@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicants Group — {{ job.title }}{% endblock %}
+
+{% block content %}
+<style>
+  .chat-applicants-wrap {
+    max-width: 900px;
+    margin: 24px auto;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(148,163,184,.25);
+    background: var(--bg-card);
+    color: var(--text-main);
+  }
+  .chat-applicants-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .chat-applicants-back {
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .chat-applicants-list {
+    display: grid;
+    gap: 10px;
+  }
+  .chat-applicant-card {
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--bg-surface);
+  }
+  .chat-applicant-meta {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+</style>
+
+<div class="chat-applicants-wrap">
+  <div class="chat-applicants-head">
+    <div>
+      <h3 style="margin:0;">Applicants Group</h3>
+      <div class="chat-applicant-meta"><strong>{{ applicants_count }}</strong> applicant{{ applicants_count|pluralize }} for <strong>{{ job.title }}</strong></div>
+    </div>
+    {% if request.GET.app_id %}
+      <a class="chat-applicants-back" href="{% url 'employer_chat' job.id %}?app_id={{ request.GET.app_id }}">← Back to chat</a>
+    {% elif request.GET.application_id %}
+      <a class="chat-applicants-back" href="{% url 'job_chat' request.GET.application_id %}">← Back to chat</a>
+    {% else %}
+      <a class="chat-applicants-back" href="javascript:history.back()">← Back</a>
+    {% endif %}
+  </div>
+
+  <div class="chat-applicants-list">
+    {% for application in applicants %}
+      <div class="chat-applicant-card">
+        <div><strong>{{ application.applicant.username }}</strong></div>
+        <div class="chat-applicant-meta">{{ application.applicant.email }} · Applied {{ application.applied_on|date:'M d, Y H:i' }}</div>
+      </div>
+    {% empty %}
+      <div class="chat-applicant-card">No applicants found for this job.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
