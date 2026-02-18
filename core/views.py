@@ -93,6 +93,7 @@ from .models import (
     DeviceVerification,
     CustomUser,
     EmployerCompany,
+    JobApplicantsMessage,
 )
 
 from .forms import (
@@ -3723,10 +3724,15 @@ def chat_job_applicants(request):
         is_deleted_for_employer=False,
     ).select_related("applicant", "job").order_by("-applied_on")
 
+    seed_application = applicants.filter(is_deleted=False).first()
+    room_messages = JobApplicantsMessage.objects.filter(job=job).select_related("sender")
+
     return render(request, "chat_job_applicants.html", {
         "job": job,
         "applicants": applicants,
         "applicants_count": applicants.count(),
+        "seed_application": seed_application,
+        "room_messages": room_messages,
         "from_chat": True,
     })
                
