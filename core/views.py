@@ -3699,7 +3699,37 @@ def chat_view(request, application_id=None, job_id=None):
 
     # Render always with chat.html
     return render(request, "chat.html", context)
-                
+ 
+
+@csrf_protect
+@login_required
+def chat_job_applicants(request):
+    """Show all applicants for a single job to users participating in that job's chats."""
+    job_id = request.GET.get("job_id")
+    if not job_id:
+        messages.error(request, "❌ Job not specified.")
+        return redirect("dashboard")
+
+    job = get_object_or_404(Job.objects.select_related("employer"), id=job_id)
+
+    is_employer = job.employer_id == request.user.id
+    is_applicant_for_job = Application.objects.filter(job=job, applicant=request.user).exists()
+    if not is_employer and not is_applicant_for_job:
+        messages.error(request, "❌ You are not authorized to view these applicants.")
+        return redirect("dashboard")
+
+    applicants = Application.objects.filter(
+        job=job,
+        is_deleted_for_employer=False,
+    ).select_related("applicant", "job").order_by("-applied_on")
+
+    return render(request, "chat_job_applicants.html", {
+        "job": job,
+        "applicants": applicants,
+        "applicants_count": applicants.count(),
+        "from_chat": True,
+    })
+               
 # ======================================================
 # VIEW APPLICANT'S JOB APPLICATIONS
 # ======================================================
