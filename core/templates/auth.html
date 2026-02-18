@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load widget_tweaks %}
+{% load static widget_tweaks %}
 
 {% block title %}Sign In or Sign Up{% endblock %}
 
@@ -580,6 +580,9 @@
 
   .auth-page .phone-group { --country-select-width: 82px; }
 }
+
+.auth-page .auth-eye img { width: 18px; height: 18px; display: block; }
+
 </style>
 
 <div class="auth-page" data-new-user="{{ is_new_user|yesno:'true,false' }}">
@@ -874,7 +877,7 @@
                  class="auth-eye"
                  aria-label="Show password"
                >
-                 👁️
+                 <img src="{% static 'icons/visibility.svg' %}" alt="Show password">
                </button>
              </div>
          
@@ -894,7 +897,7 @@
                  class="auth-eye"
                  aria-label="Show password"
                >
-                 👁️
+                 <img src="{% static 'icons/visibility.svg' %}" alt="Show password">
                </button>
              </div>
              {% endif %}
@@ -1002,7 +1005,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const hidden = input.type === 'password';
     input.type = hidden ? 'text' : 'password';
-    eye.textContent = hidden ? '🙈' : '👁️';
+    eye.innerHTML = hidden
+      ? '<img src="{% static "icons/visibility_off.svg" %}" alt="Hide password">'
+      : '<img src="{% static "icons/visibility.svg" %}" alt="Show password">';
   });
 
   // =========================
