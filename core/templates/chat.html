@@ -334,7 +334,7 @@ body.light-mode .chat-wrap {
   justify-content: space-between;
   gap: 10px;
   padding: 8px 16px;
-  border-top: 1px solid var(--chat-border);
+  border-bottom: 1px solid var(--chat-border);
   background: var(--chat-surface-soft);
 }
 .bulk-actions-buttons {
@@ -348,53 +348,6 @@ body.light-mode .chat-wrap {
   background: var(--chat-surface);
   color: var(--chat-text);
   cursor: pointer;
-}
-.applicants-group-panel {
-  border-top: 1px solid var(--chat-border);
-  background: var(--chat-surface);
-  padding: 10px 16px;
-}
-.applicants-group-members {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.applicants-group-members span {
-  border: 1px solid var(--chat-border);
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 12px;
-  background: var(--chat-surface-soft);
-}
-.applicants-group-feed {
-  max-height: 120px;
-  overflow-y: auto;
-  font-size: 12px;
-  color: var(--chat-muted);
-  margin-bottom: 8px;
-}
-.applicants-group-item {
-  margin-bottom: 4px;
-}
-.applicants-group-form {
-  display: flex;
-  gap: 8px;
-}
-.applicants-group-form input {
-  flex: 1;
-  border: 1px solid var(--chat-border);
-  border-radius: 999px;
-  padding: 8px 12px;
-  background: var(--chat-surface-soft);
-  color: var(--chat-text);
-}
-.applicants-group-form button {
-  border: none;
-  border-radius: 999px;
-  padding: 8px 14px;
-  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-dark));
-  color: #fff;
 }
   
 /* Reply preview */
@@ -614,12 +567,20 @@ body.light-mode .chat-wrap {
       {% if job %}
         <button id="sidebar-toggle">☰</button>
         <div class="chat-title"><strong>{{ job.title }}</strong>{% if job.company %} — {{ job.company }}{% endif %}</div>
-        <div class="chat-header-actions">
-          <button id="group-toggle-btn" class="group-toggle-btn" type="button">Applicants Group</button>
-        </div>
       {% else %}
         <div class="chat-title"><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}</div>
       {% endif %}
+      <div class="chat-header-actions">
+        <a id="group-toggle-btn" class="group-toggle-btn" href="{% url "chat_job_applicants" %}?job_id={% if job %}{{ job.id }}{% elif application %}{{ application.job.id }}{% elif selected_app %}{{ selected_app.job.id }}{% endif %}{% if selected_app %}&app_id={{ selected_app.id }}{% elif application %}&application_id={{ application.id }}{% endif %}">Applicants Group</a>
+      </div>
+    </div>
+
+    <div class="bulk-actions" id="bulk-actions" hidden>
+      <span id="selected-count">0 selected</span>
+      <div class="bulk-actions-buttons">
+        <button type="button" id="forward-selected-btn">Forward</button>
+        <button type="button" id="clear-selected-btn">Cancel</button>
+      </div>
     </div>
 
     <div class="pinned-bar" id="pinned-bar" hidden>
@@ -632,7 +593,7 @@ body.light-mode .chat-wrap {
     
     <div id="chat-box" class="chat-box">
       {% for m in messages %}
-        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} {% if m.is_pinned %}pinned{% endif %} pop" 
+        <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} {% if m.is_pinned %}pinned{% endif %} {% if m.message == "This message was deleted" %}deleted{% endif %} pop"  
              data-id="{{ m.id }}" data-text="{{ m.message|escape }}" data-sender="{{ m.sender.username|escape }}"
              {% if m.reply_to %}data-reply-id="{{ m.reply_to.id }}" data-reply-text="{{ m.reply_to.message|escape }}" data-reply-sender="{{ m.reply_to.sender.username|escape }}"{% endif %}>
           <div><strong>{{ m.sender.username }}</strong></div>
@@ -643,32 +604,14 @@ body.light-mode .chat-wrap {
             </div>
           {% endif %}
           <div class="message-text">{{ m.message }}</div>
-          <div class="meta">{{ m.timestamp }}{% if m.edited_at %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
-        </div>
+          <div class="meta">{{ m.timestamp }}{% if m.is_edited %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
       {% empty %}
         <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
       {% endfor %}
     </div>
 
-    <div class="bulk-actions" id="bulk-actions" hidden>
-      <span id="selected-count">0 selected</span>
-      <div class="bulk-actions-buttons">
-        <button type="button" id="forward-selected-btn">Forward selected</button>
-        <button type="button" id="clear-selected-btn">Clear</button>
-      </div>
-    </div>
-
-    <div class="applicants-group-panel" id="applicants-group-panel" hidden>
-      <div style="font-weight:600;color:var(--chat-accent-dark);margin-bottom:6px;">Applicants Group</div>
-      <div class="applicants-group-members" id="applicants-group-members"></div>
-      <div class="applicants-group-feed" id="applicants-group-feed"></div>
-      <div class="applicants-group-form">
-        <input id="applicants-group-input" type="text" placeholder="Share with applicants who applied for this job..." maxlength="500" />
-        <button id="applicants-group-send" type="button">Share</button>
-      </div>
-    </div>
-
-      <div class="reply-preview" id="reply-preview" hidden>
+      
+    <div class="reply-preview" id="reply-preview" hidden>
       <div class="reply-preview-body">
         <span class="reply-preview-label">Replying to <span id="reply-preview-sender"></span></span>
         <span id="reply-preview-text"></span>
@@ -782,12 +725,6 @@ body.light-mode .chat-wrap {
   const selectedCount = document.getElementById("selected-count");
   const clearSelectedBtn = document.getElementById("clear-selected-btn");
   const forwardSelectedBtn = document.getElementById("forward-selected-btn");
-  const groupToggleBtn = document.getElementById("group-toggle-btn");
-  const applicantsGroupPanel = document.getElementById("applicants-group-panel");
-  const applicantsGroupMembers = document.getElementById("applicants-group-members");
-  const applicantsGroupFeed = document.getElementById("applicants-group-feed");
-  const applicantsGroupInput = document.getElementById("applicants-group-input");
-  const applicantsGroupSend = document.getElementById("applicants-group-send");
   
   // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
@@ -965,32 +902,7 @@ body.light-mode .chat-wrap {
     updateSelectionUi();
   }
 
-  function buildApplicantsGroup(){
-    if(!applicantsGroupMembers) return;
-    applicantsGroupMembers.innerHTML = "";
-    const applicants = Array.from(document.querySelectorAll("#active-applicants .applicant"));
-    applicants.forEach((applicant)=>{
-      const chip = document.createElement("span");
-      chip.textContent = applicant.textContent.trim();
-      applicantsGroupMembers.appendChild(chip);
-    });
-    if(!applicants.length){
-      const chip = document.createElement("span");
-      chip.textContent = "No applicants yet";
-      applicantsGroupMembers.appendChild(chip);
-    }
-  }
-
-  function appendGroupMessage(sender, message, timestamp){
-    if(!applicantsGroupFeed) return;
-    const row = document.createElement("div");
-    row.className = "applicants-group-item";
-    const when = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-    row.textContent = `[${when}] ${sender}: ${message}`;
-    applicantsGroupFeed.appendChild(row);
-    applicantsGroupFeed.scrollTop = applicantsGroupFeed.scrollHeight;
-  }
-
+  
   // Send message
   function sendMessage(msgInput=input){
     if(!msgInput) return;
@@ -1080,14 +992,18 @@ body.light-mode .chat-wrap {
         const textEl = msg.querySelector(".message-text");
         if(textEl) textEl.innerText = data.message;
         const meta = msg.querySelector(".meta");
-        if(meta && !meta.innerText.includes("(edited)")) meta.innerText += " (edited)";
+        if(meta){
+          const readTick = meta.innerText.includes("✓") ? " ✓" : "";
+          const base = meta.innerText.replace(" (edited)", "").replace(" ✓", "");
+          meta.innerText = `${base} (edited)${readTick}`;
+        }
       }
     } else if(eventType === "delete"){
       const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
       if(msg){
         const wasPinned = msg.classList.contains("pinned");
         msg.classList.add("deleted");
-        msg.dataset.text = "";
+        msg.dataset.text = "This message was deleted";
         const textEl = msg.querySelector(".message-text");
         if(textEl) textEl.innerText = "This message was deleted";
         if(wasPinned) updatePinnedState(data.id, false);
@@ -1099,8 +1015,6 @@ body.light-mode .chat-wrap {
       } else if(eventType === "forward_done") {
       alert(`Forwarded ${data.count} message(s).`);
       clearSelection();
-    } else if(eventType === "job_message") {
-      appendGroupMessage(data.sender || "Unknown", data.message || "", data.timestamp);
     }
   };
 
@@ -1263,13 +1177,22 @@ body.light-mode .chat-wrap {
     chatBox.addEventListener("click", e=>{
       const bubble = e.target.closest(".bubble");
       if(!bubble) return;
-      if(e.ctrlKey || e.metaKey){
+      if(selectedMessageIds.size || e.ctrlKey || e.metaKey){
         e.preventDefault();
         toggleMessageSelection(bubble);
       }
     });
   }
 
+  
+  if(chatBox){
+    chatBox.addEventListener("dblclick", e=>{
+      const bubble = e.target.closest(".bubble");
+      if(!bubble) return;
+      e.preventDefault();
+      toggleMessageSelection(bubble);
+    });
+  }
   if(clearSelectedBtn){
     clearSelectedBtn.addEventListener("click", clearSelection);
   }
@@ -1288,28 +1211,7 @@ body.light-mode .chat-wrap {
       }));
     });
   }
-
-  if(groupToggleBtn && applicantsGroupPanel){
-    groupToggleBtn.addEventListener("click", ()=>{
-      applicantsGroupPanel.hidden = !applicantsGroupPanel.hidden;
-      if(!applicantsGroupPanel.hidden) buildApplicantsGroup();
-    });
-  }
-
-  if(applicantsGroupSend && applicantsGroupInput){
-    applicantsGroupSend.addEventListener("click", ()=>{
-      const msg = applicantsGroupInput.value.trim();
-      if(!msg) return;
-      socket.send(JSON.stringify({action:"job_message", message: msg}));
-      applicantsGroupInput.value = "";
-    });
-    applicantsGroupInput.addEventListener("keydown", e=>{
-      if(e.key === "Enter"){
-        e.preventDefault();
-        applicantsGroupSend.click();
-      }
-    });
-  }
+  
   
   // Right-click to open menu
   if(chatBox){
@@ -1330,7 +1232,7 @@ body.light-mode .chat-wrap {
       if(!t) return;
       target=t; pointerId=e.pointerId; startX=e.clientX; startY=e.clientY;
       if(timer) clearTimeout(timer);
-      timer=setTimeout(()=>{ if(target) showMenu(target); }, LONG_MS);
+      timer=setTimeout(()=>{ if(target) toggleMessageSelection(target); }, LONG_MS);
     }, {passive:true});
 
     container.addEventListener("pointermove", e=>{
