@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Build Resume{% endblock %}
 
@@ -20,7 +21,7 @@
 
     <header class="builder-topbar">
       <div class="builder-brand">
-        <span class="brand-icon">🛸</span>
+        <span class="brand-icon"><img src="{% static 'icons/rocket_launch.svg' %}" alt="Alien Resume Studio"></span>
         <div>
           <h1>Alien Resume Studio</h1>
           <p>Design like Canva, publish like a pro.</p>
@@ -254,7 +255,11 @@ templateTriggers.forEach(trigger => {
       iframe.srcdoc = `
         <html>
           <head>
-            <style>${previewStyles}</style>
+            <style>${previewStyles}
+.brand-icon { display: inline-flex; }
+.brand-icon img { width: 30px; height: 30px; }
+
+</style>
             <style>${template.styleText || ''}</style>
           </head>
           <body>${template.bodyContent || ''}</body>
