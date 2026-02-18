@@ -361,6 +361,9 @@ body {
     transform: scale(0.75);
   }
 }
+
+.toggle-eye img { width: 18px; height: 18px; display: block; }
+
 </style>
 
 {% endblock %}
@@ -514,7 +517,7 @@ body {
                     {{ form.password1.label_tag }}
                     <div class="password-wrapper">
                         {{ form.password1 }}
-                        <span class="toggle-eye" onclick="togglePassword('id_password1', this)">👁️</span>
+                        <span class="toggle-eye" onclick="togglePassword('id_password1', this)"><img src="{% static 'icons/visibility.svg' %}" alt="Show password"></span>
                     </div>
 
                     <div class="password-strength">
@@ -546,7 +549,7 @@ body {
                     {{ form.password2.label_tag }}
                     <div class="password-wrapper">
                         {{ form.password2 }}
-                      <span class="toggle-eye" onclick="togglePassword('id_password2', this)">👁️</span>
+                      <span class="toggle-eye" onclick="togglePassword('id_password2', this)"><img src="{% static 'icons/visibility.svg' %}" alt="Show password"></span>
                     </div>
 
                     <div id="matchStatus" class="match-status"></div>
@@ -699,10 +702,10 @@ function togglePassword(fieldId, iconElement) {
     const field = document.getElementById(fieldId);
     if (field.type === "password") {
         field.type = "text";
-        iconElement.textContent = "🙈";
+        iconElement.innerHTML = '<img src="{% static "icons/visibility_off.svg" %}" alt="Hide password">';
     } else {
         field.type = "password";
-        iconElement.textContent = "👁️";
+        iconElement.innerHTML = '<img src="{% static "icons/visibility.svg" %}" alt="Show password">';
     }
 }
 
@@ -718,7 +721,7 @@ pass2.addEventListener("keyup", () => {
     }
     if (pass1.value === pass2.value) {
         matchStatus.style.color = themeStyles.getPropertyValue("--text-success").trim() || "#28d764";
-        matchStatus.textContent = "Passwords match ✔";
+        matchStatus.textContent = "Passwords match";
     } else {
         matchStatus.style.color = themeStyles.getPropertyValue("--text-danger").trim() || "red";
         matchStatus.textContent = "Passwords do not match ✘";
