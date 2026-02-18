@@ -1,3 +1,4 @@
+{% load static %}
 {% if form.errors or messages %}
 <style>
 /* =========================================================
@@ -109,6 +110,10 @@
   transform: translateY(-6px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
+
+.alert-icon { display: inline-flex; }
+.alert-icon img { width: 18px; height: 18px; }
+
 </style>
 
 <div class="form-errors-wrapper" id="formAlerts">
@@ -121,10 +126,10 @@
       {% else %}alert-info{% endif %}
     ">
       <span class="alert-icon">
-        {% if 'success' in message.tags %}✔
-        {% elif 'warning' in message.tags %}⚠
-        {% elif 'error' in message.tags %}✖
-        {% else %}ℹ{% endif %}
+        {% if 'success' in message.tags %}<img src="{% static 'icons/check_circle.svg' %}" alt="Success">
+        {% elif 'warning' in message.tags %}<img src="{% static 'icons/warning.svg' %}" alt="Warning">
+        {% elif 'error' in message.tags %}<img src="{% static 'icons/cancel.svg' %}" alt="Error">
+        {% else %}<img src="{% static 'icons/info.svg' %}" alt="Info">{% endif %}
       </span>
       <span class="alert-text">
         {% if "registered as a" in message|stringformat:"s" %}
@@ -139,7 +144,7 @@
 
   {% if form.non_field_errors %}
     <div class="form-alert alert-error">
-      <span class="alert-icon">✖</span>
+      <span class="alert-icon"><img src="{% static 'icons/cancel.svg' %}" alt="Error"></span>
       <div class="alert-text">
         {% for error in form.non_field_errors %}
           <p>{{ error }}</p>
@@ -151,7 +156,7 @@
   {% for field in form %}
     {% for error in field.errors %}
       <div class="form-alert alert-error">
-        <span class="alert-icon">•</span>
+        <span class="alert-icon"><img src="{% static 'icons/radio_button_unchecked.svg' %}" alt="Field error"></span>
         <div class="alert-text">
           <strong>{{ field.label }}</strong>
           <p>{{ error }}</p>
