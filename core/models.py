@@ -608,6 +608,22 @@ class PinnedMessage(models.Model):
         return f"Pinned by {self.pinned_by.username}"
 
 
+class JobApplicantsMessage(models.Model):
+    """Shared chat room for a job's employer and all applicants."""
+
+    job = models.ForeignKey("Job", on_delete=models.CASCADE, related_name="applicants_room_messages")
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["timestamp"]
+
+    def __str__(self):
+        preview = (self.message[:30] + "...") if len(self.message) > 30 else self.message
+        return f"{self.sender.username} @ {self.job_id}: {preview}"
+
+
 # ======================================================
 # MESSAGE REACTIONS
 # ======================================================
