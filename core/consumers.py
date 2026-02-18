@@ -158,6 +158,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "id": msg_id,
                 "message": new_text,
                 "sender": user.username,
+                "is_edited": True,
             },
         )
 
@@ -176,6 +177,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "type": "chat.delete",
                 "id": msg_id,
                 "sender": user.username,
+                "message": "This message was deleted",
+                "deleted": True,
             },
         )
 
@@ -377,7 +380,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             msg = ChatMessage.objects.get(id=message_id, sender_id=user_id)
             msg.message = new_text
-            msg.save(update_fields=["message"])
+            msg.is_edited = True
+            msg.save(update_fields=["message", "is_edited"])
             return True
         except ChatMessage.DoesNotExist:
             return False
@@ -386,7 +390,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def delete_message(self, message_id, user_id):
         try:
             msg = ChatMessage.objects.get(id=message_id, sender_id=user_id)
-            msg.delete()
+            msg.message = "This message was deleted"
+            msg.is_edited = False
+            msg.save(update_fields=["message", "is_edited"])
             return True
         except ChatMessage.DoesNotExist:
             return False
