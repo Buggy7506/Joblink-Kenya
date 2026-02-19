@@ -239,10 +239,14 @@ body.light-mode #chat-page {
   border: 1px solid var(--bubble-border);
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease-in-out;
+  -webkit-user-select: none;
+  user-select: none;
 }
 #chat-page .bubble .message-text {
   white-space: pre-wrap;
   line-height: 1.45;
+  -webkit-user-select: none;
+  user-select: none;
 }
 #chat-page .bubble strong {
   display: block;
@@ -846,6 +850,44 @@ body.light-mode #chat-page {
     return type.startsWith("chat.") ? type.slice(5) : type;
   }
 
+  const hiddenMessagesStorageKey = `chat_hidden_messages_${appId || "global"}_${username}`;
+  function getHiddenMessageIds(){
+    try {
+      const raw = localStorage.getItem(hiddenMessagesStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch (err) {
+      return new Set();
+    }
+  }
+  function persistHiddenMessageIds(hiddenIds){
+    localStorage.setItem(hiddenMessagesStorageKey, JSON.stringify(Array.from(hiddenIds)));
+  }
+  function hideMessagePermanentlyForMe(msgElem){
+    if(!msgElem || !msgElem.dataset.id) return;
+    const hiddenIds = getHiddenMessageIds();
+    hiddenIds.add(String(msgElem.dataset.id));
+    persistHiddenMessageIds(hiddenIds);
+    msgElem.remove();
+  }
+  function removeHiddenMessageMark(msgId){
+    if(!msgId) return;
+    const hiddenIds = getHiddenMessageIds();
+    if(!hiddenIds.has(String(msgId))) return;
+    hiddenIds.delete(String(msgId));
+    persistHiddenMessageIds(hiddenIds);
+  }
+  function applyHiddenMessagesToDom(){
+    if(!chatBox) return;
+    const hiddenIds = getHiddenMessageIds();
+    if(!hiddenIds.size) return;
+    chatBox.querySelectorAll('.bubble[data-id]').forEach((bubble)=>{
+      if(hiddenIds.has(String(bubble.dataset.id))){
+        bubble.remove();
+      }
+    });
+  }
+
   function escapeHtml(text){
     const div = document.createElement("div");
     div.textContent = text || "";
@@ -1148,6 +1190,7 @@ body.light-mode #chat-page {
         replyTo: replyTo,
       });
       chatBox.appendChild(bubble);
+      removeHiddenMessageMark(data.id);
       scrollBottom(chatBox);
     } else if(eventType === "edit"){
       const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
@@ -1190,36 +1233,36 @@ body.light-mode #chat-page {
   }
 
   initPinnedFromDom();
-
+  applyHiddenMessagesToDom();
+  
   // --- Context menu + long-press ---
   function showMenu(msgElem){
     if(!menu || !msgElem) return;
 
     const rect = msgElem.getBoundingClientRect();
-    const container = msgElem.offsetParent || document.body;
-    const containerRect = container.getBoundingClientRect();
 
     const menuHeight = menu.offsetHeight || 150;
     const menuWidth  = menu.offsetWidth  || 160;
 
-    // Position relative to container
-    let x = rect.left - containerRect.left + container.scrollLeft;
-    let y = rect.bottom - containerRect.top + container.scrollTop;
+    // Position relative to selected bubble in viewport
+    let x = rect.left;
+    let y = rect.bottom + 6;
 
     // Adjust vertical if overflow
-    if(y + menuHeight > container.scrollHeight){
-        y = rect.top - containerRect.top + container.scrollTop - menuHeight - 5;
-    } else {
-        y += 5; // small gap below bubble
+    if(y + menuHeight > window.innerHeight - 8){
+        y = rect.top - menuHeight - 6;
     }
 
     // Adjust horizontal if overflow
-    if(x + menuWidth > container.scrollWidth){
-        x = rect.right - containerRect.left + container.scrollLeft - menuWidth;
+    if(x + menuWidth > window.innerWidth - 8){
+        x = window.innerWidth - menuWidth - 8;
     }
-
+    if(x < 8) x = 8;
+    if(y < 8) y = 8;
+    
     menu.style.left = `${x}px`;
     menu.style.top  = `${y}px`;
+    menu.style.position = "fixed";
     menu.style.display = "block";
 
 
@@ -1304,7 +1347,7 @@ body.light-mode #chat-page {
         const wasPinned = msgElem.classList.contains("pinned");
 
         socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
-        msgElem.remove();
+        hideMessagePermanentlyForMe(msgElem);
         selectedMessageIds.delete(String(msgId));
         if(wasPinned) updatePinnedState(msgId, false);
         updateSelectionUi();
@@ -1389,7 +1432,13 @@ body.light-mode #chat-page {
       openForwardPicker(Array.from(selectedMessageIds));
     });
   }
-  
+
+  if(chatBox){
+    chatBox.addEventListener("selectstart", e=>{
+      if(e.target.closest(".bubble")) e.preventDefault();
+    });
+  }
+
   // Right-click to open menu
   if(chatBox){
     chatBox.addEventListener("contextmenu", e=>{ e.preventDefault(); const t=e.target.closest(".bubble"); if(t) showMenu(t); });
