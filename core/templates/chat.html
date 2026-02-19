@@ -1169,6 +1169,12 @@ body.light-mode #chat-page {
       }
       return;
     }
+  
+    if(eventType === "delete_applicant" && data.app_id){
+      moveToDeleted(data.app_id);
+      return;
+    }
+
     if(!chatBox) return;
 
     if(eventType === "message" || eventType === "reply"){
@@ -1215,11 +1221,20 @@ body.light-mode #chat-page {
         if(textEl) textEl.innerText = "This message was deleted";
         if(wasPinned) updatePinnedState(data.id, false);
       }
+    } else if(eventType === "delete_me"){
+      const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){
+        const wasPinned = msg.classList.contains("pinned");
+        hideMessagePermanentlyForMe(msg);
+        selectedMessageIds.delete(String(data.id));
+        if(wasPinned) updatePinnedState(data.id, false);
+        updateSelectionUi();
+      }
     } else if(eventType === "pin"){
       updatePinnedState(data.id, data.pinned);
     } else if(eventType === "pins"){
       renderPinnedList(data.pins || []);
-      } else if(eventType === "forward_done") {
+    } else if(eventType === "forward_done") {
       alert(`Forwarded ${data.count} message(s).`);
       clearSelection();
     }
@@ -1310,14 +1325,7 @@ body.light-mode #chat-page {
         alert("This application has been deleted and cannot be accessed.");
     });
   }
-
-  // Example: listen for WebSocket delete events for applications
-  socket.addEventListener('message', function(e){
-    const data = JSON.parse(e.data);
-    if(data.type === "delete_applicant" && data.app_id){
-        moveToDeleted(data.app_id);
-    }
-  });
+  
   
   function hideMenu(){ if(menu) menu.classList.remove("show"); setTimeout(()=>{ if(menu && !menu.classList.contains("show")) menu.style.display="none"; },200); }
 
@@ -1344,13 +1352,7 @@ body.light-mode #chat-page {
         input.focus();
     }
     else if(action === "delete-me"){
-        const wasPinned = msgElem.classList.contains("pinned");
-
         socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
-        hideMessagePermanentlyForMe(msgElem);
-        selectedMessageIds.delete(String(msgId));
-        if(wasPinned) updatePinnedState(msgId, false);
-        updateSelectionUi();
     }
     else if(action === "delete-everyone"){
         if(!msgElem.classList.contains("me")) {
@@ -1488,16 +1490,13 @@ body.light-mode #chat-page {
   document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
 
   // Disable clicks for deleted applicants
-document.addEventListener("DOMContentLoaded", function(){
-    const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
-
-    deletedApps.forEach(app => {
-        app.addEventListener('click', e => {
-            e.preventDefault();
-            alert("This application has been deleted and cannot be accessed.");
-        });
+  const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
+  deletedApps.forEach(app => {
+    app.addEventListener('click', e => {
+      e.preventDefault();
+      alert("This application has been deleted and cannot be accessed.");
     });
-});
+  });
 
 })();
 </script>
