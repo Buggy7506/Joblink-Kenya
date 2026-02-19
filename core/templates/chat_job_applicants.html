@@ -27,15 +27,22 @@
 #room-page .chat-box{flex:1;overflow:auto;padding:16px;background:var(--chat-bg);display:flex;flex-direction:column;gap:10px}
 #room-page .bubble{max-width:72%;padding:8px 12px;border-radius:14px 14px 14px 4px;background:var(--chat-surface);border:1px solid var(--chat-border);position:relative}
 #room-page .bubble.me{margin-left:auto;background:rgba(34,197,94,.18);border-radius:14px 14px 4px 14px}
+#room-page .bubble.selected-message{outline:2px solid var(--chat-accent-dark)}
 #room-page .meta{font-size:11px;color:var(--chat-muted);margin-top:5px}
+#room-page .reply-reference{border-left:3px solid var(--chat-accent);padding:4px 8px;margin-bottom:6px;background:rgba(18,140,126,.12);border-radius:8px;font-size:12px}
 #room-page .reply-ref{border-left:3px solid var(--chat-accent);padding:4px 8px;margin-bottom:6px;background:rgba(18,140,126,.12);border-radius:8px;font-size:12px}
+#room-page .bulk-actions{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--chat-border);background:var(--chat-surface-soft)}
+#room-page .bulk-actions-buttons{display:inline-flex;gap:8px}
+#room-page .bulk-actions button{border:1px solid var(--chat-border);border-radius:999px;width:36px;height:36px;padding:0;background:var(--chat-surface);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+#room-page .bulk-actions button img{width:18px;height:18px}
 #room-page .reply-preview{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--chat-border);background:var(--chat-surface-soft)}
 #room-page .room-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--chat-border)}
-#room-page input{flex:1;border-radius:999px;border:1px solid var(--chat-border);padding:11px 14px;background:var(--chat-surface-soft);color:var(--chat-text)}
-#room-page button{border:none;border-radius:999px;padding:11px 17px;background:linear-gradient(135deg,var(--chat-accent),var(--chat-accent-dark));color:#fff;font-weight:700}
+#room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:220px}
 #room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:190px}
 #room-page #room-menu ul{margin:0;padding:8px;list-style:none}
 #room-page #room-menu li{padding:8px 10px;border-radius:8px;cursor:pointer}
+#room-page .menu-item-content{display:inline-flex;align-items:center;gap:8px}
+#room-page .menu-svg-icon{width:18px;height:18px}
 #room-page #room-menu li:hover{background:rgba(37,211,102,.13)}
 #room-page .forward-modal{position:fixed;inset:0;background:rgba(2,6,23,.6);display:none;align-items:center;justify-content:center;z-index:3200}
 #room-page .forward-modal.show{display:flex}
@@ -66,12 +73,22 @@
       <a href="{% if request.GET.app_id %}{% url 'employer_chat' job.id %}?app_id={{ request.GET.app_id }}{% elif request.GET.application_id %}{% url 'job_chat' request.GET.application_id %}{% else %}javascript:history.back(){% endif %}">Back to private chat</a>
     </div>
 
-     <div class="chat-box" id="room-messages">
+    <div class="bulk-actions" id="bulk-actions" hidden>
+      <span id="selected-count">0 selected</span>
+      <div class="bulk-actions-buttons">
+        <button type="button" id="copy-selected-btn" title="Copy"><img src="{% static 'icons/content_copy.svg' %}" class="theme-icon" alt="Copy"></button>
+        <button type="button" id="reply-selected-btn" title="Reply"><img src="{% static 'icons/reply.svg' %}" class="theme-icon" alt="Reply"></button>
+        <button type="button" id="forward-selected-btn" title="Forward"><img src="{% static 'icons/forward.svg' %}" class="theme-icon" alt="Forward"></button>
+        <button type="button" id="delete-selected-btn" title="Delete for me"><img src="{% static 'icons/delete_for_me.svg' %}" class="theme-icon" alt="Delete for me"></button>
+        <button type="button" id="clear-selected-btn" title="Cancel selection"><img src="{% static 'icons/cancel.svg' %}" class="theme-icon" alt="Cancel"></button>
+      </div>
+    </div>
+    <div class="chat-box" id="room-messages">
       {% for message in room_messages %}
-        <div class="bubble {% if message.sender_id == request.user.id %}me{% endif %}" data-id="{{ message.id }}" data-sender="{{ message.sender.username|escape }}" data-text="{{ message.message|escape }}">
+        <div class="bubble {% if message.sender_id == request.user.id %}me{% endif %}" data-id="{{ message.id }}" data-sender="{{ message.sender.username|escape }}" data-text="{{ message.message|escape }}" {% if message.reply_to %}data-reply-id="{{ message.reply_to.id }}" data-reply-sender="{{ message.reply_to.sender.username|escape }}" data-reply-text="{{ message.reply_to.message|escape }}"{% endif %}>
           <div><strong>{{ message.sender.username }}</strong></div>
           {% if message.reply_to %}
-          <div class="reply-ref"><strong>{{ message.reply_to.sender.username }}</strong><div>{{ message.reply_to.message|truncatechars:80 }}</div></div>
+          <div class="reply-reference"><strong>{{ message.reply_to.sender.username }}</strong><div>{{ message.reply_to.message|truncatechars:80 }}</div></div>
           {% endif %}
           <div class="message-text">{{ message.message }}</div>
           <div class="meta">{{ message.timestamp|date:'M d, Y H:i' }}</div>
@@ -96,10 +113,11 @@
 
 <div id="room-menu">
   <ul>
-    <li data-action="reply">Reply</li>
-    <li data-action="copy">Copy</li>
-    <li data-action="forward">Forward to applicant chat</li>
-    <li data-action="private">Reply privately</li>
+    <li data-action="reply"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply</span></span></li>
+    <li data-action="copy"><span class="menu-item-content"><img src="{% static 'icons/content_copy.svg' %}" class="menu-svg-icon" alt=""><span>Copy</span></span></li>
+    <li data-action="forward"><span class="menu-item-content"><img src="{% static 'icons/forward.svg' %}" class="menu-svg-icon" alt=""><span>Forward to applicant chat</span></span></li>
+    <li data-action="delete-me"><span class="menu-item-content"><img src="{% static 'icons/delete_for_me.svg' %}" class="menu-svg-icon" alt=""><span>Delete for me</span></span></li>
+    <li data-action="private"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply privately</span></span></li>
   </ul>
 </div>
 
@@ -119,7 +137,6 @@
   const viewerAppId = {% if viewer_application %}{{ viewer_application.id }}{% else %}null{% endif %};
   const appId = {{ seed_application.id }};
   const box = document.getElementById("room-messages");
-  const empty = document.getElementById("room-empty");
   const input = document.getElementById("room-input");
   const menu = document.getElementById("room-menu");
   const forwardModal = document.getElementById("forward-modal");
@@ -129,10 +146,18 @@
   const replySender = document.getElementById("reply-sender");
   const replyText = document.getElementById("reply-text");
   const cancelReply = document.getElementById("cancel-reply");
+  const bulkActions = document.getElementById("bulk-actions");
+  const selectedCount = document.getElementById("selected-count");
+  const clearSelectedBtn = document.getElementById("clear-selected-btn");
+  const copySelectedBtn = document.getElementById("copy-selected-btn");
+  const replySelectedBtn = document.getElementById("reply-selected-btn");
+  const forwardSelectedBtn = document.getElementById("forward-selected-btn");
+  const deleteSelectedBtn = document.getElementById("delete-selected-btn");
 
   let activeBubble = null;
   let forwardMessage = null;
-
+  const selectedMessageIds = new Set();
+  
   const applicantMap = {};
   document.querySelectorAll('.sidebar .applicant[data-app-id]').forEach((el)=>{
     applicantMap[(el.dataset.username || '').trim()] = el.dataset.appId;
@@ -146,14 +171,25 @@
 
   function escapeHtml(text){ const d = document.createElement('div'); d.textContent = text || ''; return d.innerHTML; }
 
-  function addMessage(data){
+  function buildReplySnippet(replyData){
+    if(!replyData) return '';
+    return `<div class="reply-reference"><strong>${escapeHtml(replyData.sender || 'Unknown')}</strong><div>${escapeHtml(replyData.text || '')}</div></div>`;
+  }
+
+  function addMessage(data, forcedReplyTo){
     const el = document.createElement('div');
     const isMe = data.sender === username;
     el.className = `bubble ${isMe ? 'me' : ''}`;
     el.dataset.id = data.id;
     el.dataset.sender = data.sender;
     el.dataset.text = data.message;
-    el.innerHTML = `<div><strong>${escapeHtml(data.sender)}</strong></div>${data.reply_html || ''}<div class="message-text">${escapeHtml(data.message)}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+    if(data.replyTo && data.replyTo.id){
+      el.dataset.replyId = data.replyTo.id;
+      el.dataset.replySender = data.replyTo.sender || '';
+      el.dataset.replyText = data.replyTo.text || '';
+    }
+    const replyHtml = buildReplySnippet(forcedReplyTo || data.replyTo);
+    el.innerHTML = `<div><strong>${escapeHtml(data.sender)}</strong></div>${replyHtml}<div class="message-text">${escapeHtml(data.message)}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
     box.appendChild(el);
     scrollBottom();
   }
@@ -169,9 +205,9 @@
     replyPreview.hidden = true;
   }
 
-  function openForward(bubble){
-    if(!bubble) return;
-    forwardMessage = bubble.dataset.text || '';
+  function openForwardByText(messageText){
+    forwardMessage = messageText || '';
+    if(!forwardMessage) return;
     forwardList.innerHTML = '';
     Object.entries(applicantMap).forEach(([name, targetId])=>{
       const btn = document.createElement('button');
@@ -210,11 +246,90 @@
   }
   function hideMenu(){ menu.style.display = 'none'; }
 
+  function updateSelectionUi(){
+    const count = selectedMessageIds.size;
+    selectedCount.textContent = `${count} selected`;
+    bulkActions.hidden = count === 0;
+  }
+
+  function getSelectedBubbles(){
+    return Array.from(selectedMessageIds)
+      .map(id => box.querySelector(`.bubble[data-id="${id}"]`))
+      .filter(Boolean);
+  }
+
+  function toggleSelection(bubble){
+    if(!bubble || !bubble.dataset.id) return;
+    const id = String(bubble.dataset.id);
+    if(selectedMessageIds.has(id)){
+      selectedMessageIds.delete(id);
+      bubble.classList.remove('selected-message');
+    } else {
+      selectedMessageIds.add(id);
+      bubble.classList.add('selected-message');
+    }
+    updateSelectionUi();
+  }
+
+  function clearSelection(){
+    selectedMessageIds.clear();
+    box.querySelectorAll('.bubble.selected-message').forEach((el)=>el.classList.remove('selected-message'));
+    updateSelectionUi();
+  }
+
+  function deleteForMe(bubble){
+    if(!bubble) return;
+    const messageId = bubble.dataset.id;
+    if(messageId && socket.readyState === 1){
+      socket.send(JSON.stringify({ action:'delete', id: messageId, mode:'me' }));
+    }
+    bubble.remove();
+    selectedMessageIds.delete(String(messageId));
+    updateSelectionUi();
+  }
+
+  function onAction(action, bubble){
+    if(!bubble) return;
+    if(action === 'copy') navigator.clipboard.writeText(bubble.dataset.text || '');
+    if(action === 'reply'){
+      input.dataset.replyId = bubble.dataset.id;
+      replySender.textContent = bubble.dataset.sender || '';
+      replyText.textContent = bubble.dataset.text || '';
+      replyPreview.hidden = false;
+      input.focus();
+    }
+    if(action === 'forward') openForwardByText(bubble.dataset.text || '');
+    if(action === 'delete-me') deleteForMe(bubble);
+    if(action === 'private') privateReply(bubble);
+    hideMenu();
+  }
+
   send.addEventListener('click', sendMessage);
   input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
   cancelReply.addEventListener('click', ()=>{ delete input.dataset.replyId; replyPreview.hidden = true; });
   closeForward.addEventListener('click', ()=>forwardModal.classList.remove('show'));
   forwardModal.addEventListener('click', (e)=>{ if(e.target===forwardModal) forwardModal.classList.remove('show'); });
+
+  clearSelectedBtn.addEventListener('click', clearSelection);
+  copySelectedBtn.addEventListener('click', ()=>{
+    const text = getSelectedBubbles().map((b)=>b.dataset.text || '').filter(Boolean).join('\n');
+    if(text) navigator.clipboard.writeText(text);
+  });
+  replySelectedBtn.addEventListener('click', ()=>{
+    const selected = getSelectedBubbles();
+    const target = selected[selected.length - 1];
+    if(!target) return;
+    onAction('reply', target);
+    clearSelection();
+  });
+  forwardSelectedBtn.addEventListener('click', ()=>{
+    const text = getSelectedBubbles().map((b)=>b.dataset.text || '').filter(Boolean).join('\n');
+    if(text) openForwardByText(text);
+  });
+  deleteSelectedBtn.addEventListener('click', ()=>{
+    getSelectedBubbles().forEach((bubble)=>deleteForMe(bubble));
+    clearSelection();
+  });
 
   box.addEventListener('contextmenu', (e)=>{
     const bubble = e.target.closest('.bubble');
@@ -223,22 +338,23 @@
     showMenu(bubble, e.pageX, e.pageY);
   });
 
+  box.addEventListener('click', (e)=>{
+    const bubble = e.target.closest('.bubble');
+    if(!bubble) return;
+    if(selectedMessageIds.size || e.ctrlKey || e.metaKey){
+      e.preventDefault();
+      toggleSelection(bubble);
+    }
+  });
+  box.addEventListener('dblclick', (e)=>{
+    const bubble = e.target.closest('.bubble');
+    if(!bubble) return;
+    e.preventDefault();
+    toggleSelection(bubble);
+  });
+
   menu.querySelectorAll('li').forEach((item)=>{
-    item.addEventListener('click', ()=>{
-      if(!activeBubble) return;
-      const action = item.dataset.action;
-      if(action === 'copy') navigator.clipboard.writeText(activeBubble.dataset.text || '');
-      if(action === 'reply'){
-        input.dataset.replyId = activeBubble.dataset.id;
-        replySender.textContent = activeBubble.dataset.sender || '';
-        replyText.textContent = activeBubble.dataset.text || '';
-        replyPreview.hidden = false;
-        input.focus();
-      }
-      if(action === 'forward') openForward(activeBubble);
-      if(action === 'private') privateReply(activeBubble);
-      hideMenu();
-    });
+    item.addEventListener('click', ()=>onAction(item.dataset.action, activeBubble));
   });
 
   document.addEventListener('click', (e)=>{ if(!menu.contains(e.target)) hideMenu(); });
@@ -246,7 +362,18 @@
   socket.onmessage = (e)=>{
     const data = JSON.parse(e.data);
     const type = data.type && data.type.startsWith('chat.') ? data.type.slice(5) : data.type;
-    if(type === 'job_message') addMessage(data);
+    if(type === 'job_message'){
+      let replyTo = null;
+      if(data.reply_to){
+        const replyElem = box.querySelector(`.bubble[data-id="${data.reply_to}"]`);
+        replyTo = {
+          id: data.reply_to,
+          sender: replyElem ? replyElem.dataset.sender : 'Unknown',
+          text: replyElem ? replyElem.dataset.text : '',
+        };
+      }
+      addMessage(data, replyTo);
+    }
     if(type === 'forward_done') alert(`Forwarded ${data.count} message(s).`);
   };
 })();
