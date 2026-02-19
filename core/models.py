@@ -596,6 +596,21 @@ class ChatMessage(models.Model):
         return f"{self.sender.username}: {preview}"
 
 
+class HiddenChatMessage(models.Model):
+    """Tracks per-user "delete for me" chat hides across devices/sessions."""
+
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name="hidden_for")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="hidden_chat_messages")
+    hidden_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("message", "user")
+        ordering = ["-hidden_at"]
+
+    def __str__(self):
+        return f"Hidden message {self.message_id} for {self.user_id}"
+
+
 class PinnedMessage(models.Model):
     message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name="pinned_entries")
     pinned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
