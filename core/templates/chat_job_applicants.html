@@ -1,208 +1,256 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}Applicants Room — {{ job.title }}{% endblock %}
 
 {% block content %}
+<div id="room-page">
 <style>
-  .app-room {
-    max-width: 1100px;
-    margin: 26px auto;
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 18px;
-    color: var(--text-main);
-  }
-  .app-room-panel,
-  .app-room-chat {
-    border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    background: var(--bg-card);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-  }
-  .app-room-panel { padding: 16px; }
-  .app-room-chat { display: flex; flex-direction: column; min-height: 72vh; overflow: hidden; }
-  .app-room-title { margin: 0; font-size: 20px; }
-  .app-room-subtitle { color: var(--text-muted); margin: 6px 0 0; font-size: 14px; }
-  .app-room-back { text-decoration: none; font-weight: 700; color: var(--link-color, #2f9e44); }
-  .app-list { margin-top: 16px; display: grid; gap: 8px; max-height: 62vh; overflow: auto; }
-  .app-card {
-    background: var(--bg-surface);
-    border: 1px solid rgba(148, 163, 184, 0.22);
-    border-radius: 12px;
-    padding: 10px 12px;
-  }
-  .app-card small { color: var(--text-muted); }
-
-  .chat-head {
-    padding: 14px 16px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-    background: var(--bg-surface-soft);
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: center;
-  }
-  .chat-head h4 { margin: 0; }
-  .room-role { font-size: 12px; color: var(--text-muted); }
-
-  .room-messages {
-    padding: 14px;
-    overflow-y: auto;
-    flex: 1;
-    background: linear-gradient(180deg, rgba(37,99,235,.04), rgba(2,132,199,.02));
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .room-bubble {
-    max-width: 78%;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: var(--bg-surface);
-    border: 1px solid rgba(148, 163, 184, 0.25);
-  }
-  .room-bubble.me {
-    margin-left: auto;
-    background: rgba(34, 197, 94, 0.15);
-    border-color: rgba(34,197,94,.4);
-  }
-  .room-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-
-  .room-input {
-    border-top: 1px solid rgba(148, 163, 184, 0.22);
-    padding: 12px;
-    display: flex;
-    gap: 8px;
-    background: var(--bg-card);
-  }
-  .room-input input {
-    flex: 1;
-    border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    background: var(--bg-surface);
-    color: var(--text-main);
-    padding: 11px 14px;
-  }
-  .room-input button {
-    border: none;
-    border-radius: 999px;
-    padding: 0 18px;
-    font-weight: 700;
-    color: #fff;
-    background: linear-gradient(135deg,#16a34a,#0f766e);
-  }
-  .room-empty { color: var(--text-muted); text-align: center; margin-top: 14px; }
-
-  @media (max-width: 900px) {
-    .app-room { grid-template-columns: 1fr; }
-    .app-room-chat { min-height: 65vh; }
-  }
+#room-page {
+  --chat-bg: linear-gradient(180deg, rgba(8, 47, 73, 0.16), rgba(8, 47, 73, 0.04));
+  --chat-card: color-mix(in srgb, var(--bg-card) 92%, #0f172a 8%);
+  --chat-surface: var(--bg-surface);
+  --chat-surface-soft: var(--bg-surface-soft);
+  --chat-text: var(--text-main);
+  --chat-muted: var(--text-muted);
+  --chat-border: rgba(148, 163, 184, 0.25);
+  --chat-accent: #25d366;
+  --chat-accent-dark: #128c7e;
+}
+#room-page .chat-wrap{display:flex;gap:16px;max-width:1200px;margin:22px auto;color:var(--chat-text)}
+#room-page .sidebar{flex:0 0 280px;border:1px solid var(--chat-border);border-radius:20px;background:var(--chat-card);overflow:hidden}
+#room-page .sidebar h3{padding:14px 16px;border-bottom:1px solid var(--chat-border);margin:0;color:var(--chat-accent-dark)}
+#room-page .applicant{display:block;padding:11px 14px;border-bottom:1px solid var(--chat-border)}
+#room-page .applicant small{display:block;color:var(--chat-muted)}
+#room-page .chat-container{flex:1;display:flex;flex-direction:column;border:1px solid var(--chat-border);border-radius:20px;background:var(--chat-card);overflow:hidden;max-height:calc(100vh - 70px)}
+#room-page .chat-head{padding:16px;border-bottom:1px solid var(--chat-border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--chat-surface),var(--chat-surface-soft))}
+#room-page .chat-head a{text-decoration:none;color:var(--chat-accent-dark);font-weight:600}
+#room-page .chat-box{flex:1;overflow:auto;padding:16px;background:var(--chat-bg);display:flex;flex-direction:column;gap:10px}
+#room-page .bubble{max-width:72%;padding:8px 12px;border-radius:14px 14px 14px 4px;background:var(--chat-surface);border:1px solid var(--chat-border);position:relative}
+#room-page .bubble.me{margin-left:auto;background:rgba(34,197,94,.18);border-radius:14px 14px 4px 14px}
+#room-page .meta{font-size:11px;color:var(--chat-muted);margin-top:5px}
+#room-page .reply-ref{border-left:3px solid var(--chat-accent);padding:4px 8px;margin-bottom:6px;background:rgba(18,140,126,.12);border-radius:8px;font-size:12px}
+#room-page .reply-preview{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--chat-border);background:var(--chat-surface-soft)}
+#room-page .room-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--chat-border)}
+#room-page input{flex:1;border-radius:999px;border:1px solid var(--chat-border);padding:11px 14px;background:var(--chat-surface-soft);color:var(--chat-text)}
+#room-page button{border:none;border-radius:999px;padding:11px 17px;background:linear-gradient(135deg,var(--chat-accent),var(--chat-accent-dark));color:#fff;font-weight:700}
+#room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:190px}
+#room-page #room-menu ul{margin:0;padding:8px;list-style:none}
+#room-page #room-menu li{padding:8px 10px;border-radius:8px;cursor:pointer}
+#room-page #room-menu li:hover{background:rgba(37,211,102,.13)}
+#room-page .forward-modal{position:fixed;inset:0;background:rgba(2,6,23,.6);display:none;align-items:center;justify-content:center;z-index:3200}
+#room-page .forward-modal.show{display:flex}
+#room-page .forward-panel{width:min(480px,100%);max-height:80vh;overflow:auto;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:16px;padding:12px}
+#room-page .forward-target{display:block;width:100%;text-align:left;margin:8px 0;padding:10px;border:1px solid var(--chat-border);border-radius:10px;background:var(--chat-surface-soft);cursor:pointer}
+@media(max-width:900px){#room-page .chat-wrap{flex-direction:column}}
 </style>
 
-<div class="app-room">
-  <aside class="app-room-panel">
-    <a class="app-room-back" href="{% if request.GET.app_id %}{% url 'employer_chat' job.id %}?app_id={{ request.GET.app_id }}{% elif request.GET.application_id %}{% url 'job_chat' request.GET.application_id %}{% else %}javascript:history.back(){% endif %}">← Back to chat</a>
-    <h3 class="app-room-title">Applicants Room</h3>
-    <p class="app-room-subtitle"><strong>{{ applicants_count }}</strong> applicant{{ applicants_count|pluralize }} in <strong>{{ job.title }}</strong>.</p>
-
-    <div class="app-list">
-      {% for application in applicants %}
-        <div class="app-card">
-          <div><strong>{{ application.applicant.username }}</strong></div>
-          <small>{{ application.applicant.email }}</small>
-        </div>
-      {% empty %}
-        <div class="app-card">No applicants found for this job.</div>
-      {% endfor %}
-    </div>
+<div class="chat-wrap">
+  <aside class="sidebar">
+    <h3>Applicants room</h3>
+    {% for application in applicants %}
+      <div class="applicant" data-app-id="{{ application.id }}" data-username="{{ application.applicant.username|escape }}">
+        <strong>{{ application.applicant.username }}</strong>
+        <small>{{ application.applicant.email }}</small>
+      </div>
+    {% empty %}
+      <div class="applicant">No applicants found.</div>
+    {% endfor %}
   </aside>
 
-  <section class="app-room-chat">
+  <section class="chat-container">
     <div class="chat-head">
       <div>
-        <h4>Group conversation</h4>
-        <div class="room-role">Employer + all applicants can message here.</div>
+        <strong>{{ job.title }}</strong>
+        <div style="font-size:12px;color:var(--chat-muted)">Room chat for employer + all applicants</div>
       </div>
+      <a href="{% if request.GET.app_id %}{% url 'employer_chat' job.id %}?app_id={{ request.GET.app_id }}{% elif request.GET.application_id %}{% url 'job_chat' request.GET.application_id %}{% else %}javascript:history.back(){% endif %}">Back to private chat</a>
     </div>
 
-    <div class="room-messages" id="room-messages">
+     <div class="chat-box" id="room-messages">
       {% for message in room_messages %}
-        <div class="room-bubble {% if message.sender_id == request.user.id %}me{% endif %}">
+        <div class="bubble {% if message.sender_id == request.user.id %}me{% endif %}" data-id="{{ message.id }}" data-sender="{{ message.sender.username|escape }}" data-text="{{ message.message|escape }}">
           <div><strong>{{ message.sender.username }}</strong></div>
-          <div>{{ message.message }}</div>
-          <div class="room-meta">{{ message.timestamp|date:'M d, Y H:i' }}</div>
+          {% if message.reply_to %}
+          <div class="reply-ref"><strong>{{ message.reply_to.sender.username }}</strong><div>{{ message.reply_to.message|truncatechars:80 }}</div></div>
+          {% endif %}
+          <div class="message-text">{{ message.message }}</div>
+          <div class="meta">{{ message.timestamp|date:'M d, Y H:i' }}</div>
         </div>
       {% empty %}
-        <div class="room-empty" id="room-empty">No group messages yet. Start the conversation 👋</div>
+        <div id="room-empty" style="text-align:center;opacity:.7">No group messages yet. Start the conversation 👋</div>
       {% endfor %}
+    </div>
+
+    <div class="reply-preview" id="reply-preview" hidden>
+      <div><strong>Replying to </strong><span id="reply-sender"></span><div id="reply-text" style="font-size:12px;color:var(--chat-muted)"></div></div>
+      <button id="cancel-reply" type="button" style="padding:6px 10px">✕</button>
     </div>
 
     <form class="room-input" id="room-form" onsubmit="return false;">
       {% csrf_token %}
-      <input id="room-input" type="text" placeholder="Message all applicants in this room…" maxlength="2000" autocomplete="off" {% if not seed_application %}disabled{% endif %}>
+      <input id="room-input" type="text" placeholder="Type a message…" maxlength="2000" autocomplete="off" {% if not seed_application %}disabled{% endif %}>
       <button id="room-send" type="button" {% if not seed_application %}disabled{% endif %}>Send</button>
     </form>
-    {% if not seed_application %}
-      <div class="room-empty" style="padding:0 12px 12px;">Room is unavailable until at least one active application exists.</div>
-    {% endif %}
   </section>
+</div>
+
+<div id="room-menu">
+  <ul>
+    <li data-action="reply">Reply</li>
+    <li data-action="copy">Copy</li>
+    <li data-action="forward">Forward to applicant chat</li>
+    <li data-action="private">Reply privately</li>
+  </ul>
+</div>
+
+<div id="forward-modal" class="forward-modal">
+  <div class="forward-panel">
+    <strong>Forward message to applicant chat</strong>
+    <div id="forward-list"></div>
+    <button id="close-forward" type="button" style="margin-top:8px">Close</button>
+  </div>
 </div>
 
 {% if seed_application %}
 <script>
 (function(){
   const username = "{{ request.user.username|escapejs }}";
+  const isEmployer = {{ job.employer_id }} === {{ request.user.id }};
+  const viewerAppId = {% if viewer_application %}{{ viewer_application.id }}{% else %}null{% endif %};
   const appId = {{ seed_application.id }};
   const box = document.getElementById("room-messages");
   const empty = document.getElementById("room-empty");
   const input = document.getElementById("room-input");
+  const menu = document.getElementById("room-menu");
+  const forwardModal = document.getElementById("forward-modal");
+  const forwardList = document.getElementById("forward-list");
+  const closeForward = document.getElementById("close-forward");
+  const replyPreview = document.getElementById("reply-preview");
+  const replySender = document.getElementById("reply-sender");
+  const replyText = document.getElementById("reply-text");
+  const cancelReply = document.getElementById("cancel-reply");
+
+  let activeBubble = null;
+  let forwardMessage = null;
+
+  const applicantMap = {};
+  document.querySelectorAll('.sidebar .applicant[data-app-id]').forEach((el)=>{
+    applicantMap[(el.dataset.username || '').trim()] = el.dataset.appId;
+  });
+
   const send = document.getElementById("room-send");
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
-
-  function scrollBottom(){ box.scrollTop = box.scrollHeight; }
+  function scrollBottom(){ if(box) box.scrollTop = box.scrollHeight; }
   scrollBottom();
 
-  function escapeHtml(text){
-    const div = document.createElement("div");
-    div.textContent = text || "";
-    return div.innerHTML;
-  }
+  function escapeHtml(text){ const d = document.createElement('div'); d.textContent = text || ''; return d.innerHTML; }
 
-  function addMessage(sender, message, timestamp){
-    if(empty) empty.remove();
-    const isMe = sender === username;
-    const el = document.createElement("div");
-    el.className = `room-bubble ${isMe ? "me" : ""}`;
-    const meta = timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString();
-    el.innerHTML = `<div><strong>${escapeHtml(sender)}</strong></div>
-                    <div>${escapeHtml(message)}</div>
-                    <div class="room-meta">${escapeHtml(meta)}</div>`;
+  function addMessage(data){
+    const el = document.createElement('div');
+    const isMe = data.sender === username;
+    el.className = `bubble ${isMe ? 'me' : ''}`;
+    el.dataset.id = data.id;
+    el.dataset.sender = data.sender;
+    el.dataset.text = data.message;
+    el.innerHTML = `<div><strong>${escapeHtml(data.sender)}</strong></div>${data.reply_html || ''}<div class="message-text">${escapeHtml(data.message)}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
     box.appendChild(el);
     scrollBottom();
   }
 
-  function submit(){
+  function sendMessage(){
     const text = input.value.trim();
     if(!text || socket.readyState !== 1) return;
-    socket.send(JSON.stringify({action: "job_message", message: text}));
-    input.value = "";
+    const payload = { action: 'job_message', message: text };
+    if(input.dataset.replyId){ payload.reply_to = input.dataset.replyId; }
+    socket.send(JSON.stringify(payload));
+    input.value = '';
+    delete input.dataset.replyId;
+    replyPreview.hidden = true;
   }
 
-  send.addEventListener("click", submit);
-  input.addEventListener("keydown", (e)=>{
-    if(e.key === "Enter"){
-      e.preventDefault();
-      submit();
+  function openForward(bubble){
+    if(!bubble) return;
+    forwardMessage = bubble.dataset.text || '';
+    forwardList.innerHTML = '';
+    Object.entries(applicantMap).forEach(([name, targetId])=>{
+      const btn = document.createElement('button');
+      btn.className = 'forward-target';
+      btn.type = 'button';
+      btn.textContent = `${name}`;
+      btn.addEventListener('click', ()=>{
+        if(socket.readyState !== 1) return;
+        socket.send(JSON.stringify({ action:'forward_text', message: forwardMessage, target_apps:[targetId] }));
+        forwardModal.classList.remove('show');
+      });
+      forwardList.appendChild(btn);
+    });
+    forwardModal.classList.add('show');
+  }
+
+  function privateReply(bubble){
+    const sender = (bubble.dataset.sender || '').trim();
+    const targetApp = applicantMap[sender];
+    if(isEmployer && targetApp){
+      window.location.href = `{% url 'employer_chat' job.id %}?app_id=${targetApp}`;
+      return;
     }
+    if(!isEmployer && sender === "{{ job.employer.username|escapejs }}" && viewerAppId){
+      window.location.href = `{% url 'job_chat' 0 %}`.replace('/0/', `/${viewerAppId}/`);
+      return;
+    }
+    alert('Private reply is available between employer and applicant only.');
+  }
+
+  function showMenu(bubble, x, y){
+    activeBubble = bubble;
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.style.display = 'block';
+  }
+  function hideMenu(){ menu.style.display = 'none'; }
+
+  send.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
+  cancelReply.addEventListener('click', ()=>{ delete input.dataset.replyId; replyPreview.hidden = true; });
+  closeForward.addEventListener('click', ()=>forwardModal.classList.remove('show'));
+  forwardModal.addEventListener('click', (e)=>{ if(e.target===forwardModal) forwardModal.classList.remove('show'); });
+
+  box.addEventListener('contextmenu', (e)=>{
+    const bubble = e.target.closest('.bubble');
+    if(!bubble) return;
+    e.preventDefault();
+    showMenu(bubble, e.pageX, e.pageY);
   });
+
+  menu.querySelectorAll('li').forEach((item)=>{
+    item.addEventListener('click', ()=>{
+      if(!activeBubble) return;
+      const action = item.dataset.action;
+      if(action === 'copy') navigator.clipboard.writeText(activeBubble.dataset.text || '');
+      if(action === 'reply'){
+        input.dataset.replyId = activeBubble.dataset.id;
+        replySender.textContent = activeBubble.dataset.sender || '';
+        replyText.textContent = activeBubble.dataset.text || '';
+        replyPreview.hidden = false;
+        input.focus();
+      }
+      if(action === 'forward') openForward(activeBubble);
+      if(action === 'private') privateReply(activeBubble);
+      hideMenu();
+    });
+  });
+
+  document.addEventListener('click', (e)=>{ if(!menu.contains(e.target)) hideMenu(); });
 
   socket.onmessage = (e)=>{
     const data = JSON.parse(e.data);
-    const type = data.type && data.type.startsWith("chat.") ? data.type.slice(5) : data.type;
-    if(type === "job_message") addMessage(data.sender, data.message, data.timestamp);
+    const type = data.type && data.type.startsWith('chat.') ? data.type.slice(5) : data.type;
+    if(type === 'job_message') addMessage(data);
+    if(type === 'forward_done') alert(`Forwarded ${data.count} message(s).`);
   };
 })();
 </script>
 {% endif %}
+</div>
 {% endblock %}
