@@ -328,11 +328,20 @@ body {
     position: relative;
 }
 
+.password-wrapper input {
+    padding-right: 2.8rem;
+}
+
 .toggle-eye {
     position: absolute;
     top: 50%;
     right: 12px;
     transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     font-size: 18px;
     color: var(--text-muted);
@@ -362,7 +371,11 @@ body {
   }
 }
 
-.toggle-eye img { width: 18px; height: 18px; display: block; }
+.toggle-eye img { width: 18px; height: 18px; display: block; filter: var(--eye-icon-filter, none); }
+
+@media (prefers-color-scheme: dark) {
+    .toggle-eye img { --eye-icon-filter: brightness(0) invert(1); }
+}
 
 </style>
 
