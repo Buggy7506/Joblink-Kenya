@@ -22,12 +22,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.application_id = self.scope["url_route"]["kwargs"].get("application_id")
         self.group_name = f"chat_{self.application_id}"
         self.job_group_name = None
+        self.user_group_name = None
         
         user = self.scope.get("user") or AnonymousUser()
 
         if not self.application_id or not user.is_authenticated:
             await self.close()
             return
+
+        self.user_group_name = f"user_{user.id}"
 
         allowed = await self.user_can_join(self.application_id, user.id)
         if not allowed:
@@ -39,6 +42,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.job_group_name = f"job_applicants_{job_id}"
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.channel_layer.group_add(self.user_group_name, self.channel_name)
         if self.job_group_name:
             is_participant = await self.user_is_job_participant(job_id, user.id)
             if is_participant:
@@ -50,6 +54,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(
                 self.group_name,
+                self.channel_name,
+            )
+        if getattr(self, "user_group_name", None):
+            await self.channel_layer.group_discard(
+                self.user_group_name,
                 self.channel_name,
             )
         if getattr(self, "job_group_name", None):
@@ -165,10 +174,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_delete(self, user, payload):
         msg_id = payload.get("id")
+        mode = payload.get("mode") or "everyone"
         if not msg_id:
             return
 
-        deleted = await self.delete_message(msg_id, user.id)
+        if mode == "me":
+            can_hide = await self.user_can_access_message(msg_id, user.id, self.application_id)
+            if not can_hide:
+                return
+
+            await self.channel_layer.group_send(
+                self.user_group_name,
+                {
+                    "type": "chat.delete_me",
+                    "id": msg_id,
+                    "application_id": str(self.application_id),
+                    "sender": user.username,
+                },
+            )
+            return
+
+        deleted = await self.delete_message_for_everyone(msg_id, user.id)
         if not deleted:
             return
 
@@ -342,6 +368,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_delete(self, event):
         await self.send(text_data=json.dumps(event))
 
+    async def chat_delete_me(self, event):
+        await self.send(text_data=json.dumps(event))
+
     async def chat_reply(self, event):
         await self.send(text_data=json.dumps(event))
 
@@ -436,15 +465,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
-    def delete_message(self, message_id, user_id):
+    def delete_message_for_everyone(self, message_id, user_id):
         try:
             msg = ChatMessage.objects.get(id=message_id, sender_id=user_id)
             msg.message = "This message was deleted"
             msg.is_edited = False
-            msg.save(update_fields=["message", "is_edited"])
+            msg.is_pinned = False
+            msg.save(update_fields=["message", "is_edited", "is_pinned"])
+            PinnedMessage.objects.filter(message=msg).delete()
             return True
         except ChatMessage.DoesNotExist:
             return False
+
+    @database_sync_to_async
+    def user_can_access_message(self, message_id, user_id, application_id):
+        return ChatMessage.objects.filter(
+            id=message_id,
+            application_id=application_id,
+            application__job__is_deleted=False,
+        ).filter(
+            models.Q(application__applicant_id=user_id) | models.Q(application__job__employer_id=user_id)
+        ).exists()
 
     @database_sync_to_async
     def toggle_pin(self, message_id, user_id, pin_state):
