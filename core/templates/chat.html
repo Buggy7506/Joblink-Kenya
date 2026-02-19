@@ -495,6 +495,54 @@ body.light-mode #chat-page {
   object-fit: contain;
 }
 
+#chat-page .forward-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.62);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  padding: 16px;
+}
+#chat-page .forward-modal.show { display: flex; }
+#chat-page .forward-panel {
+  width: min(520px, 100%);
+  max-height: 80vh;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--chat-border);
+  background: var(--chat-surface);
+  box-shadow: 0 24px 50px rgba(2, 6, 23, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+#chat-page .forward-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--chat-border);
+}
+#chat-page .forward-list {
+  padding: 10px;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+}
+#chat-page .forward-target {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--chat-border);
+  border-radius: 12px;
+  background: var(--chat-surface-soft);
+  color: var(--chat-text);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+#chat-page .forward-target:hover { border-color: var(--chat-accent-dark); }
+
 /* Responsive Sidebar Drawer */
 #chat-page #sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px); z-index: 999; opacity: 0; transition: opacity 0.3s ease; }
 @media (max-width: 900px) {
@@ -699,6 +747,17 @@ body.light-mode #chat-page {
   </ul>
 </div>
 
+
+<div id="forward-modal" class="forward-modal" aria-hidden="true">
+  <div class="forward-panel">
+    <div class="forward-head">
+      <strong>Forward to applicant chat</strong>
+      <button type="button" id="forward-close" class="reply-cancel" aria-label="Close">✕</button>
+    </div>
+    <div class="forward-list" id="forward-list"></div>
+  </div>
+</div>
+
 <script>
 (function(){
   const sidebar = document.getElementById("sidebar");
@@ -743,6 +802,10 @@ body.light-mode #chat-page {
   const selectedCount = document.getElementById("selected-count");
   const clearSelectedBtn = document.getElementById("clear-selected-btn");
   const forwardSelectedBtn = document.getElementById("forward-selected-btn");
+  const forwardModal = document.getElementById("forward-modal");
+  const forwardList = document.getElementById("forward-list");
+  const forwardClose = document.getElementById("forward-close");
+  let pendingForwardMessageIds = [];
   
   // WebSocket setup
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
@@ -910,6 +973,53 @@ body.light-mode #chat-page {
       msgElem.classList.add("selected-message");
     }
     updateSelectionUi();
+  }
+
+
+  function buildForwardTargets(){
+    const links = document.querySelectorAll('.sidebar .applicant:not(.deleted)[data-app-id]');
+    const seen = new Set();
+    const targets = [];
+    links.forEach(link => {
+      const appId = (link.dataset.appId || '').trim();
+      if(!appId || seen.has(appId)) return;
+      seen.add(appId);
+      targets.push({ id: appId, label: (link.textContent || '').trim() || `Chat #${appId}` });
+    });
+    if(!targets.length && appId){
+      targets.push({ id: String(appId), label: 'Current chat' });
+    }
+    return targets;
+  }
+
+  function openForwardPicker(messageIds){
+    pendingForwardMessageIds = (messageIds || []).map(String).filter(Boolean);
+    if(!pendingForwardMessageIds.length || !forwardModal || !forwardList) return;
+    const targets = buildForwardTargets();
+    forwardList.innerHTML = '';
+    if(!targets.length){
+      forwardList.innerHTML = '<p style="opacity:.7;padding:8px;">No target applicants available.</p>';
+    }
+    targets.forEach(target => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'forward-target';
+      btn.textContent = target.label;
+      btn.addEventListener('click', ()=>{
+        socket.send(JSON.stringify({ action: 'forward', message_ids: pendingForwardMessageIds, target_apps: [target.id] }));
+        closeForwardPicker();
+      });
+      forwardList.appendChild(btn);
+    });
+    forwardModal.classList.add('show');
+    forwardModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeForwardPicker(){
+    pendingForwardMessageIds = [];
+    if(!forwardModal) return;
+    forwardModal.classList.remove('show');
+    forwardModal.setAttribute('aria-hidden', 'true');
   }
 
   function clearSelection(){
@@ -1167,17 +1277,7 @@ body.light-mode #chat-page {
         socket.send(JSON.stringify({action:"delete", id: msgId, mode:"everyone"}));
     }
     else if(action === "forward"){
-        const targetAppsRaw = prompt("Enter target chat IDs separated by commas (example: 12,18):");
-        if(targetAppsRaw){
-            const targetApps = targetAppsRaw.split(",").map(v => v.trim()).filter(Boolean);
-            if(targetApps.length){
-              socket.send(JSON.stringify({
-                  action: "forward",
-                  message_ids: [msgId],
-                  target_apps: targetApps
-              }));
-            }
-        }
+        openForwardPicker([msgId]);
     }
     else if(action==="pin") {
       const isPinned = msgElem.classList.contains("pinned");
@@ -1215,15 +1315,7 @@ body.light-mode #chat-page {
   if(forwardSelectedBtn){
     forwardSelectedBtn.addEventListener("click", ()=>{
       if(!selectedMessageIds.size) return;
-      const targetAppsRaw = prompt("Enter target chat IDs separated by commas (example: 12,18):");
-      if(!targetAppsRaw) return;
-      const targetApps = targetAppsRaw.split(",").map(v => v.trim()).filter(Boolean);
-      if(!targetApps.length) return;
-      socket.send(JSON.stringify({
-        action: "forward",
-        message_ids: Array.from(selectedMessageIds),
-        target_apps: targetApps
-      }));
+      openForwardPicker(Array.from(selectedMessageIds));
     });
   }
   
@@ -1262,6 +1354,16 @@ body.light-mode #chat-page {
   }
 
   addLongPress(chatBox);
+
+
+  if(forwardClose){
+    forwardClose.addEventListener('click', closeForwardPicker);
+  }
+  if(forwardModal){
+    forwardModal.addEventListener('click', (e)=>{
+      if(e.target === forwardModal) closeForwardPicker();
+    });
+  }
 
   // Hide menu when clicking outside
   document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
