@@ -88,6 +88,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "pin": self.handle_pin,
             "get_pins": self.handle_get_pins,
             "forward": self.handle_forward,
+            "forward_text": self.handle_forward_text,
             "job_message": self.handle_job_message,
         }
 
@@ -257,6 +258,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
             source_application_id=self.application_id,
             sender_id=user.id,
             message_ids=message_ids,
+            target_app_ids=target_apps,
+        )
+        if not forwarded:
+            return
+
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "chat.forward_done",
+                    "count": forwarded,
+                }
+            )
+        )
+
+
+    async def handle_forward_text(self, user, payload):
+        target_apps = payload.get("target_apps") or []
+        message_text = (payload.get("message") or "").strip()
+        if isinstance(target_apps, str):
+            target_apps = [app_id.strip() for app_id in target_apps.split(",") if app_id.strip()]
+        if not message_text or not isinstance(target_apps, list):
+            return
+
+        forwarded = await self.forward_text_to_apps(
+            sender_id=user.id,
+            message_text=message_text,
             target_app_ids=target_apps,
         )
         if not forwarded:
@@ -500,6 +527,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     message=f"[Forwarded] {original.message}",
                 )
                 created_count += 1
+        return created_count
+
+
+    @database_sync_to_async
+    def forward_text_to_apps(self, sender_id, message_text, target_app_ids):
+        target_ids = [int(app_id) for app_id in target_app_ids if str(app_id).isdigit()]
+        if not target_ids:
+            return 0
+
+        allowed_targets = set(
+            Application.objects.filter(id__in=target_ids).filter(
+                models.Q(applicant_id=sender_id) | models.Q(job__employer_id=sender_id)
+            ).values_list("id", flat=True)
+        )
+        if not allowed_targets:
+            return 0
+
+        created_count = 0
+        for target_id in allowed_targets:
+            ChatMessage.objects.create(
+                application_id=target_id,
+                sender_id=sender_id,
+                message=f"[Forwarded] {message_text}",
+            )
+            created_count += 1
         return created_count
 
     @database_sync_to_async
