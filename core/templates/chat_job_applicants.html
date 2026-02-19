@@ -25,7 +25,7 @@
 #room-page .chat-head{padding:16px;border-bottom:1px solid var(--chat-border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--chat-surface),var(--chat-surface-soft))}
 #room-page .chat-head a{text-decoration:none;color:var(--chat-accent-dark);font-weight:600}
 #room-page .chat-box{flex:1;overflow:auto;padding:16px;background:var(--chat-bg);display:flex;flex-direction:column;gap:10px}
-#room-page .bubble{max-width:72%;padding:8px 12px;border-radius:14px 14px 14px 4px;background:var(--chat-surface);border:1px solid var(--chat-border);position:relative}
+#room-page .bubble{max-width:72%;padding:8px 12px;border-radius:14px 14px 14px 4px;background:var(--chat-surface);border:1px solid var(--chat-border);position:relative;-webkit-user-select:none;user-select:none}
 #room-page .bubble.me{margin-left:auto;background:rgba(34,197,94,.18);border-radius:14px 14px 4px 14px}
 #room-page .bubble.selected-message{outline:2px solid var(--chat-accent-dark)}
 #room-page .meta{font-size:11px;color:var(--chat-muted);margin-top:5px}
@@ -36,8 +36,13 @@
 #room-page .bulk-actions button{border:1px solid var(--chat-border);border-radius:999px;width:36px;height:36px;padding:0;background:var(--chat-surface);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 #room-page .bulk-actions button img{width:18px;height:18px}
 #room-page .reply-preview{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--chat-border);background:var(--chat-surface-soft)}
-#room-page .room-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--chat-border)}
-#room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:220px}
+#room-page .room-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--chat-border);background:var(--chat-surface);align-items:center}
+#room-page .room-input input{flex:1;min-width:0;padding:12px 16px;border-radius:999px;border:1px solid var(--chat-border);background:var(--chat-surface-soft);color:var(--chat-text);outline:none}
+#room-page .room-input input:focus{border-color:var(--chat-accent-dark);box-shadow:0 0 0 3px rgba(18,140,126,.15)}
+#room-page .room-input button{padding:12px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--chat-accent),var(--chat-accent-dark));color:#fff;font-weight:700;cursor:pointer}
+#room-page .room-input button:disabled,#room-page .room-input input:disabled{opacity:.6;cursor:not-allowed}
+#room-page .theme-icon,#room-page .menu-svg-icon{width:18px;height:18px;filter:var(--chat-icon-filter,none);opacity:1;display:block}
+
 #room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:190px}
 #room-page #room-menu ul{margin:0;padding:8px;list-style:none}
 #room-page #room-menu li{padding:8px 10px;border-radius:8px;cursor:pointer}
@@ -157,6 +162,27 @@
   let activeBubble = null;
   let forwardMessage = null;
   const selectedMessageIds = new Set();
+  const hiddenMessagesStorageKey = `room_hidden_messages_${appId}_${username}`;
+
+  function getHiddenMessageIds(){
+    try {
+      const raw = localStorage.getItem(hiddenMessagesStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch (err) {
+      return new Set();
+    }
+  }
+  function persistHiddenMessageIds(hiddenIds){
+    localStorage.setItem(hiddenMessagesStorageKey, JSON.stringify(Array.from(hiddenIds)));
+  }
+  function applyHiddenMessagesToDom(){
+    const hiddenIds = getHiddenMessageIds();
+    if(!hiddenIds.size) return;
+    box.querySelectorAll('.bubble[data-id]').forEach((bubble)=>{
+      if(hiddenIds.has(String(bubble.dataset.id))) bubble.remove();
+    });
+  }
   
   const applicantMap = {};
   document.querySelectorAll('.sidebar .applicant[data-app-id]').forEach((el)=>{
@@ -168,7 +194,8 @@
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
   function scrollBottom(){ if(box) box.scrollTop = box.scrollHeight; }
   scrollBottom();
-
+  applyHiddenMessagesToDom();
+  
   function escapeHtml(text){ const d = document.createElement('div'); d.textContent = text || ''; return d.innerHTML; }
 
   function buildReplySnippet(replyData){
@@ -191,6 +218,11 @@
     const replyHtml = buildReplySnippet(forcedReplyTo || data.replyTo);
     el.innerHTML = `<div><strong>${escapeHtml(data.sender)}</strong></div>${replyHtml}<div class="message-text">${escapeHtml(data.message)}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
     box.appendChild(el);
+    const hiddenIds = getHiddenMessageIds();
+    if(hiddenIds.has(String(data.id))){
+      hiddenIds.delete(String(data.id));
+      persistHiddenMessageIds(hiddenIds);
+    }
     scrollBottom();
   }
 
@@ -238,8 +270,18 @@
     alert('Private reply is available between employer and applicant only.');
   }
 
-  function showMenu(bubble, x, y){
+  function showMenu(bubble){
     activeBubble = bubble;
+    const rect = bubble.getBoundingClientRect();
+    const menuHeight = menu.offsetHeight || 180;
+    const menuWidth = menu.offsetWidth || 190;
+    let x = rect.left;
+    let y = rect.bottom + 6;
+    if(y + menuHeight > window.innerHeight - 8){ y = rect.top - menuHeight - 6; }
+    if(x + menuWidth > window.innerWidth - 8){ x = window.innerWidth - menuWidth - 8; }
+    if(x < 8) x = 8;
+    if(y < 8) y = 8;
+    menu.style.position = 'fixed';
     menu.style.left = `${x}px`;
     menu.style.top = `${y}px`;
     menu.style.display = 'block';
@@ -283,6 +325,9 @@
     if(messageId && socket.readyState === 1){
       socket.send(JSON.stringify({ action:'delete', id: messageId, mode:'me' }));
     }
+    const hiddenIds = getHiddenMessageIds();
+    hiddenIds.add(String(messageId));
+    persistHiddenMessageIds(hiddenIds);
     bubble.remove();
     selectedMessageIds.delete(String(messageId));
     updateSelectionUi();
@@ -335,7 +380,7 @@
     const bubble = e.target.closest('.bubble');
     if(!bubble) return;
     e.preventDefault();
-    showMenu(bubble, e.pageX, e.pageY);
+    showMenu(bubble);
   });
 
   box.addEventListener('click', (e)=>{
@@ -346,6 +391,11 @@
       toggleSelection(bubble);
     }
   });
+
+  box.addEventListener('selectstart', (e)=>{
+    if(e.target.closest('.bubble')) e.preventDefault();
+  });
+
   box.addEventListener('dblclick', (e)=>{
     const bubble = e.target.closest('.bubble');
     if(!bubble) return;
