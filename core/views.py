@@ -3508,7 +3508,7 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} sent you a new message about '{app.job.title}'."
                 )
 
-        messages_list = app.messages.all().order_by("timestamp")
+        messages_list = app.messages.exclude(hidden_for__user=user).order_by("timestamp")
         selected_app = app
 
         # Mark employer messages as read when applicant views
@@ -3563,7 +3563,7 @@ def chat_view(request, application_id=None, job_id=None):
                     message=f"{user.username} (employer) sent you a new message about '{selected_app.job.title}'."
                 )
 
-        messages_list = selected_app.messages.all().order_by("timestamp") if selected_app else []
+        messages_list = selected_app.messages.exclude(hidden_for__user=user).order_by("timestamp") if selected_app else []
 
         # Mark applicant messages as read when employer views
         if selected_app:
@@ -3626,7 +3626,7 @@ def chat_view(request, application_id=None, job_id=None):
                     selected_app = applications.first()
 
                 if selected_app:
-                    messages_list = selected_app.messages.select_related(
+                    messages_list = selected_app.messages.exclude(hidden_for__user=user).select_related(
                         "sender",
                         "reply_to",
                         "reply_to__sender",
@@ -3661,7 +3661,7 @@ def chat_view(request, application_id=None, job_id=None):
                 selected_app = applications.first()
 
             if selected_app:
-                messages_list = selected_app.messages.select_related(
+                messages_list = selected_app.messages.exclude(hidden_for__user=user).select_related(
                     "sender",
                     "reply_to",
                     "reply_to__sender",
