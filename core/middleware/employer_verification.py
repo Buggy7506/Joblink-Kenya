@@ -1,7 +1,10 @@
 # core/middleware/employer_verification.py
 
+import asyncio
+
 from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import Resolver404, resolve
 from inspect import isawaitable
@@ -54,7 +57,13 @@ class EmployerVerificationMiddleware:
             return response
         downstream_response = self.get_response(request)
         if isawaitable(downstream_response):
-            return await downstream_response
+            try:
+                return await downstream_response
+            except asyncio.CancelledError:
+                # Client disconnected while Django was still rendering the response.
+                # Returning an empty response prevents noisy error traces from
+                # bubbling up through the async middleware stack.
+                return HttpResponse(status=204)
         return downstream_response
 
     def _process_request(self, request, user, get_response=None):
