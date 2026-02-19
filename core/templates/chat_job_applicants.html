@@ -15,7 +15,9 @@
   --chat-border: rgba(148, 163, 184, 0.25);
   --chat-accent: #25d366;
   --chat-accent-dark: #128c7e;
+  --chat-icon-filter: brightness(0) invert(1);
 }
+body.light-mode #room-page { --chat-icon-filter: none; }
 #room-page .chat-wrap{display:flex;gap:16px;max-width:1200px;margin:22px auto;color:var(--chat-text)}
 #room-page .sidebar{flex:0 0 280px;border:1px solid var(--chat-border);border-radius:20px;background:var(--chat-card);overflow:hidden}
 #room-page .sidebar h3{padding:14px 16px;border-bottom:1px solid var(--chat-border);margin:0;color:var(--chat-accent-dark)}
@@ -41,7 +43,7 @@
 #room-page .room-input input:focus{border-color:var(--chat-accent-dark);box-shadow:0 0 0 3px rgba(18,140,126,.15)}
 #room-page .room-input button{padding:12px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--chat-accent),var(--chat-accent-dark));color:#fff;font-weight:700;cursor:pointer}
 #room-page .room-input button:disabled,#room-page .room-input input:disabled{opacity:.6;cursor:not-allowed}
-#room-page .theme-icon,#room-page .menu-svg-icon{width:18px;height:18px;filter:var(--chat-icon-filter,none);opacity:1;display:block}
+#room-page .theme-icon,#room-page .menu-svg-icon{width:18px;height:18px;filter:var(--chat-icon-filter);opacity:.8;display:block;object-fit:contain}
 
 #room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:190px}
 #room-page #room-menu ul{margin:0;padding:8px;list-style:none}
