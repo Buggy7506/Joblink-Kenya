@@ -549,6 +549,11 @@
   top: 50%;
   right: 0.65rem;
   transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   background: none;
   cursor: pointer;
@@ -581,7 +586,16 @@
   .auth-page .phone-group { --country-select-width: 82px; }
 }
 
-.auth-page .auth-eye img { width: 18px; height: 18px; display: block; }
+.auth-page .auth-eye img {
+  width: 18px;
+  height: 18px;
+  display: block;
+  filter: var(--eye-icon-filter, none);
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-page .auth-eye img { --eye-icon-filter: brightness(0) invert(1); }
+}
 
 </style>
 
