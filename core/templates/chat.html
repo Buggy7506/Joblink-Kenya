@@ -333,7 +333,7 @@ body.light-mode #chat-page {
 #chat-page .bulk-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   padding: 8px 16px;
   border-bottom: 1px solid var(--chat-border);
@@ -346,10 +346,19 @@ body.light-mode #chat-page {
 #chat-page .bulk-actions button {
   border: 1px solid var(--chat-border);
   border-radius: 999px;
-  padding: 6px 12px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   background: var(--chat-surface);
   color: var(--chat-text);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#chat-page .bulk-actions button img {
+  width: 18px;
+  height: 18px;
 }
   
 /* Reply preview */
@@ -643,8 +652,21 @@ body.light-mode #chat-page {
     <div class="bulk-actions" id="bulk-actions" hidden>
       <span id="selected-count">0 selected</span>
       <div class="bulk-actions-buttons">
-        <button type="button" id="forward-selected-btn">Forward</button>
-        <button type="button" id="clear-selected-btn">Cancel</button>
+        <button type="button" id="copy-selected-btn" title="Copy">
+          <img src="{% static 'icons/content_copy.svg' %}" class="theme-icon" alt="Copy">
+        </button>
+        <button type="button" id="reply-selected-btn" title="Reply">
+          <img src="{% static 'icons/reply.svg' %}" class="theme-icon" alt="Reply">
+        </button>
+        <button type="button" id="forward-selected-btn" title="Forward">
+          <img src="{% static 'icons/forward.svg' %}" class="theme-icon" alt="Forward">
+        </button>
+        <button type="button" id="delete-selected-btn" title="Delete for me">
+          <img src="{% static 'icons/delete_for_me.svg' %}" class="theme-icon" alt="Delete for me">
+        </button>
+        <button type="button" id="clear-selected-btn" title="Cancel selection">
+          <img src="{% static 'icons/cancel.svg' %}" class="theme-icon" alt="Cancel">
+        </button>
       </div>
     </div>
 
@@ -801,6 +823,9 @@ body.light-mode #chat-page {
   const bulkActions = document.getElementById("bulk-actions");
   const selectedCount = document.getElementById("selected-count");
   const clearSelectedBtn = document.getElementById("clear-selected-btn");
+  const copySelectedBtn = document.getElementById("copy-selected-btn");
+  const replySelectedBtn = document.getElementById("reply-selected-btn");
+  const deleteSelectedBtn = document.getElementById("delete-selected-btn");
   const forwardSelectedBtn = document.getElementById("forward-selected-btn");
   const forwardModal = document.getElementById("forward-modal");
   const forwardList = document.getElementById("forward-list");
@@ -975,6 +1000,17 @@ body.light-mode #chat-page {
     updateSelectionUi();
   }
 
+  function getSelectedBubbles(){
+    if(!chatBox) return [];
+    return Array.from(selectedMessageIds)
+      .map(id => chatBox.querySelector(`.bubble[data-id="${id}"]`))
+      .filter(Boolean);
+  }
+
+  function getNewestSelectedBubble(){
+    const selected = getSelectedBubbles();
+    return selected.length ? selected[selected.length - 1] : null;
+  }
 
   function buildForwardTargets(){
     const links = document.querySelectorAll('.sidebar .applicant:not(.deleted)[data-app-id]');
@@ -1266,8 +1302,12 @@ body.light-mode #chat-page {
     }
     else if(action === "delete-me"){
         const wasPinned = msgElem.classList.contains("pinned");
+
+        socket.send(JSON.stringify({action:"delete", id: msgId, mode:"me"}));
         msgElem.remove();
+        selectedMessageIds.delete(String(msgId));
         if(wasPinned) updatePinnedState(msgId, false);
+        updateSelectionUi();
     }
     else if(action === "delete-everyone"){
         if(!msgElem.classList.contains("me")) {
@@ -1312,13 +1352,43 @@ body.light-mode #chat-page {
     clearSelectedBtn.addEventListener("click", clearSelection);
   }
 
+  if(copySelectedBtn){
+    copySelectedBtn.addEventListener("click", ()=>{
+      const text = getSelectedBubbles().map(b => b.dataset.text || "").filter(Boolean).join("\n");
+      if(text) navigator.clipboard.writeText(text);
+    });
+  }
+
+  if(replySelectedBtn){
+    replySelectedBtn.addEventListener("click", ()=>{
+      const target = getNewestSelectedBubble();
+      if(!target) return;
+      showReplyPreview({
+        id: target.dataset.id,
+        text: target.dataset.text || "",
+        sender: target.dataset.sender || "Unknown",
+      });
+      if(input) input.focus();
+      clearSelection();
+    });
+  }
+
+  if(deleteSelectedBtn){
+    deleteSelectedBtn.addEventListener("click", ()=>{
+      const selected = getSelectedBubbles();
+      selected.forEach((bubble)=>{
+        handleAction("delete-me", bubble);
+      });
+      clearSelection();
+    });
+  }
+
   if(forwardSelectedBtn){
     forwardSelectedBtn.addEventListener("click", ()=>{
       if(!selectedMessageIds.size) return;
       openForwardPicker(Array.from(selectedMessageIds));
     });
   }
-  
   
   // Right-click to open menu
   if(chatBox){
