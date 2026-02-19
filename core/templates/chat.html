@@ -850,44 +850,6 @@ body.light-mode #chat-page {
     return type.startsWith("chat.") ? type.slice(5) : type;
   }
 
-  const hiddenMessagesStorageKey = `chat_hidden_messages_${appId || "global"}_${username}`;
-  function getHiddenMessageIds(){
-    try {
-      const raw = localStorage.getItem(hiddenMessagesStorageKey);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
-    } catch (err) {
-      return new Set();
-    }
-  }
-  function persistHiddenMessageIds(hiddenIds){
-    localStorage.setItem(hiddenMessagesStorageKey, JSON.stringify(Array.from(hiddenIds)));
-  }
-  function hideMessagePermanentlyForMe(msgElem){
-    if(!msgElem || !msgElem.dataset.id) return;
-    const hiddenIds = getHiddenMessageIds();
-    hiddenIds.add(String(msgElem.dataset.id));
-    persistHiddenMessageIds(hiddenIds);
-    msgElem.remove();
-  }
-  function removeHiddenMessageMark(msgId){
-    if(!msgId) return;
-    const hiddenIds = getHiddenMessageIds();
-    if(!hiddenIds.has(String(msgId))) return;
-    hiddenIds.delete(String(msgId));
-    persistHiddenMessageIds(hiddenIds);
-  }
-  function applyHiddenMessagesToDom(){
-    if(!chatBox) return;
-    const hiddenIds = getHiddenMessageIds();
-    if(!hiddenIds.size) return;
-    chatBox.querySelectorAll('.bubble[data-id]').forEach((bubble)=>{
-      if(hiddenIds.has(String(bubble.dataset.id))){
-        bubble.remove();
-      }
-    });
-  }
-
   function escapeHtml(text){
     const div = document.createElement("div");
     div.textContent = text || "";
@@ -1196,7 +1158,6 @@ body.light-mode #chat-page {
         replyTo: replyTo,
       });
       chatBox.appendChild(bubble);
-      removeHiddenMessageMark(data.id);
       scrollBottom(chatBox);
     } else if(eventType === "edit"){
       const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
@@ -1225,7 +1186,7 @@ body.light-mode #chat-page {
       const msg = chatBox.querySelector(`.bubble[data-id="${data.id}"]`);
       if(msg){
         const wasPinned = msg.classList.contains("pinned");
-        hideMessagePermanentlyForMe(msg);
+        msg.remove();
         selectedMessageIds.delete(String(data.id));
         if(wasPinned) updatePinnedState(data.id, false);
         updateSelectionUi();
@@ -1248,7 +1209,6 @@ body.light-mode #chat-page {
   }
 
   initPinnedFromDom();
-  applyHiddenMessagesToDom();
   
   // --- Context menu + long-press ---
   function showMenu(msgElem){
