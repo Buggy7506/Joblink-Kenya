@@ -6,7 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.utils import timezone
 
-from .models import Application, ChatMessage, JobApplicantsMessage, PinnedMessage
+from .models import Application, ChatMessage, HiddenChatMessage, JobApplicantsMessage, PinnedMessage
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -179,8 +179,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         if mode == "me":
-            can_hide = await self.user_can_access_message(msg_id, user.id, self.application_id)
-            if not can_hide:
+            hidden = await self.hide_message_for_user(msg_id, user.id, self.application_id)
+            if not hidden:
                 return
 
             await self.channel_layer.group_send(
@@ -473,6 +473,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             msg.is_pinned = False
             msg.save(update_fields=["message", "is_edited", "is_pinned"])
             PinnedMessage.objects.filter(message=msg).delete()
+            return True
+        except ChatMessage.DoesNotExist:
+            return False
+
+
+    @database_sync_to_async
+    def hide_message_for_user(self, message_id, user_id, application_id):
+        try:
+            msg = ChatMessage.objects.filter(
+                id=message_id,
+                application_id=application_id,
+                application__job__is_deleted=False,
+            ).filter(
+                models.Q(application__applicant_id=user_id) | models.Q(application__job__employer_id=user_id)
+            ).first()
+            if not msg:
+                return False
+
+            HiddenChatMessage.objects.get_or_create(message=msg, user_id=user_id)
             return True
         except ChatMessage.DoesNotExist:
             return False
