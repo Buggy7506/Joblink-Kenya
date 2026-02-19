@@ -519,6 +519,21 @@ body.light-mode #chat-page {
   #chat-page .chat-input { flex-direction: column; gap: 8px; }
   #chat-page .chat-input button { width: 100%; }
 }
+
+/* Safe fallback rules to keep chat layout stable after dynamic actions */
+#chat-page .chat-container,
+#chat-page .chat-box,
+#chat-page .chat-input,
+#chat-page .bulk-actions,
+#chat-page .reply-preview {
+  box-sizing: border-box;
+}
+#chat-page .chat-container {
+  isolation: isolate;
+}
+#chat-page .chat-box > .bubble {
+  display: block;
+}
 </style>
 
 
@@ -607,6 +622,7 @@ body.light-mode #chat-page {
           {% endif %}
           <div class="message-text">{{ m.message }}</div>
           <div class="meta">{{ m.timestamp }}{% if m.is_edited %} (edited){% endif %}{% if m.is_read and m.sender_id == request.user.id %} ✓{% endif %}</div>
+        </div>
       {% empty %}
         <p style="opacity:.7;text-align:center;margin-top:16px;">No messages yet. Say hi 👋</p>
       {% endfor %}
@@ -1099,14 +1115,11 @@ body.light-mode #chat-page {
     const deletedContainer = document.getElementById("deleted-applicants");
     if(deletedContainer) deletedContainer.appendChild(appLink);
 
-    // Disable click and add hover effect
+    // Disable click for deleted applicant
     appLink.addEventListener('click', e => {
         e.preventDefault();
         alert("This application has been deleted and cannot be accessed.");
     });
-
-    appLink.addEventListener('mouseenter', () => appLink.style.backgroundColor="rgba(255,0,0,0.05)");
-    appLink.addEventListener('mouseleave', () => appLink.style.backgroundColor="transparent");
   }
 
   // Example: listen for WebSocket delete events for applications
@@ -1253,7 +1266,7 @@ body.light-mode #chat-page {
   // Hide menu when clicking outside
   document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
 
-  // Disable clicks and hover effects for deleted applicants
+  // Disable clicks for deleted applicants
 document.addEventListener("DOMContentLoaded", function(){
     const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
 
@@ -1262,9 +1275,6 @@ document.addEventListener("DOMContentLoaded", function(){
             e.preventDefault();
             alert("This application has been deleted and cannot be accessed.");
         });
-
-        app.addEventListener('mouseenter', () => app.style.backgroundColor="rgba(255,0,0,0.05)");
-        app.addEventListener('mouseleave', () => app.style.backgroundColor="transparent");
     });
 });
 
