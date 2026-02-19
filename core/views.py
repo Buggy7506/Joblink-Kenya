@@ -3725,6 +3725,7 @@ def chat_job_applicants(request):
     ).select_related("applicant", "job").order_by("-applied_on")
 
     seed_application = applicants.filter(is_deleted=False).first()
+    viewer_application = applicants.filter(applicant=request.user).first()
     room_messages = JobApplicantsMessage.objects.filter(job=job).select_related("sender")
 
     return render(request, "chat_job_applicants.html", {
@@ -3732,6 +3733,7 @@ def chat_job_applicants(request):
         "applicants": applicants,
         "applicants_count": applicants.count(),
         "seed_application": seed_application,
+        "viewer_application": viewer_application,
         "room_messages": room_messages,
         "from_chat": True,
     })
