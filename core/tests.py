@@ -619,3 +619,50 @@ class RequestShieldMiddlewareTests(SimpleTestCase):
         response = asyncio.run(middleware(request))
 
         self.assertEqual(response.status_code, 404)
+
+
+class OAuthProfilePictureMirrorTests(SimpleTestCase):
+    def test_sync_profile_picture_to_profile_updates_profile_picture_field(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+
+        from core.views import _sync_profile_picture_to_profile
+
+        profile = SimpleNamespace(profile_pic=None, save=Mock())
+        uploaded_picture = SimpleNamespace(url="https://example.com/pic.jpg")
+        user = SimpleNamespace(pk=42, profile=profile, profile_pic=uploaded_picture)
+
+        synced = _sync_profile_picture_to_profile(user)
+
+        self.assertTrue(synced)
+        self.assertEqual(profile.profile_pic, uploaded_picture)
+        profile.save.assert_called_once_with(update_fields=["profile_pic"])
+
+    def test_sync_oauth_profile_picture_calls_profile_mirror_on_success(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+
+        from core.views import _sync_oauth_profile_picture
+
+        user = SimpleNamespace(
+            pk=7,
+            id=7,
+            username="google-user",
+            email="google@example.com",
+            profile_pic=SimpleNamespace(save=Mock()),
+        )
+
+        with patch("core.views.requests.get") as mock_get, patch(
+            "core.views._sync_profile_picture_to_profile", return_value=True
+        ) as mock_profile_sync:
+            mock_get.return_value = SimpleNamespace(status_code=200, content=b"image-bytes")
+
+            synced = _sync_oauth_profile_picture(
+                user,
+                "https://example.com/new-avatar.jpg",
+                provider="google",
+            )
+
+        self.assertTrue(synced)
+        user.profile_pic.save.assert_called_once()
+        mock_profile_sync.assert_called_once_with(user)
