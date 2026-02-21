@@ -99,6 +99,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "forward": self.handle_forward,
             "forward_text": self.handle_forward_text,
             "job_message": self.handle_job_message,
+            "job_typing": self.handle_job_typing,
+            "job_edit": self.handle_job_edit,
+            "job_delete": self.handle_job_delete,
         }
 
         handler = handlers.get(action)
@@ -332,6 +335,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not text:
             return
 
+        recipient_id = payload.get("recipient_id")
+        reply_to = payload.get("reply_to")
+
         allowed = await self.user_is_job_participant_by_application(self.application_id, user.id)
         if not allowed:
             return
@@ -340,13 +346,72 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not job_id:
             return
 
-        room_msg = await self.save_job_room_message(job_id, user.id, text)
+        room_msg = await self.save_job_room_message(
+            job_id,
+            user.id,
+            text,
+            recipient_id=recipient_id,
+            reply_to=reply_to,
+        )
+        if not room_msg:
+            return
 
         await self.channel_layer.group_send(
             self.job_group_name,
             {
                 "type": "chat.job_message",
                 **room_msg,
+            },
+        )
+
+    async def handle_job_typing(self, user, payload):
+        if not self.job_group_name:
+            return
+        await self.channel_layer.group_send(
+            self.job_group_name,
+            {
+                "type": "chat.job_typing",
+                "sender": user.username,
+                "sender_id": user.id,
+                "typing": bool(payload.get("typing")),
+                "recipient_id": payload.get("recipient_id"),
+            },
+        )
+
+    async def handle_job_edit(self, user, payload):
+        msg_id = payload.get("id")
+        new_text = (payload.get("message") or "").strip()
+        if not msg_id or not new_text:
+            return
+        updated = await self.edit_job_room_message(msg_id, user.id, new_text)
+        if not updated:
+            return
+        await self.channel_layer.group_send(
+            self.job_group_name,
+            {
+                "type": "chat.job_edit",
+                "id": msg_id,
+                "message": new_text,
+                "sender": user.username,
+                "is_edited": True,
+            },
+        )
+
+    async def handle_job_delete(self, user, payload):
+        msg_id = payload.get("id")
+        if not msg_id:
+            return
+        deleted = await self.delete_job_room_message(msg_id, user.id)
+        if not deleted:
+            return
+        await self.channel_layer.group_send(
+            self.job_group_name,
+            {
+                "type": "chat.job_delete",
+                "id": msg_id,
+                "sender": user.username,
+                "message": "This message was deleted",
+                "deleted": True,
             },
         )
 
@@ -378,6 +443,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event))
 
     async def chat_job_message(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def chat_job_typing(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def chat_job_edit(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def chat_job_delete(self, event):
         await self.send(text_data=json.dumps(event))
 
     # ==========================
@@ -420,19 +494,61 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return Application.objects.filter(job_id=app.job_id, applicant_id=user_id).exists()
 
     @database_sync_to_async
-    def save_job_room_message(self, job_id, sender_id, message):
+    def save_job_room_message(self, job_id, sender_id, message, recipient_id=None, reply_to=None):
+        valid_participant_ids = set(
+            Application.objects.filter(job_id=job_id).values_list("applicant_id", flat=True)
+        )
+        employer_id = Application.objects.filter(job_id=job_id).values_list("job__employer_id", flat=True).first()
+        if employer_id:
+            valid_participant_ids.add(employer_id)
+
+        normalized_recipient_id = None
+        if str(recipient_id).isdigit() and int(recipient_id) in valid_participant_ids:
+            normalized_recipient_id = int(recipient_id)
+
+        reply_to_id = None
+        if str(reply_to).isdigit():
+            candidate = JobApplicantsMessage.objects.filter(id=reply_to, job_id=job_id).first()
+            if candidate:
+                reply_to_id = candidate.id
+
         msg = JobApplicantsMessage.objects.create(
             job_id=job_id,
             sender_id=sender_id,
             message=message,
+            recipient_id=normalized_recipient_id,
+            reply_to_id=reply_to_id,
         )
         return {
             "id": msg.id,
             "sender": msg.sender.username,
+            "sender_id": msg.sender_id,
             "message": msg.message,
+            "recipient_id": msg.recipient_id,
+            "recipient": msg.recipient.username if msg.recipient_id else None,
+            "reply_to": msg.reply_to_id,
+            "reply_sender": msg.reply_to.sender.username if msg.reply_to_id else None,
+            "reply_text": msg.reply_to.message if msg.reply_to_id else None,
             "timestamp": msg.timestamp.isoformat(),
         }
-    
+
+    @database_sync_to_async
+    def edit_job_room_message(self, message_id, user_id, new_text):
+        updated = JobApplicantsMessage.objects.filter(id=message_id, sender_id=user_id).update(
+            message=new_text,
+            is_edited=True,
+        )
+        return bool(updated)
+
+    @database_sync_to_async
+    def delete_job_room_message(self, message_id, user_id):
+        updated = JobApplicantsMessage.objects.filter(id=message_id, sender_id=user_id).update(
+            message="This message was deleted",
+            is_edited=False,
+            reply_to=None,
+        )
+        return bool(updated)
+        
     @database_sync_to_async
     def save_message(self, application_id, sender_id, message, reply_to=None):
         app = Application.objects.get(id=application_id)
