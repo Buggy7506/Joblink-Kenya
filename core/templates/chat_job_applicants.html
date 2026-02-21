@@ -5,18 +5,7 @@
 {% block content %}
 <div id="room-page">
 <style>
-#room-page {
-  --chat-bg: linear-gradient(180deg, rgba(8, 47, 73, 0.16), rgba(8, 47, 73, 0.04));
-  --chat-card: color-mix(in srgb, var(--bg-card) 92%, #0f172a 8%);
-  --chat-surface: var(--bg-surface);
-  --chat-surface-soft: var(--bg-surface-soft);
-  --chat-text: var(--text-main);
-  --chat-muted: var(--text-muted);
-  --chat-border: rgba(148, 163, 184, 0.25);
-  --chat-accent: #25d366;
-  --chat-accent-dark: #128c7e;
-  --chat-icon-filter: brightness(0) invert(1);
-}
+#room-page { --chat-bg: linear-gradient(180deg, rgba(8, 47, 73, 0.16), rgba(8, 47, 73, 0.04)); --chat-card: color-mix(in srgb, var(--bg-card) 92%, #0f172a 8%); --chat-surface: var(--bg-surface); --chat-surface-soft: var(--bg-surface-soft); --chat-text: var(--text-main); --chat-muted: var(--text-muted); --chat-border: rgba(148, 163, 184, 0.25); --chat-accent: #25d366; --chat-accent-dark: #128c7e; --chat-icon-filter: brightness(0) invert(1); }
 body.light-mode #room-page { --chat-icon-filter: none; }
 #room-page .chat-wrap{display:flex;gap:16px;max-width:1200px;margin:22px auto;color:var(--chat-text)}
 #room-page .sidebar{flex:0 0 280px;border:1px solid var(--chat-border);border-radius:20px;background:var(--chat-card);overflow:hidden}
@@ -31,20 +20,22 @@ body.light-mode #room-page { --chat-icon-filter: none; }
 #room-page .bubble.me{margin-left:auto;background:rgba(34,197,94,.18);border-radius:14px 14px 4px 14px}
 #room-page .bubble.selected-message{outline:2px solid var(--chat-accent-dark)}
 #room-page .meta{font-size:11px;color:var(--chat-muted);margin-top:5px}
+#room-page .recipient-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(37,211,102,.15);color:var(--chat-accent-dark);margin-bottom:6px}
 #room-page .reply-reference{border-left:3px solid var(--chat-accent);padding:4px 8px;margin-bottom:6px;background:rgba(18,140,126,.12);border-radius:8px;font-size:12px}
-#room-page .reply-ref{border-left:3px solid var(--chat-accent);padding:4px 8px;margin-bottom:6px;background:rgba(18,140,126,.12);border-radius:8px;font-size:12px}
+#room-page .typing-indicator{font-size:12px;color:var(--chat-muted);padding:0 14px 8px}
 #room-page .bulk-actions{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--chat-border);background:var(--chat-surface-soft)}
 #room-page .bulk-actions-buttons{display:inline-flex;gap:8px}
 #room-page .bulk-actions button{border:1px solid var(--chat-border);border-radius:999px;width:36px;height:36px;padding:0;background:var(--chat-surface);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 #room-page .bulk-actions button img{width:18px;height:18px}
 #room-page .reply-preview{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--chat-border);background:var(--chat-surface-soft)}
-#room-page .room-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--chat-border);background:var(--chat-surface);align-items:center}
+#room-page .room-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--chat-border);background:var(--chat-surface);align-items:center;flex-wrap:wrap}
+#room-page .room-target{width:100%;display:flex;gap:8px;align-items:center}
+#room-page .room-target select{flex:1;min-width:0;padding:8px;border-radius:10px;border:1px solid var(--chat-border);background:var(--chat-surface-soft);color:var(--chat-text)}
 #room-page .room-input input{flex:1;min-width:0;padding:12px 16px;border-radius:999px;border:1px solid var(--chat-border);background:var(--chat-surface-soft);color:var(--chat-text);outline:none}
 #room-page .room-input input:focus{border-color:var(--chat-accent-dark);box-shadow:0 0 0 3px rgba(18,140,126,.15)}
 #room-page .room-input button{padding:12px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--chat-accent),var(--chat-accent-dark));color:#fff;font-weight:700;cursor:pointer}
-#room-page .room-input button:disabled,#room-page .room-input input:disabled{opacity:.6;cursor:not-allowed}
+#room-page .room-input button:disabled,#room-page .room-input input:disabled,#room-page .room-target select:disabled{opacity:.6;cursor:not-allowed}
 #room-page .theme-icon,#room-page .menu-svg-icon{width:18px;height:18px;filter:var(--chat-icon-filter);opacity:.8;display:block;object-fit:contain}
-
 #room-page #room-menu{position:absolute;display:none;z-index:3000;background:var(--chat-surface);border:1px solid var(--chat-border);border-radius:12px;min-width:190px}
 #room-page #room-menu ul{margin:0;padding:8px;list-style:none}
 #room-page #room-menu li{padding:8px 10px;border-radius:8px;cursor:pointer}
@@ -62,7 +53,7 @@ body.light-mode #room-page { --chat-icon-filter: none; }
   <aside class="sidebar">
     <h3>Applicants room</h3>
     {% for application in applicants %}
-      <div class="applicant" data-app-id="{{ application.id }}" data-username="{{ application.applicant.username|escape }}">
+      <div class="applicant" data-app-id="{{ application.id }}" data-user-id="{{ application.applicant_id }}" data-username="{{ application.applicant.username|escape }}">
         <strong>{{ application.applicant.username }}</strong>
         <small>{{ application.applicant.email }}</small>
       </div>
@@ -92,10 +83,11 @@ body.light-mode #room-page { --chat-icon-filter: none; }
     </div>
     <div class="chat-box" id="room-messages">
       {% for message in room_messages %}
-        <div class="bubble {% if message.sender_id == request.user.id %}me{% endif %}" data-id="{{ message.id }}" data-sender="{{ message.sender.username|escape }}" data-text="{{ message.message|escape }}" {% if message.reply_to %}data-reply-id="{{ message.reply_to.id }}" data-reply-sender="{{ message.reply_to.sender.username|escape }}" data-reply-text="{{ message.reply_to.message|escape }}"{% endif %}>
+        <div class="bubble {% if message.sender_id == request.user.id %}me{% endif %}" data-id="{{ message.id }}" data-sender="{{ message.sender.username|escape }}" data-sender-id="{{ message.sender_id }}" data-text="{{ message.message|escape }}" {% if message.reply_to %}data-reply-id="{{ message.reply_to.id }}" data-reply-sender="{{ message.reply_to.sender.username|escape }}" data-reply-text="{{ message.reply_to.message|escape }}"{% endif %} {% if message.recipient_id %}data-recipient-id="{{ message.recipient_id }}" data-recipient="{{ message.recipient.username|escape }}"{% endif %}>
           <div><strong>{{ message.sender.username }}</strong></div>
+        <div class="bubble {% if message.sender_id == request.user.id %}me{% endif %}" data-id="{{ message.id }}" data-sender="{{ message.sender.username|escape }}" data-sender-id="{{ message.sender_id }}" data-text="{{ message.message|escape }}" {% if message.reply_to %}data-reply-id="{{ message.reply_to.id }}" data-reply-sender="{{ message.reply_to.sender.username|escape }}" data-reply-text="{{ message.reply_to.message|escape }}"{% endif %} {% if message.recipient_id %}data-recipient-id="{{ message.recipient_id }}" data-recipient="{{ message.recipient.username|escape }}"{% endif %}>
           {% if message.reply_to %}
-          <div class="reply-reference"><strong>{{ message.reply_to.sender.username }}</strong><div>{{ message.reply_to.message|truncatechars:80 }}</div></div>
+          <div class="reply-reference"><strong>Replying to {{ message.reply_to.sender.username }}</strong><div>{{ message.reply_to.message|truncatechars:80 }}</div></div>
           {% endif %}
           <div class="message-text">{{ message.message }}</div>
           <div class="meta">{{ message.timestamp|date:'M d, Y H:i' }}</div>
@@ -104,6 +96,7 @@ body.light-mode #room-page { --chat-icon-filter: none; }
         <div id="room-empty" style="text-align:center;opacity:.7">No group messages yet. Start the conversation 👋</div>
       {% endfor %}
     </div>
+    <div id="typing-indicator" class="typing-indicator" hidden></div>
 
     <div class="reply-preview" id="reply-preview" hidden>
       <div><strong>Replying to </strong><span id="reply-sender"></span><div id="reply-text" style="font-size:12px;color:var(--chat-muted)"></div></div>
@@ -112,21 +105,31 @@ body.light-mode #room-page { --chat-icon-filter: none; }
 
     <form class="room-input" id="room-form" onsubmit="return false;">
       {% csrf_token %}
+      <div class="room-target">
+        <label for="recipient-select">Recipient:</label>
+        <select id="recipient-select" {% if not seed_application %}disabled{% endif %}>
+          <option value="">Everyone</option>
+          {% if request.user.id != job.employer_id %}<option value="{{ job.employer_id }}">Only {{ job.employer.username }}</option>{% endif %}
+          {% for application in applicants %}
+            {% if request.user.id != application.applicant_id %}<option value="{{ application.applicant_id }}">Only {{ application.applicant.username }}</option>{% endif %}
+          {% endfor %}
+        </select>
+      </div>
       <input id="room-input" type="text" placeholder="Type a message…" maxlength="2000" autocomplete="off" {% if not seed_application %}disabled{% endif %}>
       <button id="room-send" type="button" {% if not seed_application %}disabled{% endif %}>Send</button>
     </form>
   </section>
 </div>
 
-<div id="room-menu">
-  <ul>
-    <li data-action="reply"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply</span></span></li>
-    <li data-action="copy"><span class="menu-item-content"><img src="{% static 'icons/content_copy.svg' %}" class="menu-svg-icon" alt=""><span>Copy</span></span></li>
-    <li data-action="forward"><span class="menu-item-content"><img src="{% static 'icons/forward.svg' %}" class="menu-svg-icon" alt=""><span>Forward to applicant chat</span></span></li>
-    <li data-action="delete-me"><span class="menu-item-content"><img src="{% static 'icons/delete_for_me.svg' %}" class="menu-svg-icon" alt=""><span>Delete for me</span></span></li>
-    <li data-action="private"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply privately</span></span></li>
-  </ul>
-</div>
+<div id="room-menu"><ul>
+  <li data-action="reply"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply</span></span></li>
+  <li data-action="copy"><span class="menu-item-content"><img src="{% static 'icons/content_copy.svg' %}" class="menu-svg-icon" alt=""><span>Copy</span></span></li>
+  <li data-action="forward"><span class="menu-item-content"><img src="{% static 'icons/forward.svg' %}" class="menu-svg-icon" alt=""><span>Forward to applicant chat</span></span></li>
+  <li data-action="delete"><span class="menu-item-content"><img src="{% static 'icons/delete_for_me.svg' %}" class="menu-svg-icon" alt=""><span>Delete</span></span></li>
+  <li data-action="private"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply privately</span></span></li>
+</ul></div>
+
+<div id="forward-modal" class="forward-modal"><div class="forward-panel"><strong>Forward message to applicant chat</strong><div id="forward-list"></div><button id="close-forward" type="button" style="margin-top:8px">Close</button></div></div>
 
 <div id="forward-modal" class="forward-modal">
   <div class="forward-panel">
@@ -140,11 +143,16 @@ body.light-mode #room-page { --chat-icon-filter: none; }
 <script>
 (function(){
   const username = "{{ request.user.username|escapejs }}";
-  const isEmployer = {{ job.employer_id }} === {{ request.user.id }};
+  const userId = {{ request.user.id }};
+  const employerId = {{ job.employer_id }};
+  const isEmployer = employerId === userId;
   const viewerAppId = {% if viewer_application %}{{ viewer_application.id }}{% else %}null{% endif %};
   const appId = {{ seed_application.id }};
   const box = document.getElementById("room-messages");
   const input = document.getElementById("room-input");
+  const send = document.getElementById("room-send");
+  const recipientSelect = document.getElementById("recipient-select");
+  const typingIndicator = document.getElementById("typing-indicator");
   const menu = document.getElementById("room-menu");
   const forwardModal = document.getElementById("forward-modal");
   const forwardList = document.getElementById("forward-list");
@@ -163,96 +171,70 @@ body.light-mode #room-page { --chat-icon-filter: none; }
 
   let activeBubble = null;
   let forwardMessage = null;
+  let typingTimeout = null;
   const selectedMessageIds = new Set();
-  const hiddenMessagesStorageKey = `room_hidden_messages_${appId}_${username}`;
-
-  function getHiddenMessageIds(){
-    try {
-      const raw = localStorage.getItem(hiddenMessagesStorageKey);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
-    } catch (err) {
-      return new Set();
-    }
-  }
-  function persistHiddenMessageIds(hiddenIds){
-    localStorage.setItem(hiddenMessagesStorageKey, JSON.stringify(Array.from(hiddenIds)));
-  }
-  function applyHiddenMessagesToDom(){
-    const hiddenIds = getHiddenMessageIds();
-    if(!hiddenIds.size) return;
-    box.querySelectorAll('.bubble[data-id]').forEach((bubble)=>{
-      if(hiddenIds.has(String(bubble.dataset.id))) bubble.remove();
-    });
-  }
-  
   const applicantMap = {};
-  document.querySelectorAll('.sidebar .applicant[data-app-id]').forEach((el)=>{
-    applicantMap[(el.dataset.username || '').trim()] = el.dataset.appId;
-  });
+  document.querySelectorAll('.sidebar .applicant[data-app-id]').forEach((el)=>{ applicantMap[(el.dataset.username || '').trim()] = el.dataset.appId; });
 
-  const send = document.getElementById("room-send");
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${appId}/`);
-  function scrollBottom(){ if(box) box.scrollTop = box.scrollHeight; }
-  scrollBottom();
-  applyHiddenMessagesToDom();
   
-  function escapeHtml(text){ const d = document.createElement('div'); d.textContent = text || ''; return d.innerHTML; }
+  function scrollBottom(){ if(box) box.scrollTop = box.scrollHeight; }
+  function escapeHtml(text){ const d=document.createElement('div'); d.textContent=text||''; return d.innerHTML; }
+  function showTyping(label){ typingIndicator.hidden = !label; typingIndicator.textContent = label || ''; }
 
   function buildReplySnippet(replyData){
     if(!replyData) return '';
-    return `<div class="reply-reference"><strong>${escapeHtml(replyData.sender || 'Unknown')}</strong><div>${escapeHtml(replyData.text || '')}</div></div>`;
+    return `<div class="reply-reference"><strong>Replying to ${escapeHtml(replyData.sender || 'Unknown')}</strong><div>${escapeHtml(replyData.text || '')}</div></div>`;
   }
 
   function addMessage(data, forcedReplyTo){
+    if(!box) return;
+    const recipientId = data.recipient_id ? String(data.recipient_id) : '';
+    if(recipientId && recipientId !== String(userId) && String(data.sender_id) !== String(userId)) return;
     const el = document.createElement('div');
     const isMe = data.sender === username;
     el.className = `bubble ${isMe ? 'me' : ''}`;
     el.dataset.id = data.id;
     el.dataset.sender = data.sender;
+    el.dataset.senderId = data.sender_id || '';
     el.dataset.text = data.message;
-    if(data.replyTo && data.replyTo.id){
-      el.dataset.replyId = data.replyTo.id;
-      el.dataset.replySender = data.replyTo.sender || '';
-      el.dataset.replyText = data.replyTo.text || '';
-    }
-    const replyHtml = buildReplySnippet(forcedReplyTo || data.replyTo);
-    el.innerHTML = `<div><strong>${escapeHtml(data.sender)}</strong></div>${replyHtml}<div class="message-text">${escapeHtml(data.message)}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
+    if(recipientId){ el.dataset.recipientId = recipientId; el.dataset.recipient = data.recipient || ''; }
+    const replyObj = forcedReplyTo || (data.reply_to ? {id:data.reply_to,sender:data.reply_sender,text:data.reply_text} : null);
+    if(replyObj && replyObj.id){ el.dataset.replyId = replyObj.id; el.dataset.replySender = replyObj.sender || ''; el.dataset.replyText = replyObj.text || ''; }
+    const recipientHtml = recipientId ? `<div class="recipient-badge">Private to ${escapeHtml(data.recipient || 'selected recipient')}</div>` : '';
+    const replyHtml = buildReplySnippet(replyObj);
+    el.innerHTML = `<div><strong>${escapeHtml(data.sender)}</strong></div>${recipientHtml}${replyHtml}<div class="message-text">${escapeHtml(data.message)}</div><div class="meta">${new Date(data.timestamp).toLocaleString()}</div>`;
     box.appendChild(el);
-    const hiddenIds = getHiddenMessageIds();
-    if(hiddenIds.has(String(data.id))){
-      hiddenIds.delete(String(data.id));
-      persistHiddenMessageIds(hiddenIds);
-    }
     scrollBottom();
+  }
+
+  function sendTyping(isTyping){
+    if(socket.readyState !== 1) return;
+    socket.send(JSON.stringify({ action:'job_typing', typing:isTyping, recipient_id: recipientSelect.value || null }));
   }
 
   function sendMessage(){
     const text = input.value.trim();
     if(!text || socket.readyState !== 1) return;
-    const payload = { action: 'job_message', message: text };
+    const payload = { action: input.dataset.editId ? 'job_edit' : 'job_message', message: text, recipient_id: recipientSelect.value || null };
+    if(input.dataset.editId){ payload.id = input.dataset.editId; }
     if(input.dataset.replyId){ payload.reply_to = input.dataset.replyId; }
     socket.send(JSON.stringify(payload));
     input.value = '';
     delete input.dataset.replyId;
+    delete input.dataset.editId;
     replyPreview.hidden = true;
+    sendTyping(false);
   }
 
   function openForwardByText(messageText){
-    forwardMessage = messageText || '';
-    if(!forwardMessage) return;
+    forwardMessage = messageText || ''; if(!forwardMessage) return;
     forwardList.innerHTML = '';
     Object.entries(applicantMap).forEach(([name, targetId])=>{
       const btn = document.createElement('button');
-      btn.className = 'forward-target';
-      btn.type = 'button';
-      btn.textContent = `${name}`;
-      btn.addEventListener('click', ()=>{
-        if(socket.readyState !== 1) return;
-        socket.send(JSON.stringify({ action:'forward_text', message: forwardMessage, target_apps:[targetId] }));
-        forwardModal.classList.remove('show');
-      });
+      btn.className = 'forward-target'; btn.type = 'button'; btn.textContent = name;
+      btn.addEventListener('click', ()=>{ if(socket.readyState === 1){ socket.send(JSON.stringify({ action:'forward_text', message: forwardMessage, target_apps:[targetId] })); } forwardModal.classList.remove('show'); });
       forwardList.appendChild(btn);
     });
     forwardModal.classList.add('show');
@@ -261,173 +243,69 @@ body.light-mode #room-page { --chat-icon-filter: none; }
   function privateReply(bubble){
     const sender = (bubble.dataset.sender || '').trim();
     const targetApp = applicantMap[sender];
-    if(isEmployer && targetApp){
-      window.location.href = `{% url 'employer_chat' job.id %}?app_id=${targetApp}`;
-      return;
-    }
-    if(!isEmployer && sender === "{{ job.employer.username|escapejs }}" && viewerAppId){
-      window.location.href = `{% url 'job_chat' 0 %}`.replace('/0/', `/${viewerAppId}/`);
-      return;
-    }
+    if(isEmployer && targetApp){ window.location.href = `{% url 'employer_chat' job.id %}?app_id=${targetApp}`; return; }
+    if(!isEmployer && sender === "{{ job.employer.username|escapejs }}" && viewerAppId){ window.location.href = `{% url 'job_chat' 0 %}`.replace('/0/', `/${viewerAppId}/`); return; }
     alert('Private reply is available between employer and applicant only.');
-  }
-
-  function showMenu(bubble){
-    activeBubble = bubble;
-    const rect = bubble.getBoundingClientRect();
-    const menuHeight = menu.offsetHeight || 180;
-    const menuWidth = menu.offsetWidth || 190;
-    let x = rect.left;
-    let y = rect.bottom + 6;
-    if(y + menuHeight > window.innerHeight - 8){ y = rect.top - menuHeight - 6; }
-    if(x + menuWidth > window.innerWidth - 8){ x = window.innerWidth - menuWidth - 8; }
-    if(x < 8) x = 8;
-    if(y < 8) y = 8;
-    menu.style.position = 'fixed';
-    menu.style.left = `${x}px`;
-    menu.style.top = `${y}px`;
-    menu.style.display = 'block';
-  }
-  function hideMenu(){ menu.style.display = 'none'; }
-
-  function updateSelectionUi(){
-    const count = selectedMessageIds.size;
-    selectedCount.textContent = `${count} selected`;
-    bulkActions.hidden = count === 0;
-  }
-
-  function getSelectedBubbles(){
-    return Array.from(selectedMessageIds)
-      .map(id => box.querySelector(`.bubble[data-id="${id}"]`))
-      .filter(Boolean);
-  }
-
-  function toggleSelection(bubble){
-    if(!bubble || !bubble.dataset.id) return;
-    const id = String(bubble.dataset.id);
-    if(selectedMessageIds.has(id)){
-      selectedMessageIds.delete(id);
-      bubble.classList.remove('selected-message');
-    } else {
-      selectedMessageIds.add(id);
-      bubble.classList.add('selected-message');
-    }
-    updateSelectionUi();
-  }
-
-  function clearSelection(){
-    selectedMessageIds.clear();
-    box.querySelectorAll('.bubble.selected-message').forEach((el)=>el.classList.remove('selected-message'));
-    updateSelectionUi();
-  }
-
-  function deleteForMe(bubble){
-    if(!bubble) return;
-    const messageId = bubble.dataset.id;
-    if(messageId && socket.readyState === 1){
-      socket.send(JSON.stringify({ action:'delete', id: messageId, mode:'me' }));
-    }
-    const hiddenIds = getHiddenMessageIds();
-    hiddenIds.add(String(messageId));
-    persistHiddenMessageIds(hiddenIds);
-    bubble.remove();
-    selectedMessageIds.delete(String(messageId));
-    updateSelectionUi();
   }
 
   function onAction(action, bubble){
     if(!bubble) return;
     if(action === 'copy') navigator.clipboard.writeText(bubble.dataset.text || '');
-    if(action === 'reply'){
-      input.dataset.replyId = bubble.dataset.id;
-      replySender.textContent = bubble.dataset.sender || '';
-      replyText.textContent = bubble.dataset.text || '';
-      replyPreview.hidden = false;
-      input.focus();
+    if(action === 'reply'){ input.dataset.replyId = bubble.dataset.id; replySender.textContent = bubble.dataset.sender || ''; replyText.textContent = bubble.dataset.text || ''; replyPreview.hidden = false; input.focus(); }
     }
     if(action === 'forward') openForwardByText(bubble.dataset.text || '');
-    if(action === 'delete-me') deleteForMe(bubble);
+    if(action === 'delete'){ if(socket.readyState===1 && bubble.dataset.id){ socket.send(JSON.stringify({ action:'job_delete', id:bubble.dataset.id })); } }
     if(action === 'private') privateReply(bubble);
-    hideMenu();
+    if(action === 'edit'){ input.dataset.editId = bubble.dataset.id; input.value = bubble.dataset.text || ''; input.focus(); }
+    menu.style.display = 'none';
   }
+
+  function updateSelectionUi(){ const count = selectedMessageIds.size; selectedCount.textContent = `${count} selected`; bulkActions.hidden = count === 0; }
+  function getSelectedBubbles(){ return Array.from(selectedMessageIds).map(id => box.querySelector(`.bubble[data-id="${id}"]`)).filter(Boolean); }
+  function toggleSelection(bubble){ if(!bubble || !bubble.dataset.id) return; const id = String(bubble.dataset.id); if(selectedMessageIds.has(id)){ selectedMessageIds.delete(id); bubble.classList.remove('selected-message'); } else { selectedMessageIds.add(id); bubble.classList.add('selected-message'); } updateSelectionUi(); }
+  function clearSelection(){ selectedMessageIds.clear(); box.querySelectorAll('.bubble.selected-message').forEach((el)=>el.classList.remove('selected-message')); updateSelectionUi(); }
 
   send.addEventListener('click', sendMessage);
   input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendMessage(); } });
+  input.addEventListener('input', ()=>{ sendTyping(Boolean(input.value.trim())); if(typingTimeout) clearTimeout(typingTimeout); typingTimeout = setTimeout(()=>sendTyping(false), 1200); });
   cancelReply.addEventListener('click', ()=>{ delete input.dataset.replyId; replyPreview.hidden = true; });
   closeForward.addEventListener('click', ()=>forwardModal.classList.remove('show'));
   forwardModal.addEventListener('click', (e)=>{ if(e.target===forwardModal) forwardModal.classList.remove('show'); });
 
   clearSelectedBtn.addEventListener('click', clearSelection);
-  copySelectedBtn.addEventListener('click', ()=>{
-    const text = getSelectedBubbles().map((b)=>b.dataset.text || '').filter(Boolean).join('\n');
-    if(text) navigator.clipboard.writeText(text);
-  });
-  replySelectedBtn.addEventListener('click', ()=>{
-    const selected = getSelectedBubbles();
-    const target = selected[selected.length - 1];
-    if(!target) return;
-    onAction('reply', target);
-    clearSelection();
-  });
-  forwardSelectedBtn.addEventListener('click', ()=>{
-    const text = getSelectedBubbles().map((b)=>b.dataset.text || '').filter(Boolean).join('\n');
-    if(text) openForwardByText(text);
-  });
-  deleteSelectedBtn.addEventListener('click', ()=>{
-    getSelectedBubbles().forEach((bubble)=>deleteForMe(bubble));
-    clearSelection();
-  });
+  copySelectedBtn.addEventListener('click', ()=>{ const text = getSelectedBubbles().map((b)=>b.dataset.text || '').filter(Boolean).join('\n'); if(text) navigator.clipboard.writeText(text); });
+  replySelectedBtn.addEventListener('click', ()=>{ const selected = getSelectedBubbles(); const target = selected[selected.length - 1]; if(!target) return; onAction('reply', target); clearSelection(); });
+  forwardSelectedBtn.addEventListener('click', ()=>{ const text = getSelectedBubbles().map((b)=>b.dataset.text || '').filter(Boolean).join('\n'); if(text) openForwardByText(text); });
+  deleteSelectedBtn.addEventListener('click', ()=>{ getSelectedBubbles().forEach((bubble)=>onAction('delete', bubble)); clearSelection(); });
 
-  box.addEventListener('contextmenu', (e)=>{
-    const bubble = e.target.closest('.bubble');
-    if(!bubble) return;
-    e.preventDefault();
-    showMenu(bubble);
-  });
+  box.addEventListener('contextmenu', (e)=>{ const bubble = e.target.closest('.bubble'); if(!bubble) return; e.preventDefault(); activeBubble = bubble; menu.style.display='block'; menu.style.left = `${Math.min(e.clientX, window.innerWidth-210)}px`; menu.style.top = `${Math.min(e.clientY, window.innerHeight-180)}px`; });
+  box.addEventListener('click', (e)=>{ const bubble = e.target.closest('.bubble'); if(!bubble) return; if(selectedMessageIds.size || e.ctrlKey || e.metaKey){ e.preventDefault(); toggleSelection(bubble); } });
+  box.addEventListener('dblclick', (e)=>{ const bubble = e.target.closest('.bubble'); if(!bubble) return; e.preventDefault(); toggleSelection(bubble); });
 
-  box.addEventListener('click', (e)=>{
-    const bubble = e.target.closest('.bubble');
-    if(!bubble) return;
-    if(selectedMessageIds.size || e.ctrlKey || e.metaKey){
-      e.preventDefault();
-      toggleSelection(bubble);
-    }
-  });
-
-  box.addEventListener('selectstart', (e)=>{
-    if(e.target.closest('.bubble')) e.preventDefault();
-  });
-
-  box.addEventListener('dblclick', (e)=>{
-    const bubble = e.target.closest('.bubble');
-    if(!bubble) return;
-    e.preventDefault();
-    toggleSelection(bubble);
-  });
-
-  menu.querySelectorAll('li').forEach((item)=>{
-    item.addEventListener('click', ()=>onAction(item.dataset.action, activeBubble));
-  });
-
-  document.addEventListener('click', (e)=>{ if(!menu.contains(e.target)) hideMenu(); });
+  menu.querySelectorAll('li').forEach((item)=>item.addEventListener('click', ()=>onAction(item.dataset.action, activeBubble)));
+  document.addEventListener('click', (e)=>{ if(!menu.contains(e.target)) menu.style.display='none'; });
 
   socket.onmessage = (e)=>{
     const data = JSON.parse(e.data);
     const type = data.type && data.type.startsWith('chat.') ? data.type.slice(5) : data.type;
-    if(type === 'job_message'){
-      let replyTo = null;
-      if(data.reply_to){
-        const replyElem = box.querySelector(`.bubble[data-id="${data.reply_to}"]`);
-        replyTo = {
-          id: data.reply_to,
-          sender: replyElem ? replyElem.dataset.sender : 'Unknown',
-          text: replyElem ? replyElem.dataset.text : '',
-        };
-      }
-      addMessage(data, replyTo);
+    if(type === 'job_message') addMessage(data);
+    if(type === 'job_edit'){
+      const msg = box.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){ msg.dataset.text = data.message; const text = msg.querySelector('.message-text'); if(text) text.textContent = data.message; }
+    }
+    if(type === 'job_delete'){
+      const msg = box.querySelector(`.bubble[data-id="${data.id}"]`);
+      if(msg){ msg.dataset.text = 'This message was deleted'; const text = msg.querySelector('.message-text'); if(text) text.textContent = 'This message was deleted'; }
+    }
+    if(type === 'job_typing' && data.sender !== username){
+      const recipientId = data.recipient_id ? String(data.recipient_id) : '';
+      const shouldShow = data.typing && (!recipientId || recipientId === String(userId));
+      showTyping(shouldShow ? `${data.sender} is typing…` : '');
     }
     if(type === 'forward_done') alert(`Forwarded ${data.count} message(s).`);
   };
+
+  scrollBottom();
 })();
 </script>
 {% endif %}
