@@ -314,7 +314,13 @@ def unified_auth_view(request):
             )
         
             # Send OTP
-            send_otp(channel, identifier, code)
+            otp_result = send_otp(channel, identifier, code)
+            if not otp_result.get("ok"):
+                messages.error(
+                    request,
+                    "We could not send your verification code right now. Please try again shortly."
+                )
+                return render(request, "auth.html", {"form": form, "ui_step": "email"})
         
             # Persist auth context
             request.session.update({
@@ -569,7 +575,13 @@ def unified_auth_view(request):
                 location=location,
             )
 
-            send_otp(channel, identifier, code)
+            otp_result = send_otp(channel, identifier, code)
+            if not otp_result.get("ok"):
+                messages.error(
+                    request,
+                    "We could not resend your verification code right now. Please try again shortly."
+                )
+                return render(request, "auth.html", {"form": form, "ui_step": "code"})
             messages.success(request, f"Code resent via {channel.upper()}.")
             return render(request, "auth.html", {"form": form, "ui_step": "code"})
             
@@ -613,7 +625,13 @@ def unified_auth_view(request):
                 user=user,
             )
 
-            send_otp(channel, identifier, code)
+            otp_result = send_otp(channel, identifier, code)
+            if not otp_result.get("ok"):
+                messages.error(
+                    request,
+                    "We could not send your login code right now. Please try again shortly."
+                )
+                return render(request, "auth.html", {"form": form, "ui_step": "code"})
             messages.success(
                 request,
                 f"One-time login code sent via {channel.upper()}."
