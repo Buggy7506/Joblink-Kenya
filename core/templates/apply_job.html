@@ -1,124 +1,103 @@
 {% extends 'base.html' %}
 {% block title %}Apply for {{ job.title }}{% endblock %}
+
 {% block content %}
-
 <style>
-  .apply-container {
-    max-width: 700px;
-    margin: 80px auto;
-    padding: 40px;
-    background: var(--card-bg);
-    border-radius: 20px;
-    box-shadow:
-      0 0 25px var(--glow-soft),
-      0 0 50px var(--glow-strong);
-    animation: fadeIn 0.7s ease-out;
-    color: var(--text);
+  .apply-shell {
+    max-width: 760px;
+    margin: 2.5rem auto;
+    padding: 1.1rem;
+    border-radius: 1.4rem;
+    background: linear-gradient(130deg, color-mix(in srgb, var(--card-bg), transparent 16%), color-mix(in srgb, var(--card-bg), #000 8%));
+    border: 1px solid color-mix(in srgb, var(--text-accent), transparent 76%);
+    box-shadow: 0 16px 42px color-mix(in srgb, #000, transparent 68%), 0 0 30px var(--glow-soft);
   }
 
-  h1 {
-    font-size: 2rem;
-    text-align: center;
-    margin-bottom: 15px;
-    color: var(--accent);
-    text-shadow: 0 0 10px var(--accent);
+  .apply-card {
+    border-radius: 1rem;
+    padding: clamp(1.1rem, 2.5vw, 2rem);
+    background: color-mix(in srgb, var(--card-bg), transparent 8%);
+    border: 1px solid color-mix(in srgb, var(--text-muted), transparent 70%);
   }
 
-  p {
-    font-size: 1.1rem;
-    text-align: center;
-    margin-bottom: 25px;
-    color: var(--text-muted);
+  .apply-title {
+    margin: 0 0 .75rem;
+    font-size: clamp(1.45rem, 3.2vw, 2rem);
+    color: var(--text-accent);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--glow-main), transparent 35%);
   }
 
-  .glow-btn {
-    display: block;
+  .apply-copy { color: var(--text-main); margin-bottom: 1rem; }
+  .apply-muted { color: var(--text-muted); }
+
+  .job-type-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .45rem .85rem;
+    border-radius: 999px;
+    font-size: .92rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .job-type-pill.premium {
+    color: #3b2a00;
+    background: linear-gradient(135deg, #ffd166, #f4a261);
+  }
+  .job-type-pill.free {
+    color: var(--text-inverse);
+    background: linear-gradient(135deg, var(--bg-success), color-mix(in srgb, var(--bg-success), #fff 12%));
+  }
+
+  .apply-error {
+    border-radius: .8rem;
+    padding: .75rem .9rem;
+    margin-bottom: 1rem;
+    border: 1px solid color-mix(in srgb, var(--text-danger), transparent 40%);
+    background: color-mix(in srgb, var(--bg-danger-soft), transparent 20%);
+    color: var(--text-danger);
+    font-weight: 600;
+  }
+
+  .recaptcha-wrap {
+    margin: 1rem 0 1.25rem;
+    padding: .8rem;
+    border: 1px dashed color-mix(in srgb, var(--text-muted), transparent 58%);
+    border-radius: .8rem;
+    background: color-mix(in srgb, var(--bg-surface-soft), transparent 35%);
+  }
+
+  .apply-btn {
     width: 100%;
-    padding: 15px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: var(--btn-text);
-    background: linear-gradient(
-      90deg,
-      var(--accent),
-      var(--accent-alt)
-    );
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow:
-      0 0 15px var(--glow-soft),
-      0 0 30px var(--glow-strong);
-  }
-
-  .glow-btn:hover {
-    transform: scale(1.05);
-    box-shadow:
-      0 0 30px var(--glow-strong),
-      0 0 50px var(--glow-strong);
-  }
-
-  .error-message {
-    background: var(--danger-bg);
-    padding: 10px;
-    border: 1px solid var(--danger);
-    border-radius: 10px;
-    color: var(--danger);
-    margin-bottom: 20px;
-    text-align: center;
-  }
-
-  .premium {
-    color: var(--accent-alt);
-    font-weight: bold;
-  }
-
-  .free {
-    color: var(--success);
-    font-weight: bold;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 
-<div class="apply-container">
-  <h1>Apply for {{ job.title }}</h1>
-  <p>You're about to apply for <strong>{{ job.company }}</strong>.</p>
+<div class="apply-shell" data-aos="fade-up">
+  <div class="apply-card">
+    <h1 class="apply-title">Apply for {{ job.title }}</h1>
+    <p class="apply-copy">You're one step away from submitting your application to <strong>{{ job.company }}</strong>.</p>
 
-  {% if error %}
-    <div class="error-message">{{ error }}</div>
-  {% endif %}
+    {% if error %}
+      <div class="apply-error">{{ error }}</div>
+    {% endif %}
 
-  {% if job.is_premium %}
-    <p>
-      This is a <span class="premium">Premium Job</span> 💎  
-      An application fee of <strong>KES 200</strong> is required.
-    </p>
-  {% else %}
-    <p>
-      This is a <span class="free">Free Job</span> ✅  
-      You can apply instantly without payment.
-    </p>
-  {% endif %}
+    {% if job.is_premium %}
+      <div class="job-type-pill premium">💎 Premium Job • KES 200 fee required</div>
+      <p class="apply-muted">This listing is prioritized for faster employer visibility once your payment is confirmed.</p>
+    {% else %}
+      <div class="job-type-pill free">✅ Free Job • No payment needed</div>
+      <p class="apply-muted">Apply instantly and get your profile in front of hiring teams now.</p>
+    {% endif %}
 
-  <form method="post">
-    {% csrf_token %}
-
-    <!-- Google reCAPTCHA -->
-    <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
-
-    <button type="submit" class="glow-btn">
-      {% if job.is_premium %}Pay & Apply{% else %}Apply Now{% endif %}
-    </button>
-  </form>
+    <form method="post">
+      {% csrf_token %}
+      <div class="recaptcha-wrap">
+        <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
+      </div>
+      <button type="submit" class="jl-theme-btn apply-btn">
+        {% if job.is_premium %}Pay & Apply{% else %}Apply Now{% endif %}
+      </button>
+    </form>
+  </div>
 </div>
-
-<!-- Load reCAPTCHA JS -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
 {% endblock %}
