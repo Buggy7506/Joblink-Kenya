@@ -628,7 +628,22 @@ class JobApplicantsMessage(models.Model):
 
     job = models.ForeignKey("Job", on_delete=models.CASCADE, related_name="applicants_room_messages")
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="job_room_recipient_messages",
+    )
     message = models.TextField()
+    reply_to = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="job_room_replies",
+    )
+    is_edited = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
