@@ -1271,18 +1271,30 @@ body.light-mode #chat-page {
     const appLink = document.querySelector(`.sidebar .applicant[data-app-id="${appId}"]`);
     if(!appLink) return;
 
-    // Remove selection & add deleted class
     appLink.classList.remove("selected");
     appLink.classList.add("deleted");
+    appLink.setAttribute("href", "javascript:void(0);");
 
-    // Move to deleted section
-    const deletedContainer = document.getElementById("deleted-applicants");
+    let deletedContainer = document.getElementById("deleted-applicants");
+    if(!deletedContainer){
+      const sidebarContent = document.querySelector("#chat-page .sidebar-content");
+      if(sidebarContent){
+        const header = document.createElement("h3");
+        header.className = "text-danger";
+        header.style.marginTop = "20px";
+        header.textContent = "Deleted Applicants";
+        deletedContainer = document.createElement("div");
+        deletedContainer.className = "sidebar-section";
+        deletedContainer.id = "deleted-applicants";
+        sidebarContent.appendChild(header);
+        sidebarContent.appendChild(deletedContainer);
+      }
+    }
     if(deletedContainer) deletedContainer.appendChild(appLink);
 
-    // Disable click for deleted applicant
     appLink.addEventListener('click', e => {
-        e.preventDefault();
-        alert("This application has been deleted and cannot be accessed.");
+      e.preventDefault();
+      alert("This application has been deleted and cannot be accessed.");
     });
   }
   
@@ -1447,7 +1459,7 @@ body.light-mode #chat-page {
   }
 
   // Hide menu when clicking outside
-  document.addEventListener("click", e=>{ if(!menu.contains(e.target)) hideMenu(); });
+  document.addEventListener("click", e=>{ if(!menu || !menu.contains(e.target)) hideMenu(); });
 
   // Disable clicks for deleted applicants
   const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
