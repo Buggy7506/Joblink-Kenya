@@ -1459,20 +1459,12 @@ def set_google_password(request):
                     ContentFile(image_bytes),
                     save=True
                 )
+                _sync_profile_picture_to_profile(user)
             except Exception:
                 pass
         elif picture_url:
-            try:
-                response = requests.get(picture_url, timeout=5)
-                if response.status_code == 200:
-                    provider = oauth_user.get('provider', 'oauth')
-                    user.profile_pic.save(
-                        f"{username}_{provider}.jpg",
-                        ContentFile(response.content),
-                        save=True
-                    )
-            except Exception:
-                pass
+            provider = oauth_user.get('provider', 'oauth')
+            _sync_oauth_profile_picture(user, picture_url, provider=provider)
 
         # -------------------------
         # 4️⃣ Login + cleanup
@@ -1512,11 +1504,26 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
             ContentFile(response.content),
             save=True,
         )
+        _sync_profile_picture_to_profile(user)
         return True
     except Exception as exc:
         logger.warning("OAuth profile picture sync failed for user %s: %s", user.pk, exc)
         return False
 
+
+def _sync_profile_picture_to_profile(user):
+    """Mirror user.profile_pic to Profile.profile_pic to keep both profile views consistent."""
+    try:
+        profile = getattr(user, "profile", None)
+        if not profile or not user.profile_pic:
+            return False
+        profile.profile_pic = user.profile_pic
+        profile.save(update_fields=["profile_pic"])
+        return True
+    except Exception as exc:
+        logger.warning("Profile picture mirror failed for user %s: %s", user.pk, exc)
+        return False
+        
 @ratelimit(key='ip', rate='10/m', block=True)
 @csrf_protect
 def google_login(request):
