@@ -1,142 +1,83 @@
 {% extends 'base.html' %}
-
 {% block title %}Job Application Status • JobLink Kenya{% endblock %}
 
 {% block content %}
 <style>
-  .apply-status-container {
-    min-height: calc(100vh - var(--navbar-height, 0px));
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
-    background: var(--page-bg);
-    color: var(--text);
+  .status-wrap {
+    min-height: 62vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem 1rem;
   }
 
-  .status-box {
-    background: var(--card-bg);
-    padding: 40px 30px;
-    border-radius: 16px;
-    border: 1px solid var(--accent);
-    box-shadow:
-      0 0 25px var(--glow-soft),
-      0 0 45px var(--glow-strong);
-    max-width: 500px;
-    width: 100%;
+  .status-card {
+    width: min(680px, 100%);
+    padding: clamp(1.25rem, 2.4vw, 2rem);
+    border-radius: 1.2rem;
+    background: linear-gradient(130deg, color-mix(in srgb, var(--card-bg), transparent 10%), color-mix(in srgb, var(--card-bg), #000 8%));
+    border: 1px solid color-mix(in srgb, var(--text-accent), transparent 72%);
+    box-shadow: 0 14px 40px color-mix(in srgb, #000, transparent 70%), 0 0 24px var(--glow-soft);
     text-align: center;
-    animation: fadeIn 0.8s ease;
-    transition: transform 0.3s;
   }
 
-  .status-box:hover {
-    transform: translateY(-3px);
+  .status-title {
+    margin: 0 0 .85rem;
+    font-size: clamp(1.4rem, 3.2vw, 2rem);
+    color: var(--text-accent);
   }
 
-  .status-box h1 {
-    margin-bottom: 20px;
-    font-size: 34px;
-    color: var(--accent);
-    text-shadow: 0 0 12px var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+  .status-title.fail { color: var(--text-warning); }
+
+  .status-sub {
+    color: var(--text-main);
+    margin-bottom: .45rem;
   }
 
-  .status-box p {
-    font-size: 18px;
+  .status-meta {
+    margin: .75rem auto 1rem;
+    max-width: 520px;
+    text-align: left;
+    padding: .85rem .95rem;
+    border-radius: .8rem;
+    border: 1px solid color-mix(in srgb, var(--text-muted), transparent 58%);
+    background: color-mix(in srgb, var(--bg-surface-soft), transparent 28%);
+    color: var(--text-main);
+  }
+
+  .status-muted {
     color: var(--text-muted);
-    margin-bottom: 15px;
-  }
-
-  .status-details p {
-    font-size: 16px;
-    color: var(--text-soft);
-    margin: 5px 0;
-  }
-
-  .countdown {
-    font-size: 14px;
-    color: var(--text-soft);
-    margin: 20px 0;
-  }
-
-  .btn-glow {
-    display: inline-block;
-    padding: 12px 30px;
-    background: linear-gradient(
-      90deg,
-      var(--accent),
-      var(--accent-alt)
-    );
-    color: var(--btn-text);
-    border-radius: 30px;
-    font-weight: bold;
-    text-decoration: none;
-    box-shadow:
-      0 0 12px var(--glow-soft),
-      0 0 25px var(--glow-strong);
-    transition: 0.3s;
-  }
-
-  .btn-glow:hover {
-    box-shadow:
-      0 0 25px var(--glow-strong),
-      0 0 45px var(--glow-strong);
-    transform: scale(1.05);
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (max-width: 600px) {
-    .status-box { padding: 25px 20px; }
-    .status-box h1 { font-size: 26px; }
-    .status-box p { font-size: 15px; }
+    margin: 1rem 0;
   }
 </style>
 
-<div class="apply-status-container">
-  <div class="status-box">
-
+<section class="status-wrap" data-aos="zoom-in-up">
+  <div class="status-card">
     {% if success %}
-      <h1>✅ Application Successful!</h1>
-      <p>You have successfully applied for:</p>
-      <p><strong>{{ job.title }}</strong></p>
+      <h1 class="status-title">✅ Application Successful</h1>
+      <p class="status-sub">Your application for <strong>{{ job.title }}</strong> has been submitted.</p>
     {% else %}
-      <h1>❌ Already Applied</h1>
-      <p>You already applied for:</p>
-      <p><strong>{{ job.title }}</strong></p>
+      <h1 class="status-title fail">⚠️ Already Applied</h1>
+      <p class="status-sub">You've already applied for <strong>{{ job.title }}</strong>.</p>
     {% endif %}
 
     {% if job.company or job.location %}
-      <div class="status-details">
-        {% if job.company %}<p>Company: <strong>{{ job.company }}</strong></p>{% endif %}
-        {% if job.location %}<p>Location: <strong>{{ job.location }}</strong></p>{% endif %}
+      <div class="status-meta">
+        {% if job.company %}<div><strong>Company:</strong> {{ job.company }}</div>{% endif %}
+        {% if job.location %}<div><strong>Location:</strong> {{ job.location }}</div>{% endif %}
       </div>
     {% endif %}
 
-    <div class="countdown">
-      Redirecting to job suggestions in
-      <strong><span id="timer">5</span></strong> seconds…
-    </div>
-
-    <a href="{% url 'job_suggestions' %}" class="btn-glow">
-      Go to Job Suggestions
-    </a>
-
+    <p class="status-muted">Redirecting to job suggestions in <strong><span id="timer">5</span></strong> seconds.</p>
+    <a href="{% url 'job_suggestions' %}" class="jl-theme-btn">Go to Job Suggestions</a>
   </div>
-</div>
+</section>
 
 <script>
   let timeLeft = 5;
   const timer = document.getElementById('timer');
 
   const countdown = setInterval(() => {
-    timeLeft--;
+    timeLeft -= 1;
     timer.textContent = timeLeft;
     if (timeLeft <= 0) {
       clearInterval(countdown);
