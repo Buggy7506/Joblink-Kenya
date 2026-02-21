@@ -83,6 +83,20 @@ html, body {
   --alien-shadow: rgba(60, 247, 255, 0.35);
   --alien-ink: rgba(12, 255, 214, 0.18);
   --nav-sheen: linear-gradient(120deg, rgba(0, 255, 204, 0.45), rgba(0, 162, 255, 0.35), rgba(210, 122, 255, 0.35));
+
+  /* Legacy aliases for older templates */
+  --page-bg: var(--bg-main);
+  --card-bg: var(--bg-card);
+  --text: var(--text-main);
+  --accent: var(--text-accent);
+  --accent-alt: var(--bg-info);
+  --btn-text: var(--text-inverse);
+  --danger: var(--text-danger);
+  --danger-bg: var(--bg-danger-soft);
+  --success: var(--text-success);
+  --text-soft: var(--text-muted);
+  --glow-soft: color-mix(in srgb, var(--glow-main), transparent 78%);
+  --glow-strong: color-mix(in srgb, var(--glow-accent), transparent 58%);
 }
 
 body.light-mode {
@@ -123,6 +137,20 @@ body.light-mode {
   --alien-shadow: rgba(5, 102, 141, 0.25);
   --alien-ink: rgba(0, 95, 115, 0.12);
   --nav-sheen: linear-gradient(120deg, rgba(0, 125, 167, 0.25), rgba(88, 165, 255, 0.2), rgba(132, 94, 247, 0.2));
+
+  /* Legacy aliases for older templates */
+  --page-bg: var(--bg-main);
+  --card-bg: var(--bg-card);
+  --text: var(--text-main);
+  --accent: var(--text-accent);
+  --accent-alt: var(--bg-info);
+  --btn-text: var(--text-inverse);
+  --danger: var(--text-danger);
+  --danger-bg: var(--bg-danger-soft);
+  --success: var(--text-success);
+  --text-soft: var(--text-muted);
+  --glow-soft: color-mix(in srgb, var(--glow-main), transparent 75%);
+  --glow-strong: color-mix(in srgb, var(--glow-accent), transparent 55%);
 }
 
 /* =========================================================
@@ -185,6 +213,34 @@ button:focus-visible {
   border-radius: 1.2rem;
   background: linear-gradient(180deg, rgba(6, 11, 24, 0.4), rgba(6, 11, 24, 0.15));
   box-shadow: inset 0 0 40px rgba(60, 247, 255, 0.04);
+}
+
+.jl-theme-panel {
+  background: color-mix(in srgb, var(--card-bg), transparent 8%);
+  border: 1px solid color-mix(in srgb, var(--text-accent), transparent 75%);
+  border-radius: 1rem;
+  box-shadow: 0 14px 40px color-mix(in srgb, #000, transparent 68%), 0 0 30px var(--glow-soft);
+}
+
+.jl-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 999px;
+  padding: .85rem 1.5rem;
+  color: var(--btn-text);
+  background: linear-gradient(135deg, var(--text-accent), var(--accent-alt));
+  box-shadow: 0 10px 25px var(--glow-soft);
+  transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+}
+
+.jl-theme-btn:hover {
+  transform: translateY(-1px) scale(1.01);
+  filter: saturate(1.06);
+  box-shadow: 0 14px 30px var(--glow-strong);
 }
 
 /* =========================================================
