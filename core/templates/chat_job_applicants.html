@@ -129,8 +129,6 @@ body.light-mode #room-page { --chat-icon-filter: none; }
   <li data-action="private"><span class="menu-item-content"><img src="{% static 'icons/reply.svg' %}" class="menu-svg-icon" alt=""><span>Reply privately</span></span></li>
 </ul></div>
 
-<div id="forward-modal" class="forward-modal"><div class="forward-panel"><strong>Forward message to applicant chat</strong><div id="forward-list"></div><button id="close-forward" type="button" style="margin-top:8px">Close</button></div></div>
-
 <div id="forward-modal" class="forward-modal">
   <div class="forward-panel">
     <strong>Forward message to applicant chat</strong>
@@ -252,7 +250,6 @@ body.light-mode #room-page { --chat-icon-filter: none; }
     if(!bubble) return;
     if(action === 'copy') navigator.clipboard.writeText(bubble.dataset.text || '');
     if(action === 'reply'){ input.dataset.replyId = bubble.dataset.id; replySender.textContent = bubble.dataset.sender || ''; replyText.textContent = bubble.dataset.text || ''; replyPreview.hidden = false; input.focus(); }
-    }
     if(action === 'forward') openForwardByText(bubble.dataset.text || '');
     if(action === 'delete'){ if(socket.readyState===1 && bubble.dataset.id){ socket.send(JSON.stringify({ action:'job_delete', id:bubble.dataset.id })); } }
     if(action === 'private') privateReply(bubble);
