@@ -435,8 +435,10 @@ body.light-mode #chat-page {
 
 /* Typing Indicator */
 #chat-page .typing {
-  display: flex;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   max-width: 70px;
   padding: 10px 14px;
@@ -447,6 +449,8 @@ body.light-mode #chat-page {
 }
 
 #chat-page .dot {
+  display: inline-block;
+  flex: 0 0 auto;
   width: 6px;
   height: 6px;
   background: var(--chat-accent-dark);
