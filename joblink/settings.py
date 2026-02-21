@@ -280,6 +280,12 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = True
 
+# Share auth/session cookies across both apex and www hosts.
+# This keeps users logged in when moving between:
+#   stepper.dpdns.org <-> www.stepper.dpdns.org
+SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", ".stepper.dpdns.org")
+CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", ".stepper.dpdns.org")
+
 # HTTP Strict Transport Security (HSTS)
 if ENV == "production":
     SECURE_HSTS_SECONDS = 3600
