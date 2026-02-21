@@ -535,6 +535,44 @@ class ChatViewAuthGuardTests(SimpleTestCase):
         self.assertIn("next=/chat/job/3/", response.url)
 
 
+
+
+class ChatViewNavigationTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.employer = user_model.objects.create_user(
+            username="nav-employer",
+            email="nav-employer@example.com",
+            password="testpass123",
+            role="employer",
+        )
+        self.applicant = user_model.objects.create_user(
+            username="nav-applicant",
+            email="nav-applicant@example.com",
+            password="testpass123",
+            role="applicant",
+        )
+
+    def test_applicant_group_link_keeps_application_id_for_back_navigation(self):
+        from core.models import Application, Job
+
+        job = Job.objects.create(
+            title="Mobile Bug",
+            description="Fix back navigation",
+            location="Nairobi",
+            employer=self.employer,
+        )
+        application = Application.objects.create(job=job, applicant=self.applicant)
+
+        self.client.force_login(self.applicant)
+        response = self.client.get(reverse("job_chat", args=[application.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            f"{reverse('chat_job_applicants')}?job_id={job.id}&application_id={application.id}",
+        )
+
 class RequestShieldMiddlewareTests(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
