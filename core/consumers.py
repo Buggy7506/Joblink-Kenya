@@ -139,7 +139,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not isinstance(message_ids, list):
             return
 
-        await self.mark_messages_read(message_ids)
+        await self.mark_messages_read(self.application_id, user.id, message_ids)
 
         await self.channel_layer.group_send(
             self.group_name,
@@ -436,11 +436,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, application_id, sender_id, message, reply_to=None):
         app = Application.objects.get(id=application_id)
+        reply_to_id = None
+        if reply_to and str(reply_to).isdigit():
+            reply_candidate = ChatMessage.objects.filter(
+                id=reply_to,
+                application_id=application_id,
+            ).first()
+            if reply_candidate:
+                reply_to_id = reply_candidate.id
+
         msg = ChatMessage.objects.create(
             application=app,
             sender_id=sender_id,
             message=message,
-            reply_to_id=reply_to,
+            reply_to_id=reply_to_id,
         )
         return {
             "id": msg.id,
@@ -450,8 +459,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }
 
     @database_sync_to_async
-    def mark_messages_read(self, message_ids):
-        ChatMessage.objects.filter(id__in=message_ids).update(is_read=True)
+    def mark_messages_read(self, application_id, user_id, message_ids):
+        ids = [msg_id for msg_id in message_ids if str(msg_id).isdigit()]
+        if not ids:
+            return
+
+        ChatMessage.objects.filter(
+            id__in=ids,
+            application_id=application_id,
+        ).exclude(sender_id=user_id).update(is_read=True)
 
     @database_sync_to_async
     def edit_message(self, message_id, user_id, new_text):
