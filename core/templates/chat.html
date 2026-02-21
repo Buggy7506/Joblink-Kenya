@@ -653,7 +653,7 @@ body.light-mode #chat-page {
         <div class="chat-title"><strong>{{ application.job.title }}</strong>{% if application.job.company %} — {{ application.job.company }}{% endif %}<span style="font-size:12px;color:var(--chat-muted);font-weight:500;">Direct chat</span></div>
       {% endif %}
       <div class="chat-header-actions">
-        <a title="Open the shared room where employer and all applicants chat together" id="group-toggle-btn" class="group-toggle-btn" href="{% url "chat_job_applicants" %}?job_id={% if job %}{{ job.id }}{% elif application %}{{ application.job.id }}{% elif selected_app %}{{ selected_app.job.id }}{% endif %}{% if selected_app %}&app_id={{ selected_app.id }}{% elif application %}&application_id={{ application.id }}{% endif %}">Applicants Group</a>
+        <a title="Open the shared room where employer and all applicants chat together" id="group-toggle-btn" class="group-toggle-btn" href="{% url "chat_job_applicants" %}?job_id={% if job %}{{ job.id }}{% elif application %}{{ application.job.id }}{% elif selected_app %}{{ selected_app.job.id }}{% endif %}{% if application %}&application_id={{ application.id }}{% elif selected_app and job %}&app_id={{ selected_app.id }}{% elif selected_app %}&application_id={{ selected_app.id }}{% endif %}">Applicants Group</a>
       </div>
     </div>
 
