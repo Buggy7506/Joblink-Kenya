@@ -299,29 +299,36 @@ def send_otp(channel, destination, code):
 
     message = f"Your Joblink verification code is {code}. Valid for {settings.OTP_EXPIRY_MINUTES} minutes."
 
-    # Send via SMS or WhatsApp using TextMeBot
-    if channel in ("sms", "whatsapp"):
-        response = send_textmebot_message(destination, message)
+    try:
+        # Send via SMS or WhatsApp using TextMeBot
+        if channel in ("sms", "whatsapp"):
+            response = send_textmebot_message(destination, message)
 
-        # Log the OTP send
-        logger.info(
-            message,
+            # Log the OTP send
+            logger.info(
+                message,
+                extra={"channel": channel, "destination": destination}
+            )
+
+            # Minimum 5-second delay to avoid WhatsApp blocks
+            time.sleep(5)
+            return {"ok": True, "response": response}
+
+        # Send via email
+        if channel == "email":
+            response = send_otp_email(destination, code)
+
+            # Log the email send
+            logger.info(
+                f"OTP sent via email: {code}",
+                extra={"channel": channel, "destination": destination}
+            )
+            return {"ok": True, "response": response}
+
+        raise ValueError("Invalid OTP channel")
+    except Exception as exc:
+        logger.exception(
+            "Failed to send OTP",
             extra={"channel": channel, "destination": destination}
         )
-
-        # Minimum 5-second delay to avoid WhatsApp blocks
-        time.sleep(5)
-        return response
-
-    # Send via email
-    if channel == "email":
-        response = send_otp_email(destination, code)
-
-        # Log the email send
-        logger.info(
-            f"OTP sent via email: {code}",
-            extra={"channel": channel, "destination": destination}
-        )
-        return response
-
-    raise ValueError("Invalid OTP channel")
+        return {"ok": False, "error": str(exc)}
