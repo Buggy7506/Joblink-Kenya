@@ -860,6 +860,23 @@ body.light-mode #chat-page {
     return div.innerHTML;
   }
 
+  function copyText(text){
+    const value = text || "";
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(value).catch(()=>{});
+      return;
+    }
+    const fallbackInput = document.createElement("textarea");
+    fallbackInput.value = value;
+    fallbackInput.setAttribute("readonly", "readonly");
+    fallbackInput.style.position = "fixed";
+    fallbackInput.style.opacity = "0";
+    document.body.appendChild(fallbackInput);
+    fallbackInput.select();
+    document.execCommand("copy");
+    fallbackInput.remove();
+  }
+
   function buildReplySnippet(replyData){
     if(!replyData) return "";
     const sender = escapeHtml(replyData.sender || "Unknown");
@@ -1312,7 +1329,7 @@ body.light-mode #chat-page {
     const sender = msgElem.dataset.sender || "Unknown";
 
     if(action === "copy"){
-        navigator.clipboard.writeText(text);
+        copyText(text);
     }
     else if(action === "reply"){
         showReplyPreview({id: msgId, text: text, sender: sender});
@@ -1376,7 +1393,7 @@ body.light-mode #chat-page {
   if(copySelectedBtn){
     copySelectedBtn.addEventListener("click", ()=>{
       const text = getSelectedBubbles().map(b => b.dataset.text || "").filter(Boolean).join("\n");
-      if(text) navigator.clipboard.writeText(text);
+      if(text) copyText(text);
     });
   }
 
