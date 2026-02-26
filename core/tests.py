@@ -666,3 +666,30 @@ class OAuthProfilePictureMirrorTests(SimpleTestCase):
         self.assertTrue(synced)
         user.profile_pic.save.assert_called_once()
         mock_profile_sync.assert_called_once_with(user)
+
+class UserRoleInterdependencySignalTests(SimpleTestCase):
+    def test_employer_company_created_when_user_role_is_employer(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from core.signals import create_employer_company
+
+        user = SimpleNamespace(role="employer", profile=SimpleNamespace(role="applicant"))
+
+        with patch("core.signals.EmployerCompany.objects.get_or_create") as mock_get_or_create:
+            create_employer_company(sender=None, instance=user, created=True)
+
+        mock_get_or_create.assert_called_once_with(user=user)
+
+    def test_employer_company_created_when_profile_role_is_employer_and_user_role_stale(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from core.signals import create_employer_company
+
+        user = SimpleNamespace(role="applicant", profile=SimpleNamespace(role="employer"))
+
+        with patch("core.signals.EmployerCompany.objects.get_or_create") as mock_get_or_create:
+            create_employer_company(sender=None, instance=user, created=False)
+
+        mock_get_or_create.assert_called_once_with(user=user)
