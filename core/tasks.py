@@ -25,12 +25,11 @@ def save_employer_document(self, user_id, temp_file_path, doc_type):
         # Open the temporary file and save it properly in MEDIA
         with open(temp_file_path, "rb") as f:
             django_file = File(f)
-            doc = CompanyDocument.objects.create(
+            CompanyDocument.objects.create(
                 company=company,
                 document_type=doc_type,
+                file=django_file,
             )
-            doc.document.save(os.path.basename(temp_file_path), django_file)
-            doc.save()
 
         # Remove temp file after saving
         os.remove(temp_file_path)
