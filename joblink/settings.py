@@ -162,7 +162,9 @@ if ENV == "production":
     DATABASES = {
         "default": dj_database_url.config(
             default=os.getenv("DATABASE_URL"),
-            conn_max_age=600,
+            # With Supabase PgBouncer (port 6543), persistent Django connections
+            # can quickly exhaust the pool across workers/processes.
+            conn_max_age=0,
             ssl_require=True,
         )
     }
