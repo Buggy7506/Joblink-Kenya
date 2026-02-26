@@ -6,7 +6,7 @@ services:
     buildCommand: >
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
-      preDeployCommand: python manage.py migrate --noinput
+    preDeployCommand: ./scripts/render_migrate.sh
     startCommand: >
       gunicorn joblink.asgi:application -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
     envVars:
