@@ -21,11 +21,12 @@ def create_employer_company(sender, instance, created, **kwargs):
     Auto-create EmployerCompany when a user becomes an employer
     OR when they update role to employer later.
     """
-    if not created:
-        return
+    # Keep role checks tolerant so user.role and profile.role stay interoperable.
+    effective_role = getattr(instance, "role", None)
+    profile = getattr(instance, "profile", None)
+    profile_role = getattr(profile, "role", None)
 
-    # If user signup role = employer → create blank company entry
-    if hasattr(instance, "profile") and instance.profile.role == "employer":
+    if effective_role == "employer" or profile_role == "employer":
         EmployerCompany.objects.get_or_create(user=instance)
 
 # -------------------------
