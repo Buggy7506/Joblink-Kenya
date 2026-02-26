@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
 import dj_database_url
@@ -159,9 +160,23 @@ ASGI_APPLICATION = 'joblink.asgi.application'
 
 if ENV == "production":
     # Production (Render + Supabase)
+    database_url = os.getenv("DATABASE_URL")
+
+    # Prefer Supabase PgBouncer endpoint/port in production to avoid exhausting
+    # the small free-tier connection limit.
+    if database_url:
+        parsed_database_url = urlparse(database_url)
+        expected_pooler_port = os.getenv("DB_POOLER_PORT", "6543")
+        if parsed_database_url.port and str(parsed_database_url.port) != expected_pooler_port:
+            database_url = database_url.replace(
+                f":{parsed_database_url.port}",
+                f":{expected_pooler_port}",
+                1,
+            )
+
     DATABASES = {
         "default": dj_database_url.config(
-            default=os.getenv("DATABASE_URL"),
+            default=database_url,
             # With Supabase PgBouncer (port 6543), persistent Django connections
             # can quickly exhaust the pool across workers/processes.
             conn_max_age=0,
@@ -172,6 +187,9 @@ if ENV == "production":
     DATABASES["default"]["OPTIONS"] = {
         "sslmode": "require"
     }
+
+    # PgBouncer transaction pooling + Django server-side cursors can conflict.
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 
 else:
     # Local / Codex / Screenshots / Tests
