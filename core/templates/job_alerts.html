@@ -55,11 +55,42 @@
   transition: background 0.4s ease, border 0.3s ease;
 }
 
+.alerts-page .alerts-form .form-help {
+  display: block;
+  margin-top: -12px;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .alerts-page .alerts-form input[type="text"]:focus {
   outline: none;
   border-color: var(--text-accent);
   box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.25);
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Align location suggestions to this page's card theme */
+.alerts-page .autocomplete-results {
+  margin-top: 6px;
+  border: 1px solid color-mix(in srgb, var(--glow-accent) 35%, var(--text-muted));
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  border-radius: 10px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+  z-index: 1500;
+}
+
+.alerts-page .autocomplete-results li {
+  color: var(--text-main);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 22%, transparent);
+}
+
+.alerts-page .autocomplete-results li:last-child {
+  border-bottom: none;
+}
+
+.alerts-page .autocomplete-results li:hover {
+  background: color-mix(in srgb, var(--glow-accent) 24%, transparent);
 }
 
 /* Submit button — centered inside the card */
@@ -173,7 +204,16 @@
        {% csrf_token %}
    
        <label>Preferred Job Title</label>
-       <input type="text" name="job_title" placeholder="e.g., Software Developer">
+       <input
+           type="text"
+           name="job_title"
+           id="alert-job-title"
+           class="form-input"
+           placeholder="e.g., Software Developer"
+           list="external-job-titles"
+           autocomplete="off"
+       >
+       <small class="form-help">Start typing to pick a standardized job title.</small>
    
        <label>Preferred Location</label>
        <input
@@ -188,7 +228,13 @@
        <input type="hidden" id="alert-longitude" name="longitude" value="">
    
        <button type="submit" class="submit-btn">Set Alert</button>
+
+       <div class="recaptcha-wrap" style="margin-top:16px;">
+         <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
+       </div>
    </form>
+
+   <datalist id="external-job-titles"></datalist>
 
     <h2 style="margin-bottom:16px; color:var(--text-muted);">
         Your Alerts
@@ -214,5 +260,53 @@
     </ul>
 
 </div>
+
+<script>
+  const alertJobTitleInput = document.getElementById('alert-job-title');
+  const alertJobTitleDatalist = document.getElementById('external-job-titles');
+  const occupationsUrl = 'https://raw.githubusercontent.com/dariusk/corpora/master/data/humans/occupations.json';
+  const fallbackJobTitles = ['Software Engineer', 'Sales Representative', 'Teacher', 'Nurse', 'Accountant'];
+  let availableJobTitles = [...fallbackJobTitles];
+
+  function renderAlertJobTitleOptions(query = '') {
+    if (!alertJobTitleDatalist) return;
+    const normalized = query.trim().toLowerCase();
+    const filteredTitles = availableJobTitles
+      .filter(title => !normalized || title.toLowerCase().includes(normalized))
+      .slice(0, 40);
+
+    alertJobTitleDatalist.innerHTML = '';
+    filteredTitles.forEach(title => {
+      const option = document.createElement('option');
+      option.value = title;
+      alertJobTitleDatalist.appendChild(option);
+    });
+  }
+
+  async function loadAlertJobTitles() {
+    try {
+      const response = await fetch(occupationsUrl);
+      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+
+      const payload = await response.json();
+      const occupations = Array.isArray(payload?.occupations) ? payload.occupations : [];
+      if (occupations.length) {
+        availableJobTitles = Array.from(new Set(occupations.map(item => String(item).trim()).filter(Boolean)));
+      }
+    } catch (error) {
+      console.warn('Unable to load external job title suggestions for alerts.', error);
+    }
+
+    renderAlertJobTitleOptions(alertJobTitleInput?.value || '');
+  }
+
+  if (alertJobTitleInput) {
+    alertJobTitleInput.addEventListener('input', (event) => {
+      renderAlertJobTitleOptions(event.target.value);
+    });
+  }
+
+  loadAlertJobTitles();
+</script>
 
 {% endblock %}
