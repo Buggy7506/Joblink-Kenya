@@ -580,27 +580,28 @@
 }
 
 .auth-page .password-wrapper input {
-  padding-right: 2.8rem;
+  padding-right: 3rem;
 }
 
 .auth-page .auth-eye {
   position: absolute;
   top: 50%;
-  right: 0.65rem;
+  right: 0.6rem;
   transform: translateY(-50%);
   width: 2rem;
   height: 2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 16px;
-  opacity: .65;
+  border-radius: 999px;
+  opacity: .75;
+  transition: background-color .2s ease, opacity .2s ease;
 }
 
 .auth-page .auth-eye:hover {
+  background: color-mix(in srgb, var(--text-main) 16%, transparent);
   opacity: 1;
 }
 
@@ -629,15 +630,19 @@
   .auth-page .phone-group { --country-select-width: 82px; }
 }
 
+.auth-page {
+  --password-eye-filter: brightness(0) invert(1);
+}
+
+body.light-mode .auth-page {
+  --password-eye-filter: none;
+}
+
 .auth-page .auth-eye img {
   width: 18px;
   height: 18px;
   display: block;
-  filter: var(--eye-icon-filter, none);
-}
-
-@media (prefers-color-scheme: dark) {
-  .auth-page .auth-eye img { --eye-icon-filter: brightness(0) invert(1); }
+  filter: var(--password-eye-filter);
 }
 
 </style>
