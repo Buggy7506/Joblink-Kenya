@@ -1256,33 +1256,39 @@ body.light-mode #chat-page {
   initPinnedFromDom();
   
   // --- Context menu + long-press ---
-  function showMenu(msgElem){
+  function showMenu(msgElem, anchorElem){
     if(!menu || !msgElem) return;
 
-    const rect = msgElem.getBoundingClientRect();
+    const anchorRect = (anchorElem || msgElem).getBoundingClientRect();
+    const margin = 8;
+    const gap = 6;
 
-    const menuHeight = menu.offsetHeight || 150;
-    const menuWidth  = menu.offsetWidth  || 160;
+    menu.style.position = "fixed";
+    menu.style.display = "block";
+    const menuRect = menu.getBoundingClientRect();
+    const menuHeight = menuRect.height || 150;
+    const menuWidth = menuRect.width || 190;
 
-    // Position relative to selected bubble in viewport
-    let x = rect.left;
-    let y = rect.bottom + 6;
+    const placements = [
+      { x: anchorRect.left, y: anchorRect.bottom + gap },
+      { x: anchorRect.left, y: anchorRect.top - menuHeight - gap },
+      { x: anchorRect.right + gap, y: anchorRect.top },
+      { x: anchorRect.left - menuWidth - gap, y: anchorRect.top },
+    ];
 
-    // Adjust vertical if overflow
-    if(y + menuHeight > window.innerHeight - 8){
-        y = rect.top - menuHeight - 6;
-    }
+    const fits = (point) => (
+      point.x >= margin &&
+      point.y >= margin &&
+      point.x + menuWidth <= window.innerWidth - margin &&
+      point.y + menuHeight <= window.innerHeight - margin
+    );
 
-    // Adjust horizontal if overflow
-    if(x + menuWidth > window.innerWidth - 8){
-        x = window.innerWidth - menuWidth - 8;
-    }
-    if(x < 8) x = 8;
-    if(y < 8) y = 8;
+    const choice = placements.find(fits) || placements[0];
+    let x = Math.min(Math.max(choice.x, margin), window.innerWidth - menuWidth - margin);
+    let y = Math.min(Math.max(choice.y, margin), window.innerHeight - menuHeight - margin);
     
     menu.style.left = `${x}px`;
     menu.style.top  = `${y}px`;
-    menu.style.position = "fixed";
     menu.style.display = "block";
 
 
@@ -1464,7 +1470,7 @@ body.light-mode #chat-page {
       if(toggleBtn){
         e.preventDefault();
         const bubble = toggleBtn.closest(".bubble");
-        if(bubble) showMenu(bubble);
+        if(bubble) showMenu(bubble, toggleBtn);
       }
     });
   }
