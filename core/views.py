@@ -3089,26 +3089,6 @@ def job_alerts_view(request):
     alerts = JobAlert.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        # --------------------------
-        # 0️⃣ Verify Google reCAPTCHA
-        # --------------------------
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-        if not recaptcha_response:
-            messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'job_alerts.html', {'alerts': alerts})
-
-        recaptcha_data = {
-            'secret': settings.RECAPTCHA_SECRET,
-            'response': recaptcha_response
-        }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
-        result = r.json()
-
-        if not result.get('success'):
-            messages.error(request, "reCAPTCHA verification failed. Please try again.")
-            return render(request, 'job_alerts.html', {'alerts': alerts})
-        # --------------------------
-
         # Create new job alert
         job_title = request.POST.get('job_title', '').strip()
         location = request.POST.get('location', '').strip()
@@ -3127,7 +3107,7 @@ def job_alerts_view(request):
 
     return render(request, 'job_alerts.html', {'alerts': alerts})
 
-# Delete Job Alert with reCAPTCHA
+# Delete Job Alert
 @csrf_protect
 @login_required
 def delete_alert(request, alert_id):
@@ -3138,26 +3118,6 @@ def delete_alert(request, alert_id):
         return redirect('delete_alert_success')
 
     if request.method == 'POST':
-        # --------------------------
-        # 0️⃣ Verify Google reCAPTCHA
-        # --------------------------
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-        if not recaptcha_response:
-            messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'delete_alert.html', {'alert': alert})
-
-        recaptcha_data = {
-            'secret': settings.RECAPTCHA_SECRET,  # Ensure this is set in settings.py
-            'response': recaptcha_response
-        }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
-        result = r.json()
-
-        if not result.get('success'):
-            messages.error(request, "reCAPTCHA verification failed. Please try again.")
-            return render(request, 'delete_alert.html', {'alert': alert})
-        # --------------------------
-
         # Delete the alert
         alert.delete()
         messages.success(request, "✅ Job alert deleted successfully.")
