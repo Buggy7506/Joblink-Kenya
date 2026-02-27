@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'core.apps.CoreConfig',
     'anymail',
+    'django_browser_reload',
 ]
 
 INSTALLED_APPS += ["django_celery_results"]
@@ -108,6 +109,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MIDDLEWARE = [
     'core.middleware.proxy_fix.ProxyHeaderNormalizeMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django_browser_reload.middleware.BrowserReloadMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'core.middleware.request_shield.RequestShieldMiddleware',
     'core.middleware.job_expiry_cleanup.ExpiredJobCleanupMiddleware',
