@@ -41,7 +41,7 @@
   display: block;
   margin-bottom: 8px;
   color: var(--text-accent);
-  font-weight: 700;
+  font-weight: bold;
 }
 
 .alerts-page .alerts-form input[type="text"] {
@@ -52,7 +52,7 @@
   background-color: color-mix(in srgb, var(--bg-surface, var(--bg-card)) 86%, transparent);
   color: var(--text-main);
   margin-bottom: 20px;
-  transition: background 0.4s ease, border 0.3s ease;  font-size: 1rem;
+  font-size: 1rem;
   box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
   transition: box-shadow 0.2s ease, background 0.4s, color 0.4s, border-color 0.3s;
 }
@@ -63,10 +63,14 @@
 
 .alerts-page .alerts-form .form-help {
   display: block;
-  margin-top: -12px;
+  margin-top: 6px;
   margin-bottom: 16px;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.alerts-page .alerts-form .form-group {
+  margin-bottom: 20px;
 }
 
 .alerts-page .alerts-form input[type="text"]:focus {
@@ -205,27 +209,31 @@
    <form method="post" class="alerts-form">
        {% csrf_token %}
    
-       <label>Preferred Job Title</label>
-       <input
-           type="text"
-           name="job_title"
-           id="alert-job-title"
-           class="form-input"
-           placeholder="e.g., Software Developer"
-           list="external-job-titles"
-           autocomplete="off"
-       >
-       <small class="form-help">Start typing to pick a standardized job title.</small>
-   
-       <label>Preferred Location</label>
-       <input
-           type="text"
-           name="location"
-           class="form-input location-input"
-           placeholder="e.g., Nairobi"
-           data-lat-input="alert-latitude"
-           data-lon-input="alert-longitude"
-       >
+       <div class="form-group">
+           <label>Preferred Job Title</label>
+           <input
+               type="text"
+               name="job_title"
+               id="alert-job-title"
+               class="form-input"
+               placeholder="e.g., Software Developer"
+               list="external-job-titles"
+               autocomplete="off"
+           >
+           <small class="form-help">Start typing to pick a standardized job title.</small>
+       </div>
+
+       <div class="form-group">
+           <label>Preferred Location</label>
+           <input
+               type="text"
+               name="location"
+               class="form-input location-input"
+               placeholder="e.g., Nairobi"
+               data-lat-input="alert-latitude"
+               data-lon-input="alert-longitude"
+           >
+       </div>
        <input type="hidden" id="alert-latitude" name="latitude" value="">
        <input type="hidden" id="alert-longitude" name="longitude" value="">
    
@@ -269,13 +277,14 @@
 
   function renderAlertJobTitleOptions(query = '') {
     if (!alertJobTitleDatalist) return;
-    const normalized = query.trim().toLowerCase();
-    const filteredTitles = availableJobTitles
-      .filter(title => !normalized || title.toLowerCase().includes(normalized))
-      .slice(0, 40);
+
+    const normalizedQuery = query.trim().toLowerCase();
+    const matchedTitles = normalizedQuery
+      ? availableJobTitles.filter((title) => title.toLowerCase().includes(normalizedQuery)).slice(0, 50)
+      : availableJobTitles.slice(0, 200);
 
     alertJobTitleDatalist.innerHTML = '';
-    filteredTitles.forEach(title => {
+    matchedTitles.forEach((title) => {
       const option = document.createElement('option');
       option.value = title;
       alertJobTitleDatalist.appendChild(option);
@@ -285,33 +294,29 @@
   async function loadAlertJobTitles() {
     try {
       const response = await fetch(occupationsUrl);
-      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+      const data = await response.json();
+      const occupations = Array.isArray(data.occupations) ? data.occupations : [];
+      const titles = occupations
+        .map((item) => item?.occupation)
+        .filter((title) => typeof title === 'string' && title.trim().length > 0);
 
-      const payload = await response.json();
-      const occupations = Array.isArray(payload?.occupations) ? payload.occupations : [];
-      if (occupations.length) {
-        availableJobTitles = Array.from(
-          new Set(
-            occupations
-              .map((item) => item?.occupation)
-              .filter((title) => typeof title === 'string' && title.trim().length > 0)
-          )
-        );
+      if (titles.length) {
+        availableJobTitles = [...new Set(titles)];
       }
     } catch (error) {
-      console.warn('Unable to load external job title suggestions for alerts.', error);
+      console.error('Unable to load occupation titles:', error);
     }
 
     renderAlertJobTitleOptions(alertJobTitleInput?.value || '');
   }
 
   if (alertJobTitleInput) {
+    renderAlertJobTitleOptions('');
+    loadAlertJobTitles();
     alertJobTitleInput.addEventListener('input', (event) => {
-      renderAlertJobTitleOptions(event.target.value);
+      renderAlertJobTitleOptions(event.target.value || '');
     });
   }
-
-  loadAlertJobTitles();
 </script>
 
 {% endblock %}
