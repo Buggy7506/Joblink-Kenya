@@ -61,13 +61,7 @@ jobs:
       - name: Run Django migrations
         run: python manage.py migrate
 
-      # 8️⃣ Start Django development server
-      - name: Start Django dev server
-        run: |
-          python manage.py runserver 0.0.0.0:8000 &
-          sleep 5  # wait for server to start
-
-      # 9️⃣ Run Playwright tests
+      # 8️⃣ Run Playwright tests (Playwright manages the Django webServer lifecycle)
       - name: Run Playwright tests
         run: npx playwright test --config=playwright.config.ts
 
