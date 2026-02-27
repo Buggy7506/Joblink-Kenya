@@ -230,7 +230,7 @@ body.light-mode #chat-page {
 #chat-page .bubble {
   max-width: 72%;
   margin: 2px 0;
-  padding: 8px 12px;
+  padding: 8px 40px 8px 12px;
   border-radius: 14px 14px 14px 4px;
   word-wrap: break-word;
   position: relative;
@@ -247,6 +247,28 @@ body.light-mode #chat-page {
   line-height: 1.45;
   -webkit-user-select: none;
   user-select: none;
+}
+
+#chat-page .message-action-toggle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--chat-muted);
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+#chat-page .message-action-toggle:hover {
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--chat-text);
 }
 #chat-page .bubble strong {
   display: block;
@@ -691,6 +713,7 @@ body.light-mode #chat-page {
         <div class="bubble {% if m.sender_id == request.user.id %}me{% else %}them{% endif %} {% if m.is_pinned %}pinned{% endif %} {% if m.message == "This message was deleted" %}deleted{% endif %} pop"  
              data-id="{{ m.id }}" data-text="{{ m.message|escape }}" data-sender="{{ m.sender.username|escape }}"
              {% if m.reply_to %}data-reply-id="{{ m.reply_to.id }}" data-reply-text="{{ m.reply_to.message|escape }}" data-reply-sender="{{ m.reply_to.sender.username|escape }}"{% endif %}>
+             <button type="button" class="message-action-toggle" aria-label="Message actions">⌄</button>
           <div><strong>{{ m.sender.username }}</strong></div>
           {% if m.reply_to %}
             <div class="reply-reference">
@@ -902,6 +925,7 @@ body.light-mode #chat-page {
 
     const replyHtml = buildReplySnippet(data.replyTo);
     bubble.innerHTML = `
+      <button type="button" class="message-action-toggle" aria-label="Message actions">⌄</button>
       <div><strong>${escapeHtml(data.sender || "")}</strong></div>
       ${replyHtml}
       <div class="message-text">${escapeHtml(data.message || "")}</div>
@@ -1434,40 +1458,16 @@ body.light-mode #chat-page {
     });
   }
 
-  // Right-click to open menu
   if(chatBox){
-    chatBox.addEventListener("contextmenu", e=>{ e.preventDefault(); const t=e.target.closest(".bubble"); if(t) showMenu(t); });
+    chatBox.addEventListener("click", e=>{
+      const toggleBtn = e.target.closest(".message-action-toggle");
+      if(toggleBtn){
+        e.preventDefault();
+        const bubble = toggleBtn.closest(".bubble");
+        if(bubble) showMenu(bubble);
+      }
+    });
   }
-
-  // Long-press for touch
-  function addLongPress(container){
-    if(!container) return;
-    container.style.touchAction="manipulation"; // disable default long-press
-
-    let timer=null, target=null, startX=0, startY=0, pointerId=null;
-    const LONG_MS=600, MOVE_TOL=10;
-    const cancel = ()=>{ if(timer){ clearTimeout(timer); timer=null; } target=null; pointerId=null; };
-
-    container.addEventListener("pointerdown", e=>{
-      const t=e.target.closest(".bubble");
-      if(!t) return;
-      target=t; pointerId=e.pointerId; startX=e.clientX; startY=e.clientY;
-      if(timer) clearTimeout(timer);
-      timer=setTimeout(()=>{ if(target) toggleMessageSelection(target); }, LONG_MS);
-    }, {passive:true});
-
-    container.addEventListener("pointermove", e=>{
-      if(pointerId!==e.pointerId || !timer) return;
-      if(Math.abs(e.clientX-startX)>MOVE_TOL || Math.abs(e.clientY-startY)>MOVE_TOL) cancel();
-    }, {passive:true});
-
-    container.addEventListener("pointerup", cancel, {passive:true});
-    container.addEventListener("pointercancel", cancel, {passive:true});
-    container.addEventListener("mouseleave", cancel, {passive:true});
-    window.addEventListener("blur", cancel);
-  }
-
-  addLongPress(chatBox);
 
 
   if(forwardClose){
@@ -1480,7 +1480,7 @@ body.light-mode #chat-page {
   }
 
   // Hide menu when clicking outside
-  document.addEventListener("click", e=>{ if(!menu || !menu.contains(e.target)) hideMenu(); });
+  document.addEventListener("click", e=>{ if(!menu || (!menu.contains(e.target) && !e.target.closest(".message-action-toggle"))) hideMenu(); });
 
   // Disable clicks for deleted applicants
   const deletedApps = document.querySelectorAll('.sidebar .applicant.deleted');
