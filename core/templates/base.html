@@ -2,6 +2,7 @@
 {% load widget_tweaks %}
 {% load humanize %}
 {% load form_alerts %}
+{% load django_browser_reload %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1469,5 +1470,6 @@ if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
 });
 </script>
 
+{% django_browser_reload_script %}
 </body>
 </html>
