@@ -40,19 +40,25 @@
 .alerts-page .alerts-form label {
   display: block;
   margin-bottom: 8px;
-  color: var(--text-main);
-  font-weight: 600;
+  color: var(--text-accent);
+  font-weight: 700;
 }
 
 .alerts-page .alerts-form input[type="text"] {
   width: 100%;
-  padding: 12px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
   border-radius: 8px;
-  border: 1px solid var(--text-muted);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--bg-surface, var(--bg-card)) 86%, transparent);
   color: var(--text-main);
   margin-bottom: 20px;
-  transition: background 0.4s ease, border 0.3s ease;
+  transition: background 0.4s ease, border 0.3s ease;  font-size: 1rem;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  transition: box-shadow 0.2s ease, background 0.4s, color 0.4s, border-color 0.3s;
+}
+
+.alerts-page .alerts-form input[type="text"]::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 80%, var(--text-main) 20%);
 }
 
 .alerts-page .alerts-form .form-help {
@@ -65,9 +71,8 @@
 
 .alerts-page .alerts-form input[type="text"]:focus {
   outline: none;
-  border-color: var(--text-accent);
-  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.25);
-  background-color: rgba(255, 255, 255, 0.1);
+  border-color: color-mix(in srgb, var(--glow-accent) 75%, transparent);
+  box-shadow: 0 0 10px var(--glow-accent);
 }
 
 /* Align location suggestions to this page's card theme */
@@ -95,25 +100,22 @@
 
 /* Submit button — centered inside the card */
 .alerts-page .submit-btn {
-    background-color: var(--text-accent);
-    color: var(--text-main);          /* adapts to dark/light mode */
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.4); /* subtle glow */
-    display: block;                  /* allows centering */
-    margin: 20px auto 0 auto;        /* centers horizontally with top margin */
-    text-align: center;
+  background: linear-gradient(45deg, var(--glow-accent), var(--text-accent));
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  width: 100%;
+  color: var(--text-main);
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--glow-accent);
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s;
 }
 
-/* Hover effect */
 .alerts-page .submit-btn:hover {
-    background-color: var(--glow-accent);
-    color: var(--text-main);
-    box-shadow: 0 0 15px var(--glow-accent);
+  background: linear-gradient(45deg, var(--text-accent), var(--glow-accent));
+  transform: scale(1.02);
 }
 
 /* =========================================================
@@ -229,9 +231,6 @@
    
        <button type="submit" class="submit-btn">Set Alert</button>
 
-       <div class="recaptcha-wrap" style="margin-top:16px;">
-         <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
-       </div>
    </form>
 
    <datalist id="external-job-titles"></datalist>
@@ -291,7 +290,13 @@
       const payload = await response.json();
       const occupations = Array.isArray(payload?.occupations) ? payload.occupations : [];
       if (occupations.length) {
-        availableJobTitles = Array.from(new Set(occupations.map(item => String(item).trim()).filter(Boolean)));
+        availableJobTitles = Array.from(
+          new Set(
+            occupations
+              .map((item) => item?.occupation)
+              .filter((title) => typeof title === 'string' && title.trim().length > 0)
+          )
+        );
       }
     } catch (error) {
       console.warn('Unable to load external job title suggestions for alerts.', error);
