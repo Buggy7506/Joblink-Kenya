@@ -330,22 +330,37 @@ body {
 
 .password-wrapper input {
     padding-right: 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.password-wrapper input:-webkit-autofill,
+.password-wrapper input:-webkit-autofill:hover,
+.password-wrapper input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-main);
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-surface) inset !important;
+    box-shadow: 0 0 0 1000px var(--bg-surface) inset !important;
+    transition: background-color 9999s ease-out 0s;
 }
 
 .toggle-eye {
     position: absolute;
     top: 50%;
-    right: 10px;
+    right: 12px;
     transform: translateY(-50%);
-    width: 2rem;
-    height: 2rem;
-    display: inline-grid;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
     place-items: center;
     cursor: pointer;
+    border: 0;
+    background: transparent;
+    padding: 0;
     border-radius: 999px;
-    color: var(--text-muted);
+    color: var(--text-main);
+    z-index: 2;
     transition: background-color 0.2s ease, opacity 0.2s ease;
-    opacity: 0.9;
+    opacity: 0.85;
 }
 
 .toggle-eye:hover {
@@ -536,7 +551,7 @@ body.light-mode {
                     {{ form.password1.label_tag }}
                     <div class="password-wrapper">
                         {{ form.password1 }}
-                        <span class="toggle-eye" onclick="togglePassword('id_password1', this)"><img src="{% static 'icons/visibility.svg' %}" alt="Show password"></span>
+                        <button type="button" class="toggle-eye" onclick="togglePassword('id_password1', this)" aria-label="Show password" aria-pressed="false"><img src="{% static 'icons/visibility.svg' %}" alt="Show password"></button>
                     </div>
 
                     <div class="password-strength">
@@ -568,7 +583,7 @@ body.light-mode {
                     {{ form.password2.label_tag }}
                     <div class="password-wrapper">
                         {{ form.password2 }}
-                      <span class="toggle-eye" onclick="togglePassword('id_password2', this)"><img src="{% static 'icons/visibility.svg' %}" alt="Show password"></span>
+                      <button type="button" class="toggle-eye" onclick="togglePassword('id_password2', this)" aria-label="Show password" aria-pressed="false"><img src="{% static 'icons/visibility.svg' %}" alt="Show password"></button>
                     </div>
 
                     <div id="matchStatus" class="match-status"></div>
@@ -722,9 +737,13 @@ function togglePassword(fieldId, iconElement) {
     if (field.type === "password") {
         field.type = "text";
         iconElement.innerHTML = '<img src="{% static "icons/visibility_off.svg" %}" alt="Hide password">';
+        iconElement.setAttribute("aria-label", "Hide password");
+        iconElement.setAttribute("aria-pressed", "true");
     } else {
         field.type = "password";
         iconElement.innerHTML = '<img src="{% static "icons/visibility.svg" %}" alt="Show password">';
+        iconElement.setAttribute("aria-label", "Show password");
+        iconElement.setAttribute("aria-pressed", "false");
     }
 }
 
