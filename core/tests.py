@@ -698,7 +698,7 @@ class RequestShieldMiddlewareTests(SimpleTestCase):
 class OAuthProfilePictureMirrorTests(SimpleTestCase):
     def test_sync_profile_picture_to_profile_updates_profile_picture_field(self):
         from types import SimpleNamespace
-        from unittest.mock import Mock
+        from unittest.mock import Mock, patch
 
         from core.views import _sync_profile_picture_to_profile
 
@@ -706,10 +706,12 @@ class OAuthProfilePictureMirrorTests(SimpleTestCase):
         uploaded_picture = SimpleNamespace(url="https://example.com/pic.jpg")
         user = SimpleNamespace(pk=42, profile=profile, profile_pic=uploaded_picture)
 
-        synced = _sync_profile_picture_to_profile(user)
+        with patch("core.views.Profile.objects.get_or_create", return_value=(profile, False)) as mock_get_or_create:
+            synced = _sync_profile_picture_to_profile(user)
 
         self.assertTrue(synced)
         self.assertEqual(profile.profile_pic, uploaded_picture)
+        mock_get_or_create.assert_called_once()
         profile.save.assert_called_once_with(update_fields=["profile_pic"])
 
     def test_sync_oauth_profile_picture_calls_profile_mirror_on_success(self):
