@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Confirm Alert Deletion</title>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     :root {
       --bg-main: linear-gradient(135deg, #0f172a, #1e293b);
@@ -98,19 +97,6 @@
       color: var(--text-accent);
     }
 
-    .recaptcha-wrap {
-      margin: 20px auto;
-      width: 100%;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-    }
-
-    .g-recaptcha {
-      margin: 0;
-      max-width: 100%;
-      transform-origin: left top;
-    }
   </style>
 </head>
 <body>
@@ -123,30 +109,12 @@
     </p>
     <form method="post">
       {% csrf_token %}
-
-      <!-- Google reCAPTCHA -->
-      <div class="recaptcha-wrap">
-        <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
-      </div>
+      
 
       <button type="submit" class="btn btn-delete">Yes, Delete</button>
       <a href="{% url 'job_alerts' %}" class="btn btn-cancel">No, take me back</a>
     </form>
   </div>
-<script>
-  function resizeRecaptchaWidget() {
-    const widget = document.querySelector('.g-recaptcha');
-    if (!widget) return;
-    const parent = widget.parentElement;
-    const availableWidth = parent.clientWidth || 304;
-    const scale = Math.min(1, availableWidth / 304);
-    widget.style.transform = `scale(${scale})`;
-    widget.style.webkitTransform = `scale(${scale})`;
-    parent.style.minHeight = `${Math.ceil(78 * scale)}px`;
-  }
 
-  window.addEventListener('load', resizeRecaptchaWidget);
-  window.addEventListener('resize', resizeRecaptchaWidget);
-</script>
 </body>
 </html>
