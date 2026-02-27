@@ -395,6 +395,80 @@ class GoogleCallbackProfilePictureSyncTests(TestCase):
         )
 
 
+
+
+class MicrosoftCallbackProfilePictureSyncTests(TestCase):
+    def test_existing_microsoft_user_syncs_latest_profile_picture(self):
+        from unittest.mock import Mock, patch
+
+        from core.models import CustomUser
+
+        user = CustomUser.objects.create_user(
+            username="existing-microsoft-user",
+            email="existing.microsoft@example.com",
+            password="StrongPass123",
+            role="applicant",
+        )
+
+        with patch("core.views.requests.post") as mock_post, patch(
+            "core.views.requests.get"
+        ) as mock_get, patch("core.views._sync_profile_picture_to_profile", return_value=True) as mock_mirror:
+            mock_post.return_value = Mock(json=lambda: {"access_token": "token-123"})
+
+            graph_response = Mock()
+            graph_response.json.return_value = {
+                "mail": "existing.microsoft@example.com",
+                "givenName": "Existing",
+                "surname": "Microsoft",
+            }
+
+            photo_response = Mock()
+            photo_response.status_code = 200
+            photo_response.content = b"microsoft-photo-bytes"
+            photo_response.headers = {"Content-Type": "image/png"}
+            mock_get.side_effect = [graph_response, photo_response]
+
+            response = self.client.get(reverse("microsoft_callback"), {"code": "auth-code"})
+
+        self.assertEqual(response.status_code, 302)
+        user.refresh_from_db()
+        self.assertIn("_microsoft.png", user.profile_pic.name)
+        mock_mirror.assert_called_once_with(user)
+
+
+class MicrosoftPhotoFetchHelperTests(SimpleTestCase):
+    def test_fetch_microsoft_profile_photo_returns_bytes_and_extension(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from core.views import _fetch_microsoft_profile_photo
+
+        with patch("core.views.requests.get") as mock_get:
+            mock_get.return_value = SimpleNamespace(
+                status_code=200,
+                content=b"photo-bytes",
+                headers={"Content-Type": "image/png"},
+            )
+
+            photo_bytes, extension = _fetch_microsoft_profile_photo({"Authorization": "Bearer token"})
+
+        self.assertEqual(photo_bytes, b"photo-bytes")
+        self.assertEqual(extension, "png")
+
+    def test_fetch_microsoft_profile_photo_handles_missing_photo(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from core.views import _fetch_microsoft_profile_photo
+
+        with patch("core.views.requests.get") as mock_get:
+            mock_get.return_value = SimpleNamespace(status_code=404, content=b"", headers={})
+
+            photo_bytes, extension = _fetch_microsoft_profile_photo({"Authorization": "Bearer token"})
+
+        self.assertIsNone(photo_bytes)
+        self.assertEqual(extension, "jpg")
+
 class ExpiredJobCleanupMiddlewareTests(TestCase):
     def test_middleware_deletes_expired_jobs_on_each_request(self):
         from unittest.mock import patch
