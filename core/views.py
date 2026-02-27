@@ -1529,9 +1529,21 @@ def _fetch_microsoft_profile_photo(headers):
 def _sync_profile_picture_to_profile(user):
     """Mirror user.profile_pic to Profile.profile_pic to keep both profile views consistent."""
     try:
-        profile = getattr(user, "profile", None)
-        if not profile or not user.profile_pic:
+        if not user.profile_pic:
             return False
+        profile, _ = Profile.objects.get_or_create(
+            user=user,
+            defaults={
+                "full_name": (
+                    f"{(getattr(user, 'first_name', '') or '').strip()} "
+                    f"{(getattr(user, 'last_name', '') or '').strip()}"
+                ).strip()
+                or getattr(user, "username", None)
+                or getattr(user, "email", "")
+                or "JobLink User",
+                "role": getattr(user, "role", "applicant") or "applicant",
+            },
+        )
         profile.profile_pic = user.profile_pic
         profile.save(update_fields=["profile_pic"])
         return True
