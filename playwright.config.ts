@@ -30,7 +30,7 @@ export default defineConfig({
   /* Shared settings for all projects */
   use: {
     /* Base URL for Django dev server (HTTP) */
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: 'http://127.0.0.1:9000',
 
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
@@ -65,9 +65,9 @@ export default defineConfig({
 
   /* Auto-start Django dev server before tests */
   webServer: {
-    command: 'python manage.py runserver',
-    url: 'http://127.0.0.1:8000',
-    reuseExistingServer: true, // won't start if already running
+    command: 'python manage.py runserver 127.0.0.1:9000 --noreload --nothreading',
+    url: 'http://127.0.0.1:9000',
+    reuseExistingServer: !process.env.CI,
     timeout: 60_000, // wait up to 60s for server
   },
 
