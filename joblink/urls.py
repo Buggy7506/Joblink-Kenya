@@ -27,6 +27,7 @@ sitemaps = {
 }
 
 urlpatterns = [
+    path('__reload__/', include('django_browser_reload.urls')),
     path("sitemap.xml", sitemap, {'sitemaps': sitemaps}, name="sitemap"),
     path("secure-panel-92xA7/", admin.site.urls),
     path("robots.txt", robots_txt),
