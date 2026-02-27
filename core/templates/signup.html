@@ -329,26 +329,28 @@ body {
 }
 
 .password-wrapper input {
-    padding-right: 2.8rem;
+    padding-right: 3rem;
 }
 
 .toggle-eye {
     position: absolute;
     top: 50%;
-    right: 12px;
+    right: 10px;
     transform: translateY(-50%);
     width: 2rem;
     height: 2rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-grid;
+    place-items: center;
     cursor: pointer;
-    font-size: 18px;
+    border-radius: 999px;
     color: var(--text-muted);
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.9;
 }
 
 .toggle-eye:hover {
-    color: var(--text-main);
+    background: color-mix(in srgb, var(--text-main) 16%, transparent);
+    opacity: 1;
 }
 
 /* Make signup page reCAPTCHA scale properly */
@@ -371,11 +373,15 @@ body {
   }
 }
 
-.toggle-eye img { width: 18px; height: 18px; display: block; filter: var(--eye-icon-filter, none); }
-
-@media (prefers-color-scheme: dark) {
-    .toggle-eye img { --eye-icon-filter: brightness(0) invert(1); }
+body {
+    --password-eye-filter: brightness(0) invert(1);
 }
+
+body.light-mode {
+    --password-eye-filter: none;
+}
+
+.toggle-eye img { width: 18px; height: 18px; display: block; filter: var(--password-eye-filter); }
 
 </style>
 
