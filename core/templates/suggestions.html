@@ -1,142 +1,344 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block title %}Personalized Job Suggestions{% endblock %}
 {% block content %}
-<div class="suggestions-container">
-  <h2 class="glow-header">🎯 Job Suggestions Just for You</h2>
+<div class="suggestions-page">
+  <div class="container">
+    <h1>🎯 Job Suggestions Just for You</h1>
 
-  {% if messages %}
-    <div id="messages-popup">
-      {% for message in messages %}
-        <div class="message {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-    </div>
-  {% endif %}
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <p class="message-text {% if message.tags %}{{ message.tags }}{% endif %}">
+            {{ message }}
+          </p>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-  {% if suggested_jobs %}
-    <div class="job-grid">
-      {% for job in suggested_jobs %}
-        <div class="job-card glow-card">
-          <h3>{{ job.title }}</h3>
-          <p><strong>Company:</strong> {{ job.company }}</p>
-          <p><strong>Location:</strong> {{ job.location }}</p>
-          <p>{{ job.description|truncatechars:120 }}</p>
-          <a href="{% url 'job_detail' job.id %}" class="btn-glow-small">View Job</a>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="no-results">🚫 No suggestions found. Update your profile or check back later.</p>
-  {% endif %}
+    {% if suggested_jobs %}
+      <div class="job-grid">
+        {% for job in suggested_jobs %}
+          <div class="job-card {% if job.is_premium %}premium-job{% endif %}">
+            <div class="job-title">
+              {{ job.title }}
+              {% if job.is_premium %}
+                <span class="premium-badge">Featured</span>
+              {% endif %}
+            </div>
+
+            <p class="job-meta">
+              <span class="company-meta">
+                {% if job.company_logo %}
+                  <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo" class="company-logo-img" loading="lazy">
+                {% elif job.employer.employer_company.company_website %}
+                  <img
+                    src="https://www.google.com/s2/favicons?domain_url={{ job.employer.employer_company.company_website|urlencode }}&sz=64"
+                    alt="{{ job.company }} logo"
+                    class="company-logo-img"
+                    loading="lazy"
+                  >
+                {% else %}
+                  <span class="company-logo-fallback">{{ job.company|default:"C"|slice:":1"|upper }}</span>
+                {% endif %}
+                {{ job.company }}
+              </span>
+              &nbsp; | &nbsp;
+              <span class="location-map-wrap">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query={{ job.location|urlencode }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="location-link"
+                  aria-label="Open {{ job.location }} on Google Maps"
+                >
+                  📌 {{ job.location }}
+                </a>
+                <span class="location-map-popover" aria-hidden="true"></span>
+              </span>
+            </p>
+
+            {% if job.category %}
+              <p class="job-category">Category: {{ job.category.name|default:job.category }}</p>
+            {% endif %}
+
+            {% if job.salary %}
+              <p class="job-salary">Salary: KES {{ job.salary|intcomma }}</p>
+            {% endif %}
+
+            {% if job.expiry_date %}
+              <p class="job-expiry">
+                Expires: {{ job.expiry_date|date:"M d, Y" }}
+                <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}">⏳ Calculating time left...</span>
+              </p>
+            {% endif %}
+
+            <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
+            <p class="job-description">{{ job.description|truncatechars:170 }}</p>
+
+            <a href="{% url 'job_detail' job.id %}" class="apply-link">View Job</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="no-results">🚫 No suggestions found. Update your profile or check back later.</p>
+    {% endif %}
+  </div>
 </div>
 
 <style>
-.suggestions-container {
-  padding: 30px;
+.suggestions-page {
+  background: var(--bg-main);
   color: var(--text-main);
-  background: var(--bg-card);
-  border-radius: 20px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
 }
 
-.glow-header {
-  font-size: 2.2rem;
+.suggestions-page .container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 16px;
+}
+
+.suggestions-page h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 12px 0 18px;
+  color: var(--text-accent);
+}
+
+.suggestions-page .messages {
   text-align: center;
-  color: var(--glow-main);
-  text-shadow: 0 0 8px var(--glow-main), 0 0 16px var(--glow-main);
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
-.job-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.glow-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(3px);
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 0 10px var(--glow-main, #00ffd5);
-  color: var(--text-main);
-}
-
-.btn-glow-small {
+.suggestions-page .message-text {
   display: inline-block;
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: var(--glow-main);
-  color: var(--text-main);
-  font-weight: bold;
-  text-decoration: none;
+  padding: 10px 20px;
   border-radius: 20px;
-  box-shadow: 0 0 5px var(--glow-main), 0 0 10px var(--glow-main);
-  transition: transform 0.2s, filter 0.2s;
+  font-weight: 600;
+  color: var(--text-inverse);
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
-.btn-glow-small:hover {
-  transform: scale(1.05);
-  filter: brightness(1.2);
+.suggestions-page .message-text.success { background: var(--bg-success); }
+.suggestions-page .message-text.error { background: var(--bg-danger); }
+
+.suggestions-page .job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px;
 }
 
-.no-results {
-  text-align: center;
-  font-size: 1.2rem;
+.suggestions-page .job-card {
+  background: var(--bg-card);
+  padding: 18px;
+  border-radius: 14px;
+  border-left: 4px solid var(--text-accent);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.suggestions-page .job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+.suggestions-page .premium-job {
+  border-left-color: var(--text-warning);
+  background: linear-gradient(180deg, var(--bg-warning-soft), var(--bg-card));
+}
+
+.suggestions-page .job-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-accent);
+}
+
+.suggestions-page .premium-job .job-title { color: var(--text-warning); }
+
+.suggestions-page .job-meta,
+.suggestions-page .job-category,
+.suggestions-page .job-salary,
+.suggestions-page .job-expiry,
+.suggestions-page .job-posted,
+.suggestions-page .job-description {
+  font-size: 14px;
   color: var(--text-muted);
+  margin: 4px 0;
 }
 
-/* Messages Popup Styling */
-#messages-popup {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: slideDown 0.5s forwards;
-}
-
-.message {
-  background-color: var(--glow-main);
+.suggestions-page .job-description {
+  margin-top: 8px;
   color: var(--text-main);
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-weight: bold;
-  box-shadow: 0 0 10px var(--glow-main), 0 0 20px var(--glow-main);
-  opacity: 0.95;
 }
 
-.message.error {
-  background-color: var(--text-danger);
-  color: var(--text-main);
-  box-shadow: 0 0 10px var(--text-danger), 0 0 20px var(--text-danger);
+.suggestions-page .premium-badge {
+  background: var(--bg-warning);
+  color: var(--text-inverse);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 14px;
+  margin-left: 8px;
+  font-weight: 600;
 }
 
-/* Slide down animation */
-@keyframes slideDown {
-  to { transform: translateX(-50%) translateY(20px); }
+.suggestions-page .apply-link {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 22px;
+  border-radius: 22px;
+  background: var(--text-accent);
+  color: var(--text-inverse);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
 }
 
-/* Fade out animation */
-@keyframes fadeOut {
-  to { opacity: 0; transform: translateX(-50%) translateY(-50px); }
+.suggestions-page .apply-link:hover { background: var(--glow-accent); }
+
+.suggestions-page .location-map-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
+
+.suggestions-page .location-link { color: inherit; text-decoration: none; }
+.suggestions-page .location-link:hover,
+.suggestions-page .location-link:focus { color: var(--text-accent); }
+
+.suggestions-page .location-map-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: 260px;
+  height: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.22);
+  background: var(--bg-card);
+  display: none;
+  z-index: 15;
+}
+
+.suggestions-page .location-map-wrap:hover .location-map-popover,
+.suggestions-page .location-map-wrap:focus-within .location-map-popover { display: block; }
+
+.suggestions-page .location-map-popover iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.suggestions-page .countdown-timer { margin-left: 8px; font-weight: 600; }
+.suggestions-page .countdown-timer.urgent,
+.suggestions-page .countdown-timer.expired { color: var(--bg-danger); }
+
+.suggestions-page .company-logo-img,
+.suggestions-page .company-logo-fallback {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.suggestions-page .company-logo-img {
+  border: 1px solid color-mix(in srgb, var(--text-muted) 70%, transparent);
+  object-fit: cover;
+}
+
+.suggestions-page .company-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--text-accent) 85%, #111);
+  color: var(--text-inverse);
+  font-size: 11px;
+  font-weight: 700;
+}
+  
+.suggestions-page .company-meta { display: inline-flex; align-items: center; }
+.suggestions-page .no-results { color: var(--text-muted); font-style: italic; }
 </style>
 
-
 <script>
-  // Automatically fade and remove messages
-  setTimeout(() => {
-    const popup = document.getElementById('messages-popup');
-    if (popup) {
-      popup.style.animation = 'fadeOut 0.5s forwards';
-    }
-  }, 3000);
+document.addEventListener("DOMContentLoaded", () => {
+  function renderRemainingTime(diffMs) {
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+    if (days > 0) return `${days}d ${hours}h left`;
+    if (hours > 0) return `${hours}h ${minutes}m left`;
+    return `${Math.max(minutes, 0)}m left`;
+  }
 
-  setTimeout(() => {
-    const popup = document.getElementById('messages-popup');
-    if (popup) popup.remove();
-  }, 3500);
+  function initLocationMaps(scope = document) {
+    scope.querySelectorAll('.location-map-wrap').forEach((wrap) => {
+      const popover = wrap.querySelector('.location-map-popover');
+      const link = wrap.querySelector('.location-link');
+      if (!popover || !link || popover.dataset.loaded === 'true') return;
+
+      const loadMap = () => {
+        if (popover.dataset.loaded === 'true') return;
+        const mapsUrl = link.getAttribute('href');
+        if (!mapsUrl) return;
+        const query = new URL(mapsUrl).searchParams.get('query');
+        if (!query) return;
+        const iframe = document.createElement('iframe');
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer-when-downgrade';
+        iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=13&output=embed`;
+        iframe.title = `Map preview for ${query}`;
+        popover.appendChild(iframe);
+        popover.dataset.loaded = 'true';
+      };
+
+      wrap.addEventListener('mouseenter', loadMap, { once: true });
+      wrap.addEventListener('focusin', loadMap, { once: true });
+    });
+  }
+
+  function updateExpiryCountdowns(scope = document) {
+    const now = new Date();
+    scope.querySelectorAll('.countdown-timer[data-expiry]').forEach((timer) => {
+      const expiry = new Date(timer.dataset.expiry);
+      const diffMs = expiry - now;
+      timer.classList.remove('urgent', 'expired');
+      if (Number.isNaN(expiry.getTime())) {
+        timer.textContent = '⏳ Invalid date';
+        return;
+      }
+      if (diffMs <= 0) {
+        timer.textContent = '⚠️ Expired';
+        timer.classList.add('expired');
+        return;
+      }
+      if (diffMs <= 48 * 60 * 60 * 1000) timer.classList.add('urgent');
+      timer.textContent = `⏳ ${renderRemainingTime(diffMs)}`;
+    });
+  }
+
+  const msgs = document.querySelectorAll('.suggestions-page .message-text');
+  if (msgs.length) {
+    setTimeout(() => {
+      msgs.forEach((msg, index) => {
+        setTimeout(() => {
+          msg.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          msg.style.opacity = '0';
+          msg.style.transform = 'translateY(-12px)';
+          setTimeout(() => msg.remove(), 700);
+        }, index * 120);
+      });
+    }, 3500);
+  }
+
+  initLocationMaps();
+  updateExpiryCountdowns();
+  setInterval(updateExpiryCountdowns, 60000);
+});
 </script>
 {% endblock %}
