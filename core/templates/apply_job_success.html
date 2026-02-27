@@ -67,8 +67,8 @@
       </div>
     {% endif %}
 
-    <p class="status-muted">Redirecting to job suggestions in <strong><span id="timer">5</span></strong> seconds.</p>
-    <a href="{% url 'job_suggestions' %}" class="jl-theme-btn">Go to Job Suggestions</a>
+    <p class="status-muted">Redirecting to applied jobs in <strong><span id="timer">5</span></strong> seconds.</p>
+    <a href="{% url 'applied_jobs' %}" class="jl-theme-btn">Go to Applied Jobs</a>
   </div>
 </section>
 
@@ -81,7 +81,7 @@
     timer.textContent = timeLeft;
     if (timeLeft <= 0) {
       clearInterval(countdown);
-      window.location.href = "{% url 'job_suggestions' %}";
+      window.location.href = "{% url 'applied_jobs' %}";
     }
   }, 1000);
 </script>
