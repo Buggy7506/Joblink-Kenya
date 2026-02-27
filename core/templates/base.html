@@ -153,6 +153,17 @@ body.light-mode {
   --glow-strong: color-mix(in srgb, var(--glow-accent), transparent 55%);
 }
 
+
+/* Responsive reCAPTCHA widgets */
+.recaptcha-wrap,
+.form-group {
+  max-width: 100%;
+}
+
+.g-recaptcha {
+  max-width: 100%;
+}
+
 /* =========================================================
    BASE ELEMENTS
 ========================================================= */
@@ -1358,6 +1369,33 @@ if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
       console.warn('Skipping invalid link:', link.href);
     }
   });
+
+
+  // ---------------------------
+  // Responsive Google reCAPTCHA scaling
+  // ---------------------------
+  function resizeRecaptchaWidgets() {
+    const widgets = document.querySelectorAll('.g-recaptcha');
+    widgets.forEach((widget) => {
+      const parent = widget.parentElement;
+      if (!parent) return;
+
+      const availableWidth = parent.clientWidth || 304;
+      const scale = Math.min(1, availableWidth / 304);
+
+      widget.style.transform = `scale(${scale})`;
+      widget.style.transformOrigin = 'left top';
+      widget.style.webkitTransform = `scale(${scale})`;
+      widget.style.webkitTransformOrigin = 'left top';
+      widget.style.width = '304px';
+
+      parent.style.minHeight = `${Math.ceil(78 * scale)}px`;
+      parent.style.overflowX = 'hidden';
+    });
+  }
+
+  resizeRecaptchaWidgets();
+  window.addEventListener('resize', resizeRecaptchaWidgets);
 
   // ---------------------------
   // OpenStreetMap / Nominatim Location Autocomplete
