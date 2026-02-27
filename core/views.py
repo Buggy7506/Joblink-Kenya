@@ -1511,6 +1511,21 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
         return False
 
 
+def _fetch_microsoft_profile_photo(headers):
+    """Fetch Microsoft profile photo bytes for use during OAuth signup/login."""
+    try:
+        photo_response = requests.get(MICROSOFT_PHOTO_ENDPOINT, headers=headers, timeout=10)
+        if photo_response.status_code != 200 or not photo_response.content:
+            return None, "jpg"
+
+        content_type = photo_response.headers.get("Content-Type", "image/jpeg").lower()
+        extension = "png" if "png" in content_type else "jpg"
+        return photo_response.content, extension
+    except Exception as exc:
+        logger.info("Microsoft profile photo fetch skipped: %s", exc)
+        return None, "jpg"
+
+
 def _sync_profile_picture_to_profile(user):
     """Mirror user.profile_pic to Profile.profile_pic to keep both profile views consistent."""
     try:
@@ -1783,20 +1798,19 @@ def microsoft_callback(request):
     first_name = user_info.get("givenName", "")
     last_name = user_info.get("surname", "")
 
-    picture_b64 = None
-    picture_ext = "jpg"
-    try:
-        photo_response = requests.get(MICROSOFT_PHOTO_ENDPOINT, headers=headers, timeout=10)
-        if photo_response.status_code == 200 and photo_response.content:
-            content_type = photo_response.headers.get("Content-Type", "image/jpeg")
-            if "png" in content_type:
-                picture_ext = "png"
-            picture_b64 = base64.b64encode(photo_response.content).decode("utf-8")
-    except Exception:
-        pass
+    photo_bytes, picture_ext = _fetch_microsoft_profile_photo(headers)
+    picture_b64 = base64.b64encode(photo_bytes).decode("utf-8") if photo_bytes else None
 
     try:
         user = CustomUser.objects.get(email=email)
+        if photo_bytes:
+            username = user.username or user.email or f"user_{user.id}"
+            user.profile_pic.save(
+                f"{slugify(username)}_microsoft.{picture_ext}",
+                ContentFile(photo_bytes),
+                save=True,
+            )
+            _sync_profile_picture_to_profile(user)
         login(request, user)
         return _redirect_to_next_or_dashboard(request)
     except CustomUser.DoesNotExist:
