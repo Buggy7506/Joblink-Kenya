@@ -12,7 +12,34 @@
       </div>
 
       <p class="job-meta">
-        🏢 {{ job.company }} &nbsp; | &nbsp; 📍 {{ job.location }}
+        <span class="company-meta">
+          {% if job.company_logo %}
+            <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo" class="company-logo-img" loading="lazy">
+          {% elif job.employer.employer_company.company_website %}
+            <img
+              src="https://www.google.com/s2/favicons?domain_url={{ job.employer.employer_company.company_website|urlencode }}&sz=64"
+              alt="{{ job.company }} logo"
+              class="company-logo-img"
+              loading="lazy"
+            >
+          {% else %}
+            <span class="company-logo-fallback">{{ job.company|default:"C"|slice:":1"|upper }}</span>
+          {% endif %}
+          {{ job.company }}
+        </span>
+        &nbsp; | &nbsp;
+        <span class="location-map-wrap">
+          <a
+            href="https://www.google.com/maps/search/?api=1&query={{ job.location|urlencode }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="location-link"
+            aria-label="Open {{ job.location }} on Google Maps"
+          >
+            📌 {{ job.location }}
+          </a>
+          <span class="location-map-popover" aria-hidden="true"></span>
+        </span>
       </p>
 
       {% if job.category %}
@@ -30,17 +57,21 @@
       {% if job.expiry_date %}
         <p class="job-expiry">
           Expires: {{ job.expiry_date|date:"M d, Y" }}
+          <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}">
+            <span class="expiry-icon" aria-hidden="true">⏳</span>
+            <span class="countdown-label">Calculating time left...</span>
+          </span>
         </p>
       {% endif %}
+
       <p class="job-posted">
         Posted: {{ job.posted_on|date:"M d, Y" }}
       </p>
 
-    <div class="apply-info">
       <a href="{% url 'apply_job' job.id %}" class="apply-link">
         Apply Now
       </a>
-
+    </div>
   {% empty %}
     <p class="no-jobs">
       No jobs found. Try adjusting your search.
