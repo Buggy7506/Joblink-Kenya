@@ -1,14 +1,6 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
-import fs from 'fs';
 
-// Ensure test-results folder exists
-const screenshotDir = path.resolve(__dirname, '../test-results');
-if (!fs.existsSync(screenshotDir)) {
-  fs.mkdirSync(screenshotDir, { recursive: true });
-}
-
-test('Auth page phone input UI screenshot', async ({ page }) => {
+test('Auth page phone input UI screenshot', async ({ page }, testInfo) => {
   await page.goto('/Sign-In-OR-Sign-Up/', {
     waitUntil: 'domcontentloaded',
   });
@@ -30,8 +22,10 @@ test('Auth page phone input UI screenshot', async ({ page }) => {
    await expect(countrySelect).toBeHidden();
   await expect(countrySelect).toBeEnabled();
 
-  await page.screenshot({
-    path: path.join(screenshotDir, 'auth-phone-input.png'),
-    fullPage: true,
+  const screenshotPath = testInfo.outputPath('auth-phone-input.png');
+  await page.screenshot({ path: screenshotPath, fullPage: true });
+  await testInfo.attach('auth-phone-input', {
+    path: screenshotPath,
+    contentType: 'image/png',
   });
 });
