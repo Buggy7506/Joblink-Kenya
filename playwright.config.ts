@@ -35,8 +35,8 @@ export default defineConfig({
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
 
-    /* Automatically capture screenshots on failure */
-    screenshot: 'only-on-failure',
+    /* Always capture screenshots so runs consistently produce artifacts */
+    screenshot: 'on',
   },
 
   /* Configure projects for major browsers */
