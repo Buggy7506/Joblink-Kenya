@@ -1493,6 +1493,10 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
     if not picture_url:
         return False
 
+    # Keep manually uploaded profile photos intact.
+    if user.profile_pic:
+        return False
+
     try:
         response = requests.get(picture_url, timeout=8)
         if response.status_code != 200:
@@ -1603,6 +1607,7 @@ def google_callback(request):
     user_info = user_response.json()
 
     email = user_info.get('email')
+    picture_url = user_info.get('picture')
     first_name = user_info.get('given_name', '')
     last_name = user_info.get('family_name', '')
 
@@ -1619,7 +1624,7 @@ def google_callback(request):
     # Check if user already exists
     try:
         user = CustomUser.objects.get(email=email)
-        _sync_oauth_profile_picture(user, user_info.get('picture'), provider='google')
+        _sync_oauth_profile_picture(user, picture_url, provider='google')
         # Existing user: log in directly
         login(request, user)
         return _redirect_to_next_or_dashboard(request)
@@ -1629,7 +1634,7 @@ def google_callback(request):
             'email': email,
             'first_name': first_name,
             'last_name': last_name,
-            'picture': user_info.get('picture'),
+            'picture': picture_url,
             'provider': 'google',
         }
         return redirect('google_choose_role')
