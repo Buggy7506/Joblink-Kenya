@@ -69,7 +69,7 @@
             {% if job.expiry_date %}
               <p class="job-expiry">
                 Expires: {{ job.expiry_date|date:"M d, Y" }}
-                <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}">⏳ Calculating time left...</span>
+                <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}"><span class="expiry-icon" aria-hidden="true">⏳</span><span class="countdown-label">Calculating time left...</span></span>
               </p>
             {% endif %}
 
@@ -229,7 +229,9 @@
   border: 0;
 }
 
-.suggestions-page .countdown-timer { margin-left: 8px; font-weight: 600; }
+.suggestions-page .countdown-timer { margin-left: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.suggestions-page .expiry-icon { display: inline-block; animation: expiry-spin 1.2s linear infinite; transform-origin: center; }
+@keyframes expiry-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .suggestions-page .countdown-timer.urgent,
 .suggestions-page .countdown-timer.expired { color: var(--bg-danger); }
 
@@ -302,20 +304,28 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateExpiryCountdowns(scope = document) {
     const now = new Date();
     scope.querySelectorAll('.countdown-timer[data-expiry]').forEach((timer) => {
+      const label = timer.querySelector('.countdown-label');
+      const setTimerLabel = (text) => {
+        if (label) {
+          label.textContent = text;
+        } else {
+          timer.textContent = text;
+        }
+      };
       const expiry = new Date(timer.dataset.expiry);
       const diffMs = expiry - now;
       timer.classList.remove('urgent', 'expired');
       if (Number.isNaN(expiry.getTime())) {
-        timer.textContent = '⏳ Invalid date';
+        setTimerLabel('Invalid date');
         return;
       }
       if (diffMs <= 0) {
-        timer.textContent = '⚠️ Expired';
+        setTimerLabel('Expired');
         timer.classList.add('expired');
         return;
       }
       if (diffMs <= 48 * 60 * 60 * 1000) timer.classList.add('urgent');
-      timer.textContent = `⏳ ${renderRemainingTime(diffMs)}`;
+      setTimerLabel(renderRemainingTime(diffMs));
     });
   }
 

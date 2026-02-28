@@ -139,6 +139,17 @@
   font-weight: 600;
 }
 
+.available-jobs-page .expiry-icon {
+  display: inline-block;
+  animation: expiry-spin 1.2s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes expiry-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .available-jobs-page .countdown-timer.urgent {
   color: var(--bg-danger);
 }
@@ -619,7 +630,8 @@
         <p class="job-expiry">
           Expires: {{ job.expiry_date|date:"M d, Y" }}
           <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}">
-            ⏳ Calculating time left...
+            <span class="expiry-icon" aria-hidden="true">⏳</span>
+            <span class="countdown-label">Calculating time left...</span>
           </span>
         </p>
       {% endif %}
@@ -699,7 +711,8 @@
           <p class="job-expiry">
             Expires: {{ job.expiry_date|date:"M d, Y" }}
             <span class="countdown-timer" data-expiry="{{ job.expiry_date|date:'c' }}">
-              ⏳ Calculating time left...
+              <span class="expiry-icon" aria-hidden="true">⏳</span>
+              <span class="countdown-label">Calculating time left...</span>
             </span>
           </p>
         {% endif %}
@@ -756,18 +769,26 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateExpiryCountdowns(scope = document) {
     const timers = scope.querySelectorAll('.countdown-timer[data-expiry]');
     timers.forEach((timer) => {
+      const label = timer.querySelector('.countdown-label');
+      const setTimerLabel = (text) => {
+        if (label) {
+          label.textContent = text;
+        } else {
+          timer.textContent = text;
+        }
+      };
       const expiryDate = new Date(timer.dataset.expiry);
       const diffMs = expiryDate - new Date();
 
       timer.classList.remove('urgent', 'expired');
 
       if (Number.isNaN(expiryDate.getTime())) {
-        timer.textContent = '⏳ Expiry date unavailable';
+        setTimerLabel('Expiry date unavailable');
         return;
       }
 
       if (diffMs <= 0) {
-        timer.textContent = '⏳ Expired';
+        setTimerLabel('Expired');
         timer.classList.add('expired');
         return;
       }
@@ -777,7 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
         timer.classList.add('urgent');
       }
 
-      timer.textContent = `⏳ ${renderRemainingTime(diffMs)}`;
+      setTimerLabel(renderRemainingTime(diffMs));
     });
   }
 
