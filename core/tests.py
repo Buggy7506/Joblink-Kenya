@@ -748,18 +748,29 @@ class OAuthProfilePictureMirrorTests(SimpleTestCase):
 
         from core.views import _sync_oauth_profile_picture
 
+        class EmptyProfilePicField:
+            def __init__(self):
+                self.save = Mock()
+
+            def __bool__(self):
+                return False
+
         user = SimpleNamespace(
             pk=7,
             id=7,
             username="google-user",
             email="google@example.com",
-            profile_pic=SimpleNamespace(save=Mock()),
+            profile_pic=EmptyProfilePicField(),
         )
 
         with patch("core.views.requests.get") as mock_get, patch(
             "core.views._sync_profile_picture_to_profile", return_value=True
         ) as mock_profile_sync:
-            mock_get.return_value = SimpleNamespace(status_code=200, content=b"image-bytes")
+            mock_get.return_value = SimpleNamespace(
+                status_code=200,
+                content=b"image-bytes",
+                headers={"Content-Type": "image/jpeg"},
+            )
 
             synced = _sync_oauth_profile_picture(
                 user,
@@ -769,6 +780,33 @@ class OAuthProfilePictureMirrorTests(SimpleTestCase):
 
         self.assertTrue(synced)
         user.profile_pic.save.assert_called_once()
+        mock_profile_sync.assert_called_once_with(user)
+
+    def test_sync_oauth_profile_picture_mirrors_existing_picture_without_overwrite(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+
+        from core.views import _sync_oauth_profile_picture
+
+        user = SimpleNamespace(
+            pk=8,
+            id=8,
+            username="existing-google-user",
+            email="existing.google@example.com",
+            profile_pic=SimpleNamespace(url="https://example.com/existing.jpg"),
+        )
+
+        with patch("core.views.requests.get") as mock_get, patch(
+            "core.views._sync_profile_picture_to_profile", return_value=True
+        ) as mock_profile_sync:
+            synced = _sync_oauth_profile_picture(
+                user,
+                "https://example.com/new-avatar.jpg",
+                provider="google",
+            )
+
+        self.assertTrue(synced)
+        mock_get.assert_not_called()
         mock_profile_sync.assert_called_once_with(user)
 
 class UserRoleInterdependencySignalTests(SimpleTestCase):

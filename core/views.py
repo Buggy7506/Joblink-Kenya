@@ -1493,13 +1493,26 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
     if not picture_url:
         return False
 
-    # Keep manually uploaded profile photos intact.
+    # Keep manually uploaded profile photos intact, but still mirror
+    # the existing image to Profile if needed.
     if user.profile_pic:
-        return False
+        return _sync_profile_picture_to_profile(user)
+
+    normalized_picture_url = picture_url
+    if provider == "google":
+        normalized_picture_url = picture_url.replace("s96-c", "s400-c")
 
     try:
-        response = requests.get(picture_url, timeout=8)
+        response = requests.get(
+            normalized_picture_url,
+            timeout=8,
+            headers={"User-Agent": "Mozilla/5.0 JobLinkKenya/1.0"},
+        )
         if response.status_code != 200:
+            return False
+
+        content_type = response.headers.get("Content-Type", "").lower()
+        if content_type and not content_type.startswith("image/"):
             return False
 
         username = user.username or user.email or f"user_{user.id}"
