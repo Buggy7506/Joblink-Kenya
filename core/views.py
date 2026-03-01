@@ -1220,7 +1220,7 @@ def quick_profile_update(request):
         "user_cv": CVUpload.objects.filter(applicant=user).order_by('-id').first(),
         "form_errors": {},
         "modal_type": None,
-        "profile_picture_url": user.profile_pic.url if user.profile_pic else None,
+        "profile_picture_url": user.profile_picture_url,
     }
 
     if request.method == "POST":
@@ -1287,6 +1287,13 @@ def quick_profile_update(request):
                     pass
                 user.profile_pic = None
                 user.save()
+            try:
+                profile = Profile.objects.filter(user=user).first()
+                if profile and profile.profile_pic:
+                    profile.profile_pic = None
+                    profile.save(update_fields=["profile_pic"])
+            except Exception:
+                pass
             return JsonResponse({"success": True, "url": DEFAULT_PIC})
 
         # ---------- PROFILE PIC UPLOAD ----------
@@ -1297,6 +1304,7 @@ def quick_profile_update(request):
             else:
                 user.profile_pic = pic
                 user.save()
+                _sync_profile_picture_to_profile(user)
                 return JsonResponse({"success": True, "url": user.profile_pic.url})
 
         # ---------- HANDLE VALIDATION ERRORS ----------
@@ -1500,7 +1508,7 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
 
     normalized_picture_url = picture_url
     if provider == "google":
-        normalized_picture_url = picture_url.replace("s96-c", "s400-c")
+        normalized_picture_url = _normalize_google_picture_url(picture_url)
 
     try:
         response = requests.get(
@@ -1526,6 +1534,13 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
     except Exception as exc:
         logger.warning("OAuth profile picture sync failed for user %s: %s", user.pk, exc)
         return False
+
+
+def _normalize_google_picture_url(picture_url):
+    """Use higher-resolution Google profile photos when available."""
+    if not picture_url:
+        return picture_url
+    return picture_url.replace("s96-c", "s400-c")
 
 
 def _fetch_microsoft_profile_photo(headers):
@@ -1620,7 +1635,7 @@ def google_callback(request):
     user_info = user_response.json()
 
     email = user_info.get('email')
-    picture_url = user_info.get('picture')
+    picture_url = _normalize_google_picture_url(user_info.get('picture'))
     first_name = user_info.get('given_name', '')
     last_name = user_info.get('family_name', '')
 
