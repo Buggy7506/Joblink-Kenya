@@ -202,25 +202,6 @@
   #login-page .auth-card { width: 100%; padding: 20px; }
 }
 
-/* Make reCAPTCHA responsive on login */
-#login-page .g-recaptcha {
-  transform: scale(1);
-  transform-origin: 0 0;
-}
-
-/* Smaller phones */
-@media (max-width: 480px) {
-  #login-page .g-recaptcha {
-    transform: scale(0.85);
-  }
-}
-
-/* Very narrow screens */
-@media (max-width: 360px) {
-  #login-page .g-recaptcha {
-    transform: scale(0.75);
-  }
-}
 </style>
 {% endblock %}
 
@@ -283,11 +264,6 @@
               required
             >
             <button type="button" id="toggleShow" class="show-btn">Show</button>
-          </div>
-
-          <!-- reCAPTCHA -->
-          <div class="g-recaptcha"
-               data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS">
           </div>
 
           <!-- LOGIN BUTTON -->

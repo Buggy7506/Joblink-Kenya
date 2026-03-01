@@ -59,14 +59,6 @@
     font-weight: 600;
   }
 
-  .recaptcha-wrap {
-    margin: 1rem 0 1.25rem;
-    padding: .8rem;
-    border: 1px dashed color-mix(in srgb, var(--text-muted), transparent 58%);
-    border-radius: .8rem;
-    background: color-mix(in srgb, var(--bg-surface-soft), transparent 35%);
-  }
-
   .apply-btn {
     width: 100%;
   }
@@ -91,9 +83,6 @@
 
     <form method="post">
       {% csrf_token %}
-      <div class="recaptcha-wrap">
-        <div class="g-recaptcha" data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS"></div>
-      </div>
       <button type="submit" class="jl-theme-btn apply-btn">
         {% if job.is_premium %}Pay & Apply{% else %}Apply Now{% endif %}
       </button>
