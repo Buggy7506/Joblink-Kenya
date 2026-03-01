@@ -368,26 +368,6 @@ body {
     opacity: 1;
 }
 
-/* Make signup page reCAPTCHA scale properly */
-.signup-card .g-recaptcha {
-  transform: scale(1);
-  transform-origin: 0 0;
-}
-
-/* Slight shrink on small phones */
-@media (max-width: 480px) {
-  .signup-card .g-recaptcha {
-    transform: scale(0.85);
-  }
-}
-
-/* Extra tiny screens */
-@media (max-width: 360px) {
-  .signup-card .g-recaptcha {
-    transform: scale(0.75);
-  }
-}
-
 body {
     --password-eye-filter: brightness(0) invert(1);
 }
@@ -667,10 +647,6 @@ body.light-mode {
                     <a href="/privacy/">Privacy Policy</a>, 
                     and <a href="/cookies/">Cookies Policy</a>.
                 </p>
-
-                <div class="g-recaptcha"
-                     data-sitekey="6LcMGEQsAAAAAO1KJvmCwECWnpPpXg2HlHio_QJS">
-                </div>
 
                 <p class="verify-note">
                     Employers must provide business details.

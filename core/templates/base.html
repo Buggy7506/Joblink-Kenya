@@ -27,7 +27,6 @@ Joblink Kenya connects job seekers with employers across Kenya. Find jobs, post 
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 {% block extra_js %}{% endblock %}
@@ -154,16 +153,6 @@ body.light-mode {
   --glow-strong: color-mix(in srgb, var(--glow-accent), transparent 55%);
 }
 
-
-/* Responsive reCAPTCHA widgets */
-.recaptcha-wrap,
-.form-group {
-  max-width: 100%;
-}
-
-.g-recaptcha {
-  max-width: 100%;
-}
 
 /* =========================================================
    BASE ELEMENTS
@@ -1371,32 +1360,6 @@ if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
     }
   });
 
-
-  // ---------------------------
-  // Responsive Google reCAPTCHA scaling
-  // ---------------------------
-  function resizeRecaptchaWidgets() {
-    const widgets = document.querySelectorAll('.g-recaptcha');
-    widgets.forEach((widget) => {
-      const parent = widget.parentElement;
-      if (!parent) return;
-
-      const availableWidth = parent.clientWidth || 304;
-      const scale = Math.min(1, availableWidth / 304);
-
-      widget.style.transform = `scale(${scale})`;
-      widget.style.transformOrigin = 'left top';
-      widget.style.webkitTransform = `scale(${scale})`;
-      widget.style.webkitTransformOrigin = 'left top';
-      widget.style.width = '304px';
-
-      parent.style.minHeight = `${Math.ceil(78 * scale)}px`;
-      parent.style.overflowX = 'hidden';
-    });
-  }
-
-  resizeRecaptchaWidgets();
-  window.addEventListener('resize', resizeRecaptchaWidgets);
 
   // ---------------------------
   // OpenStreetMap / Nominatim Location Autocomplete

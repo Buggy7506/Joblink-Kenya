@@ -943,8 +943,6 @@ def about(request):
 def contact(request):
     return render(request, "contact.html", {"now": timezone.now()})
 
-RECAPTCHA_SECRET = os.environ.get("RECAPTCHA_SECRET")  # from Render environment
-
 #@csrf_protect
 # def choose_verification_method(request):
 #     """
@@ -2051,7 +2049,7 @@ def home(request):
 @csrf_protect
 def signup_view(request):
     """
-    User signup view with Google reCAPTCHA verification.
+    User signup view.
     Supports Applicant & Employer signup with dynamic role-based fields.
     """
 
@@ -2062,7 +2060,6 @@ def signup_view(request):
     company_website = ""
 
     if request.method == "POST":
-        recaptcha_response = request.POST.get("g-recaptcha-response")
         role = request.POST.get("role", "applicant").lower()
 
         company_name = request.POST.get("company_name", "").strip()
@@ -2085,34 +2082,6 @@ def signup_view(request):
 
         # Now bind form AFTER mutation
         form = CustomUserCreationForm(request.POST)
-
-        # =========================
-        # RECAPTCHA VERIFICATION
-        # =========================
-        if not recaptcha_response:
-            messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, "signup.html", {
-                "form": form,
-                "role": role,
-                "company_name": company_name,
-                "company_email": company_email,
-                "company_website": company_website
-            })
-
-        r = requests.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data={"secret": RECAPTCHA_SECRET, "response": recaptcha_response}
-        )
-
-        if not r.json().get("success"):
-            messages.error(request, "reCAPTCHA verification failed.")
-            return render(request, "signup.html", {
-                "form": form,
-                "role": role,
-                "company_name": company_name,
-                "company_email": company_email,
-                "company_website": company_website
-            })
 
         # =========================
         # FORM VALIDATION
@@ -2244,26 +2213,6 @@ def login_view(request):
         identifier = request.POST.get('identifier', '').strip()
         password = request.POST.get('password', '').strip()
         selected_role = request.POST.get('role')  # applicant | employer
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-
-        # 0️⃣ Verify Google reCAPTCHA
-        if not recaptcha_response:
-            messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'login.html')
-
-        recaptcha_data = {
-            'secret': RECAPTCHA_SECRET,
-            'response': recaptcha_response
-        }
-        r = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data=recaptcha_data
-        )
-        result = r.json()
-
-        if not result.get('success'):
-            messages.error(request, "reCAPTCHA verification failed. Please try again.")
-            return render(request, 'login.html')
 
         # 1️⃣ Find user
         try:
@@ -2929,7 +2878,7 @@ def edit_job(request, job_id):
 
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
-# Apply Job View with reCAPTCHA (NO VERIFICATION CHECK)
+# Apply Job View
 @csrf_protect
 @login_required
 def apply_job(request, job_id):
@@ -2947,25 +2896,6 @@ def apply_job(request, job_id):
 
     # 3️⃣ Handle POST requests
     if request.method == "POST":
-        # --------------------------
-        # Verify Google reCAPTCHA
-        # --------------------------
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-        if not recaptcha_response:
-            messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'apply_job.html', {'job': job})
-
-        recaptcha_data = {
-            'secret': settings.RECAPTCHA_SECRET,
-            'response': recaptcha_response
-        }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
-        result = r.json()
-        if not result.get('success'):
-            messages.error(request, "reCAPTCHA verification failed. Please try again.")
-            return render(request, 'apply_job.html', {'job': job})
-        # --------------------------
-
         # ---------- FREE JOB FLOW ----------
         if not job.is_premium:
             application, created = Application.objects.get_or_create(
@@ -3452,27 +3382,10 @@ def job_suggestions(request):
 @login_required
 def change_username_password(request):
     """
-    Change username and password view with Google reCAPTCHA verification
+    Change username and password view
     """
     if request.method == 'POST':
         form = ChangeUsernamePasswordForm(request.POST, user=request.user, instance=request.user)
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-
-        # 0️⃣ Verify Google reCAPTCHA
-        if not recaptcha_response:
-            messages.error(request, "Please complete the reCAPTCHA.")
-            return render(request, 'change_username_password.html', {'form': form})
-
-        recaptcha_data = {
-            'secret': RECAPTCHA_SECRET,
-            'response': recaptcha_response
-        }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
-        result = r.json()
-
-        if not result.get('success'):
-            messages.error(request, "reCAPTCHA verification failed. Please try again.")
-            return render(request, 'change_username_password.html', {'form': form})
 
         # 1️⃣ Validate form
         if form.is_valid():
