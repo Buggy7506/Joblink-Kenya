@@ -1499,9 +1499,10 @@ def _sync_oauth_profile_picture(user, picture_url, provider='oauth'):
     if not picture_url:
         return False
 
-    # Keep manually uploaded profile photos intact, but still mirror
-    # the existing image to Profile if needed.
-    if user.profile_pic:
+    # Preserve existing photos for non-Google providers.
+    # Google logins are expected to keep profile photos in sync,
+    # so we refresh the image on each successful OAuth callback.
+    if user.profile_pic and provider != "google":
         return _sync_profile_picture_to_profile(user)
 
     normalized_picture_url = picture_url
