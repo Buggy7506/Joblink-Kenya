@@ -782,17 +782,51 @@ class OAuthProfilePictureMirrorTests(SimpleTestCase):
         user.profile_pic.save.assert_called_once()
         mock_profile_sync.assert_called_once_with(user)
 
-    def test_sync_oauth_profile_picture_mirrors_existing_picture_without_overwrite(self):
+    def test_sync_oauth_profile_picture_refreshes_existing_google_picture(self):
         from types import SimpleNamespace
         from unittest.mock import Mock, patch
 
         from core.views import _sync_oauth_profile_picture
 
+        existing_profile_pic = SimpleNamespace(url="https://example.com/existing.jpg", save=Mock())
         user = SimpleNamespace(
             pk=8,
             id=8,
             username="existing-google-user",
             email="existing.google@example.com",
+            profile_pic=existing_profile_pic,
+        )
+
+        with patch("core.views.requests.get") as mock_get, patch(
+            "core.views._sync_profile_picture_to_profile", return_value=True
+        ) as mock_profile_sync:
+            mock_get.return_value = SimpleNamespace(
+                status_code=200,
+                content=b"new-google-image-bytes",
+                headers={"Content-Type": "image/jpeg"},
+            )
+            synced = _sync_oauth_profile_picture(
+                user,
+                "https://example.com/new-avatar.jpg",
+                provider="google",
+            )
+
+        self.assertTrue(synced)
+        mock_get.assert_called_once()
+        existing_profile_pic.save.assert_called_once()
+        mock_profile_sync.assert_called_once_with(user)
+
+    def test_sync_oauth_profile_picture_preserves_existing_non_google_picture(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from core.views import _sync_oauth_profile_picture
+
+        user = SimpleNamespace(
+            pk=9,
+            id=9,
+            username="existing-microsoft-user",
+            email="existing.microsoft@example.com",
             profile_pic=SimpleNamespace(url="https://example.com/existing.jpg"),
         )
 
@@ -802,7 +836,7 @@ class OAuthProfilePictureMirrorTests(SimpleTestCase):
             synced = _sync_oauth_profile_picture(
                 user,
                 "https://example.com/new-avatar.jpg",
-                provider="google",
+                provider="microsoft",
             )
 
         self.assertTrue(synced)
