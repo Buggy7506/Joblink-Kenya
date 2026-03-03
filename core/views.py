@@ -3153,61 +3153,10 @@ def generate_code_challenge():
 @csrf_protect
 @login_required
 def alien_resume_builder(request):
-    """Open Canva editor when authorized, otherwise start Canva OAuth flow."""
-
-    # Reuse existing token instead of forcing OAuth on every click.
-    if request.session.get('canva_access_token'):
-        return redirect(CANVA_EDITOR_URL)
-
-    # 1. Generate PKCE code challenge and store code_verifier in session
-    code_verifier, code_challenge = generate_code_challenge()
-    request.session['canva_code_verifier'] = code_verifier
-
-    # 2. Generate CSRF protection state only if it doesn't exist
-    if not request.session.get('canva_oauth_state'):
-        state = secrets.token_urlsafe(16)
-        request.session['canva_oauth_state'] = state
-    else:
-        state = request.session['canva_oauth_state']
-
-    # 3. Define required scopes
-    scopes = [
-        'asset:read',
-        'design:content:write',
-        'collaboration:event',
-        'asset:write',
-        'design:permission:read',
-        'design:permission:write',
-        'folder:write',
-        'comment:read',
-        'profile:read',
-        'design:content:read',
-        'app:write',
-        'app:read',
-        'folder:permission:write',
-        'folder:permission:read',
-        'brandtemplate:content:read',
-        'design:meta:read',
-        'folder:read',
-        'comment:write',
-        'brandtemplate:meta:read',
-    ]
-
-    # 4. Build query params
-    query_params = {
-        'code_challenge_method': 's256',
-        'response_type': 'code',
-        'client_id': CANVA_CLIENT_ID,
-        'redirect_uri': CANVA_REDIRECT_URI,
-        'scope': ' '.join(scopes),
-        'code_challenge': code_challenge,
-        'state': state,
-    }
-
-    canva_authorize_url = f"{CANVA_AUTH_URL}?{urllib.parse.urlencode(query_params)}"
-
-    # 5. Redirect user to Canva OAuth
-    return redirect(canva_authorize_url)
+    """Render the Canva editor inside the app shell."""
+    return render(request, 'alien_resume_builder.html', {
+        'canva_editor_url': CANVA_EDITOR_URL,
+    })
 
 # Constants
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
