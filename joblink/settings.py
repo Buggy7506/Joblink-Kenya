@@ -46,6 +46,7 @@ DEBUG = env_bool("DEBUG", default=ENV != "production")
 
 default_allowed_hosts = [
     "stepper.dpdns.org",
+    "www.stepper.dpdns.org",
     ".onrender.com",
     "joblink-kenya-9a9c.onrender.com",
     "localhost",
