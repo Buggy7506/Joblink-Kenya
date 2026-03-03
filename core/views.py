@@ -168,7 +168,7 @@ def robots_txt(request):
     content = """User-agent: *
 Allow: /
 
-Sitemap: https://www.stepper.dpdns.org/sitemap.xml
+Sitemap: https://stepper.dpdns.org/sitemap.xml
 """
     return HttpResponse(content, content_type="text/plain")
 
