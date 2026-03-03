@@ -1,620 +1,135 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}Build Resume{% endblock %}
+{% block title %}Canva Resume Builder{% endblock %}
 
 {% block content %}
-<div class="resume-builder-shell">
-  {% if messages %}
-    <div class="builder-messages">
-      {% for message in messages %}
-        <div class="resume-messages {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-      {% for message in messages %}
-        <div class="resume-messages {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-  {% endif %}
-
-  <form method="POST" class="resume-builder">
-    {% csrf_token %}
+<section class="canva-shell">
+  <header class="canva-header">
+    <div>
+      <h1>Alien Resume Studio</h1>
+      <p>Canva opens directly inside this page when your browser allows embedded sessions.</p>
     </div>
+    <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Open in New Tab</a>
+  </header>
 
-    <header class="builder-topbar">
-      <div class="builder-brand">
-        <span class="brand-icon"><img src="{% static 'icons/rocket_launch.svg' %}" alt="Alien Resume Studio"></span>
-        <div>
-          <h1>Alien Resume Studio</h1>
-          <p>Design like Canva, publish like a pro.</p>
-        </div>
-      </div>
-      <div class="builder-actions">
-        <button type="button" id="template-btn" class="builder-btn ghost">Templates</button>
-        <button type="submit" id="save-btn" class="builder-btn primary">Save Resume</button>
-      </div>
-    </header>
-      </div>
+  <div class="canva-frame-wrap" id="canva-frame-wrap">
+    <iframe
+      id="canva-frame"
+      src="{{ canva_editor_url }}"
+      title="Canva Editor"
+      allow="clipboard-read; clipboard-write; camera; microphone; fullscreen"
+      referrerpolicy="strict-origin-when-cross-origin"
+      loading="eager">
+    </iframe>
 
-    <div class="builder-body">
-      <aside class="builder-sidebar">
-        <div class="sidebar-card">
-          <h2>Design Tools</h2>
-          <p>Pick a layout, then edit directly on the canvas with the toolbar.</p>
-          <button type="button" class="builder-btn secondary" id="template-btn-sidebar">Browse Templates</button>
-        </div>
-        <div class="sidebar-card">
-          <h3>Tips</h3>
-          <ul>
-            <li>Keep it to one page for most roles.</li>
-            <li>Start bullet points with action verbs.</li>
-            <li>Use numbers to show impact.</li>
-          </ul>
-        </div>
-      </aside>
-
-      <main class="builder-canvas">
-        <div class="canvas-header">
-          <span>Resume Canvas</span>
-          <span class="canvas-hint">A4 • 8.27 × 11.69 in</span>
-        </div>
-
-        <div id="canvas-editor" class="resume-editor" contenteditable="true" spellcheck="false">
-          {% if resume.content %}
-            {{ resume.content|safe }}
-          {% endif %}
-        </div>
-      </main>
+    <div class="canva-fallback" id="canva-fallback" hidden>
+      <h2>Canva couldn’t be embedded in this browser session.</h2>
+      <p>Use the button below to continue in a new tab with full Canva features.</p>
+      <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Continue to Canva</a>
     </div>
-
-    <input type="hidden" name="content" id="resume-content">
-  </form>
-</div>
-
-<!-- Template Modal -->
-<div id="template-modal" class="template-modal">
-  <div class="template-modal-card">
-    <div class="template-modal-header">
-      <h2>Choose a Template</h2>
-      <button type="button" id="close-modal" class="builder-btn ghost">Close</button>
-    </div>
-    <div id="templates-list" class="template-list"></div>
   </div>
-</div>
+</section>
 
 <script>
-const canvasEditor = document.getElementById('canvas-editor');
-  
-function setTemplateStyles(cssText) {
-  const existing = document.querySelector('style[data-template-style]');
-  if (existing) {
-    existing.remove();
-  }
-  if (!cssText) {
-    return;
-  }
-  const styleTag = document.createElement('style');
-  styleTag.setAttribute('data-template-style', 'true');
-  styleTag.textContent = cssText;
-  document.head.appendChild(styleTag);
-}
+  (function () {
+    const frame = document.getElementById('canva-frame');
+    const fallback = document.getElementById('canva-fallback');
 
-function resolveAssetUrl(value, baseUrl) {
-  if (!value) {
-    return value;
-  }
-  const trimmed = value.trim();
-  if (
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('data:') ||
-    trimmed.startsWith('blob:') ||
-    trimmed.startsWith('#')
-  ) {
-    return value;
-  }
-  try {
-    return new URL(trimmed, baseUrl).toString();
-  } catch (err) {
-    return value;
-  }
-}
+    let loaded = false;
 
-function rewriteCssUrls(cssText, baseUrl) {
-  if (!cssText) {
-    return cssText;
-  }
-  return cssText.replace(/url\(([^)]+)\)/gi, (match, rawValue) => {
-    const cleaned = rawValue.trim().replace(/^['"]|['"]$/g, '');
-    const resolved = resolveAssetUrl(cleaned, baseUrl);
-    return `url("${resolved}")`;
-  });
-}
-
-function rewriteDocumentAssets(doc, baseUrl) {
-  doc.querySelectorAll('[src]').forEach(element => {
-    const src = element.getAttribute('src');
-    element.setAttribute('src', resolveAssetUrl(src, baseUrl));
-  });
-  doc.querySelectorAll('[href]').forEach(element => {
-    if (element.tagName.toLowerCase() === 'a') {
-      return;
-    }
-    const href = element.getAttribute('href');
-    element.setAttribute('href', resolveAssetUrl(href, baseUrl));
-  });
-  doc.querySelectorAll('[style]').forEach(element => {
-    const styleText = element.getAttribute('style');
-    if (styleText) {
-      element.setAttribute('style', rewriteCssUrls(styleText, baseUrl));
-    }
-  });
-}
-  
-function applyTemplateToCanvas(content) {
-  const wrapped = `<div class="template-canvas">${content}</div>`;
-  canvasEditor.innerHTML = wrapped;
-}
-  
-// Save content to hidden input
-document.querySelector('form').onsubmit = function() {
-  document.getElementById('resume-content').value = canvasEditor.innerHTML;
-};
-
-// Modal
-var modal = document.getElementById('template-modal');
-var listContainer = document.getElementById('templates-list');
-
-const templateTriggers = [document.getElementById('template-btn'), document.getElementById('template-btn-sidebar')];
-templateTriggers.forEach(trigger => {
-  if(trigger){
-    trigger.onclick = async () => {
-    modal.style.display = 'flex';
-    listContainer.innerHTML = 'Loading templates...';
-
-    const templates = [
-      {
-        name: 'Resume Classic',
-        description: 'Elegant, resume-first layout with strong hierarchy.',
-        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-resume/gh-pages/index.html',
-        cssUrls: [
-          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-resume/gh-pages/css/styles.css',
-        ],
-      },
-      {
-        name: 'Personal Profile',
-        description: 'Modern profile template with bold sections and cards.',
-        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-personal/gh-pages/index.html',
-        cssUrls: [
-          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-personal/gh-pages/css/styles.css',
-        ],
-      },
-      {
-        name: 'Creative Portfolio',
-        description: 'Visual-heavy layout with showcase sections.',
-        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-freelancer/gh-pages/index.html',
-        cssUrls: [
-          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-freelancer/gh-pages/css/styles.css',
-        ],
-      },
-      {
-        name: 'Agency',
-        description: 'Canva-like hero sections with timeline styling.',
-        url: 'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-agency/gh-pages/index.html',
-        cssUrls: [
-          'https://raw.githubusercontent.com/StartBootstrap/startbootstrap-agency/gh-pages/css/styles.css',
-        ],
-      },
-    ];
-
-    listContainer.innerHTML = '';
-
-        const loadTemplateAssets = async (template) => {
-      if (template.__loaded) {
-        return template;
-      }
-      const response = await fetch(template.url);
-      if (!response.ok) {
-        throw new Error('Failed to load template.');
-      }
-      const html = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const htmlBaseUrl = new URL('.', template.url).toString();
-      rewriteDocumentAssets(doc, htmlBaseUrl);
-      doc.querySelectorAll('script').forEach(script => script.remove());
-      const styles = Array.from(doc.querySelectorAll('style'))
-        .map(style => rewriteCssUrls(style.textContent || '', htmlBaseUrl))
-        .join('\n');
-      const cssResponses = await Promise.all(
-        (template.cssUrls || []).map(cssUrl => fetch(cssUrl))
-      );
-      const cssText = await Promise.all(
-        cssResponses
-          .filter(res => res.ok)
-          .map(async (res, index) => {
-            const rawCss = await res.text();
-            const cssUrl = (template.cssUrls || [])[index];
-            const cssBaseUrl = cssUrl ? new URL('.', cssUrl).toString() : htmlBaseUrl;
-            return rewriteCssUrls(rawCss, cssBaseUrl);
-          })
-      );
-      const externalStyles = cssText.join('\n');
-      template.__loaded = true;
-      template.htmlContent = html;
-      template.styleText = `${styles}\n${externalStyles}`;
-      template.bodyContent = doc.body ? doc.body.innerHTML : '';
-      return template;
-    };
-
-    const buildPreview = (template, previewContainer) => {
-      const iframe = document.createElement('iframe');
-      iframe.className = 'template-preview-frame';
-      const previewStyles = `
-        html, body { margin: 0; padding: 0; background: #fff; }
-        body { transform: scale(0.38); transform-origin: top left; width: 900px; }
-      `;
-      iframe.srcdoc = `
-        <html>
-          <head>
-            <style>${previewStyles}
-.brand-icon { display: inline-flex; }
-.brand-icon img { width: 30px; height: 30px; }
-
-</style>
-            <style>${template.styleText || ''}</style>
-          </head>
-          <body>${template.bodyContent || ''}</body>
-        </html>
-      `;
-      previewContainer.innerHTML = '';
-      previewContainer.appendChild(iframe);
-    };
-
-    templates.forEach(template => {
-      const card = document.createElement('div');
-      card.className = 'template-card';
-      card.innerHTML = `
-        <div class="template-card-header">
-          <h3>${template.name}</h3>
-          <span>${template.description}</span>
-        </div>
-        <div class="template-preview">
-          <div class="template-preview-placeholder">
-            <span>Loading preview...</span>
-          </div>
-        </div>
-      `;
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'builder-btn secondary template-select-btn';
-      button.textContent = 'Use this template';
-      button.onclick = async () => {
-        button.disabled = true;
-        button.textContent = 'Loading...';
-        try {
-          await loadTemplateAssets(template);
-          setTemplateStyles(template.styleText);
-          applyTemplateToCanvas(template.bodyContent);
-          modal.style.display = 'none';
-        } catch (err) {
-          console.error(err);
-          button.textContent = 'Failed. Try again';
-          button.disabled = false;
-        }
-      };
-
-      card.appendChild(button);
-      listContainer.appendChild(card);
-
-      const previewContainer = card.querySelector('.template-preview');
-      loadTemplateAssets(template)
-        .then(() => buildPreview(template, previewContainer))
-        .catch(err => {
-          console.error(err);
-          previewContainer.innerHTML = `
-            <div class="template-preview-placeholder">
-              <span>Preview unavailable</span>
-            </div>
-          `;
-        });
+    frame.addEventListener('load', () => {
+      loaded = true;
     });
-  };
-}
-});
 
-// Close modal
-document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
-
-// Auto-remove flash messages
-document.addEventListener("DOMContentLoaded", function() {
-  setTimeout(() => {
-    document.querySelectorAll('.resume-messages').forEach(msg => msg.remove());
-  }, 3000);
-});
+    window.setTimeout(() => {
+      if (!loaded) {
+        frame.setAttribute('hidden', 'hidden');
+        fallback.hidden = false;
+      }
+    }, 7000);
+  })();
 </script>
 
 <style>
-/* Glow buttons */
-.resume-builder-shell {
-  padding: 2rem 1.5rem 3rem;
-}
-
-.builder-messages {
-  max-width: 1200px;
-  margin: 0 auto 1rem;
-}
-
-.resume-builder {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: var(--bg-card);
-  border-radius: 20px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  border: 1px solid var(--bg-surface-soft);
-}
-
-.builder-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, var(--bg-surface), var(--bg-card));
-  border-bottom: 1px solid var(--bg-surface-soft);
-}
-
-.builder-brand {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  color: var(--text-main);
-}
-
-.builder-brand h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.builder-brand p {
-  margin: 0.25rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-}
-
-.brand-icon {
-  font-size: 2rem;
-}
-
-.builder-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.builder-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 0.6rem 1.4rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.builder-btn.primary {
-  background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
-  color: #fff;
-  box-shadow: 0 10px 20px rgba(0, 255, 255, 0.25);
-}
-
-.builder-btn.secondary {
-  background: var(--bg-surface);
-  color: var(--text-main);
-  border: 1px solid var(--bg-surface-soft);
-}
-
-.builder-btn.ghost {
-  background: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--bg-surface-soft);
-}
-
-.builder-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
-}
-
-.builder-body {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  min-height: 720px;
-}
-
-.builder-sidebar {
-  padding: 1.5rem;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--bg-surface-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  color: var(--text-main);
-}
-
-.sidebar-card {
-  background: var(--bg-card);
-  padding: 1.25rem;
-  border-radius: 16px;
-  box-shadow: inset 0 0 0 1px var(--bg-surface-soft);
-}
-
-.sidebar-card h2,
-.sidebar-card h3 {
-  margin-top: 0;
-  color: var(--text-accent);
-}
-
-.sidebar-card p,
-.sidebar-card li {
-  color: var(--text-muted);
-}
-
-.sidebar-card ul {
-  padding-left: 1.1rem;
-  margin: 0;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.builder-canvas {
-  padding: 2rem;
-  background: var(--bg-surface-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.canvas-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.resume-editor {
-  min-height: 640px;
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 2rem;
-  overflow-y: auto;
-  color: #0f172a;
-  font-family: 'Poppins', sans-serif;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  position: relative;
-  outline: none;
-}
-
-.resume-editor .template-canvas {
-  min-height: 640px;
-  width: 100%;
-}
-
-.resume-editor .template-canvas img,
-.resume-editor .template-canvas video,
-.resume-editor .template-canvas iframe {
-  max-width: 100%;
-}
-
-.template-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 12, 25, 0.5);
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.template-modal-card {
-  background: var(--bg-card);
-  padding: 2rem;
-  border-radius: 1.25rem;
-  max-width: 860px;
-  width: 92%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
-}
-
-.template-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.template-modal-header h2 {
-  margin: 0;
-  color: var(--text-accent);
-}
-
-.template-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.template-card {
-  background: var(--bg-surface);
-  border-radius: 16px;
-  padding: 1rem;
-  border: 1px solid var(--bg-surface-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.template-card-header h3 {
-  margin: 0 0 0.35rem;
-  color: var(--text-accent);
-}
-
-.template-card-header span {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.template-preview {
-  background: rgba(15, 23, 42, 0.05);
-  border-radius: 12px;
-  padding: 0.75rem;
-  font-size: 0.82rem;
-  color: var(--text-main);
-  min-height: 180px;
-  display: grid;
-  place-items: center;
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 3 / 4;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-}
-
-.template-preview span {
-  color: var(--text-muted);
-  font-size: 0.72rem;
-}
-
-.template-preview-placeholder {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  text-align: center;
-}
-
-.template-preview-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: #fff;
-}
-  
-.template-select-btn {
-  width: 100%;
-  border-radius: 12px;
-}
-
-@media (max-width: 980px) {
-  .builder-body {
-    grid-template-columns: 1fr;
+  .canva-shell {
+    width: min(1400px, 96vw);
+    margin: 1.5rem auto 2.5rem;
+    display: grid;
+    gap: 1rem;
   }
 
-  .builder-sidebar {
-    border-right: none;
-    border-bottom: 1px solid var(--bg-surface-soft);
+  .canva-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--bg-surface-soft);
+    border-radius: 14px;
+    background: var(--bg-card);
   }
-}
+
+  .canva-header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+
+  .canva-header p {
+    margin: 0.4rem 0 0;
+    color: var(--text-muted);
+  }
+
+  .open-tab-btn {
+    border-radius: 999px;
+    padding: 0.65rem 1.1rem;
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .canva-frame-wrap {
+    border: 1px solid var(--bg-surface-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0b1020;
+    min-height: 82vh;
+    position: relative;
+  }
+
+  #canva-frame {
+    width: 100%;
+    min-height: 82vh;
+    border: 0;
+    background: #fff;
+  }
+
+  .canva-fallback {
+    min-height: 82vh;
+    color: #fff;
+    display: grid;
+    place-content: center;
+    gap: 0.8rem;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .canva-fallback p {
+    margin: 0;
+    color: #ced9ff;
+  }
+
+  @media (max-width: 900px) {
+    .canva-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .open-tab-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
 </style>
 {% endblock %}
