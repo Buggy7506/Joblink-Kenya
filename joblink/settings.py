@@ -45,7 +45,6 @@ if not SECRET_KEY:
 DEBUG = env_bool("DEBUG", default=ENV != "production")
 
 default_allowed_hosts = [
-    "www.stepper.dpdns.org",
     "stepper.dpdns.org",
     ".onrender.com",
     "joblink-kenya-9a9c.onrender.com",
@@ -281,10 +280,10 @@ TRUSTED_DEVICE_DAYS = 30
 
 # Security / Domain
 SITE_ID = 1
-SITE_URL = "https://www.stepper.dpdns.org"
+SITE_URL = "https://stepper.dpdns.org"
 
 SITE_NAME = "Joblink Kenya"
-SITE_DOMAIN = "https://www.stepper.dpdns.org"
+SITE_DOMAIN = "https://stepper.dpdns.org"
 
 APPLE_CLIENT_ID = os.getenv("APPLE_CLIENT_ID", "")
 APPLE_REDIRECT_URI = os.getenv("APPLE_REDIRECT_URI", f"{SITE_URL}/auth/apple/callback/")
@@ -301,9 +300,7 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = True
 
-# Share auth/session cookies across both apex and www hosts.
-# This keeps users logged in when moving between:
-#   stepper.dpdns.org <-> www.stepper.dpdns.org
+# Share auth/session cookies across stepper hosts.
 SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", ".stepper.dpdns.org")
 CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", ".stepper.dpdns.org")
 
@@ -350,7 +347,6 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RvRvyIw0VfmVsTbawU
 CSRF_TRUSTED_ORIGINS = [
     "https://www.fazul.dpdns.org",
     "https://fazul.dpdns.org",
-    "https://www.stepper.dpdns.org",
     "https://stepper.dpdns.org",
     "https://joblink-kenya-9a9c.onrender.com",
 ]
