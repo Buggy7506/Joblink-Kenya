@@ -7,55 +7,43 @@
   <header class="canva-header">
     <div>
       <h1>Alien Resume Studio</h1>
-      <p>Canva opens directly inside this page when your browser allows embedded sessions.</p>
+      <p>Canva blocks embedded editors in many browsers, so resume building now opens reliably in a new tab.</p>
     </div>
-    <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Open in New Tab</a>
+    <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Open Resume Builder</a>
   </header>
 
-  <div class="canva-frame-wrap" id="canva-frame-wrap">
-    <iframe
-      id="canva-frame"
-      src="{{ canva_editor_url }}"
-      title="Canva Editor"
-      allow="clipboard-read; clipboard-write; camera; microphone; fullscreen"
-      referrerpolicy="strict-origin-when-cross-origin"
-      loading="eager">
-    </iframe>
+  <article class="canva-panel" aria-live="polite">
+    <h2>Resume builder launch fixed</h2>
+    <p>
+      The in-page Canva frame was removed because Canva denies iframe embedding (`refused to connect`) and often returns
+      intermittent <strong>400 client errors</strong> on direct editor paths.
+    </p>
+    <p>
+      Use the button above to open Canva's dedicated resume creation page. If Canva is temporarily unavailable, open
+      their homepage and retry once signed in.
+    </p>
 
-    <div class="canva-fallback" id="canva-fallback" hidden>
-      <h2>Canva couldn’t be embedded in this browser session.</h2>
-      <p>Use the button below to continue in a new tab with full Canva features.</p>
-      <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Continue to Canva</a>
+    <div class="canva-actions">
+      <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Continue to Canva Resume</a>
+      <a class="secondary-btn" href="{{ canva_home_url }}" target="_blank" rel="noopener noreferrer">Open Canva Home</a>
     </div>
-  </div>
+  </article>
 </section>
-
-<script>
-  (function () {
-    const frame = document.getElementById('canva-frame');
-    const fallback = document.getElementById('canva-fallback');
-
-    let loaded = false;
-
-    frame.addEventListener('load', () => {
-      loaded = true;
-    });
-
-    window.setTimeout(() => {
-      if (!loaded) {
-        frame.setAttribute('hidden', 'hidden');
-        fallback.hidden = false;
-      }
-    }, 7000);
-  })();
-</script>
 
 <style>
   .canva-shell {
-    width: min(1400px, 96vw);
+    width: min(980px, 95vw);
     margin: 1.5rem auto 2.5rem;
     display: grid;
     gap: 1rem;
+  }
+
+  .canva-header,
+  .canva-panel {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--bg-surface-soft);
+    border-radius: 14px;
+    background: var(--bg-card);
   }
 
   .canva-header {
@@ -63,61 +51,44 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--bg-surface-soft);
-    border-radius: 14px;
-    background: var(--bg-card);
   }
 
-  .canva-header h1 {
+  .canva-header h1,
+  .canva-panel h2 {
     margin: 0;
-    font-size: 1.4rem;
   }
 
-  .canva-header p {
-    margin: 0.4rem 0 0;
+  .canva-header p,
+  .canva-panel p {
+    margin: 0.5rem 0 0;
     color: var(--text-muted);
   }
 
-  .open-tab-btn {
+  .open-tab-btn,
+  .secondary-btn {
     border-radius: 999px;
     padding: 0.65rem 1.1rem;
     text-decoration: none;
-    background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
-    color: #fff;
     font-weight: 600;
     white-space: nowrap;
   }
 
-  .canva-frame-wrap {
-    border: 1px solid var(--bg-surface-soft);
-    border-radius: 16px;
-    overflow: hidden;
-    background: #0b1020;
-    min-height: 82vh;
-    position: relative;
-  }
-
-  #canva-frame {
-    width: 100%;
-    min-height: 82vh;
-    border: 0;
-    background: #fff;
-  }
-
-  .canva-fallback {
-    min-height: 82vh;
+  .open-tab-btn {
+    background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
     color: #fff;
-    display: grid;
-    place-content: center;
-    gap: 0.8rem;
-    text-align: center;
-    padding: 1rem;
   }
 
-  .canva-fallback p {
-    margin: 0;
-    color: #ced9ff;
+  .secondary-btn {
+    border: 1px solid var(--bg-surface-soft);
+    color: var(--text-main);
+    background: var(--bg-surface-soft);
+  }
+
+  .canva-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
   }
 
   @media (max-width: 900px) {
@@ -126,7 +97,8 @@
       align-items: flex-start;
     }
 
-    .open-tab-btn {
+    .open-tab-btn,
+    .secondary-btn {
       width: 100%;
       text-align: center;
     }
