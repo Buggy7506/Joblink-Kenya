@@ -1,107 +1,59 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Canva Resume Builder{% endblock %}
+{% block title %}Alien Design Studio{% endblock %}
 
 {% block content %}
-<section class="canva-shell">
-  <header class="canva-header">
-    <div>
-      <h1>Alien Resume Studio</h1>
-      <p>Canva blocks embedded editors in many browsers, so resume building now opens reliably in a new tab.</p>
-    </div>
-    <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Open Resume Builder</a>
-  </header>
+<section class="design-shell" aria-label="Alien Design Studio">
+  <aside class="studio-sidebar">
+    <h1>Alien Design Studio</h1>
+    <p>Build social posts, resumes, and banners without leaving Joblink.</p>
 
-  <article class="canva-panel" aria-live="polite">
-    <h2>Resume builder launch fixed</h2>
-    <p>
-      The in-page Canva frame was removed because Canva denies iframe embedding (`refused to connect`) and often returns
-      intermittent <strong>400 client errors</strong> on direct editor paths.
-    </p>
-    <p>
-      Use the button above to open Canva's dedicated resume creation page. If Canva is temporarily unavailable, open
-      their homepage and retry once signed in.
-    </p>
-
-    <div class="canva-actions">
-      <a class="open-tab-btn" href="{{ canva_editor_url }}" target="_blank" rel="noopener noreferrer">Continue to Canva Resume</a>
-      <a class="secondary-btn" href="{{ canva_home_url }}" target="_blank" rel="noopener noreferrer">Open Canva Home</a>
+    <div class="tool-group" role="group" aria-label="Design tools">
+      <button class="tool-btn is-active" data-tool="select" type="button">Select</button>
+      <button class="tool-btn" data-tool="draw" type="button">Draw</button>
+      <button class="tool-btn" data-tool="text" type="button">Text</button>
+      <button class="tool-btn" data-tool="rect" type="button">Rectangle</button>
+      <button class="tool-btn" data-tool="circle" type="button">Circle</button>
     </div>
-  </article>
+
+    <label class="control-label" for="colorPicker">Color</label>
+    <input id="colorPicker" type="color" value="#5b7cfa" />
+
+    <label class="control-label" for="fontSize">Font size</label>
+    <input id="fontSize" type="range" min="14" max="96" value="34" />
+
+    <label class="control-label" for="uploadImage">Upload image</label>
+    <input id="uploadImage" type="file" accept="image/*" />
+
+    <div class="action-group">
+      <button id="undoBtn" type="button">Undo</button>
+      <button id="redoBtn" type="button">Redo</button>
+      <button id="duplicateBtn" type="button">Duplicate</button>
+      <button id="deleteBtn" type="button">Delete</button>
+      <button id="downloadBtn" type="button">Export PNG</button>
+    </div>
+
+    <h2>Layers</h2>
+    <ol id="layerList" class="layer-list" aria-live="polite"></ol>
+  </aside>
+
+  <div class="studio-main">
+    <header class="studio-topbar">
+      <button class="preset-btn" data-preset="resume" type="button">Resume</button>
+      <button class="preset-btn" data-preset="instagram" type="button">Instagram</button>
+      <button class="preset-btn" data-preset="linkedin" type="button">LinkedIn Banner</button>
+      <button class="preset-btn" data-preset="presentation" type="button">Presentation</button>
+      <span id="statusBadge" class="status-badge">Ready</span>
+    </header>
+
+    <div class="canvas-wrapper">
+      <canvas id="designCanvas" width="1080" height="1080" aria-label="Design canvas"></canvas>
+    </div>
+  </div>
 </section>
 
-<style>
-  .canva-shell {
-    width: min(980px, 95vw);
-    margin: 1.5rem auto 2.5rem;
-    display: grid;
-    gap: 1rem;
-  }
-
-  .canva-header,
-  .canva-panel {
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--bg-surface-soft);
-    border-radius: 14px;
-    background: var(--bg-card);
-  }
-
-  .canva-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .canva-header h1,
-  .canva-panel h2 {
-    margin: 0;
-  }
-
-  .canva-header p,
-  .canva-panel p {
-    margin: 0.5rem 0 0;
-    color: var(--text-muted);
-  }
-
-  .open-tab-btn,
-  .secondary-btn {
-    border-radius: 999px;
-    padding: 0.65rem 1.1rem;
-    text-decoration: none;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .open-tab-btn {
-    background: linear-gradient(135deg, var(--text-accent), var(--glow-accent));
-    color: #fff;
-  }
-
-  .secondary-btn {
-    border: 1px solid var(--bg-surface-soft);
-    color: var(--text-main);
-    background: var(--bg-surface-soft);
-  }
-
-  .canva-actions {
-    margin-top: 1rem;
-    display: flex;
-    gap: 0.65rem;
-    flex-wrap: wrap;
-  }
-
-  @media (max-width: 900px) {
-    .canva-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .open-tab-btn,
-    .secondary-btn {
-      width: 100%;
-      text-align: center;
-    }
-  }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/fabric@5.3.1/dist/fabric.min.js" defer></script>
+<script src="{% static 'js/canva_clone.js' %}" defer></script>
+<link rel="stylesheet" href="{% static 'css/canva_clone.css' %}" />
 {% endblock %}
