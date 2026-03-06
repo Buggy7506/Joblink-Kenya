@@ -3153,11 +3153,8 @@ def generate_code_challenge():
 @csrf_protect
 @login_required
 def alien_resume_builder(request):
-    """Render a stable launch page for Canva's resume builder."""
-    return render(request, 'alien_resume_builder.html', {
-        'canva_editor_url': CANVA_EDITOR_URL,
-        'canva_home_url': 'https://www.canva.com/',
-    })
+    """Render the in-app design studio used for resumes and social assets."""
+    return render(request, 'alien_resume_builder.html')
 
 # Constants
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
