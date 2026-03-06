@@ -1434,6 +1434,12 @@ if (toggleMobile) toggleMobile.addEventListener('click', toggleTheme);
 </script>
 
 {% django_browser_reload_script %}
+{% if jf_identified_user %}
+{{ jf_identified_user|json_script:"jf-agent-user" }}
+<script>
+window._jfAgentIdentifiedUser = JSON.parse(document.getElementById('jf-agent-user').textContent);
+</script>
+{% endif %}
 <script src='https://cdn.jotfor.ms/agent/embedjs/019cc4a6014673e79c4f24b345f8d24ceaa9/embed.js'>
 </script>
 </body>
