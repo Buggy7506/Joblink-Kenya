@@ -23,6 +23,8 @@ Joblink Kenya connects job seekers with employers across Kenya. Find jobs, post 
 <!-- Prevent layout bypass via zoom (mobile UX) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -45,44 +47,44 @@ html, body {
    GLOBAL THEME VARIABLES
 ========================================================= */
 
-:root {
-  --bg-main: linear-gradient(to right, #0f172a, #1e293b);
-  --bg-nav: rgba(30, 41, 59, 0.8);
-  --bg-card: rgba(30, 41, 59, 0.85);
-  --bg-footer: linear-gradient(to right, #0f172a, #1e293b);
+ :root {
+  --bg-main: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  --bg-nav: rgba(15, 32, 39, 0.72);
+  --bg-card: rgba(255, 255, 255, 0.10);
+  --bg-footer: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
 
-  --text-main: #e0f7fa;
-  --text-muted: #94a3b8;
-  --text-link: #ffffff;
-  --text-accent: #22d3ee;
-  --text-danger: #f87171;
-  --text-success: #22c55e;
-  --text-warning: #fbbf24;
-  --text-info: #38bdf8;
-  --text-inverse: #0b1120;
+  --text-main: #ffffff;
+  --text-muted: #d7e5ec;
+  --text-link: #8fe8ff;
+  --text-accent: #00c6ff;
+  --text-danger: #ff7a7a;
+  --text-success: #5ef5a7;
+  --text-warning: #ffd166;
+  --text-info: #66d9ff;
+  --text-inverse: #0f2027;
 
-  --bg-success: #22c55e;
-  --bg-success-hover: #16a34a;
-  --bg-success-soft: rgba(34, 197, 94, 0.2);
-  --bg-warning: #facc15;
-  --bg-warning-hover: #eab308;
-  --bg-warning-soft: rgba(251, 191, 36, 0.18);
-  --bg-danger: #ef4444;
-  --bg-danger-hover: #dc2626;
-  --bg-danger-soft: rgba(239, 68, 68, 0.2);
-  --bg-info: #3b82f6;
-  --bg-info-hover: #2563eb;
-  --bg-info-soft: rgba(59, 130, 246, 0.2);
-  --bg-surface: #111827;
-  --bg-surface-soft: #1f2937;
+  --bg-success: #1fc976;
+  --bg-success-hover: #16a765;
+  --bg-success-soft: rgba(31, 201, 118, 0.2);
+  --bg-warning: #f2b535;
+  --bg-warning-hover: #d79a1d;
+  --bg-warning-soft: rgba(242, 181, 53, 0.2);
+  --bg-danger: #ef5a5a;
+  --bg-danger-hover: #d94343;
+  --bg-danger-soft: rgba(239, 90, 90, 0.2);
+  --bg-info: #0072ff;
+  --bg-info-hover: #005fe0;
+  --bg-info-soft: rgba(0, 114, 255, 0.22);
+  --bg-surface: rgba(255, 255, 255, 0.16);
+  --bg-surface-soft: rgba(255, 255, 255, 0.22);
 
-  --glow-main: #00ffff;
-  --glow-accent: #00f0ff;
-  --alien-core: #3cf7ff;
-  --alien-glow: #93f6ff;
-  --alien-shadow: rgba(60, 247, 255, 0.35);
-  --alien-ink: rgba(12, 255, 214, 0.18);
-  --nav-sheen: linear-gradient(120deg, rgba(0, 255, 204, 0.45), rgba(0, 162, 255, 0.35), rgba(210, 122, 255, 0.35));
+  --glow-main: #00c6ff;
+  --glow-accent: #0072ff;
+  --alien-core: #66d9ff;
+  --alien-glow: rgba(102, 217, 255, 0.55);
+  --alien-shadow: rgba(0, 114, 255, 0.32);
+  --alien-ink: rgba(0, 198, 255, 0.18);
+  --nav-sheen: linear-gradient(120deg, rgba(0, 198, 255, 0.42), rgba(0, 114, 255, 0.35), rgba(143, 232, 255, 0.25));
 
   /* Legacy aliases for older templates */
   --page-bg: var(--bg-main);
@@ -100,43 +102,43 @@ html, body {
 }
 
 body.light-mode {
-  --bg-main: #f5f5f5;
-  --bg-nav: rgba(255, 255, 255, 0.95);
-  --bg-card: #ffffff;
-  --bg-footer: #f5f5f5;
+  --bg-main: linear-gradient(135deg, #f1f8ff, #e4f0fb, #d7ebf8);
+  --bg-nav: rgba(255, 255, 255, 0.9);
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-footer: linear-gradient(135deg, #f1f8ff, #e4f0fb, #d7ebf8);
 
-  --text-main: #111111;
-  --text-muted: #555555;
-  --text-link: #0077b6;
-  --text-accent: #0077b6;
-  --text-danger: #dc2626;
-  --text-success: #16a34a;
-  --text-warning: #d97706;
-  --text-info: #0284c7;
+  --text-main: #113045;
+  --text-muted: #4f6b7a;
+  --text-link: #0072ff;
+  --text-accent: #0098d8;
+  --text-danger: #d9304f;
+  --text-success: #0c8f58;
+  --text-warning: #af7b10;
+  --text-info: #0a78cf;
   --text-inverse: #ffffff;
 
-  --bg-success: #16a34a;
-  --bg-success-hover: #15803d;
-  --bg-success-soft: rgba(22, 163, 74, 0.18);
-  --bg-warning: #eab308;
-  --bg-warning-hover: #ca8a04;
-  --bg-warning-soft: rgba(234, 179, 8, 0.15);
-  --bg-danger: #dc2626;
-  --bg-danger-hover: #b91c1c;
-  --bg-danger-soft: rgba(220, 38, 38, 0.18);
-  --bg-info: #2563eb;
-  --bg-info-hover: #1d4ed8;
-  --bg-info-soft: rgba(37, 99, 235, 0.15);
-  --bg-surface: #ffffff;
-  --bg-surface-soft: #f3f4f6;
-      
-  --glow-main: #0077b6;
-  --glow-accent: #0077b6;
-  --alien-core: #005f73;
-  --alien-glow: rgba(5, 102, 141, 0.45);
-  --alien-shadow: rgba(5, 102, 141, 0.25);
-  --alien-ink: rgba(0, 95, 115, 0.12);
-  --nav-sheen: linear-gradient(120deg, rgba(0, 125, 167, 0.25), rgba(88, 165, 255, 0.2), rgba(132, 94, 247, 0.2));
+  --bg-success: #14a868;
+  --bg-success-hover: #0f8d57;
+  --bg-success-soft: rgba(20, 168, 104, 0.15);
+  --bg-warning: #cf9a29;
+  --bg-warning-hover: #b3841c;
+  --bg-warning-soft: rgba(207, 154, 41, 0.16);
+  --bg-danger: #db4c63;
+  --bg-danger-hover: #c43d54;
+  --bg-danger-soft: rgba(219, 76, 99, 0.16);
+  --bg-info: #0a78cf;
+  --bg-info-hover: #0466b2;
+  --bg-info-soft: rgba(10, 120, 207, 0.16);
+  --bg-surface: rgba(255, 255, 255, 0.95);
+  --bg-surface-soft: rgba(238, 246, 252, 0.95);
+
+  --glow-main: #00a8dc;
+  --glow-accent: #0072ff;
+  --alien-core: #0098d8;
+  --alien-glow: rgba(0, 152, 216, 0.35);
+  --alien-shadow: rgba(0, 114, 255, 0.2);
+  --alien-ink: rgba(0, 152, 216, 0.12);
+  --nav-sheen: linear-gradient(120deg, rgba(0, 198, 255, 0.2), rgba(0, 114, 255, 0.16), rgba(143, 232, 255, 0.2));
 
   /* Legacy aliases for older templates */
   --page-bg: var(--bg-main);
@@ -167,7 +169,7 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--bg-main);
   color: var(--text-main);
   display: flex;

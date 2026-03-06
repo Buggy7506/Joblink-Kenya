@@ -4,33 +4,41 @@
   <title>Alert Deleted</title>
   <style>
     :root {
-      --bg-main: #0b1120;
-      --bg-card: #111827;
-      --text-success: #22c55e;
-      --bg-success: #22c55e;
+      --bg-main: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --bg-card: rgba(255, 255, 255, 0.12);
+      --text-success: #5ef5a7;
+      --text-link: #8fe8ff;
     }
 
     body {
       background: var(--bg-main);
       color: var(--text-success);
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
       text-align: center;
-      padding-top: 100px;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
     }
+
     .msg {
       background: var(--bg-card);
       padding: 30px;
-      border: 2px solid var(--bg-success);
+      border: 1px solid rgba(255, 255, 255, 0.28);
       border-radius: 15px;
-      box-shadow: 0 0 20px var(--bg-success);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(10px);
       display: inline-block;
     }
+
+    a { color: var(--text-link); }
   </style>
 </head>
 <body>
   <div class="msg">
     <h1>🗑️ Alert Deleted Successfully!</h1>
-    <a href="{% url 'job_alerts' %}" style="color:var(--text-success);">← Back to Alerts</a>
+    <a href="{% url 'job_alerts' %}">← Back to Alerts</a>
   </div>
 </body>
 </html>
