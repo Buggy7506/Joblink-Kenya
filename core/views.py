@@ -3141,7 +3141,7 @@ def resume_success(request):
 CANVA_CLIENT_ID = 'OC-AZw940cg5ae3'
 CANVA_REDIRECT_URI = 'https://stepper.dpdns.org/oauth/canva/callback'  # Dedicated redirect handler
 CANVA_AUTH_URL = 'https://www.canva.com/api/oauth/authorize'
-CANVA_EDITOR_URL = 'https://www.canva.com/design/new'
+CANVA_EDITOR_URL = 'https://www.canva.com/create/resumes/'
 
 # Helper: Generate PKCE code challenge
 def generate_code_challenge():
@@ -3153,9 +3153,10 @@ def generate_code_challenge():
 @csrf_protect
 @login_required
 def alien_resume_builder(request):
-    """Render the Canva editor inside the app shell."""
+    """Render a stable launch page for Canva's resume builder."""
     return render(request, 'alien_resume_builder.html', {
         'canva_editor_url': CANVA_EDITOR_URL,
+        'canva_home_url': 'https://www.canva.com/',
     })
 
 # Constants
