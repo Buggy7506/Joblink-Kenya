@@ -145,6 +145,7 @@ TEMPLATES = [
 
                 # ⭐ CUSTOM JOBLINK PROCESSORS
                 'core.context_processors.employer_badge',
+                'core.context_processors.jotform_agent_user',
             ],
         },
     },
@@ -418,3 +419,6 @@ LOGGING = {
         },
     },
 }
+
+# Jotform Agent identity secret (server-side only)
+JF_AGENT_SECRET = os.getenv("JF_AGENT_SECRET", "")
