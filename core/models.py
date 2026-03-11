@@ -524,6 +524,33 @@ class Job(models.Model):
     def __str__(self):
         return self.title
 
+
+class AggregatedJobRecord(models.Model):
+    """
+    Tracks source metadata for externally aggregated jobs.
+    """
+
+    job = models.OneToOneField(Job, on_delete=models.CASCADE, related_name="aggregated_record")
+    source = models.CharField(max_length=100, db_index=True)
+    source_job_id = models.CharField(max_length=255, blank=True)
+    apply_url = models.URLField(max_length=500)
+    source_url = models.URLField(max_length=500, blank=True)
+    fingerprint = models.CharField(max_length=64, unique=True)
+    posted_date = models.DateTimeField(null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    last_seen_at = models.DateTimeField(auto_now=True)
+    is_live = models.BooleanField(default=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["source", "source_job_id"]),
+            models.Index(fields=["source", "is_live"]),
+        ]
+        unique_together = ("source", "source_job_id")
+
+    def __str__(self):
+        return f"{self.source}: {self.job.title}"
+
 # ======================================================
 # APPLICATIONS
 # ======================================================
