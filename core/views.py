@@ -3335,27 +3335,31 @@ def download_resume_pdf(request):
 @csrf_protect
 @login_required
 def job_suggestions(request):
-    user = request.user
-    
-    # Ensure skills is always a string before splitting
-    skills_str = getattr(user, "skills", "") or ""
-    skills = [s.strip().lower() for s in skills_str.split(",") if s.strip()]
+    skills_str = getattr(request.user, "skills", "") or ""
+    # Keep query small and predictable to avoid slow page loads.
+    raw_skill_terms = [term.strip().lower() for term in skills_str.split(",") if term.strip()]
+    skill_words = []
+    for term in raw_skill_terms:
+        for word in re.findall(r"[a-z0-9+#.-]{2,}", term):
+            if word not in skill_words:
+                skill_words.append(word)
 
-    if skills:
+    now = timezone.now()
+    jobs_queryset = (
+        Job.objects.select_related("category", "employer__employer_company")
+        .filter(is_active=True)
+        .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=now))
+    )
+
+    if skill_words:
         query = Q()
-        for skill in skills:
-            # Split multi-word skills into words
-            for word in skill.split():
-                # Partial + case-insensitive match
-                query |= Q(title__icontains=word) | Q(description__icontains=word)
+        for word in skill_words[:12]:
+            query |= Q(title__icontains=word) | Q(description__icontains=word)
 
-        suggested_jobs = Job.objects.filter(query).distinct()
+        suggested_jobs = jobs_queryset.filter(query).distinct().order_by("-posted_on")
 
         if not suggested_jobs.exists():
-            messages.warning(
-                request,
-                "No jobs matched your skills. Try updating your profile for better matches."
-            )
+            messages.warning(request, "No jobs matched your skills. Try updating your profile for better matches.")
     else:
         if not request.session.get("skills_message_shown", False):
             messages.info(request, "Add skills in your profile to get better job matches.")
