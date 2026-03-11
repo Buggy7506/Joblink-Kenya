@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -31,7 +32,7 @@ class JobAggregationService:
             "first_name": "Job",
             "last_name": "Aggregator",
         }
-        user, created = User.objects.get_or_create(username=self.system_username, defaults=defaults)
+        user, _created = User.objects.get_or_create(username=self.system_username, defaults=defaults)
         updates = []
         if user.role != "employer":
             user.role = "employer"
@@ -68,13 +69,17 @@ class JobAggregationService:
 
             fingerprint = self._fingerprint(item)
             description = item.description or "No description available from source."
-
             source_job_id = item.source_job_id or fingerprint[:24]
 
             with transaction.atomic():
-                record = AggregatedJobRecord.objects.select_related("job").filter(source=item.source, source_job_id=source_job_id).first()
+                record = AggregatedJobRecord.objects.select_related("job").filter(
+                    source=item.source,
+                    source_job_id=source_job_id,
+                ).first()
                 if not record:
-                    record = AggregatedJobRecord.objects.select_related("job").filter(fingerprint=fingerprint).first()
+                    record = AggregatedJobRecord.objects.select_related("job").filter(
+                        fingerprint=fingerprint
+                    ).first()
 
                 if record:
                     changed = False
@@ -112,16 +117,18 @@ class JobAggregationService:
                     record.payload = item.metadata or {}
                     record.is_live = True
                     record.last_seen_at = timezone.now()
-                    record.save(update_fields=[
-                        "source_job_id",
-                        "fingerprint",
-                        "apply_url",
-                        "source_url",
-                        "posted_date",
-                        "payload",
-                        "is_live",
-                        "last_seen_at",
-                    ])
+                    record.save(
+                        update_fields=[
+                            "source_job_id",
+                            "fingerprint",
+                            "apply_url",
+                            "source_url",
+                            "posted_date",
+                            "payload",
+                            "is_live",
+                            "last_seen_at",
+                        ]
+                    )
                     continue
 
                 job = Job.objects.create(
@@ -142,7 +149,25 @@ class JobAggregationService:
                     fingerprint=fingerprint,
                     posted_date=item.posted_date,
                     payload=item.metadata or {},
+                    is_live=True,
                 )
                 result.created += 1
 
         return result
+
+    def deactivate_stale_jobs(self, *, source: str, stale_hours: int = 48) -> int:
+        threshold = timezone.now() - timedelta(hours=max(stale_hours, 1))
+        stale_records = AggregatedJobRecord.objects.select_related("job").filter(
+            source=source,
+            is_live=True,
+            last_seen_at__lt=threshold,
+        )
+        count = 0
+        for record in stale_records:
+            record.is_live = False
+            record.save(update_fields=["is_live"])
+            if record.job.is_active:
+                record.job.is_active = False
+                record.job.save(update_fields=["is_active"])
+            count += 1
+        return count

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from datetime import datetime
 from typing import Any
 
 import requests
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -31,8 +34,6 @@ class BaseSourceAdapter:
 
 
 class RemotiveSourceAdapter(BaseSourceAdapter):
-    """Lightweight adapter using Remotive public jobs API."""
-
     source_name = "remotive"
     endpoint = "https://remotive.com/api/remote-jobs"
 
@@ -46,16 +47,6 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
         normalized: list[NormalizedJob] = []
 
         for raw in jobs:
-            salary = None
-            salary_text = (raw.get("salary") or "").strip()
-            if salary_text:
-                digits = "".join(ch for ch in salary_text if ch.isdigit())
-                if digits:
-                    try:
-                        salary = int(digits[:8])
-                    except ValueError:
-                        salary = None
-
             posted_date = None
             publication = raw.get("publication_date")
             if publication:
@@ -72,7 +63,6 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
                     description=(raw.get("description") or "").strip(),
                     apply_url=(raw.get("url") or "").strip(),
                     source=self.source_name,
-                    salary=salary,
                     posted_date=posted_date,
                     source_job_id=str(raw.get("id") or "").strip(),
                     source_url=(raw.get("url") or "").strip(),
@@ -87,5 +77,63 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
         return [job for job in normalized if job.apply_url]
 
 
+class ArbeitnowSourceAdapter(BaseSourceAdapter):
+    source_name = "arbeitnow"
+    endpoint = "https://www.arbeitnow.com/api/job-board-api"
+
+    def fetch(self, *, limit: int = 100) -> list[NormalizedJob]:
+        timeout = int(getattr(settings, "JOB_AGGREGATOR_HTTP_TIMEOUT", 25))
+        normalized: list[NormalizedJob] = []
+        page = 1
+
+        while len(normalized) < limit:
+            response = requests.get(self.endpoint, params={"page": page}, timeout=timeout)
+            response.raise_for_status()
+            payload = response.json() or {}
+            jobs = payload.get("data", [])
+            if not jobs:
+                break
+
+            for raw in jobs:
+                normalized.append(
+                    NormalizedJob(
+                        title=(raw.get("title") or "Untitled role").strip(),
+                        company=(raw.get("company_name") or "Unknown company").strip(),
+                        location=((raw.get("location") or "Remote") if isinstance(raw.get("location"), str) else "Remote").strip(),
+                        description=(raw.get("description") or "").strip(),
+                        apply_url=(raw.get("url") or "").strip(),
+                        source=self.source_name,
+                        source_job_id=str(raw.get("slug") or raw.get("id") or "").strip(),
+                        source_url=(raw.get("url") or "").strip(),
+                        metadata={
+                            "remote": raw.get("remote"),
+                            "tags": raw.get("tags") or [],
+                        },
+                    )
+                )
+                if len(normalized) >= limit:
+                    break
+            page += 1
+
+        return [job for job in normalized if job.apply_url]
+
+
+ADAPTER_REGISTRY: dict[str, type[BaseSourceAdapter]] = {
+    RemotiveSourceAdapter.source_name: RemotiveSourceAdapter,
+    ArbeitnowSourceAdapter.source_name: ArbeitnowSourceAdapter,
+}
+
+
 def get_source_adapters() -> list[BaseSourceAdapter]:
-    return [RemotiveSourceAdapter()]
+    configured = getattr(settings, "JOB_AGGREGATOR_ENABLED_SOURCES", tuple(ADAPTER_REGISTRY.keys()))
+    adapters: list[BaseSourceAdapter] = []
+
+    for source_name in configured:
+        adapter_cls = ADAPTER_REGISTRY.get(source_name)
+        if adapter_cls:
+            adapters.append(adapter_cls())
+            continue
+
+        logger.warning("Unknown job aggregator source configured: %s", source_name)
+
+    return adapters

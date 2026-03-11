@@ -954,3 +954,61 @@ class ExternalAggregatedApplyFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "https://example.com/apply/rem-100")
+
+
+class AggregationMaintenanceTests(TestCase):
+    def test_deactivate_stale_jobs_marks_job_inactive(self):
+        service = JobAggregationService(system_username="test-aggregator-stale")
+        service.ingest(
+            [
+                NormalizedJob(
+                    title="Platform Engineer",
+                    company="Acme",
+                    location="Remote",
+                    description="Infra",
+                    apply_url="https://example.com/apply/platform",
+                    source="remotive",
+                    source_job_id="stale-1",
+                )
+            ]
+        )
+
+        record = AggregatedJobRecord.objects.get(source="remotive", source_job_id="stale-1")
+        AggregatedJobRecord.objects.filter(pk=record.pk).update(
+            last_seen_at=timezone.now() - timedelta(hours=120)
+        )
+
+        deactivated = service.deactivate_stale_jobs(source="remotive", stale_hours=48)
+        self.assertEqual(deactivated, 1)
+
+        record.refresh_from_db()
+        self.assertFalse(record.is_live)
+        self.assertFalse(record.job.is_active)
+
+
+class SourceRegistryTests(SimpleTestCase):
+    def test_get_source_adapters_respects_settings(self):
+        from django.test import override_settings
+
+        from core.aggregator.sources import get_source_adapters
+
+        with override_settings(JOB_AGGREGATOR_ENABLED_SOURCES=("arbeitnow",)):
+            adapters = get_source_adapters()
+
+        self.assertEqual(len(adapters), 1)
+        self.assertEqual(adapters[0].source_name, "arbeitnow")
+
+
+class AggregationCommandTests(SimpleTestCase):
+    def test_list_job_aggregator_sources_command_shows_enabled(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from django.test import override_settings
+
+        out = StringIO()
+        with override_settings(JOB_AGGREGATOR_ENABLED_SOURCES=("remotive",)):
+            call_command("list_job_aggregator_sources", stdout=out)
+
+        output = out.getvalue()
+        self.assertIn("remotive (enabled)", output)
+        self.assertIn("arbeitnow (disabled)", output)
