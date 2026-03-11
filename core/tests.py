@@ -914,6 +914,33 @@ class AggregationServiceTests(TestCase):
         self.assertEqual(record.job.title, "Senior Backend Engineer")
 
 
+    def test_ingest_maps_category_salary_and_logo_payload(self):
+        service = JobAggregationService(system_username="test-aggregator-meta")
+        payload_item = NormalizedJob(
+            title="Frontend Developer",
+            company="Acme Labs",
+            location="Nairobi",
+            description="Salary KES 120000 monthly",
+            apply_url="https://example.com/apply/2",
+            source="remotive",
+            source_job_id="2",
+            metadata={
+                "category": "Engineering",
+                "salary": "KES 120000",
+                "company_logo_url": "https://example.com/logo.png",
+            },
+        )
+
+        result = service.ingest([payload_item])
+        self.assertEqual(result.created, 1)
+
+        record = AggregatedJobRecord.objects.get(source="remotive", source_job_id="2")
+        self.assertEqual(record.job.company, "Acme Labs")
+        self.assertEqual(record.job.location, "Nairobi")
+        self.assertEqual(record.job.salary, 120000)
+        self.assertEqual(record.job.category.name, "Engineering")
+        self.assertEqual(record.payload.get("company_logo_url"), "https://example.com/logo.png")
+
 class ExternalAggregatedApplyFlowTests(TestCase):
     def setUp(self):
         user_model = get_user_model()

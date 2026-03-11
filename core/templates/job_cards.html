@@ -15,6 +15,14 @@
         <span class="company-meta">
           {% if job.company_logo %}
             <img src="{{ job.company_logo.url }}" alt="{{ job.company }} logo" class="company-logo-img" loading="lazy">
+          {% elif job.aggregated_record.payload.company_logo_url %}
+            <img
+              src="{{ job.aggregated_record.payload.company_logo_url }}"
+              alt="{{ job.company }} logo"
+              class="company-logo-img"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            >
           {% elif job.employer.employer_company.company_website %}
             <img
               src="https://www.google.com/s2/favicons?domain_url={{ job.employer.employer_company.company_website|urlencode }}&sz=64"

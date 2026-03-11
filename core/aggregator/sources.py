@@ -27,6 +27,7 @@ class NormalizedJob:
     source_job_id: str = ""
     source_url: str = ""
     metadata: dict[str, Any] | None = None
+    company_logo_url: str = ""
 
 
 class BaseSourceAdapter:
@@ -73,7 +74,10 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
                         "job_type": raw.get("job_type"),
                         "category": raw.get("category"),
                         "tags": raw.get("tags") or [],
+                        "company_logo_url": raw.get("company_logo") or raw.get("company_logo_url") or raw.get("logo"),
+                        "salary": raw.get("salary") or raw.get("salary_range"),
                     },
+                    company_logo_url=(raw.get("company_logo") or raw.get("company_logo_url") or raw.get("logo") or "").strip(),
                 )
             )
 
@@ -107,7 +111,14 @@ class ArbeitnowSourceAdapter(BaseSourceAdapter):
                         source=self.source_name,
                         source_job_id=str(raw.get("slug") or raw.get("id") or "").strip(),
                         source_url=(raw.get("url") or "").strip(),
-                        metadata={"remote": raw.get("remote"), "tags": raw.get("tags") or []},
+                        metadata={
+                            "remote": raw.get("remote"),
+                            "tags": raw.get("tags") or [],
+                            "company_logo_url": raw.get("logo") or raw.get("company_logo") or raw.get("company_logo_url"),
+                            "salary": raw.get("salary") or raw.get("salary_range"),
+                            "category": raw.get("category"),
+                        },
+                        company_logo_url=(raw.get("logo") or raw.get("company_logo") or raw.get("company_logo_url") or "").strip(),
                     )
                 )
                 if len(normalized) >= limit:
@@ -146,7 +157,13 @@ class RemoteOkSourceAdapter(BaseSourceAdapter):
                     source=self.source_name,
                     source_job_id=str(raw.get("id") or "").strip(),
                     source_url=url.strip(),
-                    metadata={"tags": raw.get("tags") or []},
+                    metadata={
+                        "tags": raw.get("tags") or [],
+                        "company_logo_url": raw.get("logo") or raw.get("company_logo") or raw.get("company_logo_url"),
+                        "salary": raw.get("salary") or raw.get("compensation"),
+                        "category": raw.get("category"),
+                    },
+                    company_logo_url=(raw.get("logo") or raw.get("company_logo") or raw.get("company_logo_url") or "").strip(),
                 )
             )
             if len(normalized) >= limit:
@@ -241,7 +258,16 @@ class ConfigurableJSONSourceAdapter(BaseSourceAdapter):
                     source=self.source_name,
                     source_job_id=str(raw.get("id") or raw.get("slug") or apply_url).strip(),
                     source_url=apply_url,
-                    metadata={"raw": raw},
+                    metadata={
+                        "raw": raw,
+                        "category": raw.get("category") or raw.get("department") or raw.get("team"),
+                        "tags": raw.get("tags") or [],
+                        "salary": raw.get("salary") or raw.get("salary_range") or raw.get("compensation"),
+                        "salary_min": raw.get("salary_min") or raw.get("min_salary"),
+                        "salary_max": raw.get("salary_max") or raw.get("max_salary"),
+                        "company_logo_url": raw.get("company_logo") or raw.get("company_logo_url") or raw.get("logo"),
+                    },
+                    company_logo_url=(raw.get("company_logo") or raw.get("company_logo_url") or raw.get("logo") or "").strip(),
                     posted_date=timezone.now(),
                 )
             )

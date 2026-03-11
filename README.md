@@ -130,5 +130,15 @@ https://<your-domain>/cron/run-job-aggregation/?key=<CRON_SECRET_KEY>
 
 The endpoint is protected by a secret key and an in-process cache lock to avoid overlapping runs.
 
+### Troubleshooting Render `503 hibernate-wake-error`
+
+If cron-job.org shows `503 Service Unavailable` with `x-render-routing: hibernate-wake-error`, the request likely hit your Render service while it was sleeping and failed during wake-up. This is an infrastructure wake issue (before Django executes your view).
+
+Recommended fixes:
+- Add a separate keepalive monitor/job to `https://<your-domain>/ping/` every 5 minutes.
+- Schedule the aggregation URL a minute after the keepalive ping (for example, `:01` every 2 hours).
+- In cron-job.org, enable retries so transient wake failures are retried.
+- If you need strict reliability, use Render paid always-on instance or Render Cron Jobs/Background Worker.
+
 ### Aggregated apply behavior
 When a user clicks apply for an aggregated job, JobLink redirects to the original external `apply_url` instead of creating a local in-platform application record.
