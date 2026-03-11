@@ -8,7 +8,9 @@ from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import Profile
+from core.aggregator.service import JobAggregationService
+from core.aggregator.sources import NormalizedJob
+from core.models import AggregatedJobRecord, Job, Profile
 from core.views import (
     _get_effective_role,
     _normalize_next_url,
@@ -869,3 +871,86 @@ class UserRoleInterdependencySignalTests(SimpleTestCase):
             create_employer_company(sender=None, instance=user, created=False)
 
         mock_get_or_create.assert_called_once_with(user=user)
+
+
+class AggregationServiceTests(TestCase):
+    def test_ingest_creates_and_updates_aggregated_jobs(self):
+        service = JobAggregationService(system_username="test-aggregator")
+        initial = [
+            NormalizedJob(
+                title="Backend Engineer",
+                company="Acme",
+                location="Nairobi",
+                description="Build APIs",
+                apply_url="https://example.com/apply/1",
+                source="remotive",
+                source_job_id="1",
+                source_url="https://example.com/jobs/1",
+            )
+        ]
+
+        first = service.ingest(initial)
+        self.assertEqual(first.created, 1)
+
+        record = AggregatedJobRecord.objects.get(source="remotive", source_job_id="1")
+        self.assertEqual(record.job.title, "Backend Engineer")
+
+        updated = [
+            NormalizedJob(
+                title="Senior Backend Engineer",
+                company="Acme",
+                location="Nairobi",
+                description="Build APIs and data pipelines",
+                apply_url="https://example.com/apply/1",
+                source="remotive",
+                source_job_id="1",
+                source_url="https://example.com/jobs/1",
+            )
+        ]
+        second = service.ingest(updated)
+        self.assertEqual(second.updated, 1)
+
+        record.refresh_from_db()
+        self.assertEqual(record.job.title, "Senior Backend Engineer")
+
+
+class ExternalAggregatedApplyFlowTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.applicant = user_model.objects.create_user(
+            username="applicant-agg",
+            email="applicant-agg@example.com",
+            password="testpass123",
+            role="applicant",
+        )
+        Profile.objects.update_or_create(user=self.applicant, defaults={"role": "applicant"})
+
+        self.employer = user_model.objects.create_user(
+            username="agg-employer",
+            email="agg-employer@example.com",
+            password="testpass123",
+            role="employer",
+        )
+
+        self.job = Job.objects.create(
+            title="Data Engineer",
+            description="Pipeline work",
+            location="Remote",
+            employer=self.employer,
+            company="Source Corp",
+        )
+        AggregatedJobRecord.objects.create(
+            job=self.job,
+            source="remotive",
+            source_job_id="rem-100",
+            apply_url="https://example.com/apply/rem-100",
+            source_url="https://example.com/jobs/rem-100",
+            fingerprint="abc123def456ghi789jkl012mno345pqrs678tuv901wxy234zab567cde890",
+        )
+
+    def test_apply_job_redirects_to_external_source_for_aggregated_job(self):
+        self.client.login(username="applicant-agg", password="testpass123")
+        response = self.client.post(reverse("apply_job", args=[self.job.id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "https://example.com/apply/rem-100")

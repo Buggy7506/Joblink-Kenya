@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Profile, JobCategory, Job, Application,
     ChatMessage, PinnedMessage, CVUpload, SkillResource, Notification, JobAlert,
-    JobPlan, JobPayment
+    JobPlan, JobPayment, AggregatedJobRecord
 )
 
 # ======================================================
@@ -150,3 +150,11 @@ class JobPaymentAdmin(admin.ModelAdmin):
     search_fields = ("employer__username", "mpesa_receipt")
     list_filter = ("is_successful",)
     ordering = ("-paid_on",)
+
+
+@admin.register(AggregatedJobRecord)
+class AggregatedJobRecordAdmin(admin.ModelAdmin):
+    list_display = ("job", "source", "source_job_id", "is_live", "last_seen_at")
+    search_fields = ("job__title", "source", "source_job_id", "apply_url")
+    list_filter = ("source", "is_live")
+    ordering = ("-last_seen_at",)
