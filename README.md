@@ -108,5 +108,37 @@ python manage.py list_job_aggregator_sources
 */30 * * * * cd /path/to/Joblink-Kenya && /path/to/venv/bin/python manage.py run_job_aggregation --limit 500 --stale-hours 48
 ```
 
+### Scheduler example (cron-job.org / Render-friendly)
+
+If your deployment platform does not provide shell cron access (for example Render free services), use an HTTP scheduler such as [cron-job.org](https://cron-job.org).
+
+1. Set a strong environment variable on your server:
+
+```bash
+CRON_SECRET_KEY=replace-with-long-random-secret
+```
+
+2. Create a scheduled job that calls:
+
+```text
+https://<your-domain>/cron/run-job-aggregation/?key=<CRON_SECRET_KEY>
+```
+
+3. Suggested starting schedule for JobLink:
+   - Every 2 hours
+   - Command defaults: `limit=500` and `stale_hours=48`
+
+The endpoint is protected by a secret key and an in-process cache lock to avoid overlapping runs.
+
+### Troubleshooting Render `503 hibernate-wake-error`
+
+If cron-job.org shows `503 Service Unavailable` with `x-render-routing: hibernate-wake-error`, the request likely hit your Render service while it was sleeping and failed during wake-up. This is an infrastructure wake issue (before Django executes your view).
+
+Recommended fixes:
+- Add a separate keepalive monitor/job to `https://<your-domain>/ping/` every 5 minutes.
+- Schedule the aggregation URL a minute after the keepalive ping (for example, `:01` every 2 hours).
+- In cron-job.org, enable retries so transient wake failures are retried.
+- If you need strict reliability, use Render paid always-on instance or Render Cron Jobs/Background Worker.
+
 ### Aggregated apply behavior
 When a user clicks apply for an aggregated job, JobLink redirects to the original external `apply_url` instead of creating a local in-platform application record.

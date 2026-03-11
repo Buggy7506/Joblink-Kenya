@@ -11,7 +11,7 @@ from django.http import (
 )
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
 # =========================
 # Django authentication
@@ -38,6 +38,8 @@ from django.core.validators import validate_email
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 from django.core.paginator import Paginator
+from django.core.management import call_command
+from django.core.cache import cache
 from django.db.models import Count, Q, F
 
 # =========================
@@ -697,8 +699,14 @@ def available_jobs(request):
 
     # BASE QUERYSET
     now = timezone.now()
-    jobs = Job.objects.filter(is_active=True).filter(
-        Q(expiry_date__isnull=True) | Q(expiry_date__gt=now)
+    jobs = (
+        Job.objects.select_related(
+            "category",
+            "employer__employer_company",
+            "aggregated_record",
+        )
+        .filter(is_active=True)
+        .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=now))
     )
 
     # UNIFIED SEARCH: title OR category name OR location
@@ -918,6 +926,34 @@ def api_job_titles(request):
 # Ping Page
 def ping(request):
     return HttpResponse("pong")
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def run_job_aggregation_view(request):
+    cron_secret = getattr(settings, "CRON_SECRET_KEY", "")
+    request_secret = request.GET.get("key", "")
+
+    if not cron_secret:
+        logger.error("CRON_SECRET_KEY is not configured; rejecting cron trigger")
+        return JsonResponse({"error": "Cron trigger unavailable"}, status=503)
+
+    if not secrets.compare_digest(request_secret, cron_secret):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    lock_key = "cron:run_job_aggregation:running"
+    if not cache.add(lock_key, True, timeout=60 * 60):
+        return JsonResponse({"status": "already running"}, status=202)
+
+    try:
+        call_command("run_job_aggregation", limit=500, stale_hours=48)
+    except Exception:
+        logger.exception("Cron job aggregation trigger failed")
+        return JsonResponse({"error": "aggregation failed"}, status=500)
+    finally:
+        cache.delete(lock_key)
+
+    return JsonResponse({"status": "job aggregation completed"})
     
 # Privacy Policy page
 def privacy_policy(request):

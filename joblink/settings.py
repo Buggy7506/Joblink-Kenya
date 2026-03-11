@@ -50,6 +50,7 @@ if not SECRET_KEY:
     
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool("DEBUG", default=ENV != "production")
+CRON_SECRET_KEY = os.getenv("CRON_SECRET_KEY", "")
 
 default_allowed_hosts = [
     "stepper.dpdns.org",
