@@ -376,6 +376,12 @@ REQUEST_SHIELD = {
     "BLOCK_PATHS": True,
 }
 
+# Expired-job cleanup runs opportunistically during requests. Keep it throttled to
+# avoid adding expensive delete queries to every single page load.
+EXPIRED_JOB_CLEANUP_INTERVAL_SECONDS = int(
+    os.getenv("EXPIRED_JOB_CLEANUP_INTERVAL_SECONDS", "300")
+)
+
 # Channels layers
 if os.getenv("REDIS_URL"):
     CHANNEL_LAYERS = {

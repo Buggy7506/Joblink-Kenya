@@ -2,6 +2,8 @@ import asyncio
 
 from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from inspect import isawaitable
+from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 
 from core.models import Job
@@ -19,7 +21,7 @@ class ExpiredJobCleanupMiddleware:
         self.get_response = get_response
         if iscoroutinefunction(self.get_response):
             markcoroutinefunction(self)
-            
+
     def __call__(self, request):
         if iscoroutinefunction(self.get_response):
             return self.__acall__(request)
@@ -39,4 +41,15 @@ class ExpiredJobCleanupMiddleware:
         return response
 
     def _cleanup_expired_jobs(self):
-        Job.objects.filter(expiry_date__isnull=False, expiry_date__lte=timezone.now()).delete()
+        interval = max(1, int(getattr(settings, "EXPIRED_JOB_CLEANUP_INTERVAL_SECONDS", 300)))
+        lock_key = "expired-job-cleanup:lock"
+
+        # cache.add is atomic for most Django cache backends and prevents this
+        # cleanup query from running on every request.
+        if not cache.add(lock_key, "1", timeout=interval):
+            return
+
+        Job.objects.filter(
+            expiry_date__isnull=False,
+            expiry_date__lte=timezone.now(),
+        ).delete()
