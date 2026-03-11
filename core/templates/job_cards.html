@@ -35,7 +35,7 @@
           {% endif %}
           {{ job.company }}
         </span>
-        &nbsp; | &nbsp;
+        <span class="job-meta-separator" aria-hidden="true">•</span>
         <span class="location-map-wrap">
           <a
             href="https://www.google.com/maps/search/?api=1&query={{ job.location|urlencode }}"
@@ -48,6 +48,10 @@
           </a>
           <span class="location-map-popover" aria-hidden="true"></span>
         </span>
+        {% if job.aggregated_record %}
+          <span class="job-meta-separator" aria-hidden="true">•</span>
+          <span class="source-chip">🌐 {{ job.aggregated_record.source|title }}</span>
+        {% endif %}
       </p>
 
       {% if job.category %}
