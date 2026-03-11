@@ -108,5 +108,27 @@ python manage.py list_job_aggregator_sources
 */30 * * * * cd /path/to/Joblink-Kenya && /path/to/venv/bin/python manage.py run_job_aggregation --limit 500 --stale-hours 48
 ```
 
+### Scheduler example (cron-job.org / Render-friendly)
+
+If your deployment platform does not provide shell cron access (for example Render free services), use an HTTP scheduler such as [cron-job.org](https://cron-job.org).
+
+1. Set a strong environment variable on your server:
+
+```bash
+CRON_SECRET_KEY=replace-with-long-random-secret
+```
+
+2. Create a scheduled job that calls:
+
+```text
+https://<your-domain>/cron/run-job-aggregation/?key=<CRON_SECRET_KEY>
+```
+
+3. Suggested starting schedule for JobLink:
+   - Every 2 hours
+   - Command defaults: `limit=500` and `stale_hours=48`
+
+The endpoint is protected by a secret key and an in-process cache lock to avoid overlapping runs.
+
 ### Aggregated apply behavior
 When a user clicks apply for an aggregated job, JobLink redirects to the original external `apply_url` instead of creating a local in-platform application record.

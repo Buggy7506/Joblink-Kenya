@@ -20,6 +20,11 @@ urlpatterns = [
     # Ping URL
     # -------------------------
     path("ping/", views.ping, name="ping"),
+    path(
+        "cron/run-job-aggregation/",
+        views.run_job_aggregation_view,
+        name="run_job_aggregation",
+    ),
     # -------------------------
     # Resume / CV URLs
     # -------------------------
