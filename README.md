@@ -57,3 +57,9 @@ python manage.py run_job_aggregation --limit 500
 
 ### Aggregated apply behavior
 When a user clicks apply for an aggregated job, JobLink redirects to the original external `apply_url` instead of creating a local in-platform application record.
+## 🏗️ Job Aggregation Blueprint
+
+For a production-ready MovieBox-style aggregation architecture adapted to JobLink Kenya, see:
+
+- [`docs/job-aggregation-architecture.md`](docs/job-aggregation-architecture.md)
+
