@@ -346,7 +346,7 @@ BREVO_SMS_API_KEY = os.getenv("BREVO_SMS_API_KEY")
 
 # Job Aggregator
 JOB_AGGREGATOR_ENABLED_SOURCES = tuple(
-    env_list("JOB_AGGREGATOR_ENABLED_SOURCES", default=["remotive", "arbeitnow"])
+    env_list("JOB_AGGREGATOR_ENABLED_SOURCES", default=["remotive", "arbeitnow", "adzuna", "jooble", "remoteok", "weworkremotely", "greenhouse", "lever", "ashby", "smartrecruiters", "workable", "bamboohr", "personio", "recruitee", "jobicy", "remotewx", "ycombinator", "wellfound", "remotive_api", "usajobs", "remotive_global"])
 )
 JOB_AGGREGATOR_STALE_HOURS = int(os.getenv("JOB_AGGREGATOR_STALE_HOURS", "48"))
 JOB_AGGREGATOR_HTTP_TIMEOUT = int(os.getenv("JOB_AGGREGATOR_HTTP_TIMEOUT", "25"))

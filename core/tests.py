@@ -987,6 +987,18 @@ class AggregationMaintenanceTests(TestCase):
 
 
 class SourceRegistryTests(SimpleTestCase):
+    def test_registry_contains_requested_source_keys(self):
+        from core.aggregator.sources import ADAPTER_REGISTRY, CONFIGURABLE_JSON_SOURCES
+
+        required = {
+            "remotive", "arbeitnow", "adzuna", "jooble", "remoteok", "weworkremotely",
+            "greenhouse", "lever", "ashby", "smartrecruiters", "workable", "bamboohr",
+            "personio", "recruitee", "jobicy", "remotewx", "ycombinator", "wellfound",
+            "remotive_api", "usajobs", "remotive_global",
+        }
+        available = set(ADAPTER_REGISTRY.keys()) | set(CONFIGURABLE_JSON_SOURCES.keys())
+        self.assertTrue(required.issubset(available))
+
     def test_get_source_adapters_respects_settings(self):
         from django.test import override_settings
 

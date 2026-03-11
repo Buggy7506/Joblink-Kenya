@@ -58,10 +58,13 @@ python manage.py run_job_aggregation --limit 500 --stale-hours 48
 
 ### Configure which sources are enabled
 
+Supported source keys:
+`remotive, arbeitnow, adzuna, jooble, remoteok, weworkremotely, greenhouse, lever, ashby, smartrecruiters, workable, bamboohr, personio, recruitee, jobicy, remotewx, ycombinator, wellfound, remotive_api, usajobs, remotive_global`
+
 You can configure sources from environment variables (recommended):
 
 ```bash
-JOB_AGGREGATOR_ENABLED_SOURCES=remotive,arbeitnow
+JOB_AGGREGATOR_ENABLED_SOURCES=remotive,arbeitnow,adzuna,jooble,remoteok,weworkremotely,greenhouse,lever,ashby,smartrecruiters,workable,bamboohr,personio,recruitee,jobicy,remotewx,ycombinator,wellfound,remotive_api,usajobs,remotive_global
 JOB_AGGREGATOR_STALE_HOURS=48
 JOB_AGGREGATOR_HTTP_TIMEOUT=25
 ```
@@ -72,6 +75,25 @@ Or directly in Django settings:
 JOB_AGGREGATOR_ENABLED_SOURCES = ("remotive", "arbeitnow")
 JOB_AGGREGATOR_STALE_HOURS = 48
 JOB_AGGREGATOR_HTTP_TIMEOUT = 25
+```
+
+Optional endpoints for configurable JSON sources (set only the providers you use):
+
+```bash
+JOB_AGGREGATOR_ADZUNA_ENDPOINT=
+JOB_AGGREGATOR_JOOBLE_ENDPOINT=
+JOB_AGGREGATOR_GREENHOUSE_ENDPOINT=
+JOB_AGGREGATOR_LEVER_ENDPOINT=
+JOB_AGGREGATOR_ASHBY_ENDPOINT=
+JOB_AGGREGATOR_SMARTRECRUITERS_ENDPOINT=
+JOB_AGGREGATOR_WORKABLE_ENDPOINT=
+JOB_AGGREGATOR_BAMBOOHR_ENDPOINT=
+JOB_AGGREGATOR_PERSONIO_ENDPOINT=
+JOB_AGGREGATOR_RECRUITEE_ENDPOINT=
+JOB_AGGREGATOR_REMOTEWX_ENDPOINT=
+JOB_AGGREGATOR_YCOMBINATOR_ENDPOINT=
+JOB_AGGREGATOR_WELLFOUND_ENDPOINT=
+JOB_AGGREGATOR_USAJOBS_ENDPOINT=
 ```
 
 To verify your active configuration:
