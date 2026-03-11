@@ -126,6 +126,8 @@ class EmployerVerificationMiddlewareTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
 
+
+
 class EmployerVerificationMiddlewareAsyncDBTests(TestCase):
     def test_async_stack_handles_profile_relation_without_sync_only_error(self):
         import asyncio
@@ -472,7 +474,7 @@ class MicrosoftPhotoFetchHelperTests(SimpleTestCase):
         self.assertEqual(extension, "jpg")
 
 class ExpiredJobCleanupMiddlewareTests(TestCase):
-    def test_middleware_deletes_expired_jobs_on_each_request(self):
+    def test_middleware_deletes_expired_jobs_when_lock_acquired(self):
         from unittest.mock import patch
 
         from core.middleware.job_expiry_cleanup import ExpiredJobCleanupMiddleware
@@ -480,11 +482,28 @@ class ExpiredJobCleanupMiddlewareTests(TestCase):
         request = RequestFactory().get("/")
         middleware = ExpiredJobCleanupMiddleware(lambda req: None)
 
-        with patch("core.middleware.job_expiry_cleanup.Job.objects.filter") as mock_filter:
+        with patch("core.middleware.job_expiry_cleanup.cache.add", return_value=True), patch(
+            "core.middleware.job_expiry_cleanup.Job.objects.filter"
+        ) as mock_filter:
             middleware(request)
 
         mock_filter.assert_called_once()
         mock_filter.return_value.delete.assert_called_once()
+
+    def test_middleware_skips_cleanup_when_throttle_lock_exists(self):
+        from unittest.mock import patch
+
+        from core.middleware.job_expiry_cleanup import ExpiredJobCleanupMiddleware
+
+        request = RequestFactory().get("/")
+        middleware = ExpiredJobCleanupMiddleware(lambda req: None)
+
+        with patch("core.middleware.job_expiry_cleanup.cache.add", return_value=False), patch(
+            "core.middleware.job_expiry_cleanup.Job.objects.filter"
+        ) as mock_filter:
+            middleware(request)
+
+        mock_filter.assert_not_called()
 
     
     def test_async_stack_runs_db_cleanup_without_sync_only_error(self):
@@ -517,7 +536,9 @@ class ExpiredJobCleanupMiddlewareTests(TestCase):
 
         middleware = ExpiredJobCleanupMiddleware(get_response)
 
-        with patch("core.middleware.job_expiry_cleanup.Job.objects.filter") as mock_filter:
+        with patch("core.middleware.job_expiry_cleanup.cache.add", return_value=True), patch(
+            "core.middleware.job_expiry_cleanup.Job.objects.filter"
+        ) as mock_filter:
             response = asyncio.run(middleware(request))
 
         self.assertEqual(response.status_code, 200)
