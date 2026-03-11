@@ -1088,3 +1088,68 @@ class AggregationCommandTests(SimpleTestCase):
         output = out.getvalue()
         self.assertIn("remotive (enabled)", output)
         self.assertIn("arbeitnow (disabled)", output)
+
+class JobSuggestionsViewTests(TestCase):
+    def test_job_suggestions_loads_and_shows_matching_active_jobs_only(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
+            username="suggestions-user",
+            email="suggestions@example.com",
+            password="testpass123",
+            skills="python, django, data analysis",
+            role="applicant",
+        )
+
+        active_job = Job.objects.create(
+            employer=user,
+            title="Python Django Developer",
+            description="Build APIs and dashboards",
+            company="Acme",
+            location="Nairobi",
+            is_active=True,
+            expiry_date=timezone.now() + timedelta(days=7),
+        )
+        Job.objects.create(
+            employer=user,
+            title="General Office Assistant",
+            description="Administrative support",
+            company="Acme",
+            location="Nairobi",
+            is_active=True,
+            expiry_date=timezone.now() + timedelta(days=7),
+        )
+        Job.objects.create(
+            employer=user,
+            title="Senior Python Engineer",
+            description="Legacy system migration",
+            company="Acme",
+            location="Nairobi",
+            is_active=False,
+            expiry_date=timezone.now() + timedelta(days=7),
+        )
+
+        client = Client()
+        self.assertTrue(client.login(username="suggestions-user", password="testpass123"))
+
+        response = client.get(reverse("job_suggestions"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(active_job, response.context["suggested_jobs"])
+        self.assertEqual(response.context["suggested_jobs"].count(), 1)
+
+    def test_job_suggestions_handles_missing_skills_without_error(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
+            username="suggestions-no-skills",
+            email="noskills@example.com",
+            password="testpass123",
+            role="applicant",
+        )
+
+        client = Client()
+        self.assertTrue(client.login(username="suggestions-no-skills", password="testpass123"))
+
+        response = client.get(reverse("job_suggestions"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["suggested_jobs"].count(), 0)
