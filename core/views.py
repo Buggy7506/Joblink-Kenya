@@ -2895,8 +2895,13 @@ def apply_job(request, job_id):
         messages.error(request, "❌ You cannot apply to your own job posting.")
         return redirect('available_jobs')
 
+    # External aggregated jobs redirect applicants to source apply URL
+    aggregated_record = getattr(job, "aggregated_record", None)
+
     # 3️⃣ Handle POST requests
     if request.method == "POST":
+        if aggregated_record and aggregated_record.apply_url:
+            return redirect(aggregated_record.apply_url)
         # ---------- FREE JOB FLOW ----------
         if not job.is_premium:
             application, created = Application.objects.get_or_create(
