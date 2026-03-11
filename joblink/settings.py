@@ -27,6 +27,13 @@ def env_bool(name: str, default: bool = False) -> bool:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
+
+def env_list(name: str, default: list[str] | tuple[str, ...] | None = None) -> list[str]:
+    value = os.getenv(name)
+    if value is None:
+        return list(default or [])
+    return [item.strip() for item in value.split(',') if item.strip()]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -336,6 +343,13 @@ EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 BREVO_SMS_API_KEY = os.getenv("BREVO_SMS_API_KEY")
+
+# Job Aggregator
+JOB_AGGREGATOR_ENABLED_SOURCES = tuple(
+    env_list("JOB_AGGREGATOR_ENABLED_SOURCES", default=["remotive", "arbeitnow", "adzuna", "jooble", "remoteok", "weworkremotely", "greenhouse", "lever", "ashby", "smartrecruiters", "workable", "bamboohr", "personio", "recruitee", "jobicy", "remotewx", "ycombinator", "wellfound", "remotive_api", "usajobs", "remotive_global"])
+)
+JOB_AGGREGATOR_STALE_HOURS = int(os.getenv("JOB_AGGREGATOR_STALE_HOURS", "48"))
+JOB_AGGREGATOR_HTTP_TIMEOUT = int(os.getenv("JOB_AGGREGATOR_HTTP_TIMEOUT", "25"))
 
 # Default sender
 DEFAULT_FROM_EMAIL = "Joblink Kenya <support@stepper.dpdns.org>"
