@@ -2931,12 +2931,34 @@ def apply_job(request, job_id):
         messages.error(request, "❌ You cannot apply to your own job posting.")
         return redirect('available_jobs')
 
-    # External aggregated jobs redirect applicants to source apply URL
+    # External aggregated jobs are tracked locally, then redirect applicants to source apply URL
     aggregated_record = getattr(job, "aggregated_record", None)
 
     # 3️⃣ Handle POST requests
     if request.method == "POST":
         if aggregated_record and aggregated_record.apply_url:
+            application, created = Application.objects.get_or_create(
+                applicant=request.user,
+                job=job,
+            )
+
+            if not created and application.is_deleted:
+                application.is_deleted = False
+                application.deleted_on = None
+                application.is_deleted_for_employer = False
+                application.save(update_fields=["is_deleted", "deleted_on", "is_deleted_for_employer"])
+                created = True
+
+            if created:
+                Notification.objects.create(
+                    user=job.employer,
+                    title="New Job Application",
+                    message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})",
+                )
+                messages.success(request, "✅ Application saved in your Applied Jobs. Continue on source site to finish.")
+            else:
+                messages.info(request, "ℹ️ This job is already in your Applied Jobs list.")
+
             return redirect(aggregated_record.apply_url)
         # ---------- FREE JOB FLOW ----------
         if not job.is_premium:

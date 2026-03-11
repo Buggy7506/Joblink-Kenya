@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from core.aggregator.service import JobAggregationService
 from core.aggregator.sources import NormalizedJob
-from core.models import AggregatedJobRecord, Job, Profile
+from core.models import AggregatedJobRecord, Application, Job, Profile
 from core.views import (
     _get_effective_role,
     _normalize_next_url,
@@ -1002,6 +1002,22 @@ class ExternalAggregatedApplyFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "https://example.com/apply/rem-100")
+        self.assertTrue(
+            Application.objects.filter(
+                applicant=self.applicant,
+                job=self.job,
+                is_deleted=False,
+            ).exists()
+        )
+
+    def test_aggregated_application_appears_in_applied_jobs_page(self):
+        self.client.login(username="applicant-agg", password="testpass123")
+
+        self.client.post(reverse("apply_job", args=[self.job.id]))
+        response = self.client.get(reverse("applied_jobs"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Data Engineer")
 
 
 class AggregationMaintenanceTests(TestCase):
