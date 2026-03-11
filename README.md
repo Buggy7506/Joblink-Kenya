@@ -29,3 +29,12 @@ Joblink-Kenya is a web platform designed to:
 <!-- Favicon -->
 <link rel="icon" type="image/png"
       href="https://res.cloudinary.com/dc6z1giw2/image/upload/v1765303178/joblink-logo_xjj0qp.png">
+
+---
+
+## 🏗️ Job Aggregation Blueprint
+
+For a production-ready MovieBox-style aggregation architecture adapted to JobLink Kenya, see:
+
+- [`docs/job-aggregation-architecture.md`](docs/job-aggregation-architecture.md)
+
