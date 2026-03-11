@@ -38,6 +38,8 @@ from django.core.validators import validate_email
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 from django.core.paginator import Paginator
+from django.core.management import call_command
+from django.core.cache import cache
 from django.db.models import Count, Q, F
 
 # =========================
@@ -918,6 +920,26 @@ def api_job_titles(request):
 # Ping Page
 def ping(request):
     return HttpResponse("pong")
+
+
+@csrf_exempt
+def run_job_aggregation_view(request):
+    cron_secret = getattr(settings, "CRON_SECRET_KEY", "")
+    request_secret = request.GET.get("key", "")
+
+    if not cron_secret or request_secret != cron_secret:
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    lock_key = "cron:run_job_aggregation:running"
+    if not cache.add(lock_key, True, timeout=60 * 60):
+        return JsonResponse({"status": "already running"}, status=202)
+
+    try:
+        call_command("run_job_aggregation", limit=500, stale_hours=48)
+    finally:
+        cache.delete(lock_key)
+
+    return JsonResponse({"status": "job aggregation completed"})
     
 # Privacy Policy page
 def privacy_policy(request):
