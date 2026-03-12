@@ -1277,3 +1277,31 @@ class JobSuggestionsViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["suggested_jobs"].count(), 0)
+
+
+class JobDetailViewTests(TestCase):
+    def test_job_detail_strips_html_tags_from_description(self):
+        user_model = get_user_model()
+        employer = user_model.objects.create_user(
+            username="detail-html",
+            email="detail-html@example.com",
+            password="testpass123",
+            role="applicant",
+        )
+
+        job = Job.objects.create(
+            employer=employer,
+            title="Support Engineer",
+            description="<p><strong>Urgent</strong> hiring now</p>",
+            company="Acme",
+            location="Nairobi",
+            is_active=True,
+            expiry_date=timezone.now() + timedelta(days=7),
+        )
+
+        response = self.client.get(reverse("job_detail", args=[job.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Urgent hiring now")
+        self.assertNotContains(response, "&lt;p&gt;")
+        self.assertNotContains(response, "&lt;strong&gt;")
