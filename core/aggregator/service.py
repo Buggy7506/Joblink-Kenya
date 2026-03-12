@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone as dt_timezone
 
+from langdetect import LangDetectException, detect
 from django.utils.dateparse import parse_date, parse_datetime
 
 from django.contrib.auth import get_user_model
@@ -142,12 +143,44 @@ class JobAggregationService:
         )
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
+    @staticmethod
+    def _is_english_content(item: NormalizedJob) -> bool:
+        """
+        Keep aggregated listings readable for our audience by accepting
+        only English content.
+        """
+        content = " ".join(
+            [
+                item.title or "",
+                item.company or "",
+                item.location or "",
+                re.sub(r"<[^>]+>", " ", item.description or ""),
+            ]
+        )
+        compact_content = re.sub(r"\s+", " ", content).strip()
+        if not compact_content:
+            return False
+
+        alphabetic_chars = re.sub(r"[^A-Za-z]", "", compact_content)
+        if len(alphabetic_chars) < 20:
+            # Language detection is noisy for very short snippets.
+            return True
+
+        try:
+            return detect(compact_content) == "en"
+        except LangDetectException:
+            return True
+
     def ingest(self, items: list[NormalizedJob]) -> IngestResult:
         result = IngestResult()
         employer = self._get_or_create_system_employer()
 
         for item in items:
             if not item.title or not item.apply_url:
+                result.invalid += 1
+                continue
+
+            if not self._is_english_content(item):
                 result.invalid += 1
                 continue
 

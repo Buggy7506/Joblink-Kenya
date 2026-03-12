@@ -984,6 +984,44 @@ class AggregationServiceTests(TestCase):
         record = AggregatedJobRecord.objects.get(source="remotive", source_job_id="expiry-1")
         self.assertEqual(record.job.expiry_date.date().isoformat(), "2026-05-01")
 
+    def test_ingest_rejects_non_english_jobs(self):
+        service = JobAggregationService(system_username="test-aggregator-language")
+        result = service.ingest(
+            [
+                NormalizedJob(
+                    title="Ingeniero de Software",
+                    company="Empresa Ejemplo",
+                    location="Madrid",
+                    description="Buscamos una persona con experiencia en desarrollo de aplicaciones web y servicios distribuidos.",
+                    apply_url="https://example.com/apply/es-1",
+                    source="remotive",
+                    source_job_id="es-1",
+                )
+            ]
+        )
+
+        self.assertEqual(result.invalid, 1)
+        self.assertFalse(AggregatedJobRecord.objects.filter(source="remotive", source_job_id="es-1").exists())
+
+    def test_ingest_keeps_english_jobs(self):
+        service = JobAggregationService(system_username="test-aggregator-language-en")
+        result = service.ingest(
+            [
+                NormalizedJob(
+                    title="Software Engineer",
+                    company="Example Company",
+                    location="Remote",
+                    description="We are looking for an experienced engineer to build web applications and distributed services.",
+                    apply_url="https://example.com/apply/en-1",
+                    source="remotive",
+                    source_job_id="en-1",
+                )
+            ]
+        )
+
+        self.assertEqual(result.created, 1)
+        self.assertTrue(AggregatedJobRecord.objects.filter(source="remotive", source_job_id="en-1").exists())
+
 class ExternalAggregatedApplyFlowTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
