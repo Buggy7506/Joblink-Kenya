@@ -929,8 +929,6 @@ def ping(request):
     return HttpResponse("pong")
 
 
-@csrf_exempt
-@require_http_methods(["GET"])
 def _run_job_aggregation_with_lock(lock_key):
     try:
         call_command("run_job_aggregation", limit=500, stale_hours=48)
