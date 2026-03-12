@@ -3391,26 +3391,47 @@ def job_suggestions(request):
     # Keep query small and predictable to avoid slow page loads.
     raw_skill_terms = [term.strip().lower() for term in skills_str.split(",") if term.strip()]
     skill_words = []
+    seen_words = set()
     for term in raw_skill_terms:
         for word in re.findall(r"[a-z0-9+#.-]{2,}", term):
-            if word not in skill_words:
-                skill_words.append(word)
+            if word in seen_words:
+                continue
+            seen_words.add(word)
+            skill_words.append(word)
 
     now = timezone.now()
+    max_skill_terms = 8
+    max_suggested_jobs = 60
+
     jobs_queryset = (
         Job.objects.select_related("category", "employer__employer_company")
+        .only(
+            "id",
+            "title",
+            "description",
+            "company",
+            "company_logo",
+            "location",
+            "salary",
+            "posted_on",
+            "expiry_date",
+            "is_premium",
+            "category__name",
+            "employer__employer_company__company_website",
+        )
         .filter(is_active=True)
         .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=now))
+        .order_by("-posted_on")
     )
 
     if skill_words:
         query = Q()
-        for word in skill_words[:12]:
+        for word in skill_words[:max_skill_terms]:
             query |= Q(title__icontains=word) | Q(description__icontains=word)
 
-        suggested_jobs = jobs_queryset.filter(query).distinct().order_by("-posted_on")
+        suggested_jobs = list(jobs_queryset.filter(query)[:max_suggested_jobs])
 
-        if not suggested_jobs.exists():
+        if not suggested_jobs:
             messages.warning(request, "No jobs matched your skills. Try updating your profile for better matches.")
     else:
         if not request.session.get("skills_message_shown", False):
