@@ -19,3 +19,4 @@ sib-api-v3-sdk==7.6.0
 stripe>=14.3.0,<15
 weasyprint==65.0
 whitenoise==6.9.0
+langdetect==1.0.9
