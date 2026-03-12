@@ -24,6 +24,7 @@ class NormalizedJob:
     source: str
     salary: int | None = None
     posted_date: datetime | None = None
+    expiry_date: datetime | None = None
     source_job_id: str = ""
     source_url: str = ""
     metadata: dict[str, Any] | None = None
@@ -58,6 +59,10 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
             publication = raw.get("publication_date")
             if publication:
                 posted_date = parse_datetime(publication.replace("Z", "+00:00"))
+            expiry_date = None
+            expiration = raw.get("expiration_date") or raw.get("expires_at")
+            if isinstance(expiration, str) and expiration:
+                expiry_date = parse_datetime(expiration.replace("Z", "+00:00"))
 
             normalized.append(
                 NormalizedJob(
@@ -68,6 +73,7 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
                     apply_url=(raw.get("url") or "").strip(),
                     source=self.source_name,
                     posted_date=posted_date,
+                    expiry_date=expiry_date,
                     source_job_id=str(raw.get("id") or "").strip(),
                     source_url=(raw.get("url") or "").strip(),
                     metadata={
@@ -76,6 +82,7 @@ class RemotiveSourceAdapter(BaseSourceAdapter):
                         "tags": raw.get("tags") or [],
                         "company_logo_url": raw.get("company_logo") or raw.get("company_logo_url") or raw.get("logo"),
                         "salary": raw.get("salary") or raw.get("salary_range"),
+                        "expiration_date": raw.get("expiration_date") or raw.get("expires_at"),
                     },
                     company_logo_url=(raw.get("company_logo") or raw.get("company_logo_url") or raw.get("logo") or "").strip(),
                 )

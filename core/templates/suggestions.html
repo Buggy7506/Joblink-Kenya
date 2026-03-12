@@ -74,7 +74,7 @@
             {% endif %}
 
             <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
-            <p class="job-description">{{ job.description|truncatechars:170 }}</p>
+            <p class="job-description">{{ job.description|striptags|truncatechars:170 }}</p>
 
             <a href="{% url 'job_detail' job.id %}" class="apply-link">View Job</a>
           </div>

@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import date, datetime, timedelta, timezone as dt_timezone
+
+from django.utils.dateparse import parse_date, parse_datetime
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -78,6 +80,34 @@ class JobAggregationService:
         return None
 
     @staticmethod
+    def _extract_expiry_date(item: NormalizedJob) -> datetime | None:
+        if item.expiry_date:
+            return item.expiry_date
+
+        metadata = item.metadata or {}
+        for key in ("expiry_date", "expires_at", "expiration_date", "valid_through", "application_deadline", "deadline"):
+            raw_value = metadata.get(key)
+            if raw_value in (None, ""):
+                continue
+
+            if isinstance(raw_value, datetime):
+                return timezone.make_aware(raw_value) if timezone.is_naive(raw_value) else raw_value
+            if isinstance(raw_value, date):
+                return timezone.make_aware(datetime.combine(raw_value, datetime.min.time()))
+            if isinstance(raw_value, (int, float)):
+                parsed_from_ts = datetime.fromtimestamp(raw_value, tz=dt_timezone.utc)
+                return parsed_from_ts
+            if isinstance(raw_value, str):
+                parsed_dt = parse_datetime(raw_value.replace("Z", "+00:00"))
+                if parsed_dt:
+                    return timezone.make_aware(parsed_dt) if timezone.is_naive(parsed_dt) else parsed_dt
+                parsed_d = parse_date(raw_value)
+                if parsed_d:
+                    return timezone.make_aware(datetime.combine(parsed_d, datetime.min.time()))
+
+        return None
+
+    @staticmethod
     def _extract_category_name(item: NormalizedJob) -> str:
         metadata = item.metadata or {}
         category = metadata.get("category") or metadata.get("job_type")
@@ -125,6 +155,7 @@ class JobAggregationService:
             description = item.description or "No description available from source."
             source_job_id = item.source_job_id or fingerprint[:24]
             salary_value = self._extract_salary(item)
+            expiry_date = self._extract_expiry_date(item)
             category_name = self._extract_category_name(item)
             category_obj = None
             if category_name:
@@ -168,6 +199,9 @@ class JobAggregationService:
                     if not job.is_active:
                         job.is_active = True
                         changed = True
+                    if expiry_date and job.expiry_date != expiry_date:
+                        job.expiry_date = expiry_date
+                        changed = True
 
                     if changed:
                         job.save()
@@ -206,6 +240,7 @@ class JobAggregationService:
                     salary=salary_value,
                     category=category_obj,
                     is_active=True,
+                    expiry_date=expiry_date,
                 )
                 AggregatedJobRecord.objects.create(
                     job=job,

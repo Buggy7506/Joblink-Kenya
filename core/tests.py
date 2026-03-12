@@ -962,6 +962,28 @@ class AggregationServiceTests(TestCase):
         self.assertEqual(record.job.category.name, "Engineering")
         self.assertEqual(record.payload.get("company_logo_url"), "https://example.com/logo.png")
 
+
+    def test_ingest_uses_source_expiry_date_from_metadata(self):
+        service = JobAggregationService(system_username="test-aggregator-expiry")
+        result = service.ingest(
+            [
+                NormalizedJob(
+                    title="Data Analyst",
+                    company="Acme Data",
+                    location="Remote",
+                    description="Analyze dashboards",
+                    apply_url="https://example.com/apply/expiry",
+                    source="remotive",
+                    source_job_id="expiry-1",
+                    metadata={"expiration_date": "2026-05-01T00:00:00Z"},
+                )
+            ]
+        )
+
+        self.assertEqual(result.created, 1)
+        record = AggregatedJobRecord.objects.get(source="remotive", source_job_id="expiry-1")
+        self.assertEqual(record.job.expiry_date.date().isoformat(), "2026-05-01")
+
 class ExternalAggregatedApplyFlowTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -1136,6 +1158,36 @@ class JobSuggestionsViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(active_job, response.context["suggested_jobs"])
         self.assertEqual(response.context["suggested_jobs"].count(), 1)
+
+
+    def test_job_suggestions_strips_html_from_description_preview(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
+            username="suggestions-html",
+            email="suggestions-html@example.com",
+            password="testpass123",
+            skills="python",
+            role="applicant",
+        )
+
+        Job.objects.create(
+            employer=user,
+            title="Python Developer",
+            description="<p><strong>Great</strong> role</p>",
+            company="Acme",
+            location="Nairobi",
+            is_active=True,
+            expiry_date=timezone.now() + timedelta(days=7),
+        )
+
+        client = Client()
+        self.assertTrue(client.login(username="suggestions-html", password="testpass123"))
+
+        response = client.get(reverse("job_suggestions"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Great role")
+        self.assertNotContains(response, "&lt;p&gt;")
 
     def test_job_suggestions_handles_missing_skills_without_error(self):
         user_model = get_user_model()
