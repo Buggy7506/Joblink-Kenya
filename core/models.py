@@ -538,6 +538,16 @@ class AggregatedJobRecord(models.Model):
     fingerprint = models.CharField(max_length=64, unique=True)
     posted_date = models.DateTimeField(null=True, blank=True)
     payload = models.JSONField(default=dict, blank=True)
+    partner_employer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="partner_aggregated_jobs",
+    )
+    partner_company_name = models.CharField(max_length=255, blank=True)
+    partner_contact_email = models.EmailField(blank=True)
+    chat_enabled = models.BooleanField(default=False)
     last_seen_at = models.DateTimeField(auto_now=True)
     is_live = models.BooleanField(default=True, db_index=True)
 
@@ -547,6 +557,12 @@ class AggregatedJobRecord(models.Model):
             models.Index(fields=["source", "is_live"]),
         ]
         unique_together = ("source", "source_job_id")
+
+    @property
+    def chat_employer(self):
+        if self.chat_enabled and self.partner_employer_id:
+            return self.partner_employer
+        return self.job.employer
 
     def __str__(self):
         return f"{self.source}: {self.job.title}"
@@ -591,6 +607,20 @@ class Application(models.Model):
 
     class Meta:
         unique_together = ("job", "applicant")
+
+    @property
+    def chat_employer(self):
+        aggregated_record = getattr(self.job, "aggregated_record", None)
+        if aggregated_record and aggregated_record.chat_enabled and aggregated_record.partner_employer_id:
+            return aggregated_record.partner_employer
+        return self.job.employer
+
+    @property
+    def chat_enabled(self):
+        aggregated_record = getattr(self.job, "aggregated_record", None)
+        if not aggregated_record:
+            return True
+        return bool(aggregated_record.chat_enabled and aggregated_record.partner_employer_id)
 
     def __str__(self):
         return f"{self.applicant.username} → {self.job.title}"

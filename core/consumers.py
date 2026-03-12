@@ -468,7 +468,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Application.DoesNotExist:
             return False
 
-        return user_id in (app.applicant_id, app.job.employer_id)
+        is_partner = bool(
+            getattr(app.job, "aggregated_record", None)
+            and app.job.aggregated_record.chat_enabled
+            and app.job.aggregated_record.partner_employer_id == user_id
+        )
+        return user_id in (app.applicant_id, app.job.employer_id) or is_partner
 
     @database_sync_to_async
     def get_application_job_id(self, application_id):
@@ -480,7 +485,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def user_is_job_participant(self, job_id, user_id):
         return Application.objects.filter(job_id=job_id).filter(
-            models.Q(applicant_id=user_id) | models.Q(job__employer_id=user_id)
+            models.Q(applicant_id=user_id)
+            | models.Q(job__employer_id=user_id)
+            | models.Q(
+                job__aggregated_record__partner_employer_id=user_id,
+                job__aggregated_record__chat_enabled=True,
+            )
         ).exists()
 
     @database_sync_to_async
@@ -490,7 +500,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Application.DoesNotExist:
             return False
         if app.job.employer_id == user_id:
-            return True            
+            return True
+        aggregated_record = getattr(app.job, "aggregated_record", None)
+        if aggregated_record and aggregated_record.chat_enabled and aggregated_record.partner_employer_id == user_id:
+            return True
         return Application.objects.filter(job_id=app.job_id, applicant_id=user_id).exists()
 
     @database_sync_to_async
@@ -498,9 +511,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         valid_participant_ids = set(
             Application.objects.filter(job_id=job_id).values_list("applicant_id", flat=True)
         )
-        employer_id = Application.objects.filter(job_id=job_id).values_list("job__employer_id", flat=True).first()
+        app = Application.objects.select_related("job__aggregated_record").filter(job_id=job_id).first()
+        employer_id = app.job.employer_id if app else None
         if employer_id:
             valid_participant_ids.add(employer_id)
+        if app and getattr(app.job, "aggregated_record", None):
+            record = app.job.aggregated_record
+            if record.chat_enabled and record.partner_employer_id:
+                valid_participant_ids.add(record.partner_employer_id)
 
         normalized_recipient_id = None
         if str(recipient_id).isdigit() and int(recipient_id) in valid_participant_ids:
@@ -618,7 +636,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 application_id=application_id,
                 application__job__is_deleted=False,
             ).filter(
-                models.Q(application__applicant_id=user_id) | models.Q(application__job__employer_id=user_id)
+                models.Q(application__applicant_id=user_id)
+                | models.Q(application__job__employer_id=user_id)
+                | models.Q(
+                    application__job__aggregated_record__partner_employer_id=user_id,
+                    application__job__aggregated_record__chat_enabled=True,
+                )
             ).first()
             if not msg:
                 return False
@@ -635,7 +658,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             application_id=application_id,
             application__job__is_deleted=False,
         ).filter(
-            models.Q(application__applicant_id=user_id) | models.Q(application__job__employer_id=user_id)
+            models.Q(application__applicant_id=user_id)
+            | models.Q(application__job__employer_id=user_id)
+            | models.Q(
+                application__job__aggregated_record__partner_employer_id=user_id,
+                application__job__aggregated_record__chat_enabled=True,
+            )
         ).exists()
 
     @database_sync_to_async
@@ -682,6 +710,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return app.applicant.username
         if app.job.employer_id == user_id:
             return app.job.employer.username
+        aggregated_record = getattr(app.job, "aggregated_record", None)
+        if aggregated_record and aggregated_record.chat_enabled and aggregated_record.partner_employer_id == user_id:
+            return aggregated_record.partner_employer.username
         return None
 
     @database_sync_to_async

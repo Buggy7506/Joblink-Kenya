@@ -166,6 +166,15 @@ def _get_effective_role(user):
 
     return profile_role or user_role
 
+
+def _application_chat_employer(application):
+    return application.chat_employer
+
+
+def _is_application_chat_participant(application, user):
+    employer = _application_chat_employer(application)
+    return user.id in (application.applicant_id, getattr(employer, "id", None))
+
 def robots_txt(request):
     content = """User-agent: *
 Allow: /
@@ -1977,12 +1986,13 @@ def notifications(request):
     unread_chats = ChatMessage.objects.filter(
         is_read=False
     ).filter(
-        Q(application__applicant=user) & ~Q(sender=user) |
-        Q(application__job__employer=user) & ~Q(sender=user)
-    ).order_by("-timestamp")
+        Q(application__applicant=user)
+        | Q(application__job__employer=user)
+        | Q(application__job__aggregated_record__partner_employer=user, application__job__aggregated_record__chat_enabled=True)
+    ).exclude(sender=user).order_by("-timestamp")
 
     for chat in unread_chats:
-        if chat.application.applicant == user:
+        if chat.application.applicant_id == user.id:
             chat_url = reverse("job_chat", args=[chat.application.id])
         else:
             chat_url = reverse("employer_chat", args=[chat.application.job.id]) + f"?app_id={chat.application.id}"
@@ -2950,12 +2960,17 @@ def apply_job(request, job_id):
                 created = True
 
             if created:
+                recipient = application.chat_employer
                 Notification.objects.create(
-                    user=job.employer,
+                    user=recipient,
                     title="New Job Application",
                     message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})",
                 )
                 messages.success(request, "✅ Application saved in your Applied Jobs. Continue on source site to finish.")
+                if application.chat_enabled:
+                    messages.info(request, f"💬 You can now chat with the employer in-app: {reverse('job_chat', args=[application.id])}")
+                else:
+                    messages.info(request, "ℹ️ Chat is not enabled for this external listing yet.")
             else:
                 messages.info(request, "ℹ️ This job is already in your Applied Jobs list.")
 
@@ -2970,7 +2985,7 @@ def apply_job(request, job_id):
             if created:
                 # Notify employer
                 Notification.objects.create(
-                    user=job.employer,
+                    user=application.chat_employer,
                     title="New Job Application",
                     message=f"{request.user.username} has applied for your job '{job.title}'. (job_id={job.id})"
                 )
@@ -3463,7 +3478,7 @@ def chat_view(request, application_id=None, job_id=None):
         )
 
         # Security check
-        if user.id not in (app.applicant_id, app.job.employer_id):
+        if not _is_application_chat_participant(app, user):
             messages.error(request, "❌ You are not authorized to view this chat.")
             return redirect("job_detail", job_id=app.job_id)
 
@@ -3473,7 +3488,7 @@ def chat_view(request, application_id=None, job_id=None):
             if text:
                 ChatMessage.objects.create(application=app, sender=user, message=text)
 
-                recipient = app.job.employer if user == app.applicant else app.applicant
+                recipient = _application_chat_employer(app) if user == app.applicant else app.applicant
                 Notification.objects.create(
                     user=recipient,
                     title="New Chat Message",
@@ -3485,9 +3500,10 @@ def chat_view(request, application_id=None, job_id=None):
 
         # Mark employer messages as read when applicant views
         if user == app.applicant:
+            employer = _application_chat_employer(app)
             ChatMessage.objects.filter(
                 application=app,
-                sender_id=app.job.employer_id,
+                sender_id=getattr(employer, "id", None),
                 is_read=False
             ).update(is_read=True)
 
@@ -3501,7 +3517,20 @@ def chat_view(request, application_id=None, job_id=None):
     # Case 2: Employer chat (per job)
     # -----------------------------
     elif job_id:
-        job = get_object_or_404(Job, id=job_id, employer=user)
+        job = get_object_or_404(
+            Job.objects.select_related("aggregated_record", "aggregated_record__partner_employer"),
+            id=job_id,
+        )
+        aggregated_record = getattr(job, "aggregated_record", None)
+        can_access_as_owner = job.employer_id == user.id
+        can_access_as_partner = bool(
+            aggregated_record
+            and aggregated_record.chat_enabled
+            and aggregated_record.partner_employer_id == user.id
+        )
+        if not (can_access_as_owner or can_access_as_partner):
+            messages.error(request, "❌ You are not authorized to view this chat.")
+            return redirect("dashboard")
 
         # Exclude applications hidden by applicant
         applications = job.applications.filter(is_deleted_for_employer=False).select_related("applicant").annotate(
@@ -3557,9 +3586,17 @@ def chat_view(request, application_id=None, job_id=None):
     # -----------------------------
     else:
         if _get_effective_role(user) == "employer":
-            jobs = Job.objects.filter(employer=user).prefetch_related(
-                "applications__applicant"
-            )
+            jobs = Job.objects.filter(
+                Q(employer=user)
+                | Q(
+                    aggregated_record__partner_employer=user,
+                    aggregated_record__chat_enabled=True,
+                )
+            ).prefetch_related(
+                "applications__applicant",
+                "aggregated_record",
+                "aggregated_record__partner_employer",
+            ).distinct()
 
             job = None
             applications = []
@@ -3757,7 +3794,12 @@ def view_applications(request):
     # -----------------------------
     active_applications = (
         Application.objects.filter(applicant=user, is_deleted=False)
-        .select_related("job", "job__employer")
+        .select_related(
+            "job",
+            "job__employer",
+            "job__aggregated_record",
+            "job__aggregated_record__partner_employer",
+        )
         .order_by("-applied_on")
     )
 

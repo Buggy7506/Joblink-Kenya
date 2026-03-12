@@ -95,7 +95,7 @@
         {% for app in applications %}
         <tr id="row-{{ app.id }}">
           <td><a href="{% url 'job_detail' app.job.id %}">{{ app.job.title }}</a></td>
-          <td>{{ app.job.employer.username }}</td>
+          <td>{% if app.job.aggregated_record and app.job.aggregated_record.partner_company_name %}{{ app.job.aggregated_record.partner_company_name }}{% elif app.job.aggregated_record and app.job.aggregated_record.partner_employer %}{{ app.job.aggregated_record.partner_employer.username }}{% else %}{{ app.job.employer.username }}{% endif %}</td>
           <td>
             {% if app.status == "accepted" %}
               <span class="status-pill text-success">✅ Accepted</span>
@@ -108,7 +108,11 @@
           <td>{{ app.applied_on|date:"M d, Y H:i" }}</td>
           <td>
             <div class="application-actions">
+              {% if app.chat_enabled %}
               <a href="{% url 'job_chat' app.id %}" class="btn btn-sm btn-outline-info">💬 Chat</a>
+              {% else %}
+              <button class="btn btn-sm btn-outline-secondary" disabled title="Chat not enabled for this external listing.">💬 Chat</button>
+              {% endif %}
               <button class="btn btn-sm btn-outline-danger" onclick="deleteApplication({{ app.id }})">🗑 Delete</button>
             </div>
           </td>

@@ -219,6 +219,57 @@ Start with a balanced mix:
 - Regional boards that expose official feeds/APIs
 - Curated scraping only for high-value sources with no official feed
 
+## 12) Aggregated Applied Jobs + Employer Chat (How to Implement)
+
+Goal: let an applicant apply to aggregated jobs from JobLink, keep the application in **Applied Jobs**, and enable chat with the real employer (or recruiter) inside JobLink.
+
+### 12.1 Current behavior (what exists today)
+- Aggregated jobs are owned by a system employer account (`aggregator-bot`).
+- When an applicant applies to an aggregated job, we create a local `Application` record and redirect to external `apply_url`.
+- Chat already works when an `Application` exists, but messages route to whoever owns the job record.
+
+This means chat for aggregated jobs currently points to the bot owner unless we map the job to a real employer account.
+
+### 12.2 Required data model additions
+Add fields that link aggregated jobs to a real, chat-capable employer identity:
+
+1. `AggregatedJobRecord.partner_employer` (FK to `CustomUser`, nullable)
+2. `AggregatedJobRecord.partner_company_name` (cached label for display)
+3. `AggregatedJobRecord.chat_enabled` (bool)
+4. `AggregatedJobRecord.partner_contact_email` (optional for fallback workflow)
+
+Optional: a separate `AggregatedJobPartnerMapping` table if one source needs complex routing rules.
+
+### 12.3 Partner onboarding workflow
+1. Employer creates/verifies employer account on JobLink.
+2. Admin links their external source/company identifier to that employer account.
+3. Aggregator ingestion sets `partner_employer` on matching records.
+4. Only records with `chat_enabled=true` show “Chat Employer” CTA in Applied Jobs.
+
+### 12.4 Application + chat flow for aggregated jobs
+1. Applicant clicks Apply.
+2. Create/get `Application` (same as now), keep it in Applied Jobs.
+3. If aggregated record has `partner_employer` and chat is enabled:
+   - show “Open Chat” immediately after save;
+   - allow internal chat even if external application finishes off-site.
+4. Redirect applicant to external `apply_url` (existing behavior).
+
+### 12.5 Messaging policy and trust
+- Mark these threads as “External listing chat” in UI.
+- Keep auditable event logs (message created/edited/deleted).
+- Add moderation/report endpoint for abuse.
+- If partner employer is missing, show fallback: “Contact via source site only.”
+
+### 12.6 Rollout plan
+Phase A (fastest):
+- Enable chat only for explicitly mapped partners.
+
+Phase B:
+- Add admin tooling to bulk-map source companies to verified employers.
+
+Phase C:
+- Add SLA metrics (first-response time, unread aging) for partner quality ranking.
+
 Success metrics for first milestone:
 - 2,000+ active jobs
 - <5% duplicate rate
