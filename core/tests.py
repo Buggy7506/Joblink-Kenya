@@ -1111,6 +1111,40 @@ class AggregationCommandTests(SimpleTestCase):
         self.assertIn("remotive (enabled)", output)
         self.assertIn("arbeitnow (disabled)", output)
 
+
+class AggregationCronViewTests(TestCase):
+    def test_cron_endpoint_starts_background_worker_and_returns_accepted(self):
+        from unittest.mock import patch
+        from django.test import override_settings
+
+        url = reverse("run_job_aggregation")
+        with override_settings(CRON_SECRET_KEY="secret"), patch("core.views.cache.add", return_value=True), patch("core.views.threading.Thread") as mock_thread:
+            response = self.client.get(url, {"key": "secret"})
+
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.json()["status"], "job aggregation started")
+        mock_thread.assert_called_once()
+        mock_thread.return_value.start.assert_called_once()
+
+    def test_cron_endpoint_returns_accepted_when_already_running(self):
+        from unittest.mock import patch
+        from django.test import override_settings
+
+        url = reverse("run_job_aggregation")
+        with override_settings(CRON_SECRET_KEY="secret"), patch("core.views.cache.add", return_value=False):
+            response = self.client.get(url, {"key": "secret"})
+
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.json()["status"], "already running")
+
+    def test_cron_endpoint_rejects_invalid_secret(self):
+        from django.test import override_settings
+
+        with override_settings(CRON_SECRET_KEY="expected-secret"):
+            response = self.client.get(reverse("run_job_aggregation"), {"key": "wrong-secret"})
+
+        self.assertEqual(response.status_code, 403)
+
 class JobSuggestionsViewTests(TestCase):
     def test_job_suggestions_loads_and_shows_matching_active_jobs_only(self):
         user_model = get_user_model()

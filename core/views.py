@@ -75,6 +75,7 @@ import os
 import re
 import urllib.parse
 import logging
+import threading
 from pathlib import Path
 from collections import namedtuple
 
@@ -930,6 +931,17 @@ def ping(request):
 
 @csrf_exempt
 @require_http_methods(["GET"])
+def _run_job_aggregation_with_lock(lock_key):
+    try:
+        call_command("run_job_aggregation", limit=500, stale_hours=48)
+    except Exception:
+        logger.exception("Cron job aggregation trigger failed")
+    finally:
+        cache.delete(lock_key)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
 def run_job_aggregation_view(request):
     cron_secret = getattr(settings, "CRON_SECRET_KEY", "")
     request_secret = request.GET.get("key", "")
@@ -946,14 +958,19 @@ def run_job_aggregation_view(request):
         return JsonResponse({"status": "already running"}, status=202)
 
     try:
-        call_command("run_job_aggregation", limit=500, stale_hours=48)
+        thread = threading.Thread(
+            target=_run_job_aggregation_with_lock,
+            args=(lock_key,),
+            name="job-aggregation-cron-trigger",
+            daemon=True,
+        )
+        thread.start()
     except Exception:
-        logger.exception("Cron job aggregation trigger failed")
-        return JsonResponse({"error": "aggregation failed"}, status=500)
-    finally:
         cache.delete(lock_key)
+        logger.exception("Unable to start cron job aggregation worker")
+        return JsonResponse({"error": "aggregation could not be scheduled"}, status=500)
 
-    return JsonResponse({"status": "job aggregation completed"})
+    return JsonResponse({"status": "job aggregation started"}, status=202)
     
 # Privacy Policy page
 def privacy_policy(request):
