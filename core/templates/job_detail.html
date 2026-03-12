@@ -62,7 +62,7 @@
       <p class="job-posted">Posted: {{ job.posted_on|date:"M d, Y" }}</p>
 
       <h2 class="details-heading">Job Description</h2>
-      <div class="job-description">{{ job.description|linebreaks }}</div>
+      <div class="job-description">{{ job.description|striptags|linebreaks }}</div>
 
       <div class="job-actions">
         {% if user.is_authenticated and user.role == "applicant" %}
